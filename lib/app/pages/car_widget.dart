@@ -6,8 +6,7 @@ import 'package:otogapo_core/otogapo_core.dart';
 class CarWidget extends StatelessWidget {
 
   const CarWidget({
-    super.key,
-    required this.state,
+    required this.state, super.key,
   });
   final ProfileState state;
 

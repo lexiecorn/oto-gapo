@@ -12,9 +12,7 @@ import 'package:otogapo/widgets/error_dialog.dart';
 class OtpVerificationScreen extends StatefulWidget {
 
   const OtpVerificationScreen({
-    super.key,
-    required this.phoneNumber,
-    required this.verificationId,
+    required this.phoneNumber, required this.verificationId, super.key,
   });
   final String phoneNumber;
   final String verificationId;

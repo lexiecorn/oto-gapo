@@ -5,9 +5,7 @@ class User {
     required this.phoneNumber,
     required this.name,
     required this.email,
-    this.profilePicture,
-    required this.createdAt,
-    required this.updatedAt,
+    required this.createdAt, required this.updatedAt, this.profilePicture,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {

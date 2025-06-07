@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
-import 'package:otogapo/app/modules/profile/profile_page.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo_core/otogapo_core.dart';
 
