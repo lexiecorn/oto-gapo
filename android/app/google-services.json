@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "833031029708",
+    "project_id": "otogapo-prod",
+    "storage_bucket": "otogapo-prod.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:833031029708:android:a88967e1dc4438202e1369",
+        "android_client_info": {
+          "package_name": "com.digitappstudio.otogapo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHOByf9zSlvlykYyVSgIWTa3BraI1M0AE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
