@@ -147,8 +147,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final bloodType = _bloodTypeController.text.trim();
     final civilStatus = _civilStatusController.text.trim();
     final contactNumber = _contactNumberController.text.trim();
-    final dateOfBirth = _dateOfBirthController.text.trim();
-    final driversLicenseExpirationDate = _driversLicenseExpirationDateController.text.trim();
+    final dateOfBirth = _selectedDateOfBirth;
+    final driversLicenseExpirationDate = _selectedLicenseExpirationDate;
     final driversLicenseNumber = _driversLicenseNumberController.text.trim();
     final driversLicenseRestrictionCode = _driversLicenseRestrictionCodeController.text.trim();
     final emergencyContactName = _emergencyContactNameController.text.trim();
@@ -195,8 +195,9 @@ class _SettingsPageState extends State<SettingsPage> {
         "bloodType": bloodType,
         "civilStatus": civilStatus,
         "contactNumber": contactNumber,
-        "dateOfBirth": dateOfBirth,
-        "driversLicenseExpirationDate": driversLicenseExpirationDate,
+        "dateOfBirth": dateOfBirth != null ? Timestamp.fromDate(dateOfBirth) : null,
+        "driversLicenseExpirationDate":
+            driversLicenseExpirationDate != null ? Timestamp.fromDate(driversLicenseExpirationDate) : null,
         "driversLicenseNumber": driversLicenseNumber,
         "driversLicenseRestrictionCode": driversLicenseRestrictionCode,
         "emergencyContactName": emergencyContactName,
@@ -826,8 +827,14 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
+                if (_vehicleMakes.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Vehicle makes not loaded yet!')),
+                  );
+                  return;
+                }
                 setState(() {
-                  _newFirstNameController.text = 'alexies';
+                  _newFirstNameController.text = 'alexiestester';
                   _newLastNameController.text = 'iglesia';
                   _newEmailController.text = 'alexies.iglesia@example.com';
                   _newPasswordController.text = 'Test@1234';
@@ -838,8 +845,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   _civilStatusController.text = 'Single';
                   _selectedCivilStatus = 'Single';
                   _contactNumberController.text = '09455000923';
-                  _dateOfBirthController.text = '16 September 1999 at 00:00:00 UTC+8';
-                  _driversLicenseExpirationDateController.text = '12 July 2026 at 00:00:00 UTC+8';
+                  _selectedDateOfBirth = DateTime(1999, 9, 16);
+                  _dateOfBirthController.text = '16/9/1999';
+                  _selectedLicenseExpirationDate = DateTime(2026, 7, 12);
+                  _driversLicenseExpirationDateController.text = '12/7/2026';
                   _driversLicenseNumberController.text = '102399328309';
                   _driversLicenseRestrictionCodeController.text = '3';
                   _emergencyContactNameController.text = '09455000923';

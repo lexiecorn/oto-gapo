@@ -58,11 +58,17 @@ abstract class User with _$User {
   factory User.fromJson(Map<String, Object?> json) => _$UserFromJson(json);
 
   factory User.fromDoc(DocumentSnapshot<Object?> userDoc, String uid) {
-    final data = userDoc.data()! as Map<String, dynamic>;
-    // Add the uid to the data
-
-    data['uid'] = uid;
-    return User.fromJson(data);
+    try {
+      final data = userDoc.data()! as Map<String, dynamic>;
+      data['uid'] = uid;
+      return User.fromJson(data);
+    } catch (e, stack) {
+      print('Error in User.fromDoc: $e');
+      print('Stack trace: $stack');
+      print('Document data: ${userDoc.data()}');
+      print('Document ID: ${userDoc.id}');
+      rethrow; // Optionally rethrow to propagate the error
+    }
   }
 
   factory User.empty() => User(
