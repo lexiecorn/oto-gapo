@@ -214,6 +214,7 @@ class _SettingsPageState extends State<SettingsPage> {
         "profile_image": profileImage,
         "religion": religion,
         "spouseContactNumber": spouseContactNumber,
+        "spouseContactNumber": spouseContactNumber,
         "spouseName": spouseName,
         "vehicle": [
           {
@@ -282,41 +283,6 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Duplicate User', style: Theme.of(context).textTheme.titleLarge),
-            TextField(
-              controller: _sourceDocIdController,
-              decoration: const InputDecoration(
-                labelText: 'Source User Document ID',
-                border: OutlineInputBorder(),
-              ),
-              enabled: false,
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _docIdController,
-              decoration: const InputDecoration(
-                labelText: 'Custom Document ID',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _duplicateUser,
-                child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Duplicate User'),
-              ),
-            ),
-            if (_message != null) ...[
-              const SizedBox(height: 20),
-              Text(
-                _message!,
-                style: TextStyle(
-                  color: _message!.startsWith('Error') ? Colors.red : Colors.green,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
             const Divider(height: 40),
             Text('Create New User', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 20),
@@ -836,8 +802,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 setState(() {
                   _newFirstNameController.text = 'alexiestester';
                   _newLastNameController.text = 'iglesia';
-                  _newEmailController.text = 'alexies.iglesia@example.com';
-                  _newPasswordController.text = 'Test@1234';
+                  _newEmailController.text = 'test${DateTime.now().millisecondsSinceEpoch}@gmail.com';
+                  _newPasswordController.text = '123456';
                   _ageController.text = '33';
                   _birthplaceController.text = 'philippines';
                   _bloodTypeController.text = 'O+';
