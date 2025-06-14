@@ -747,13 +747,28 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
             const SizedBox(height: 10),
-            VehicleSelector(
-              makes: _vehicleMakes,
-              onSelected: (make) {
+            DropdownButtonFormField<String>(
+              value: _selectedVehicleMake,
+              items: _vehicleMakes
+                  .map((make) => DropdownMenuItem(
+                        value: make,
+                        child: Text(make),
+                      ))
+                  .toList(),
+              onChanged: (value) {
                 setState(() {
-                  _selectedVehicleMake = make;
+                  _selectedVehicleMake = value;
                 });
               },
+              decoration: const InputDecoration(
+                labelText: 'Vehicle Make',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _vehicleModelController,
+              decoration: const InputDecoration(labelText: 'Vehicle Model', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 10),
             TextField(
@@ -809,6 +824,54 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
             const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _newFirstNameController.text = 'alexies';
+                  _newLastNameController.text = 'iglesia';
+                  _newEmailController.text = 'alexies.iglesia@example.com';
+                  _newPasswordController.text = 'Test@1234';
+                  _ageController.text = '33';
+                  _birthplaceController.text = 'philippines';
+                  _bloodTypeController.text = 'O+';
+                  _selectedBloodType = 'O+';
+                  _civilStatusController.text = 'Single';
+                  _selectedCivilStatus = 'Single';
+                  _contactNumberController.text = '09455000923';
+                  _dateOfBirthController.text = '16 September 1999 at 00:00:00 UTC+8';
+                  _driversLicenseExpirationDateController.text = '12 July 2026 at 00:00:00 UTC+8';
+                  _driversLicenseNumberController.text = '102399328309';
+                  _driversLicenseRestrictionCodeController.text = '3';
+                  _emergencyContactNameController.text = '09455000923';
+                  _emergencyContactNumberController.text = '09455000923';
+                  _isActive = true;
+                  _isAdmin = true;
+                  _memberNumberController.text = '31';
+                  _membershipTypeController.text = '3';
+                  _middleNameController.text = 'maguale';
+                  _nationalityController.text = 'filipino';
+                  _profileImageController.text =
+                      'gs://otogapo-dev.appspot.com/users/TS4E73z29qdpfsyBiBsxnBN10I43/images/profile.png';
+                  _religionController.text = 'christian';
+                  _spouseContactNumberController.text = '09455000923';
+                  _spouseNameController.text = 'charity';
+                  _vehicleColorController.text = 'white';
+                  _selectedVehicleColor = Colors.white;
+                  _selectedVehicleMake = _vehicleMakes.contains('toyota')
+                      ? 'toyota'
+                      : (_vehicleMakes.isNotEmpty ? _vehicleMakes.first : null);
+                  _vehicleModelController.text = 'yaris';
+                  _vehiclePhotosController.text =
+                      'https://imageio.forbes.com/specials-images/imageserve/5d35eacaf1176b0008974b54/2020-Chevrolet-Corvette-Stingray/0x0.jpg, https://imageio.forbes.com/specials-images/imageserve/5d37033a95e0230008f64eb2/2020-Aston-Martin-Rapide-E/0x0.jpg';
+                  _vehiclePlateNumberController.text = 'gac9396';
+                  _vehiclePrimaryPhotoController.text =
+                      'https://www.manilarenatacars.com/wp-content/uploads/2019/12/toyota-yaris.jpg';
+                  _vehicleTypeController.text = 'sedan';
+                  _selectedVehicleYear = 2017;
+                });
+              },
+              child: const Text('Test (Auto-fill All Fields)'),
+            ),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -852,6 +915,8 @@ class _VehicleSelectorState extends State<VehicleSelector> {
   bool _loadingMakes = true;
   bool _loadingModels = false;
 
+  final TextEditingController _makeController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -885,6 +950,22 @@ class _VehicleSelectorState extends State<VehicleSelector> {
     });
   }
 
+  void fillTestData() async {
+    // Example: Use "Toyota" and its first model as test data
+    final testMake = "Toyota";
+    setState(() {
+      _selectedMake = testMake;
+      _makeController.text = testMake;
+      _loadingModels = true;
+    });
+    await fetchModels(testMake);
+    if (_models.isNotEmpty) {
+      setState(() {
+        _selectedModel = _models.first;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -903,12 +984,14 @@ class _VehicleSelectorState extends State<VehicleSelector> {
                 onSelected: (make) {
                   setState(() {
                     _selectedMake = make;
+                    _makeController.text = make;
                   });
                   fetchModels(make);
                 },
                 fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
+                  _makeController.value = controller.value;
                   return TextField(
-                    controller: controller,
+                    controller: _makeController,
                     focusNode: focusNode,
                     decoration: InputDecoration(
                       labelText: 'Search Vehicle Make',
@@ -939,6 +1022,11 @@ class _VehicleSelectorState extends State<VehicleSelector> {
                     border: OutlineInputBorder(),
                   ),
                 ),
+        const SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: fillTestData,
+          child: Text('Test (Auto-fill)'),
+        ),
         if (_selectedMake != null && _selectedModel != null)
           Padding(
             padding: const EdgeInsets.only(top: 20),
