@@ -3,6 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:flutter/services.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -26,15 +30,21 @@ class _SettingsPageState extends State<SettingsPage> {
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _birthplaceController = TextEditingController();
   final TextEditingController _bloodTypeController = TextEditingController();
+  String? _selectedBloodType;
+  String? _selectedCivilStatus;
   final TextEditingController _civilStatusController = TextEditingController();
   final TextEditingController _contactNumberController = TextEditingController();
   final TextEditingController _dateOfBirthController = TextEditingController();
+  DateTime? _selectedDateOfBirth;
   final TextEditingController _driversLicenseExpirationDateController = TextEditingController();
+  DateTime? _selectedLicenseExpirationDate;
   final TextEditingController _driversLicenseNumberController = TextEditingController();
   final TextEditingController _driversLicenseRestrictionCodeController = TextEditingController();
   final TextEditingController _emergencyContactNameController = TextEditingController();
   final TextEditingController _emergencyContactNumberController = TextEditingController();
   final TextEditingController _isActiveController = TextEditingController();
+  bool _isActive = true;
+  bool _isAdmin = false;
   final TextEditingController _isAdminController = TextEditingController();
   final TextEditingController _memberNumberController = TextEditingController();
   final TextEditingController _membershipTypeController = TextEditingController();
@@ -56,6 +66,7 @@ class _SettingsPageState extends State<SettingsPage> {
   String? _createUserMessage;
   List<String> _vehicleMakes = [];
   String? _selectedVehicleMake;
+  Color _selectedVehicleColor = Colors.black;
 
   @override
   void initState() {
@@ -65,29 +76,31 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _fetchVehicleMakes() async {
     try {
-      final doc = await FirebaseFirestore.instance.collection('app_data').doc('vehicle_make').get();
-      final data = doc.data();
-      if (data != null && data['data'] is List) {
-        setState(() {
-          _vehicleMakes = (data['data'] as List<dynamic>).map((e) => e.toString()).toList();
-        });
-      } else if (data != null && data['data'] is String) {
-        // If stored as a comma-separated string
-        setState(() {
-          _vehicleMakes = (data['data'] as String).split(',').map((e) => e.trim().replaceAll("'", "")).toList();
-        });
-      } else {
-        setState(() {
-          _vehicleMakes = [];
-          _message = 'No vehicle makes data found';
-        });
-      }
+      final response = await http.get(Uri.parse('https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json'));
+      final data = json.decode(response.body);
+      final results = data['Results'] as List;
+      final makes = results.map((e) => e['Make_Name'].toString()).toList();
+      setState(() {
+        _vehicleMakes = makes;
+        if (!_vehicleMakes.contains(_selectedVehicleMake)) {
+          _selectedVehicleMake = null;
+        }
+      });
     } catch (e) {
       setState(() {
         _vehicleMakes = [];
+        _selectedVehicleMake = null;
         _message = 'Error fetching vehicle makes: $e';
       });
     }
+  }
+
+  Future<List<String>> fetchModelsForMake(String make) async {
+    final response =
+        await http.get(Uri.parse('https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/$make?format=json'));
+    final data = json.decode(response.body);
+    final results = data['Results'] as List;
+    return results.map((e) => e['Model_Name'].toString()).toList();
   }
 
   Future<void> _duplicateUser() async {
@@ -140,8 +153,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final driversLicenseRestrictionCode = _driversLicenseRestrictionCodeController.text.trim();
     final emergencyContactName = _emergencyContactNameController.text.trim();
     final emergencyContactNumber = _emergencyContactNumberController.text.trim();
-    final isActive = _isActiveController.text.trim().toLowerCase() == 'true';
-    final isAdmin = _isAdminController.text.trim().toLowerCase() == 'true';
+    final isActive = _isActive;
+    final isAdmin = _isAdmin;
     final memberNumber = _memberNumberController.text.trim();
     final membershipType = int.tryParse(_membershipTypeController.text.trim()) ?? 3;
     final middleName = _middleNameController.text.trim();
@@ -343,7 +356,32 @@ class _SettingsPageState extends State<SettingsPage> {
             // Additional fields
             TextField(
               controller: _ageController,
-              decoration: const InputDecoration(labelText: 'Age', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: 'Age',
+                border: OutlineInputBorder(),
+                suffixText: 'years',
+                hintText: 'Enter age (1-120)',
+              ),
+              keyboardType: TextInputType.number,
+              maxLength: 3,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+              onChanged: (value) {
+                if (value.isNotEmpty) {
+                  final age = int.tryParse(value);
+                  if (age != null && (age < 1 || age > 120)) {
+                    _ageController.text = value.substring(0, value.length - 1);
+                  }
+                }
+              },
+              buildCounter: (BuildContext context,
+                  {required int currentLength, required bool isFocused, required int? maxLength}) {
+                return Text(
+                  '$currentLength/$maxLength',
+                  style: Theme.of(context).textTheme.bodySmall,
+                );
+              },
             ),
             const SizedBox(height: 20),
             TextField(
@@ -351,35 +389,144 @@ class _SettingsPageState extends State<SettingsPage> {
               decoration: const InputDecoration(labelText: 'Birthplace', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 20),
-            TextField(
-              controller: _bloodTypeController,
-              decoration: const InputDecoration(labelText: 'Blood Type', border: OutlineInputBorder()),
+            DropdownButtonFormField<String>(
+              value: _selectedBloodType,
+              decoration: const InputDecoration(
+                labelText: 'Blood Type',
+                border: OutlineInputBorder(),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'A+', child: Text('A+')),
+                DropdownMenuItem(value: 'A-', child: Text('A-')),
+                DropdownMenuItem(value: 'B+', child: Text('B+')),
+                DropdownMenuItem(value: 'B-', child: Text('B-')),
+                DropdownMenuItem(value: 'AB+', child: Text('AB+')),
+                DropdownMenuItem(value: 'AB-', child: Text('AB-')),
+                DropdownMenuItem(value: 'O+', child: Text('O+')),
+                DropdownMenuItem(value: 'O-', child: Text('O-')),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedBloodType = value;
+                  _bloodTypeController.text = value ?? '';
+                });
+              },
             ),
             const SizedBox(height: 20),
-            TextField(
-              controller: _civilStatusController,
-              decoration: const InputDecoration(labelText: 'Civil Status', border: OutlineInputBorder()),
+            DropdownButtonFormField<String>(
+              value: _selectedCivilStatus,
+              decoration: const InputDecoration(
+                labelText: 'Civil Status',
+                border: OutlineInputBorder(),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'Single', child: Text('Single')),
+                DropdownMenuItem(value: 'Married', child: Text('Married')),
+                DropdownMenuItem(value: 'Widowed', child: Text('Widowed')),
+                DropdownMenuItem(value: 'Separated', child: Text('Separated')),
+                DropdownMenuItem(value: 'Divorced', child: Text('Divorced')),
+                DropdownMenuItem(value: 'Annulled', child: Text('Annulled')),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedCivilStatus = value;
+                  _civilStatusController.text = value ?? '';
+                });
+              },
             ),
             const SizedBox(height: 20),
             TextField(
               controller: _contactNumberController,
-              decoration: const InputDecoration(labelText: 'Contact Number', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: 'Contact Number',
+                border: OutlineInputBorder(),
+                prefixText: '+63 ',
+                hintText: '9XX XXX XXXX',
+              ),
+              keyboardType: TextInputType.phone,
+              maxLength: 10,
+              buildCounter: (BuildContext context,
+                  {required int currentLength, required bool isFocused, required int? maxLength}) {
+                return Text(
+                  '$currentLength/$maxLength',
+                  style: Theme.of(context).textTheme.bodySmall,
+                );
+              },
             ),
             const SizedBox(height: 20),
-            TextField(
-              controller: _dateOfBirthController,
-              decoration: const InputDecoration(labelText: 'Date of Birth', border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _driversLicenseExpirationDateController,
-              decoration:
-                  const InputDecoration(labelText: 'Driver License Expiration Date', border: OutlineInputBorder()),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _selectedDateOfBirth != null
+                        ? 'Date of Birth: ${_selectedDateOfBirth!.day}/${_selectedDateOfBirth!.month}/${_selectedDateOfBirth!.year}'
+                        : 'Select Date of Birth',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final now = DateTime.now();
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDateOfBirth ?? DateTime(now.year - 18),
+                      firstDate: DateTime(1900),
+                      lastDate: DateTime(now.year),
+                      helpText: 'Select Date of Birth',
+                      fieldLabelText: 'Date of Birth',
+                      fieldHintText: 'Date',
+                      initialEntryMode: DatePickerEntryMode.calendar,
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _selectedDateOfBirth = picked;
+                        _dateOfBirthController.text = '${picked.day}/${picked.month}/${picked.year}';
+                      });
+                    }
+                  },
+                  child: const Text('Pick Date'),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             TextField(
               controller: _driversLicenseNumberController,
               decoration: const InputDecoration(labelText: 'Driver License Number', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _selectedLicenseExpirationDate != null
+                        ? 'License Expiration: ${_selectedLicenseExpirationDate!.day}/${_selectedLicenseExpirationDate!.month}/${_selectedLicenseExpirationDate!.year}'
+                        : 'Select License Expiration Date',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final now = DateTime.now();
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedLicenseExpirationDate ?? DateTime(now.year + 1),
+                      firstDate: DateTime(now.year),
+                      lastDate: DateTime(now.year + 10),
+                      helpText: 'Select License Expiration Date',
+                      fieldLabelText: 'License Expiration Date',
+                      fieldHintText: 'Date',
+                      initialEntryMode: DatePickerEntryMode.calendar,
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _selectedLicenseExpirationDate = picked;
+                        _driversLicenseExpirationDateController.text = '${picked.day}/${picked.month}/${picked.year}';
+                      });
+                    }
+                  },
+                  child: const Text('Pick Date'),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             TextField(
@@ -395,22 +542,81 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 20),
             TextField(
               controller: _emergencyContactNumberController,
-              decoration: const InputDecoration(labelText: 'Emergency Contact Number', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: 'Emergency Contact Number',
+                border: OutlineInputBorder(),
+                prefixText: '+63 ',
+                hintText: '9XX XXX XXXX',
+              ),
+              keyboardType: TextInputType.phone,
+              maxLength: 10,
+              buildCounter: (BuildContext context,
+                  {required int currentLength, required bool isFocused, required int? maxLength}) {
+                return Text(
+                  '$currentLength/$maxLength',
+                  style: Theme.of(context).textTheme.bodySmall,
+                );
+              },
             ),
             const SizedBox(height: 20),
-            TextField(
-              controller: _isActiveController,
-              decoration: const InputDecoration(labelText: 'Is Active (true/false)', border: OutlineInputBorder()),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Is Active',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+                Switch(
+                  value: _isActive,
+                  onChanged: (bool value) {
+                    setState(() {
+                      _isActive = value;
+                      _isActiveController.text = value.toString();
+                    });
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 20),
-            TextField(
-              controller: _isAdminController,
-              decoration: const InputDecoration(labelText: 'Is Admin (true/false)', border: OutlineInputBorder()),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Is Admin',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+                Switch(
+                  value: _isAdmin,
+                  onChanged: (bool value) {
+                    setState(() {
+                      _isAdmin = value;
+                      _isAdminController.text = value.toString();
+                    });
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             TextField(
               controller: _memberNumberController,
-              decoration: const InputDecoration(labelText: 'Member Number', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: 'Member Number',
+                border: OutlineInputBorder(),
+                hintText: 'Enter member number',
+              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+              buildCounter: (BuildContext context,
+                  {required int currentLength, required bool isFocused, required int? maxLength}) {
+                return Text(
+                  '$currentLength digits',
+                  style: Theme.of(context).textTheme.bodySmall,
+                );
+              },
             ),
             const SizedBox(height: 20),
             TextField(
@@ -439,45 +645,115 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 20),
             TextField(
-              controller: _spouseContactNumberController,
-              decoration: const InputDecoration(labelText: 'Spouse Contact Number', border: OutlineInputBorder()),
+              controller: _spouseNameController,
+              decoration: const InputDecoration(labelText: 'Spouse Name', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 20),
             TextField(
-              controller: _spouseNameController,
-              decoration: const InputDecoration(labelText: 'Spouse Name', border: OutlineInputBorder()),
+              controller: _spouseContactNumberController,
+              decoration: const InputDecoration(
+                labelText: 'Spouse Contact Number',
+                border: OutlineInputBorder(),
+                prefixText: '+63 ',
+                hintText: '9XX XXX XXXX',
+              ),
+              keyboardType: TextInputType.phone,
+              maxLength: 10,
+              buildCounter: (BuildContext context,
+                  {required int currentLength, required bool isFocused, required int? maxLength}) {
+                return Text(
+                  '$currentLength/$maxLength',
+                  style: Theme.of(context).textTheme.bodySmall,
+                );
+              },
             ),
             const SizedBox(height: 20),
             // Vehicle fields
             Text('Vehicle Details', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 10),
-            TextField(
-              controller: _vehicleColorController,
-              decoration: const InputDecoration(labelText: 'Vehicle Color', border: OutlineInputBorder()),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _vehicleColorController,
+                    decoration: const InputDecoration(
+                      labelText: 'Vehicle Color (Hex)',
+                      border: OutlineInputBorder(),
+                      prefixText: '#',
+                      hintText: 'FF0000',
+                    ),
+                    onChanged: (value) {
+                      if (value.length == 6) {
+                        try {
+                          final color = Color(int.parse('FF${value.toUpperCase()}', radix: 16));
+                          setState(() {
+                            _selectedVehicleColor = color;
+                          });
+                        } catch (e) {
+                          // Invalid hex value, ignore
+                        }
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: _selectedVehicleColor,
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Pick a color'),
+                          content: SingleChildScrollView(
+                            child: ColorPicker(
+                              pickerColor: _selectedVehicleColor,
+                              onColorChanged: (Color color) {
+                                setState(() {
+                                  _selectedVehicleColor = color;
+                                  _vehicleColorController.text =
+                                      color.value.toRadixString(16).padLeft(8, '0').substring(2);
+                                });
+                              },
+                              pickerAreaHeightPercent: 0.8,
+                              enableAlpha: false,
+                              labelTypes: const [],
+                              displayThumbColor: true,
+                            ),
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              child: const Text('Done'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: const Text('Pick Color'),
+                ),
+              ],
             ),
             const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              value: _selectedVehicleMake,
-              items: _vehicleMakes
-                  .map((make) => DropdownMenuItem(
-                        value: make,
-                        child: Text(make),
-                      ))
-                  .toList(),
-              onChanged: (value) {
+            VehicleSelector(
+              makes: _vehicleMakes,
+              onSelected: (make) {
                 setState(() {
-                  _selectedVehicleMake = value;
+                  _selectedVehicleMake = make;
                 });
               },
-              decoration: const InputDecoration(
-                labelText: 'Vehicle Make',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _vehicleModelController,
-              decoration: const InputDecoration(labelText: 'Vehicle Model', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 10),
             TextField(
@@ -554,6 +830,121 @@ class _SettingsPageState extends State<SettingsPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class VehicleSelector extends StatefulWidget {
+  final List<String> makes;
+  final void Function(String) onSelected;
+
+  const VehicleSelector({required this.makes, required this.onSelected, Key? key}) : super(key: key);
+
+  @override
+  _VehicleSelectorState createState() => _VehicleSelectorState();
+}
+
+class _VehicleSelectorState extends State<VehicleSelector> {
+  List<String> _makes = [];
+  List<String> _models = [];
+  String? _selectedMake;
+  String? _selectedModel;
+  bool _loadingMakes = true;
+  bool _loadingModels = false;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchMakes();
+  }
+
+  Future<void> fetchMakes() async {
+    setState(() => _loadingMakes = true);
+    final response = await http.get(Uri.parse('https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json'));
+    final data = json.decode(response.body);
+    final results = data['Results'] as List;
+    setState(() {
+      _makes = results.map((e) => e['Make_Name'].toString()).toList();
+      _loadingMakes = false;
+    });
+  }
+
+  Future<void> fetchModels(String make) async {
+    setState(() {
+      _loadingModels = true;
+      _models = [];
+      _selectedModel = null;
+    });
+    final response =
+        await http.get(Uri.parse('https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/$make?format=json'));
+    final data = json.decode(response.body);
+    final results = data['Results'] as List;
+    setState(() {
+      _models = results.map((e) => e['Model_Name'].toString()).toSet().toList(); // remove duplicates
+      _loadingModels = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _loadingMakes
+            ? CircularProgressIndicator()
+            : Autocomplete<String>(
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  if (textEditingValue.text == '') {
+                    return const Iterable<String>.empty();
+                  }
+                  return widget.makes.where((String option) {
+                    return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+                  });
+                },
+                onSelected: (make) {
+                  setState(() {
+                    _selectedMake = make;
+                  });
+                  fetchModels(make);
+                },
+                fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
+                  return TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    decoration: InputDecoration(
+                      labelText: 'Search Vehicle Make',
+                      border: OutlineInputBorder(),
+                    ),
+                  );
+                },
+              ),
+        const SizedBox(height: 20),
+        if (_selectedMake != null)
+          _loadingModels
+              ? CircularProgressIndicator()
+              : DropdownButtonFormField<String>(
+                  value: _selectedModel,
+                  items: _models
+                      .map((model) => DropdownMenuItem(
+                            value: model,
+                            child: Text(model),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedModel = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Select Model',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+        if (_selectedMake != null && _selectedModel != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: Text('Selected: $_selectedMake $_selectedModel'),
+          ),
+      ],
     );
   }
 }
