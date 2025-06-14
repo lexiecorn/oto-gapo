@@ -6,12 +6,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/app.dart';
+import 'package:otogapo/app/core/logging.dart';
 import 'package:otogapo/bootstrap.dart';
 import 'package:otogapo/firebase_options_dev.dart';
 
 Future<void> main() async {
   await runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // Initialize logging configuration
+    AppLogging.init();
+
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );

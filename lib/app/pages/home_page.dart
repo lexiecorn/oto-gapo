@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/profile_page.dart';
 import 'package:otogapo/app/pages/home_body.dart';
+import 'package:otogapo/app/pages/settings_page.dart';
 
 @RoutePage(
   name: 'HomePageRouter',
@@ -31,10 +32,7 @@ class HomePageState extends State<HomePage> {
       'Index 1: Business',
       style: optionStyle,
     ),
-    const Text(
-      'Index 3: Settings',
-      style: optionStyle,
-    ),
+    SettingsPage(),
   ];
 
   void _onItemTapped(int index) {

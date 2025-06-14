@@ -68,8 +68,8 @@ class SigninPageState extends State<SigninPage> {
           if (context.mounted) {
             await errorDialog(
               context,
-              'Google Sign-In Error',
-              'Failed to retrieve ID token from Google.',
+              'Sign-in Failed',
+              'We couldn\'t verify your Google account. Please try again. If the problem continues, check your internet connection or try a different account.',
               'Missing ID Token',
             );
           }
@@ -125,10 +125,11 @@ class SigninPageState extends State<SigninPage> {
               // backgroundColor: Colors.white,
               backgroundColor: Colors.black,
               appBar: AppBar(
-                  backgroundColor: Colors.black,
-                  // arrow back
-                  centerTitle: true,
-                  leading: const SizedBox.shrink(),),
+                backgroundColor: Colors.black,
+                // arrow back
+                centerTitle: true,
+                leading: const SizedBox.shrink(),
+              ),
               body: Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30),
