@@ -7,6 +7,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:math';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -66,6 +67,14 @@ class _SettingsPageState extends State<SettingsPage> {
   String? _createUserMessage;
   List<String> _vehicleMakes = [];
   String? _selectedVehicleMake;
+  List<String> _vehicleModels = [];
+  String? _selectedVehicleModel;
+  bool _isLoadingVehicleModels = false;
+  bool _isLoadingVehicleMakes = false;
+  bool _showSuggestions = false;
+  bool _showManualModelEntry = false;
+  final TextEditingController _vehicleMakeController = TextEditingController();
+  final FocusNode _vehicleMakeFocusNode = FocusNode();
   Color _selectedVehicleColor = Colors.black;
 
   @override
@@ -74,23 +83,133 @@ class _SettingsPageState extends State<SettingsPage> {
     _fetchVehicleMakes();
   }
 
+  @override
+  void dispose() {
+    _vehicleMakeController.dispose();
+    _vehicleMakeFocusNode.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetchVehicleMakes() async {
+    setState(() {
+      _isLoadingVehicleMakes = true;
+    });
+
     try {
       final response = await http.get(Uri.parse('https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json'));
-      final data = json.decode(response.body);
-      final results = data['Results'] as List;
-      final makes = results.map((e) => e['Make_Name'].toString()).toList();
-      setState(() {
-        _vehicleMakes = makes;
-        if (!_vehicleMakes.contains(_selectedVehicleMake)) {
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final results = data['Results'] as List;
+        final makes = results.map((e) => e['Make_Name'].toString()).toList();
+
+        setState(() {
+          _vehicleMakes = makes;
+          _isLoadingVehicleMakes = false;
+          if (!_vehicleMakes.contains(_selectedVehicleMake)) {
+            _selectedVehicleMake = null;
+          }
+        });
+      } else {
+        // Fallback to common makes if API fails
+        final fallbackMakes = [
+          'Toyota',
+          'Honda',
+          'Ford',
+          'Chevrolet',
+          'Nissan',
+          'BMW',
+          'Mercedes-Benz',
+          'Audi',
+          'Volkswagen',
+          'Hyundai',
+          'Kia',
+          'Mazda',
+          'Subaru',
+          'Lexus',
+          'Acura',
+          'Infiniti',
+          'Buick',
+          'Cadillac',
+          'Chrysler',
+          'Dodge',
+          'Jeep',
+          'Ram',
+          'GMC',
+          'Lincoln',
+          'Porsche',
+          'Volvo',
+          'Jaguar',
+          'Land Rover',
+          'Mini',
+          'Fiat',
+          'Alfa Romeo',
+          'Maserati',
+          'Ferrari',
+          'Lamborghini',
+          'McLaren',
+          'Bentley',
+          'Rolls-Royce',
+          'Aston Martin',
+          'Lotus',
+          'Tesla'
+        ];
+        setState(() {
+          _vehicleMakes = fallbackMakes;
           _selectedVehicleMake = null;
-        }
-      });
+          _isLoadingVehicleMakes = false;
+          _message = 'Using fallback vehicle makes (API error: HTTP ${response.statusCode})';
+        });
+      }
     } catch (e) {
+      // Fallback to common makes if API fails
+      final fallbackMakes = [
+        'Toyota',
+        'Honda',
+        'Ford',
+        'Chevrolet',
+        'Nissan',
+        'BMW',
+        'Mercedes-Benz',
+        'Audi',
+        'Volkswagen',
+        'Hyundai',
+        'Kia',
+        'Mazda',
+        'Subaru',
+        'Lexus',
+        'Acura',
+        'Infiniti',
+        'Buick',
+        'Cadillac',
+        'Chrysler',
+        'Dodge',
+        'Jeep',
+        'Ram',
+        'GMC',
+        'Lincoln',
+        'Porsche',
+        'Volvo',
+        'Jaguar',
+        'Land Rover',
+        'Mini',
+        'Fiat',
+        'Alfa Romeo',
+        'Maserati',
+        'Ferrari',
+        'Lamborghini',
+        'McLaren',
+        'Bentley',
+        'Rolls-Royce',
+        'Aston Martin',
+        'Lotus',
+        'Tesla'
+      ];
       setState(() {
-        _vehicleMakes = [];
+        _vehicleMakes = fallbackMakes;
         _selectedVehicleMake = null;
-        _message = 'Error fetching vehicle makes: $e';
+        _isLoadingVehicleMakes = false;
+        _message = 'Using fallback vehicle makes (Network error: $e)';
       });
     }
   }
@@ -101,6 +220,39 @@ class _SettingsPageState extends State<SettingsPage> {
     final data = json.decode(response.body);
     final results = data['Results'] as List;
     return results.map((e) => e['Model_Name'].toString()).toList();
+  }
+
+  Future<void> _onVehicleMakeChanged(String? make) async {
+    setState(() {
+      _selectedVehicleMake = make;
+      _selectedVehicleModel = null;
+      _vehicleModels = [];
+      _isLoadingVehicleModels = make != null;
+      _showSuggestions = false;
+      _showManualModelEntry = false;
+    });
+
+    // Update the text controller
+    _vehicleMakeController.text = make ?? '';
+
+    // Remove focus to close keyboard
+    _vehicleMakeFocusNode.unfocus();
+
+    if (make != null) {
+      try {
+        final models = await fetchModelsForMake(make);
+        setState(() {
+          _vehicleModels = models;
+          _isLoadingVehicleModels = false;
+        });
+      } catch (e) {
+        setState(() {
+          _vehicleModels = [];
+          _isLoadingVehicleModels = false;
+          _message = 'Error fetching vehicle models: $e';
+        });
+      }
+    }
   }
 
   Future<void> _duplicateUser() async {
@@ -136,6 +288,12 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  String _generateRandomString(int length) {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    final random = Random();
+    return String.fromCharCodes(Iterable.generate(length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+  }
+
   Future<void> _createUser() async {
     final email = _newEmailController.text.trim();
     final password = _newPasswordController.text.trim();
@@ -165,7 +323,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final spouseName = _spouseNameController.text.trim();
     // Vehicle fields
     final vehicleColor = _vehicleColorController.text.trim();
-    final vehicleModel = _vehicleModelController.text.trim();
+    final vehicleModel =
+        _selectedVehicleModel == 'custom' ? _vehicleModelController.text.trim() : (_selectedVehicleModel ?? '');
     final vehiclePhotos =
         _vehiclePhotosController.text.trim().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
     final vehiclePlateNumber = _vehiclePlateNumberController.text.trim();
@@ -321,85 +480,95 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 20),
             // Additional fields
-            TextField(
-              controller: _ageController,
-              decoration: const InputDecoration(
-                labelText: 'Age',
-                border: OutlineInputBorder(),
-                suffixText: 'years',
-                hintText: 'Enter age (1-120)',
-              ),
-              keyboardType: TextInputType.number,
-              maxLength: 3,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _ageController,
+                    decoration: const InputDecoration(
+                      labelText: 'Age',
+                      border: OutlineInputBorder(),
+                      suffixText: 'years',
+                      hintText: 'Enter age (1-120)',
+                    ),
+                    keyboardType: TextInputType.number,
+                    // maxLength: 3,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    onChanged: (value) {
+                      if (value.isNotEmpty) {
+                        final age = int.tryParse(value);
+                        if (age != null && (age < 1 || age > 120)) {
+                          _ageController.text = value.substring(0, value.length - 1);
+                        }
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextField(
+                    controller: _birthplaceController,
+                    decoration: const InputDecoration(labelText: 'Birthplace', border: OutlineInputBorder()),
+                  ),
+                ),
               ],
-              onChanged: (value) {
-                if (value.isNotEmpty) {
-                  final age = int.tryParse(value);
-                  if (age != null && (age < 1 || age > 120)) {
-                    _ageController.text = value.substring(0, value.length - 1);
-                  }
-                }
-              },
-              buildCounter: (BuildContext context,
-                  {required int currentLength, required bool isFocused, required int? maxLength}) {
-                return Text(
-                  '$currentLength/$maxLength',
-                  style: Theme.of(context).textTheme.bodySmall,
-                );
-              },
             ),
             const SizedBox(height: 20),
-            TextField(
-              controller: _birthplaceController,
-              decoration: const InputDecoration(labelText: 'Birthplace', border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 20),
-            DropdownButtonFormField<String>(
-              value: _selectedBloodType,
-              decoration: const InputDecoration(
-                labelText: 'Blood Type',
-                border: OutlineInputBorder(),
-              ),
-              items: const [
-                DropdownMenuItem(value: 'A+', child: Text('A+')),
-                DropdownMenuItem(value: 'A-', child: Text('A-')),
-                DropdownMenuItem(value: 'B+', child: Text('B+')),
-                DropdownMenuItem(value: 'B-', child: Text('B-')),
-                DropdownMenuItem(value: 'AB+', child: Text('AB+')),
-                DropdownMenuItem(value: 'AB-', child: Text('AB-')),
-                DropdownMenuItem(value: 'O+', child: Text('O+')),
-                DropdownMenuItem(value: 'O-', child: Text('O-')),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedBloodType,
+                    decoration: const InputDecoration(
+                      labelText: 'Blood Type',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'A+', child: Text('A+')),
+                      DropdownMenuItem(value: 'A-', child: Text('A-')),
+                      DropdownMenuItem(value: 'B+', child: Text('B+')),
+                      DropdownMenuItem(value: 'B-', child: Text('B-')),
+                      DropdownMenuItem(value: 'AB+', child: Text('AB+')),
+                      DropdownMenuItem(value: 'AB-', child: Text('AB-')),
+                      DropdownMenuItem(value: 'O+', child: Text('O+')),
+                      DropdownMenuItem(value: 'O-', child: Text('O-')),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedBloodType = value;
+                        _bloodTypeController.text = value ?? '';
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedCivilStatus,
+                    decoration: const InputDecoration(
+                      labelText: 'Civil Status',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'Single', child: Text('Single')),
+                      DropdownMenuItem(value: 'Married', child: Text('Married')),
+                      DropdownMenuItem(value: 'Widowed', child: Text('Widowed')),
+                      DropdownMenuItem(value: 'Separated', child: Text('Separated')),
+                      DropdownMenuItem(value: 'Divorced', child: Text('Divorced')),
+                      DropdownMenuItem(value: 'Annulled', child: Text('Annulled')),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedCivilStatus = value;
+                        _civilStatusController.text = value ?? '';
+                      });
+                    },
+                  ),
+                ),
               ],
-              onChanged: (value) {
-                setState(() {
-                  _selectedBloodType = value;
-                  _bloodTypeController.text = value ?? '';
-                });
-              },
-            ),
-            const SizedBox(height: 20),
-            DropdownButtonFormField<String>(
-              value: _selectedCivilStatus,
-              decoration: const InputDecoration(
-                labelText: 'Civil Status',
-                border: OutlineInputBorder(),
-              ),
-              items: const [
-                DropdownMenuItem(value: 'Single', child: Text('Single')),
-                DropdownMenuItem(value: 'Married', child: Text('Married')),
-                DropdownMenuItem(value: 'Widowed', child: Text('Widowed')),
-                DropdownMenuItem(value: 'Separated', child: Text('Separated')),
-                DropdownMenuItem(value: 'Divorced', child: Text('Divorced')),
-                DropdownMenuItem(value: 'Annulled', child: Text('Annulled')),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _selectedCivilStatus = value;
-                  _civilStatusController.text = value ?? '';
-                });
-              },
             ),
             const SizedBox(height: 20),
             TextField(
@@ -713,30 +882,211 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ],
             ),
+            if (_isLoadingVehicleMakes)
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 8),
+                    Text('Loading vehicle makes...'),
+                  ],
+                ),
+              ),
+            if (_vehicleMakes.isEmpty && !_isLoadingVehicleMakes)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning, color: Colors.orange, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Vehicle makes not loaded. Please check your internet connection.',
+                        style: TextStyle(color: Colors.orange[700]),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _fetchVehicleMakes,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            if (_message != null && _message!.contains('fallback'))
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info, color: Colors.blue, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _message!,
+                        style: TextStyle(color: Colors.blue[700]),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _fetchVehicleMakes,
+                      child: const Text('Refresh'),
+                    ),
+                  ],
+                ),
+              ),
+            if (_vehicleMakes.isNotEmpty)
+              Text(
+                'Available vehicle makes: ${_vehicleMakes.length}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+              ),
             const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              value: _selectedVehicleMake,
-              items: _vehicleMakes
-                  .map((make) => DropdownMenuItem(
-                        value: make,
-                        child: Text(make),
-                      ))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedVehicleMake = value;
-                });
+            GestureDetector(
+              onTap: () {
+                // Close suggestions when clicking outside
+                if (_showSuggestions) {
+                  setState(() {
+                    _showSuggestions = false;
+                  });
+                  _vehicleMakeFocusNode.unfocus();
+                }
               },
-              decoration: const InputDecoration(
-                labelText: 'Vehicle Make',
-                border: OutlineInputBorder(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: _vehicleMakeController,
+                    focusNode: _vehicleMakeFocusNode,
+                    decoration: InputDecoration(
+                      labelText: 'Search Vehicle Make',
+                      hintText: 'Type to search (e.g., Toyota, Honda, Ford)',
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _selectedVehicleMake != null
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _vehicleMakeController.clear();
+                                _onVehicleMakeChanged(null);
+                                setState(() {
+                                  _showSuggestions = false;
+                                });
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _showSuggestions = value.isNotEmpty;
+                      });
+                    },
+                    onTap: () {
+                      setState(() {
+                        _showSuggestions = _vehicleMakeController.text.isNotEmpty;
+                      });
+                    },
+                  ),
+                  if (_showSuggestions)
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 200),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(4),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: _buildSuggestionsList(),
+                    ),
+                ],
               ),
             ),
+            if (_selectedVehicleMake != null && _isLoadingVehicleModels)
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 8),
+                    Text('Loading vehicle models...'),
+                  ],
+                ),
+              ),
+            if (_selectedVehicleMake != null && _vehicleModels.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: _selectedVehicleModel,
+                items: [
+                  ..._vehicleModels
+                      .map((model) => DropdownMenuItem(
+                            value: model,
+                            child: Text(model),
+                          ))
+                      .toList(),
+                  const DropdownMenuItem(
+                    value: 'custom',
+                    child: Text(
+                      'Custom',
+                      style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedVehicleModel = value;
+                    if (value == 'custom') {
+                      _showManualModelEntry = true;
+                      _vehicleModelController.clear();
+                    } else {
+                      _showManualModelEntry = false;
+                      _vehicleModelController.text = value ?? '';
+                    }
+                  });
+                },
+                decoration: const InputDecoration(
+                  labelText: 'Vehicle Model',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
             const SizedBox(height: 10),
-            TextField(
-              controller: _vehicleModelController,
-              decoration: const InputDecoration(labelText: 'Vehicle Model', border: OutlineInputBorder()),
-            ),
+            if (_showManualModelEntry)
+              TextField(
+                controller: _vehicleModelController,
+                decoration: const InputDecoration(
+                  labelText: 'Enter Custom Vehicle Model',
+                  hintText: 'Type your custom vehicle model',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.edit),
+                ),
+              ),
             const SizedBox(height: 10),
             TextField(
               controller: _vehiclePhotosController,
@@ -792,17 +1142,22 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (_vehicleMakes.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Vehicle makes not loaded yet!')),
                   );
                   return;
                 }
+
+                // Set the vehicle make first
+                final selectedMake = _vehicleMakes.contains('Toyota') ? 'Toyota' : _vehicleMakes.first;
+                await _onVehicleMakeChanged(selectedMake);
+
                 setState(() {
                   _newFirstNameController.text = 'alexiestester';
                   _newLastNameController.text = 'iglesia';
-                  _newEmailController.text = 'test${DateTime.now().millisecondsSinceEpoch}@gmail.com';
+                  _newEmailController.text = 'test${_generateRandomString(2)}@gmail.com';
                   _newPasswordController.text = '123456';
                   _ageController.text = '33';
                   _birthplaceController.text = 'philippines';
@@ -832,10 +1187,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   _spouseNameController.text = 'charity';
                   _vehicleColorController.text = 'white';
                   _selectedVehicleColor = Colors.white;
-                  _selectedVehicleMake = _vehicleMakes.contains('toyota')
-                      ? 'toyota'
-                      : (_vehicleMakes.isNotEmpty ? _vehicleMakes.first : null);
-                  _vehicleModelController.text = 'yaris';
+                  _vehicleMakeController.text = selectedMake;
+                  _vehicleModelController.text = _vehicleModels.isNotEmpty ? _vehicleModels.first : 'yaris';
+                  _selectedVehicleModel = _vehicleModels.isNotEmpty ? _vehicleModels.first : null;
                   _vehiclePhotosController.text =
                       'https://imageio.forbes.com/specials-images/imageserve/5d35eacaf1176b0008974b54/2020-Chevrolet-Corvette-Stingray/0x0.jpg, https://imageio.forbes.com/specials-images/imageserve/5d37033a95e0230008f64eb2/2020-Aston-Martin-Rapide-E/0x0.jpg';
                   _vehiclePlateNumberController.text = 'gac9396';
@@ -868,6 +1222,76 @@ class _SettingsPageState extends State<SettingsPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSuggestionsList() {
+    final searchText = _vehicleMakeController.text.toLowerCase();
+    final filteredMakes = _vehicleMakes.where((make) {
+      return make.toLowerCase().contains(searchText);
+    }).toList();
+
+    // Sort results to show exact matches first, then partial matches
+    filteredMakes.sort((a, b) {
+      final aLower = a.toLowerCase();
+      final bLower = b.toLowerCase();
+
+      // Exact matches first
+      if (aLower == searchText && bLower != searchText) return -1;
+      if (bLower == searchText && aLower != searchText) return 1;
+
+      // Starts with matches second
+      if (aLower.startsWith(searchText) && !bLower.startsWith(searchText)) return -1;
+      if (bLower.startsWith(searchText) && !aLower.startsWith(searchText)) return 1;
+
+      // Alphabetical order for the rest
+      return aLower.compareTo(bLower);
+    });
+
+    // Limit results to first 20 for better performance
+    final limitedMakes = filteredMakes.take(20).toList();
+
+    if (limitedMakes.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Text(
+          'No vehicle makes found',
+          style: TextStyle(
+            color: Colors.grey,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      padding: EdgeInsets.zero,
+      itemCount: limitedMakes.length,
+      itemBuilder: (context, index) {
+        final make = limitedMakes[index];
+        return ListTile(
+          title: Text(
+            make,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          subtitle: Text(
+            'Tap to select',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+          ),
+          leading: const Icon(Icons.directions_car, size: 20),
+          onTap: () {
+            _vehicleMakeController.text = make;
+            _onVehicleMakeChanged(make);
+            setState(() {
+              _showSuggestions = false;
+            });
+          },
+        );
+      },
     );
   }
 }
