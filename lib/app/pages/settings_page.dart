@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:math';
 import 'package:otogapo/app/pages/create_user_page.dart';
+import 'package:otogapo/app/pages/user_list_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -35,10 +36,25 @@ class SettingsPage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
+              icon: const Icon(Icons.people),
+              label: const Text('User List'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 197, 196, 195),
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const UserListPage()),
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
               icon: const Icon(Icons.logout),
               label: const Text('Logout'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: const Color.fromARGB(255, 197, 196, 195),
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
