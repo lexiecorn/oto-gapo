@@ -51,26 +51,33 @@ class HomePageState extends State<HomePage> {
         // backgroundColor: Colors.grey.shade100
         // ,
         appBar: AppBar(
-          // REMOVE BACK BUTTON
-          automaticallyImplyLeading: false,
           title: Text(
-            'Otogapo',
+            _selectedIndex == 3 ? 'Settings' : 'Otogapo',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 60.sp,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
           centerTitle: true,
           backgroundColor: Colors.black,
-          actions: [
-            IconButton(
-              onPressed: () {
-                context.read<AuthBloc>().add(SignoutRequestedEvent());
-              },
-              icon: const Icon(Icons.exit_to_app),
-            ),
-          ],
+          elevation: 0,
+          actions: _selectedIndex == 3
+              ? [
+                  IconButton(
+                    icon: Icon(Icons.refresh, color: Colors.white),
+                    onPressed: () {
+                      // Optionally: trigger a refresh in SettingsPage
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.help_outline, color: Colors.white),
+                    onPressed: () {
+                      // Optionally: show help dialog
+                    },
+                  ),
+                ]
+              : [],
         ),
         body: _widgetOptions.elementAt(_selectedIndex),
         bottomNavigationBar: BottomNavigationBar(
