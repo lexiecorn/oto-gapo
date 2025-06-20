@@ -108,15 +108,30 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Future<Widget> _userProfileCard(ProfileState state) async {
-    final storaProfilegeref = storage.ref().child('users/${state.user.uid}/images/profile.png');
-    final downloadUrlProfile = await storaProfilegeref.getDownloadURL();
+    String imagePath;
+
+    // Check if user has a profile image URL stored
+    if (state.user.profile_image != null && state.user.profile_image!.isNotEmpty) {
+      // Use the profile image URL from user data
+      imagePath = state.user.profile_image!;
+    } else {
+      // Fallback to Firebase Storage path
+      try {
+        final storaProfilegeref = storage.ref().child('users/${state.user.uid}/images/profile.png');
+        imagePath = await storaProfilegeref.getDownloadURL();
+      } catch (e) {
+        // If both fail, use a default placeholder image
+        imagePath = 'assets/images/alex.png'; // Using a local asset as fallback
+      }
+    }
+
     return IdCard(
-      imagePath: downloadUrlProfile,
+      imagePath: imagePath,
       name: '${state.user.firstName} ${state.user.lastName}',
       dob: DateFormat('MMM dd, yyyy').format(state.user.dateOfBirth.toDate()),
       idNumber: state.user.memberNumber,
       membersNum: state.user.memberNumber,
-      car: state.user.vehicle.first.make,
+      car: state.user.vehicle.isNotEmpty ? state.user.vehicle.first.make : 'No Vehicle',
       licenseNum: state.user.driversLicenseNumber ?? '',
       licenseNumExpr: state.user.driversLicenseExpirationDate,
       restrictionCode: state.user.driversLicenseRestrictionCode,

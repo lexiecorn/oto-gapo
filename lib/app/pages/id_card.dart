@@ -12,7 +12,9 @@ class IdCard extends StatelessWidget {
     required this.car,
     required this.membersNum,
     required this.licenseNum,
-    required this.restrictionCode, required this.emergencyContact, this.licenseNumExpr,
+    required this.restrictionCode,
+    required this.emergencyContact,
+    this.licenseNumExpr,
     super.key,
   });
   final String imagePath;
@@ -25,6 +27,8 @@ class IdCard extends StatelessWidget {
   final Timestamp? licenseNumExpr;
   final String? restrictionCode;
   final String? emergencyContact;
+
+  bool get _isAssetImage => imagePath.startsWith('assets/');
 
   @override
   Widget build(BuildContext context) {
@@ -48,12 +52,19 @@ class IdCard extends StatelessWidget {
             child: Column(
               children: [
                 ClipOval(
-                  child: OpstechExtendedImageNetwork(
-                    img: imagePath,
-                    width: 80,
-                    height: 80,
-                    borderrRadius: 40,
-                  ),
+                  child: _isAssetImage
+                      ? OpstechExtendedImageAsset(
+                          img: imagePath,
+                          width: 80,
+                          height: 80,
+                          borderrRadius: 40,
+                        )
+                      : OpstechExtendedImageNetwork(
+                          img: imagePath,
+                          width: 80,
+                          height: 80,
+                          borderrRadius: 40,
+                        ),
                 ),
                 const SizedBox(height: 10),
                 const SizedBox(height: 5),
