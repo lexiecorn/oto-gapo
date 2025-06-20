@@ -466,8 +466,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('Create New User', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 20),
+        // Text('Create New User', style: Theme.of(context).textTheme.titleLarge),
+        // const SizedBox(height: 20),
         ElevatedButton(
           onPressed: () async {
             if (_vehicleMakes.isEmpty) {
