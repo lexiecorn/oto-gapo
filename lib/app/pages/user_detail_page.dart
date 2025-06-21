@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:otogapo/app/pages/user_list_page.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class UserDetailPage extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -25,6 +27,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
   DateTime? _selectedDateOfBirth;
   DateTime? _selectedLicenseExpirationDate;
   Future<String>? _profileImageUrlFuture;
+  final ImagePicker _imagePicker = ImagePicker();
+  bool _isUploadingImage = false;
 
   @override
   void initState() {
@@ -62,6 +66,111 @@ class _UserDetailPageState extends State<UserDetailPage> {
       return await FirebaseStorage.instance.refFromURL(gsUri).getDownloadURL();
     }
     return gsUri; // It's already an HTTPS URL
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    try {
+      setState(() {
+        _isUploadingImage = true;
+      });
+
+      // Show image source selection dialog
+      final ImageSource? source = await showDialog<ImageSource>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Select Image Source'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Gallery'),
+                  onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text('Camera'),
+                  onTap: () => Navigator.of(context).pop(ImageSource.camera),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      if (source == null) {
+        setState(() {
+          _isUploadingImage = false;
+        });
+        return;
+      }
+
+      // Pick the image
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null) {
+        setState(() {
+          _isUploadingImage = false;
+        });
+        return;
+      }
+
+      // Upload to Firebase Storage
+      final userId = _editedData['id'] as String?;
+      if (userId == null) {
+        throw Exception('User ID not found in user data');
+      }
+      final storageRef = FirebaseStorage.instance.ref().child('users/$userId/images/profile.png');
+
+      final file = File(pickedFile.path);
+      await storageRef.putFile(file);
+
+      // Get the download URL
+      final downloadUrl = await storageRef.getDownloadURL();
+      final gsUri = 'gs://${storageRef.bucket}/${storageRef.fullPath}';
+
+      // Update the user data
+      setState(() {
+        _editedData['profile_image'] = gsUri;
+        _profileImageUrlFuture = Future.value(downloadUrl);
+      });
+
+      // Update Firestore
+      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+        'profile_image': gsUri,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile image updated successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating profile image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingImage = false;
+        });
+      }
+    }
   }
 
   @override
@@ -132,35 +241,77 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Profile Image
-                  if (_editedData['profile_image'] != null)
-                    Center(
-                      child: FutureBuilder<String>(
-                        future: _profileImageUrlFuture,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const CircleAvatar(radius: 60, child: CircularProgressIndicator());
-                          }
-                          if (snapshot.hasError) {
-                            return CircleAvatar(
-                              radius: 60,
-                              backgroundColor: Colors.red.shade100,
-                              child: Tooltip(
-                                message: snapshot.error.toString(),
-                                child: const Icon(Icons.error, size: 60, color: Colors.red),
+                  Center(
+                    child: Stack(
+                      children: [
+                        if (_editedData['profile_image'] != null)
+                          FutureBuilder<String>(
+                            future: _profileImageUrlFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const CircleAvatar(radius: 60, child: CircularProgressIndicator());
+                              }
+                              if (snapshot.hasError) {
+                                return CircleAvatar(
+                                  radius: 60,
+                                  backgroundColor: Colors.red.shade100,
+                                  child: Tooltip(
+                                    message: snapshot.error.toString(),
+                                    child: const Icon(Icons.error, size: 60, color: Colors.red),
+                                  ),
+                                );
+                              }
+                              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                return const CircleAvatar(radius: 60, child: Icon(Icons.person, size: 60));
+                              }
+                              final imageUrl = snapshot.data!;
+                              return CircleAvatar(
+                                radius: 60,
+                                backgroundImage: NetworkImage(imageUrl),
+                              );
+                            },
+                          )
+                        else
+                          const CircleAvatar(radius: 60, child: Icon(Icons.person, size: 60)),
+
+                        // Edit button overlay (only show when editing)
+                        if (_isEditing)
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
                               ),
-                            );
-                          }
-                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return const CircleAvatar(radius: 60, child: Icon(Icons.person, size: 60));
-                          }
-                          final imageUrl = snapshot.data!;
-                          return CircleAvatar(
-                            radius: 60,
-                            backgroundImage: NetworkImage(imageUrl),
-                          );
-                        },
-                      ),
+                              child: _isUploadingImage
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(8.0),
+                                      child: SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        ),
+                                      ),
+                                    )
+                                  : IconButton(
+                                      icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                                      onPressed: _pickAndUploadImage,
+                                      tooltip: 'Change Profile Image',
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(
+                                        minWidth: 32,
+                                        minHeight: 32,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                      ],
                     ),
+                  ),
                   const SizedBox(height: 24),
 
                   // Personal Information Section
@@ -253,7 +404,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   _buildSection(
                     'Medical Information',
                     [
-                      _buildEditableField('Blood Type', 'bloodType'),
+                      _buildEditableField('Blood Type', 'bloodType',
+                          isDropdown: true, dropdownOptions: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']),
                     ],
                   ),
 
@@ -403,8 +555,16 @@ class _UserDetailPageState extends State<UserDetailPage> {
             ),
           );
         } else if (isDropdown && dropdownOptions != null) {
-          final currentValue = _editedData[field]?.toString();
-          final validValue = dropdownOptions.contains(currentValue) ? currentValue : null;
+          final currentValue = _editedData[field]?.toString().trim();
+          String? validValue;
+          if (currentValue != null && currentValue.isNotEmpty) {
+            for (var option in dropdownOptions) {
+              if (option.toLowerCase() == currentValue.toLowerCase()) {
+                validValue = option;
+                break;
+              }
+            }
+          }
 
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),

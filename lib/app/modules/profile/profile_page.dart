@@ -110,19 +110,22 @@ class ProfilePageState extends State<ProfilePage> {
   Future<Widget> _userProfileCard(ProfileState state) async {
     String imagePath;
 
-    // Check if user has a profile image URL stored
-    if (state.user.profile_image != null && state.user.profile_image!.isNotEmpty) {
-      // Use the profile image URL from user data
-      imagePath = state.user.profile_image!;
-    } else {
-      // Fallback to Firebase Storage path
+    // Check if user has a profile image URL stored and it's a gs:// link
+    if (state.user.profile_image != null && state.user.profile_image!.startsWith('gs://')) {
       try {
-        final storaProfilegeref = storage.ref().child('users/${state.user.uid}/images/profile.png');
-        imagePath = await storaProfilegeref.getDownloadURL();
+        // Get the download URL from the gs:// URI
+        final ref = FirebaseStorage.instance.refFromURL(state.user.profile_image!);
+        imagePath = await ref.getDownloadURL();
       } catch (e) {
-        // If both fail, use a default placeholder image
+        // If it fails, use a default placeholder image
         imagePath = 'assets/images/alex.png'; // Using a local asset as fallback
       }
+    } else if (state.user.profile_image != null && state.user.profile_image!.isNotEmpty) {
+      // It might be a pre-fetched HTTPS URL or a local asset path
+      imagePath = state.user.profile_image!;
+    } else {
+      // No profile_image field, or it's empty. Use a default placeholder.
+      imagePath = 'assets/images/alex.png';
     }
 
     return IdCard(
