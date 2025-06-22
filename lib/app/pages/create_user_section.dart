@@ -93,6 +93,175 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   String? _uploadedCarImage3Url;
   String? _uploadedCarImage4Url;
 
+  // Test data arrays for auto-fill
+  final List<String> _testFirstNames = [
+    'John',
+    'Maria',
+    'Carlos',
+    'Ana',
+    'Michael',
+    'Sofia',
+    'David',
+    'Isabella',
+    'James',
+    'Camila',
+    'Robert',
+    'Valentina',
+    'William',
+    'Gabriela',
+    'Richard',
+    'Lucia',
+    'Joseph',
+    'Emma',
+    'Thomas',
+    'Olivia',
+    'Christopher',
+    'Ava',
+    'Charles',
+    'Mia',
+    'Daniel',
+    'Ella',
+    'Matthew',
+    'Grace',
+    'Anthony',
+    'Chloe'
+  ];
+
+  final List<String> _testLastNames = [
+    'Santos',
+    'Garcia',
+    'Rodriguez',
+    'Martinez',
+    'Hernandez',
+    'Lopez',
+    'Gonzalez',
+    'Perez',
+    'Torres',
+    'Ramirez',
+    'Cruz',
+    'Morales',
+    'Reyes',
+    'Flores',
+    'Rivera',
+    'Gomez',
+    'Diaz',
+    'Reyes',
+    'Torres',
+    'Jimenez',
+    'Moreno',
+    'Romero',
+    'Alvarez',
+    'Mendoza',
+    'Castillo',
+    'Ortiz',
+    'Silva',
+    'Vargas',
+    'Castro',
+    'Fernandez'
+  ];
+
+  final List<String> _testMiddleNames = [
+    'Antonio',
+    'Isabella',
+    'Miguel',
+    'Carmen',
+    'Jose',
+    'Elena',
+    'Francisco',
+    'Rosa',
+    'Manuel',
+    'Teresa',
+    'Pedro',
+    'Ana',
+    'Luis',
+    'Maria',
+    'Carlos',
+    'Josefa',
+    'Juan',
+    'Dolores',
+    'Rafael',
+    'Concepcion',
+    'Diego',
+    'Mercedes',
+    'Fernando',
+    'Consuelo',
+    'Alberto',
+    'Guadalupe',
+    'Ricardo',
+    'Patricia',
+    'Eduardo',
+    'Monica'
+  ];
+
+  final List<String> _testBirthplaces = [
+    'Manila',
+    'Quezon City',
+    'Caloocan',
+    'Las Pinas',
+    'Makati',
+    'Malabon',
+    'Mandaluyong',
+    'Marikina',
+    'Muntinlupa',
+    'Navotas',
+    'Paranaque',
+    'Pasay',
+    'Pasig',
+    'San Juan',
+    'Taguig',
+    'Valenzuela',
+    'Pateros',
+    'Antipolo',
+    'Bacoor',
+    'Cabuyao',
+    'Cainta',
+    'Calamba',
+    'Dasmarinas',
+    'Imus',
+    'Laguna',
+    'Muntinlupa',
+    'San Pedro',
+    'Santa Rosa',
+    'Taytay',
+    'Trece Martires'
+  ];
+
+  final List<String> _testBloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  final List<String> _testCivilStatus = ['Single', 'Married', 'Widowed', 'Separated', 'Divorced', 'Annulled'];
+  final List<String> _testReligions = [
+    'Catholic',
+    'Protestant',
+    'Islam',
+    'Buddhism',
+    'Hinduism',
+    'Atheist',
+    'Agnostic',
+    'Other'
+  ];
+  final List<String> _testVehicleColors = [
+    'White',
+    'Black',
+    'Silver',
+    'Gray',
+    'Red',
+    'Blue',
+    'Green',
+    'Yellow',
+    'Orange',
+    'Purple'
+  ];
+  final List<String> _testVehicleTypes = [
+    'Sedan',
+    'SUV',
+    'Hatchback',
+    'Coupe',
+    'Convertible',
+    'Wagon',
+    'Van',
+    'Truck',
+    'Motorcycle'
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -795,6 +964,212 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     );
   }
 
+  // Helper method to get random item from a list
+  String _getRandomItem(List<String> list) {
+    return list[Random().nextInt(list.length)];
+  }
+
+  // Helper method to get random age between 18 and 65
+  int _getRandomAge() {
+    return Random().nextInt(48) + 18; // 18 to 65
+  }
+
+  // Helper method to get random year between 2010 and 2024
+  int _getRandomVehicleYear() {
+    return Random().nextInt(15) + 2010; // 2010 to 2024
+  }
+
+  // Helper method to get random member number between 1 and 999
+  String _getRandomMemberNumber() {
+    return (Random().nextInt(999) + 1).toString().padLeft(3, '0');
+  }
+
+  // Helper method to get random plate number
+  String _getRandomPlateNumber() {
+    final letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    final numbers = '0123456789';
+    final random = Random();
+
+    String plate = '';
+    // Add 3 random letters
+    for (int i = 0; i < 3; i++) {
+      plate += letters[random.nextInt(letters.length)];
+    }
+    // Add 3 random numbers
+    for (int i = 0; i < 3; i++) {
+      plate += numbers[random.nextInt(numbers.length)];
+    }
+
+    return plate;
+  }
+
+  // Helper method to get random phone number
+  String _getRandomPhoneNumber() {
+    final numbers = '0123456789';
+    final random = Random();
+
+    String phone = '09';
+    // Add 9 random numbers
+    for (int i = 0; i < 9; i++) {
+      phone += numbers[random.nextInt(numbers.length)];
+    }
+
+    return phone;
+  }
+
+  // Helper method to get random date of birth (18-65 years old)
+  DateTime _getRandomDateOfBirth() {
+    final random = Random();
+    final currentYear = DateTime.now().year;
+    final year = currentYear - random.nextInt(48) - 18; // 18 to 65 years old
+    final month = random.nextInt(12) + 1;
+    final day = random.nextInt(28) + 1; // Using 28 to avoid invalid dates
+    return DateTime(year, month, day);
+  }
+
+  // Helper method to get random license expiration date (1-5 years from now)
+  DateTime _getRandomLicenseExpiration() {
+    final random = Random();
+    final currentYear = DateTime.now().year;
+    final year = currentYear + random.nextInt(5) + 1; // 1 to 5 years from now
+    final month = random.nextInt(12) + 1;
+    final day = random.nextInt(28) + 1;
+    return DateTime(year, month, day);
+  }
+
+  // Helper method to convert color name to Color object
+  Color _getColorFromName(String colorName) {
+    switch (colorName.toLowerCase()) {
+      case 'white':
+        return Colors.white;
+      case 'black':
+        return Colors.black;
+      case 'silver':
+        return Colors.grey.shade300;
+      case 'gray':
+      case 'grey':
+        return Colors.grey;
+      case 'red':
+        return Colors.red;
+      case 'blue':
+        return Colors.blue;
+      case 'green':
+        return Colors.green;
+      case 'yellow':
+        return Colors.yellow;
+      case 'orange':
+        return Colors.orange;
+      case 'purple':
+        return Colors.purple;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // Helper method to create a random test user directly
+  Future<void> _createRandomTestUser(String selectedMake) async {
+    try {
+      // Generate random data
+      final randomFirstName = _getRandomItem(_testFirstNames);
+      final randomLastName = _getRandomItem(_testLastNames);
+      final randomMiddleName = _getRandomItem(_testMiddleNames);
+      final randomBirthplace = _getRandomItem(_testBirthplaces);
+      final randomBloodType = _getRandomItem(_testBloodTypes);
+      final randomCivilStatus = _getRandomItem(_testCivilStatus);
+      final randomReligion = _getRandomItem(_testReligions);
+      final randomVehicleColor = _getRandomItem(_testVehicleColors);
+      final randomVehicleType = _getRandomItem(_testVehicleTypes);
+      final randomAge = _getRandomAge();
+      final randomMemberNumber = _getRandomMemberNumber();
+      final randomPlateNumber = _getRandomPlateNumber();
+      final randomPhoneNumber = _getRandomPhoneNumber();
+      final randomDateOfBirth = _getRandomDateOfBirth();
+      final randomLicenseExpiration = _getRandomLicenseExpiration();
+      final randomVehicleYear = _getRandomVehicleYear();
+      final randomEmail =
+          '${randomFirstName.toLowerCase()}.${randomLastName.toLowerCase()}${_generateRandomString(3)}@gmail.com';
+
+      // Generate a unique ID for the user
+      final uid = _generateRandomString(28);
+
+      // Create user document in Firestore
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        "age": randomAge.toString(),
+        "birthplace": randomBirthplace,
+        "bloodType": randomBloodType,
+        "civilStatus": randomCivilStatus,
+        "contactNumber": randomPhoneNumber,
+        "createdAt": FieldValue.serverTimestamp(),
+        "updatedAt": FieldValue.serverTimestamp(),
+        "dateOfBirth": Timestamp.fromDate(randomDateOfBirth),
+        "driversLicenseExpirationDate": Timestamp.fromDate(randomLicenseExpiration),
+        "driversLicenseNumber": _generateRandomString(12),
+        "driversLicenseRestrictionCode": (Random().nextInt(9) + 1).toString(),
+        "email": randomEmail,
+        "emergencyContactName": '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}',
+        "emergencyContactNumber": _getRandomPhoneNumber(),
+        "firstName": randomFirstName,
+        "gender": Random().nextBool() ? 'Male' : 'Female',
+        "id": uid,
+        "isActive": true,
+        "isAdmin": false, // Regular members for payment testing
+        "lastName": randomLastName,
+        "memberNumber": randomMemberNumber,
+        "membership_type": 3, // Regular member
+        "middleName": randomMiddleName,
+        "nationality": 'Filipino',
+        "profile_image": '',
+        "religion": randomReligion,
+        "spouseContactNumber": randomCivilStatus == 'Married' ? _getRandomPhoneNumber() : '',
+        "spouseName": randomCivilStatus == 'Married'
+            ? '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}'
+            : '',
+        "vehicle": [
+          {
+            "color": randomVehicleColor,
+            "make": selectedMake,
+            "model": _vehicleModels.isNotEmpty ? _vehicleModels.first : 'yaris',
+            "photos": [],
+            "plateNumber": randomPlateNumber,
+            "primaryPhoto": '',
+            "type": randomVehicleType,
+            "year": randomVehicleYear
+          }
+        ]
+      });
+
+      // Create random payment records for the last 6 months
+      await _createRandomPaymentRecords(uid);
+    } catch (e) {
+      print('Error creating random test user: $e');
+    }
+  }
+
+  // Helper method to create random payment records
+  Future<void> _createRandomPaymentRecords(String userId) async {
+    try {
+      final now = DateTime.now();
+      final random = Random();
+
+      // Create payment records for the last 6 months
+      for (int i = 0; i < 6; i++) {
+        final date = DateTime(now.year, now.month - i, 1);
+        final monthKey = '${date.year}_${date.month.toString().padLeft(2, '0')}';
+
+        // 70% chance of being paid, 30% chance of being unpaid
+        final isPaid = random.nextDouble() < 0.7;
+
+        await FirebaseFirestore.instance.collection('users').doc(userId).collection('monthly_dues').doc(monthKey).set({
+          'amount': 100,
+          'status': isPaid,
+          'updated_at': FieldValue.serverTimestamp(),
+        });
+      }
+    } catch (e) {
+      print('Error creating payment records: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -812,50 +1187,195 @@ class _CreateUserSectionState extends State<CreateUserSection> {
             }
             final selectedMake = _vehicleMakes.contains('Toyota') ? 'Toyota' : _vehicleMakes.first;
             await _onVehicleMakeChanged(selectedMake);
+
+            // Generate random data
+            final randomFirstName = _getRandomItem(_testFirstNames);
+            final randomLastName = _getRandomItem(_testLastNames);
+            final randomMiddleName = _getRandomItem(_testMiddleNames);
+            final randomBirthplace = _getRandomItem(_testBirthplaces);
+            final randomBloodType = _getRandomItem(_testBloodTypes);
+            final randomCivilStatus = _getRandomItem(_testCivilStatus);
+            final randomReligion = _getRandomItem(_testReligions);
+            final randomVehicleColor = _getRandomItem(_testVehicleColors);
+            final randomVehicleType = _getRandomItem(_testVehicleTypes);
+            final randomAge = _getRandomAge();
+            final randomMemberNumber = _getRandomMemberNumber();
+            final randomPlateNumber = _getRandomPlateNumber();
+            final randomPhoneNumber = _getRandomPhoneNumber();
+            final randomDateOfBirth = _getRandomDateOfBirth();
+            final randomLicenseExpiration = _getRandomLicenseExpiration();
+            final randomVehicleYear = _getRandomVehicleYear();
+
             setState(() {
-              _newFirstNameController.text = 'alexiestester';
-              _newLastNameController.text = 'iglesia';
-              _newEmailController.text = 'test${_generateRandomString(2)}@gmail.com';
+              _newFirstNameController.text = randomFirstName;
+              _newLastNameController.text = randomLastName;
+              _newEmailController.text =
+                  '${randomFirstName.toLowerCase()}.${randomLastName.toLowerCase()}${_generateRandomString(3)}@gmail.com';
               _newPasswordController.text = '123456';
-              _ageController.text = '33';
-              _birthplaceController.text = 'philippines';
-              _bloodTypeController.text = 'O+';
-              _selectedBloodType = 'O+';
-              _civilStatusController.text = 'Single';
-              _selectedCivilStatus = 'Single';
-              _contactNumberController.text = '09455000923';
-              _selectedDateOfBirth = DateTime(1999, 9, 16);
-              _dateOfBirthController.text = '16/9/1999';
-              _selectedLicenseExpirationDate = DateTime(2026, 7, 12);
-              _driversLicenseExpirationDateController.text = '12/7/2026';
-              _driversLicenseNumberController.text = '102399328309';
-              _driversLicenseRestrictionCodeController.text = '3';
-              _emergencyContactNameController.text = '09455000923';
-              _emergencyContactNumberController.text = '09455000923';
+              _ageController.text = randomAge.toString();
+              _birthplaceController.text = randomBirthplace;
+              _bloodTypeController.text = randomBloodType;
+              _selectedBloodType = randomBloodType;
+              _civilStatusController.text = randomCivilStatus;
+              _selectedCivilStatus = randomCivilStatus;
+              _contactNumberController.text = randomPhoneNumber;
+              _selectedDateOfBirth = randomDateOfBirth;
+              _dateOfBirthController.text =
+                  '${randomDateOfBirth.day}/${randomDateOfBirth.month}/${randomDateOfBirth.year}';
+              _selectedLicenseExpirationDate = randomLicenseExpiration;
+              _driversLicenseExpirationDateController.text =
+                  '${randomLicenseExpiration.day}/${randomLicenseExpiration.month}/${randomLicenseExpiration.year}';
+              _driversLicenseNumberController.text = '${_generateRandomString(12)}';
+              _driversLicenseRestrictionCodeController.text = '${Random().nextInt(9) + 1}';
+              _emergencyContactNameController.text =
+                  '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}';
+              _emergencyContactNumberController.text = _getRandomPhoneNumber();
               _isActive = true;
-              _isAdmin = true;
-              _memberNumberController.text = '31';
+              _isAdmin = Random().nextBool(); // Random admin status
+              _memberNumberController.text = randomMemberNumber;
               _membershipTypeController.text = '3';
-              _middleNameController.text = 'maguale';
-              _nationalityController.text = 'filipino';
+              _middleNameController.text = randomMiddleName;
+              _nationalityController.text = 'Filipino';
               _profileImageController.text =
                   'gs://otogapo-dev.appspot.com/users/TS4E73z29qdpfsyBiBsxnBN10I43/images/profile.png';
-              _religionController.text = 'christian';
-              _spouseContactNumberController.text = '09455000923';
-              _spouseNameController.text = 'charity';
-              _vehicleColorController.text = 'white';
-              _selectedVehicleColor = Colors.white;
+              _religionController.text = randomReligion;
+              _spouseContactNumberController.text = randomCivilStatus == 'Married' ? _getRandomPhoneNumber() : '';
+              _spouseNameController.text = randomCivilStatus == 'Married'
+                  ? '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}'
+                  : '';
+              _vehicleColorController.text = randomVehicleColor;
+              _selectedVehicleColor = _getColorFromName(randomVehicleColor);
               _vehicleMakeController.text = selectedMake;
               _vehicleModelController.text = _vehicleModels.isNotEmpty ? _vehicleModels.first : 'yaris';
               _selectedVehicleModel = _vehicleModels.isNotEmpty ? _vehicleModels.first : null;
               _vehiclePhotosController.text = '';
-              _vehiclePlateNumberController.text = 'gac9396';
+              _vehiclePlateNumberController.text = randomPlateNumber;
               _vehiclePrimaryPhotoController.text = '';
-              _vehicleTypeController.text = 'sedan';
-              _selectedVehicleYear = 2017;
+              _vehicleTypeController.text = randomVehicleType;
+              _selectedVehicleYear = randomVehicleYear;
             });
           },
           child: const Text('Test (Auto-fill All Fields)'),
+        ),
+        const SizedBox(height: 10),
+        ElevatedButton(
+          onPressed: () async {
+            if (_vehicleMakes.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Vehicle makes not loaded yet!')),
+              );
+              return;
+            }
+
+            // Show confirmation dialog
+            final shouldProceed = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Generate Multiple Test Users'),
+                content: const Text('This will create 10 test users with random data. Continue?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text('Generate'),
+                  ),
+                ],
+              ),
+            );
+
+            if (shouldProceed != true) return;
+
+            final selectedMake = _vehicleMakes.contains('Toyota') ? 'Toyota' : _vehicleMakes.first;
+            await _onVehicleMakeChanged(selectedMake);
+
+            // Generate 10 test users
+            for (int i = 0; i < 10; i++) {
+              await _createRandomTestUser(selectedMake);
+              // Small delay between creations
+              await Future.delayed(const Duration(milliseconds: 500));
+            }
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Successfully created 10 test users!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.orange,
+            foregroundColor: Colors.white,
+          ),
+          child: const Text('Generate 10 Test Users'),
+        ),
+        const SizedBox(height: 10),
+        ElevatedButton(
+          onPressed: () async {
+            // Show confirmation dialog
+            final shouldProceed = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Clear Test Users'),
+                content: const Text(
+                    'This will delete all users with membership_type = 3 (regular members). This action cannot be undone. Continue?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                    child: const Text('Delete All'),
+                  ),
+                ],
+              ),
+            );
+
+            if (shouldProceed != true) return;
+
+            try {
+              // Get all users with membership_type = 3
+              final usersSnapshot =
+                  await FirebaseFirestore.instance.collection('users').where('membership_type', isEqualTo: 3).get();
+
+              int deletedCount = 0;
+              for (final doc in usersSnapshot.docs) {
+                // Delete the user document
+                await doc.reference.delete();
+
+                // Delete associated payment records
+                final paymentSnapshot = await doc.reference.collection('monthly_dues').get();
+                for (final paymentDoc in paymentSnapshot.docs) {
+                  await paymentDoc.reference.delete();
+                }
+
+                deletedCount++;
+              }
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Successfully deleted $deletedCount test users!'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error deleting test users: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+          ),
+          child: const Text('Clear All Test Users'),
         ),
         const SizedBox(height: 20),
         Container(
