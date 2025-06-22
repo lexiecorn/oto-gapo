@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:otogapo/app/pages/user_management_page.dart';
+import 'package:otogapo/app/pages/payment_management_page.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({Key? key}) : super(key: key);
@@ -150,6 +151,17 @@ class _AdminPageState extends State<AdminPage> {
                     },
                   ),
                   _buildAdminCard(
+                    icon: Icons.payment,
+                    title: 'Payment Management',
+                    subtitle: 'Manage monthly dues',
+                    onTap: () {
+                      // Navigate to payment management
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const PaymentManagementPage()),
+                      );
+                    },
+                  ),
+                  _buildAdminCard(
                     icon: Icons.analytics,
                     title: 'Analytics',
                     subtitle: 'View system analytics',
@@ -168,17 +180,6 @@ class _AdminPageState extends State<AdminPage> {
                       // TODO: Implement system settings
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('System settings feature coming soon!')),
-                      );
-                    },
-                  ),
-                  _buildAdminCard(
-                    icon: Icons.security,
-                    title: 'Security',
-                    subtitle: 'Security settings',
-                    onTap: () {
-                      // TODO: Implement security settings
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Security settings feature coming soon!')),
                       );
                     },
                   ),

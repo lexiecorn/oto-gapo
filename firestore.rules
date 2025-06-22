@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.membership_type == 1 || 
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.membership_type == 2);
+    }
+    
+    // Helper function to check if user is super admin
+    function isSuperAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.membership_type == 1;
+    }
+    
+    // Helper function to check if user is accessing their own data
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Users collection rules
+    match /users/{userId} {
+      // Allow read/write if user is admin or accessing their own data
+      allow read, write: if isAdmin() || isOwner(userId);
+      
+      // Monthly dues subcollection rules
+      match /monthly_dues/{monthId} {
+        // Allow read/write if user is admin or accessing their own data
+        allow read, write: if isAdmin() || isOwner(userId);
+      }
+      
+      // Allow admins to read all user data for management purposes
+      allow read: if isAdmin();
+    }
+    
+    // Allow admins to read all collections for management
+    match /{document=**} {
+      allow read: if isAdmin();
+    }
+  }
+} 

@@ -2,6 +2,21 @@ import 'package:flutter/material.dart';
 
 /// Compilation of All Supah Related Configuration
 class OpstechColors {
+  /// The main black color used for primary surfaces like AppBars and backgrounds.
+  static const primaryBlack = Color(0xFF121212);
+
+  /// A slightly lighter black for card backgrounds and other surfaces to create depth.
+  static const surfaceBlack = Color(0xFF1E1E1E);
+
+  /// A bright, strong red for accents, buttons, and important highlights.
+  static const accentRed = Color(0xFFE61525);
+
+  /// A light grey for text and icons on dark surfaces.
+  static const onPrimary = Colors.white;
+
+  /// A medium grey for secondary text.
+  static const onSecondary = Color(0xFFAAAAAA);
+
   /// Primary
   // static const primary = Color(0xFFF72644);
   static const primary = Color(0xFFE61525);

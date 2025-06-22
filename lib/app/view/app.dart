@@ -9,6 +9,10 @@ import 'package:otogapo/app/modules/signin/bloc/signin_cubit.dart';
 import 'package:otogapo/app/modules/signup/signup_cubit.dart';
 import 'package:otogapo/app/routes/app_router.dart';
 import 'package:otogapo/bootstrap.dart';
+import 'package:otogapo/providers/theme_provider.dart';
+import 'package:otogapo_core/otogapo_core.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class App extends StatelessWidget {
   const App({required AuthRepository authRepository, super.key}) : _authRepository = authRepository;
@@ -17,64 +21,82 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiRepositoryProvider(
-      providers: [
-        RepositoryProvider<AuthRepository>.value(value: _authRepository),
-        RepositoryProvider<ProfileRepository>(
-          create: (context) => ProfileRepository(
-            firebaseFirestore: FirebaseFirestore.instance,
-          ),
-        ),
-        // RepositoryProvider(
-        //   create: (context) => PickListsRepository(
-        //     pickingServices: PickListsApiServicses(
-        //       client: getIt.get<Dio>(),
-        //       baseUrl: FlavorConfig.instance.variables[OpstechConfigKeys.apiUrl2].toString(),
-        //     ),
-        //   ),
-        // ),
-        // RepositoryProvider(
-        //   create: (context) => PickListRepository(
-        //     pickingServices: PickListApiServicses(
-        //       client: getIt.get<Dio>(),
-        //       baseUrl: FlavorConfig.instance.variables[OpstechConfigKeys.apiUrl2].toString(),
-        //     ),
-        //   ),
-        // ),
-        // RepositoryProvider(
-        //   create: (context) => PickListItemRepository(
-        //     pickListItemService: PickListItemApiServicses(
-        //       client: getIt.get<Dio>(),
-        //       baseUrl: FlavorConfig.instance.variables[OpstechConfigKeys.apiUrl2].toString(),
-        //     ),
-        //   ),
-        // ),
-      ],
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider<AuthBloc>(
-            create: (context) => AuthBloc(
-              authRepository: context.read<AuthRepository>(),
+    return FutureBuilder<SharedPreferences>(
+      future: SharedPreferences.getInstance(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          );
+        }
+
+        return MultiRepositoryProvider(
+          providers: [
+            RepositoryProvider<AuthRepository>.value(value: _authRepository),
+            RepositoryProvider<ProfileRepository>(
+              create: (context) => ProfileRepository(
+                firebaseFirestore: FirebaseFirestore.instance,
+              ),
+            ),
+            // RepositoryProvider(
+            //   create: (context) => PickListsRepository(
+            //     pickingServices: PickListsApiServicses(
+            //       client: getIt.get<Dio>(),
+            //       baseUrl: FlavorConfig.instance.variables[OpstechConfigKeys.apiUrl2].toString(),
+            //     ),
+            //   ),
+            // ),
+            // RepositoryProvider(
+            //   create: (context) => PickListRepository(
+            //     pickingServices: PickListApiServicses(
+            //       client: getIt.get<Dio>(),
+            //       baseUrl: FlavorConfig.instance.variables[OpstechConfigKeys.apiUrl2].toString(),
+            //     ),
+            //   ),
+            // ),
+            // RepositoryProvider(
+            //   create: (context) => PickListItemRepository(
+            //     pickListItemService: PickListItemApiServicses(
+            //       client: getIt.get<Dio>(),
+            //       baseUrl: FlavorConfig.instance.variables[OpstechConfigKeys.apiUrl2].toString(),
+            //     ),
+            //   ),
+            // ),
+          ],
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<AuthBloc>(
+                create: (context) => AuthBloc(
+                  authRepository: context.read<AuthRepository>(),
+                ),
+              ),
+              BlocProvider<SigninCubit>(
+                create: (context) => SigninCubit(
+                  authRepository: context.read<AuthRepository>(),
+                ),
+              ),
+              BlocProvider<SignupCubit>(
+                create: (context) => SignupCubit(
+                  authRepository: context.read<AuthRepository>(),
+                ),
+              ),
+              BlocProvider<ProfileCubit>(
+                create: (context) => ProfileCubit(
+                  profileRepository: context.read<ProfileRepository>(),
+                ),
+              ),
+            ],
+            child: ChangeNotifierProvider(
+              create: (context) => ThemeProvider(snapshot.data!),
+              child: const AppView(),
             ),
           ),
-          BlocProvider<SigninCubit>(
-            create: (context) => SigninCubit(
-              authRepository: context.read<AuthRepository>(),
-            ),
-          ),
-          BlocProvider<SignupCubit>(
-            create: (context) => SignupCubit(
-              authRepository: context.read<AuthRepository>(),
-            ),
-          ),
-          BlocProvider<ProfileCubit>(
-            create: (context) => ProfileCubit(
-              profileRepository: context.read<ProfileRepository>(),
-            ),
-          ),
-        ],
-        child: const AppView(),
-      ),
+        );
+      },
     );
   }
 }
@@ -91,26 +113,15 @@ class AppView extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, _) {
-        return MaterialApp.router(
-          title: 'Sarisuki',
-          debugShowCheckedModeBanner: false,
-          // routeInformationProvider: appRouter.routeInfoProvider(),
-          routerConfig: appRouter.config(),
-          // routeInformationParser: appRouter.defaultRouteParser(),
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-          ),
-          // routerDelegate: appRouter.delegate(
-          //   navigatorObservers: () => [],
-          // ),
-          // builder: (context, child) {
-          //   return MediaQuery(
-          //     data: MediaQuery.of(context).copyWith(
-          //       textScaleFactor: 1,
-          //     ),
-          //     child: SplashPage(),
-          //   );
-          // },
+        return Consumer<ThemeProvider>(
+          builder: (context, themeProvider, child) {
+            return MaterialApp.router(
+              title: 'Otogapo',
+              debugShowCheckedModeBanner: false,
+              routerConfig: appRouter.config(),
+              theme: themeProvider.theme,
+            );
+          },
         );
       },
     );

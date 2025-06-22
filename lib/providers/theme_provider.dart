@@ -1,27 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:otogapo_core/otogapo_core.dart';
 
 class ThemeProvider with ChangeNotifier {
-
-  ThemeProvider(this._prefs) : _isDarkMode = _prefs.getBool(_themeKey) ?? false;
+  ThemeProvider(this._prefs) : _isDarkMode = _prefs.getBool(_themeKey) ?? true; // Default to dark mode
   static const String _themeKey = 'theme_mode';
-
-  static final _lightTheme = ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.light,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.blue,
-    ),
-  );
-
-  static final _darkTheme = ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.dark,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.blue,
-      brightness: Brightness.dark,
-    ),
-  );
 
   final SharedPreferences _prefs;
   bool _isDarkMode;
@@ -34,5 +17,5 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  ThemeData get theme => _isDarkMode ? _darkTheme : _lightTheme;
+  ThemeData get theme => _isDarkMode ? OpstechTheme.darkTheme : OpstechTheme.lightTheme;
 }

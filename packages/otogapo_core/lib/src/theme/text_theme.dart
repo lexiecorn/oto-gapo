@@ -66,4 +66,35 @@ class OpstechTextTheme {
     fontSize: 20,
     fontWeight: FontWeight.w300,
   );
+
+  /// The main text theme for the dark mode of the application.
+  static TextTheme get darkTextTheme {
+    return TextTheme(
+      displayLarge: heading1.copyWith(color: OpstechColors.onPrimary),
+      displayMedium: heading2.copyWith(color: OpstechColors.onPrimary),
+      displaySmall: heading3.copyWith(color: OpstechColors.onPrimary),
+      headlineMedium: heading4.copyWith(color: OpstechColors.onPrimary),
+      headlineSmall: heading5.copyWith(color: OpstechColors.onPrimary),
+      titleLarge: regular.copyWith(color: OpstechColors.onPrimary),
+      bodyLarge: regular.copyWith(color: OpstechColors.onPrimary),
+      bodyMedium: regularThin.copyWith(color: OpstechColors.onSecondary),
+      labelLarge: heading3.copyWith(color: OpstechColors.onPrimary), // For buttons
+    );
+  }
+
+  /// The main text theme for the light mode of the application.
+  static TextTheme get lightTextTheme {
+    const darkGrey = Color(0xFF2C2C2C);
+    return TextTheme(
+      displayLarge: heading1.copyWith(color: darkGrey),
+      displayMedium: heading2.copyWith(color: darkGrey),
+      displaySmall: heading3.copyWith(color: darkGrey),
+      headlineMedium: heading4.copyWith(color: darkGrey),
+      headlineSmall: heading5.copyWith(color: darkGrey),
+      titleLarge: regular.copyWith(color: darkGrey),
+      bodyLarge: regular.copyWith(color: darkGrey),
+      bodyMedium: regularThin.copyWith(color: darkGrey.withOpacity(0.7)),
+      labelLarge: heading3.copyWith(color: darkGrey), // For buttons
+    );
+  }
 }
