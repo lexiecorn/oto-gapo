@@ -11,6 +11,8 @@ class UserListPage extends StatefulWidget {
 }
 
 class _UserListPageState extends State<UserListPage> {
+  bool _isMigrating = false;
+
   @override
   Widget build(BuildContext context) {
     // Check if user is authenticated
@@ -32,6 +34,14 @@ class _UserListPageState extends State<UserListPage> {
       appBar: AppBar(
         title: const Text('User List'),
         centerTitle: true,
+        actions: [
+          if (!_isMigrating)
+            IconButton(
+              icon: const Icon(Icons.update),
+              onPressed: _migrateExistingUsers,
+              tooltip: 'Migrate existing users',
+            ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('users').snapshots(),
@@ -81,6 +91,16 @@ class _UserListPageState extends State<UserListPage> {
               final memberNumber = (data?['memberNumber'] ?? '').toString();
               final displayMemberNumber = memberNumber == '31' ? 'OM-31' : memberNumber;
 
+              // Format creation date
+              String creationDate = 'Unknown';
+              if (data?['createdAt'] != null) {
+                final createdAt = data!['createdAt'];
+                if (createdAt is Timestamp) {
+                  final date = createdAt.toDate();
+                  creationDate = '${date.day}/${date.month}/${date.year}';
+                }
+              }
+
               // Create user data with document ID included
               final userData = Map<String, dynamic>.from(data ?? {});
               userData['id'] = doc.id; // Add the document ID
@@ -88,7 +108,20 @@ class _UserListPageState extends State<UserListPage> {
               return ListTile(
                 leading: const Icon(Icons.person),
                 title: Text(name.isEmpty ? '(No Name)' : name),
-                subtitle: Text(email),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(email),
+                    Text(
+                      'Created: $creationDate',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
                 trailing: Text(displayMemberNumber),
                 onTap: () async {
                   final result = await Navigator.of(context).push(
@@ -121,5 +154,112 @@ class _UserListPageState extends State<UserListPage> {
         },
       ),
     );
+  }
+
+  void _migrateExistingUsers() async {
+    setState(() {
+      _isMigrating = true;
+    });
+
+    try {
+      // Show confirmation dialog
+      final shouldMigrate = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Migrate Existing Users'),
+            content: const Text(
+              'This will add createdAt and updatedAt fields to existing users that don\'t have them. '
+              'This action cannot be undone. Continue?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Migrate'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (shouldMigrate != true) {
+        setState(() {
+          _isMigrating = false;
+        });
+        return;
+      }
+
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('Migrating users...'),
+            ],
+          ),
+        ),
+      );
+
+      // Get all users
+      final usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
+      int migratedCount = 0;
+
+      for (final doc in usersSnapshot.docs) {
+        final data = doc.data();
+
+        // Check if user needs migration
+        if (data['createdAt'] == null || data['updatedAt'] == null) {
+          final updateData = <String, dynamic>{};
+
+          if (data['createdAt'] == null) {
+            updateData['createdAt'] = FieldValue.serverTimestamp();
+          }
+
+          if (data['updatedAt'] == null) {
+            updateData['updatedAt'] = FieldValue.serverTimestamp();
+          }
+
+          await FirebaseFirestore.instance.collection('users').doc(doc.id).update(updateData);
+          migratedCount++;
+        }
+      }
+
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Migration completed! $migratedCount users updated.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Migration failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isMigrating = false;
+      });
+    }
   }
 }

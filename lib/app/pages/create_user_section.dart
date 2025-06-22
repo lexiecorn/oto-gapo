@@ -6,6 +6,9 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:math';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class CreateUserSection extends StatefulWidget {
   const CreateUserSection({Key? key}) : super(key: key);
@@ -70,6 +73,23 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   final FocusNode _vehicleMakeFocusNode = FocusNode();
   Color _selectedVehicleColor = Colors.black;
   String? _message;
+
+  // Profile image upload variables
+  final ImagePicker _imagePicker = ImagePicker();
+  File? _selectedProfileImage;
+  bool _isUploadingImage = false;
+  String? _uploadedImageUrl;
+
+  // Car image upload variables
+  File? _selectedMainCarImage;
+  File? _selectedCarImage1;
+  File? _selectedCarImage2;
+  File? _selectedCarImage3;
+  bool _isUploadingCarImage = false;
+  String? _uploadedMainCarImageUrl;
+  String? _uploadedCarImage1Url;
+  String? _uploadedCarImage2Url;
+  String? _uploadedCarImage3Url;
 
   @override
   void initState() {
@@ -252,6 +272,234 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     return String.fromCharCodes(Iterable.generate(length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
   }
 
+  Future<void> _pickAndUploadProfileImage() async {
+    try {
+      setState(() {
+        _isUploadingImage = true;
+      });
+
+      // Show image source selection dialog
+      final ImageSource? source = await showDialog<ImageSource>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Select Image Source'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Gallery'),
+                  onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text('Camera'),
+                  onTap: () => Navigator.of(context).pop(ImageSource.camera),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      if (source == null) {
+        setState(() {
+          _isUploadingImage = false;
+        });
+        return;
+      }
+
+      // Pick the image
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null) {
+        setState(() {
+          _isUploadingImage = false;
+        });
+        return;
+      }
+
+      setState(() {
+        _selectedProfileImage = File(pickedFile.path);
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingImage = false;
+        });
+      }
+    }
+  }
+
+  Future<String?> _uploadProfileImageToStorage(String userId) async {
+    if (_selectedProfileImage == null) return null;
+
+    try {
+      setState(() {
+        _isUploadingImage = true;
+      });
+
+      // Upload to Firebase Storage
+      final storageRef = FirebaseStorage.instance.ref().child('users/$userId/images/profile.png');
+
+      await storageRef.putFile(_selectedProfileImage!);
+
+      // Get the gs:// URI
+      final gsUri = 'gs://${storageRef.bucket}/${storageRef.fullPath}';
+
+      setState(() {
+        _uploadedImageUrl = gsUri;
+        _isUploadingImage = false;
+      });
+
+      return gsUri;
+    } catch (e) {
+      setState(() {
+        _isUploadingImage = false;
+      });
+      throw Exception('Error uploading profile image: $e');
+    }
+  }
+
+  Future<File?> _pickCarImage() async {
+    try {
+      // Show image source selection dialog
+      final ImageSource? source = await showDialog<ImageSource>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Select Image Source'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Gallery'),
+                  onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text('Camera'),
+                  onTap: () => Navigator.of(context).pop(ImageSource.camera),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      if (source == null) return null;
+
+      // Pick the image
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null) return null;
+
+      return File(pickedFile.path);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return null;
+    }
+  }
+
+  Future<String?> _uploadCarImageToStorage(String userId, String imageName) async {
+    File? selectedImage;
+
+    // Determine which image to upload based on imageName
+    switch (imageName) {
+      case 'main':
+        selectedImage = _selectedMainCarImage;
+        break;
+      case '1':
+        selectedImage = _selectedCarImage1;
+        break;
+      case '2':
+        selectedImage = _selectedCarImage2;
+        break;
+      case '3':
+        selectedImage = _selectedCarImage3;
+        break;
+    }
+
+    if (selectedImage == null) return null;
+
+    try {
+      setState(() {
+        _isUploadingCarImage = true;
+      });
+
+      // Upload to Firebase Storage
+      final storageRef = FirebaseStorage.instance.ref().child('users/$userId/images/cars/$imageName.png');
+
+      await storageRef.putFile(selectedImage);
+
+      // Get the gs:// URI
+      final gsUri = 'gs://${storageRef.bucket}/${storageRef.fullPath}';
+
+      // Update the corresponding URL variable
+      switch (imageName) {
+        case 'main':
+          setState(() {
+            _uploadedMainCarImageUrl = gsUri;
+          });
+          break;
+        case '1':
+          setState(() {
+            _uploadedCarImage1Url = gsUri;
+          });
+          break;
+        case '2':
+          setState(() {
+            _uploadedCarImage2Url = gsUri;
+          });
+          break;
+        case '3':
+          setState(() {
+            _uploadedCarImage3Url = gsUri;
+          });
+          break;
+      }
+
+      setState(() {
+        _isUploadingCarImage = false;
+      });
+
+      return gsUri;
+    } catch (e) {
+      setState(() {
+        _isUploadingCarImage = false;
+      });
+      throw Exception('Error uploading car image: $e');
+    }
+  }
+
   Future<void> _createUser() async {
     final email = _newEmailController.text.trim();
     final password = _newPasswordController.text.trim();
@@ -305,6 +553,56 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         password: password,
       );
       final uid = userCredential.user!.uid;
+
+      // Upload profile image if selected
+      String? profileImageUrl;
+      if (_selectedProfileImage != null) {
+        try {
+          profileImageUrl = await _uploadProfileImageToStorage(uid);
+        } catch (e) {
+          // Continue with user creation even if image upload fails
+          print('Profile image upload failed: $e');
+        }
+      }
+
+      // Upload car images if selected
+      String? mainCarImageUrl;
+      String? carImage1Url;
+      String? carImage2Url;
+      String? carImage3Url;
+
+      if (_selectedMainCarImage != null) {
+        try {
+          mainCarImageUrl = await _uploadCarImageToStorage(uid, 'main');
+        } catch (e) {
+          print('Main car image upload failed: $e');
+        }
+      }
+
+      if (_selectedCarImage1 != null) {
+        try {
+          carImage1Url = await _uploadCarImageToStorage(uid, '1');
+        } catch (e) {
+          print('Car image 1 upload failed: $e');
+        }
+      }
+
+      if (_selectedCarImage2 != null) {
+        try {
+          carImage2Url = await _uploadCarImageToStorage(uid, '2');
+        } catch (e) {
+          print('Car image 2 upload failed: $e');
+        }
+      }
+
+      if (_selectedCarImage3 != null) {
+        try {
+          carImage3Url = await _uploadCarImageToStorage(uid, '3');
+        } catch (e) {
+          print('Car image 3 upload failed: $e');
+        }
+      }
+
       // Create user document in Firestore
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         "age": age,
@@ -312,11 +610,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         "bloodType": bloodType,
         "civilStatus": civilStatus,
         "contactNumber": contactNumber,
+        "createdAt": FieldValue.serverTimestamp(), // Timestamp when user was created
+        "updatedAt": FieldValue.serverTimestamp(), // Timestamp when user was last updated
         "dateOfBirth": dateOfBirth != null ? Timestamp.fromDate(dateOfBirth) : null,
         "driversLicenseExpirationDate":
             driversLicenseExpirationDate != null ? Timestamp.fromDate(driversLicenseExpirationDate) : null,
         "driversLicenseNumber": driversLicenseNumber,
         "driversLicenseRestrictionCode": driversLicenseRestrictionCode,
+        "email": email,
         "emergencyContactName": emergencyContactName,
         "emergencyContactNumber": emergencyContactNumber,
         "firstName": firstName,
@@ -328,9 +629,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         "membership_type": membershipType,
         "middleName": middleName,
         "nationality": nationality,
-        "profile_image": profileImage,
+        "profile_image": profileImageUrl ?? profileImage, // Use uploaded image URL or fallback to text input
         "religion": religion,
-        "spouseContactNumber": spouseContactNumber,
         "spouseContactNumber": spouseContactNumber,
         "spouseName": spouseName,
         "vehicle": [
@@ -338,9 +638,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
             "color": vehicleColor,
             "make": vehicleMake,
             "model": vehicleModel,
-            "photos": vehiclePhotos,
+            "photos": [
+              ...vehiclePhotos,
+              if (carImage1Url != null) carImage1Url,
+              if (carImage2Url != null) carImage2Url,
+              if (carImage3Url != null) carImage3Url,
+            ].where((url) => url.isNotEmpty).toList(),
             "plateNumber": vehiclePlateNumber,
-            "primaryPhoto": vehiclePrimaryPhoto,
+            "primaryPhoto": mainCarImageUrl ?? vehiclePrimaryPhoto,
             "type": vehicleType,
             "year": vehicleYear
           }
@@ -376,12 +681,24 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         _spouseNameController.clear();
         _vehicleColorController.clear();
         _vehicleModelController.clear();
-        _vehiclePhotosController.clear();
-        _vehiclePlateNumberController.clear();
-        _vehiclePrimaryPhotoController.clear();
+        _vehiclePhotosController.text = '';
+        _vehiclePlateNumberController.text = 'gac9396';
+        _vehiclePrimaryPhotoController.text = '';
         _vehicleTypeController.clear();
         _selectedVehicleYear = null;
         _selectedVehicleMake = null;
+        // Clear profile image variables
+        _selectedProfileImage = null;
+        _uploadedImageUrl = null;
+        // Clear car image variables
+        _selectedMainCarImage = null;
+        _selectedCarImage1 = null;
+        _selectedCarImage2 = null;
+        _selectedCarImage3 = null;
+        _uploadedMainCarImageUrl = null;
+        _uploadedCarImage1Url = null;
+        _uploadedCarImage2Url = null;
+        _uploadedCarImage3Url = null;
       });
     } catch (e) {
       setState(() {
@@ -514,11 +831,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
               _vehicleMakeController.text = selectedMake;
               _vehicleModelController.text = _vehicleModels.isNotEmpty ? _vehicleModels.first : 'yaris';
               _selectedVehicleModel = _vehicleModels.isNotEmpty ? _vehicleModels.first : null;
-              _vehiclePhotosController.text =
-                  'https://imageio.forbes.com/specials-images/imageserve/5d35eacaf1176b0008974b54/2020-Chevrolet-Corvette-Stingray/0x0.jpg, https://imageio.forbes.com/specials-images/imageserve/5d37033a95e0230008f64eb2/2020-Aston-Martin-Rapide-E/0x0.jpg';
+              _vehiclePhotosController.text = '';
               _vehiclePlateNumberController.text = 'gac9396';
-              _vehiclePrimaryPhotoController.text =
-                  'https://www.manilarenatacars.com/wp-content/uploads/2019/12/toyota-yaris.jpg';
+              _vehiclePrimaryPhotoController.text = '';
               _vehicleTypeController.text = 'sedan';
               _selectedVehicleYear = 2017;
             });
@@ -795,9 +1110,79 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 ],
               ),
               const SizedBox(height: 20),
-              TextField(
-                controller: _profileImageController,
-                decoration: const InputDecoration(labelText: 'Profile Image URL', border: OutlineInputBorder()),
+              // Profile Image Upload Section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Profile Image', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      // Image Preview
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: _selectedProfileImage != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  _selectedProfileImage!,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : const Icon(Icons.person, size: 40, color: Colors.grey),
+                      ),
+                      const SizedBox(width: 16),
+                      // Upload Button
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: _isUploadingImage ? null : _pickAndUploadProfileImage,
+                              icon: _isUploadingImage
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.camera_alt),
+                              label: Text(_isUploadingImage ? 'Uploading...' : 'Upload Image'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _selectedProfileImage != null
+                                  ? 'Image selected: ${_selectedProfileImage!.path.split('/').last}'
+                                  : 'No image selected',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Fallback URL field (optional)
+                  TextField(
+                    controller: _profileImageController,
+                    decoration: const InputDecoration(
+                      labelText: 'Profile Image URL (Optional)',
+                      border: OutlineInputBorder(),
+                      hintText: 'Or enter a URL if you prefer',
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1235,20 +1620,146 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   ),
                 ),
               const SizedBox(height: 10),
-              TextField(
-                controller: _vehiclePhotosController,
-                decoration: const InputDecoration(
-                    labelText: 'Vehicle Photos (comma separated URLs)', border: OutlineInputBorder()),
+              // Car Images Upload Section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Car Images', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 10),
+
+                  // Main Car Image
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Primary Car Image',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          // Image Preview
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: _selectedMainCarImage != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(
+                                      _selectedMainCarImage!,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : const Icon(Icons.directions_car, size: 40, color: Colors.grey),
+                          ),
+                          const SizedBox(width: 16),
+                          // Upload Button
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: _isUploadingCarImage
+                                      ? null
+                                      : () async {
+                                          final image = await _pickCarImage();
+                                          if (image != null) {
+                                            setState(() {
+                                              _selectedMainCarImage = image;
+                                            });
+                                          }
+                                        },
+                                  icon: _isUploadingCarImage
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        )
+                                      : const Icon(Icons.camera_alt),
+                                  label: Text(_isUploadingCarImage ? 'Uploading...' : 'Upload Main Image'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _selectedMainCarImage != null
+                                      ? 'Image selected: ${_selectedMainCarImage!.path.split('/').last}'
+                                      : 'No main image selected',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Additional Car Images
+                  Text('Additional Car Images (Optional)',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 10),
+
+                  // Car Image 1
+                  _buildCarImageUploadRow('Car Image 1', _selectedCarImage1, (image) {
+                    setState(() {
+                      _selectedCarImage1 = image;
+                    });
+                  }),
+
+                  const SizedBox(height: 12),
+
+                  // Car Image 2
+                  _buildCarImageUploadRow('Car Image 2', _selectedCarImage2, (image) {
+                    setState(() {
+                      _selectedCarImage2 = image;
+                    });
+                  }),
+
+                  const SizedBox(height: 12),
+
+                  // Car Image 3
+                  _buildCarImageUploadRow('Car Image 3', _selectedCarImage3, (image) {
+                    setState(() {
+                      _selectedCarImage3 = image;
+                    });
+                  }),
+
+                  const SizedBox(height: 16),
+
+                  // Fallback URL fields (optional)
+                  TextField(
+                    controller: _vehiclePhotosController,
+                    decoration: const InputDecoration(
+                      labelText: 'Additional Photo URLs (Optional)',
+                      border: OutlineInputBorder(),
+                      hintText: 'Comma separated URLs for additional photos',
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _vehiclePrimaryPhotoController,
+                    decoration: const InputDecoration(
+                      labelText: 'Primary Photo URL (Optional)',
+                      border: OutlineInputBorder(),
+                      hintText: 'Fallback URL if no main image uploaded',
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _vehiclePlateNumberController,
                 decoration: const InputDecoration(labelText: 'Vehicle Plate Number', border: OutlineInputBorder()),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _vehiclePrimaryPhotoController,
-                decoration: const InputDecoration(labelText: 'Vehicle Primary Photo URL', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 10),
               TextField(
@@ -1308,6 +1819,77 @@ class _CreateUserSectionState extends State<CreateUserSection> {
             ),
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _buildCarImageUploadRow(String label, File? image, Function(File?) onImageSelected) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  // Image Preview
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: image != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              image,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : const Icon(Icons.directions_car, size: 40, color: Colors.grey),
+                  ),
+                  const SizedBox(width: 16),
+                  // Upload Button
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            final pickedImage = await _pickCarImage();
+                            if (pickedImage != null) {
+                              onImageSelected(pickedImage);
+                            }
+                          },
+                          icon: const Icon(Icons.camera_alt),
+                          label: const Text('Upload Image'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          image != null ? 'Image selected: ${image.path.split('/').last}' : 'No image selected',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }

@@ -26,9 +26,22 @@ class _UserDetailPageState extends State<UserDetailPage> {
   final _formKey = GlobalKey<FormState>();
   DateTime? _selectedDateOfBirth;
   DateTime? _selectedLicenseExpirationDate;
-  Future<String>? _profileImageUrlFuture;
+  Future<String?>? _profileImageUrlFuture;
   final ImagePicker _imagePicker = ImagePicker();
   bool _isUploadingImage = false;
+
+  // Car image upload variables
+  File? _selectedMainCarImage;
+  File? _selectedCarImage1;
+  File? _selectedCarImage2;
+  File? _selectedCarImage3;
+  File? _selectedCarImage4;
+  bool _isUploadingCarImage = false;
+  String? _uploadedMainCarImageUrl;
+  String? _uploadedCarImage1Url;
+  String? _uploadedCarImage2Url;
+  String? _uploadedCarImage3Url;
+  String? _uploadedCarImage4Url;
 
   @override
   void initState() {
@@ -58,14 +71,39 @@ class _UserDetailPageState extends State<UserDetailPage> {
     if (_editedData['profile_image'] != null && _editedData['profile_image'].toString().isNotEmpty) {
       _profileImageUrlFuture = _getDownloadUrlFromGsUri(_editedData['profile_image'].toString());
     }
+
+    // Ensure createdAt and updatedAt fields exist for backward compatibility
+    _ensureTimestampFields();
   }
 
-  Future<String> _getDownloadUrlFromGsUri(String gsUri) async {
-    // Re-throwing the error so the FutureBuilder can catch it
-    if (gsUri.startsWith('gs://')) {
-      return await FirebaseStorage.instance.refFromURL(gsUri).getDownloadURL();
+  void _ensureTimestampFields() {
+    // If createdAt doesn't exist, set it to a default timestamp
+    if (_editedData['createdAt'] == null) {
+      _editedData['createdAt'] = Timestamp.fromDate(DateTime.now());
     }
-    return gsUri; // It's already an HTTPS URL
+
+    // If updatedAt doesn't exist, set it to the same as createdAt
+    if (_editedData['updatedAt'] == null) {
+      _editedData['updatedAt'] = _editedData['createdAt'];
+    }
+  }
+
+  Future<String?> _getDownloadUrlFromGsUri(String gsUri) async {
+    try {
+      // Re-throwing the error so the FutureBuilder can catch it
+      if (gsUri.startsWith('gs://')) {
+        return await FirebaseStorage.instance.refFromURL(gsUri).getDownloadURL();
+      }
+      return gsUri; // It's already an HTTPS URL
+    } catch (e) {
+      // Check if it's a "not found" error
+      if (e.toString().contains('not found') ||
+          e.toString().contains('404') ||
+          e.toString().contains('object does not exist')) {
+        return null; // Return null for missing files
+      }
+      rethrow; // Re-throw actual errors
+    }
   }
 
   Future<void> _pickAndUploadImage() async {
@@ -173,6 +211,143 @@ class _UserDetailPageState extends State<UserDetailPage> {
     }
   }
 
+  Future<File?> _pickCarImage() async {
+    try {
+      // Show image source selection dialog
+      final ImageSource? source = await showDialog<ImageSource>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Select Image Source'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Gallery'),
+                  onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text('Camera'),
+                  onTap: () => Navigator.of(context).pop(ImageSource.camera),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      if (source == null) return null;
+
+      // Pick the image
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null) return null;
+
+      return File(pickedFile.path);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return null;
+    }
+  }
+
+  Future<String?> _uploadCarImageToStorage(String imageName) async {
+    File? selectedImage;
+
+    // Determine which image to upload based on imageName
+    switch (imageName) {
+      case 'main':
+        selectedImage = _selectedMainCarImage;
+        break;
+      case '1':
+        selectedImage = _selectedCarImage1;
+        break;
+      case '2':
+        selectedImage = _selectedCarImage2;
+        break;
+      case '3':
+        selectedImage = _selectedCarImage3;
+        break;
+      case '4':
+        selectedImage = _selectedCarImage4;
+        break;
+    }
+
+    if (selectedImage == null) return null;
+
+    try {
+      setState(() {
+        _isUploadingCarImage = true;
+      });
+
+      final userId = _editedData['id'] as String?;
+      if (userId == null) {
+        throw Exception('User ID not found in user data');
+      }
+
+      // Upload to Firebase Storage
+      final storageRef = FirebaseStorage.instance.ref().child('users/$userId/images/cars/$imageName.png');
+
+      await storageRef.putFile(selectedImage);
+
+      // Get the gs:// URI
+      final gsUri = 'gs://${storageRef.bucket}/${storageRef.fullPath}';
+
+      // Update the corresponding URL variable
+      switch (imageName) {
+        case 'main':
+          setState(() {
+            _uploadedMainCarImageUrl = gsUri;
+          });
+          break;
+        case '1':
+          setState(() {
+            _uploadedCarImage1Url = gsUri;
+          });
+          break;
+        case '2':
+          setState(() {
+            _uploadedCarImage2Url = gsUri;
+          });
+          break;
+        case '3':
+          setState(() {
+            _uploadedCarImage3Url = gsUri;
+          });
+          break;
+        case '4':
+          setState(() {
+            _uploadedCarImage4Url = gsUri;
+          });
+          break;
+      }
+
+      setState(() {
+        _isUploadingCarImage = false;
+      });
+
+      return gsUri;
+    } catch (e) {
+      setState(() {
+        _isUploadingCarImage = false;
+      });
+      throw Exception('Error uploading car image: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
@@ -245,7 +420,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     child: Stack(
                       children: [
                         if (_editedData['profile_image'] != null)
-                          FutureBuilder<String>(
+                          FutureBuilder<String?>(
                             future: _profileImageUrlFuture,
                             builder: (context, snapshot) {
                               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -393,8 +568,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
                         _buildDetailRow('Vehicle Color', firstVehicle['color']),
                         _buildDetailRow('Vehicle Type', firstVehicle['type']),
                         _buildDetailRow('License Plate', firstVehicle['plateNumber']),
-                        _buildDetailRow('Primary Photo', firstVehicle['primaryPhoto']),
-                        _buildDetailRow('Photos Count', firstVehicle['photos']?.length ?? 0),
+                        if (_isEditing) ...[
+                          const SizedBox(height: 16),
+                          _buildCarImagesUploadSection(),
+                        ] else ...[
+                          const SizedBox(height: 16),
+                          _buildCarImagesDisplaySection(firstVehicle),
+                        ],
                       ],
                     ),
 
@@ -721,6 +901,53 @@ class _UserDetailPageState extends State<UserDetailPage> {
           builder: (context) => const Center(child: CircularProgressIndicator()),
         );
 
+        // Upload car images if selected
+        String? mainCarImageUrl;
+        String? carImage1Url;
+        String? carImage2Url;
+        String? carImage3Url;
+        String? carImage4Url;
+
+        if (_selectedMainCarImage != null) {
+          try {
+            mainCarImageUrl = await _uploadCarImageToStorage('main');
+          } catch (e) {
+            print('Main car image upload failed: $e');
+          }
+        }
+
+        if (_selectedCarImage1 != null) {
+          try {
+            carImage1Url = await _uploadCarImageToStorage('1');
+          } catch (e) {
+            print('Car image 1 upload failed: $e');
+          }
+        }
+
+        if (_selectedCarImage2 != null) {
+          try {
+            carImage2Url = await _uploadCarImageToStorage('2');
+          } catch (e) {
+            print('Car image 2 upload failed: $e');
+          }
+        }
+
+        if (_selectedCarImage3 != null) {
+          try {
+            carImage3Url = await _uploadCarImageToStorage('3');
+          } catch (e) {
+            print('Car image 3 upload failed: $e');
+          }
+        }
+
+        if (_selectedCarImage4 != null) {
+          try {
+            carImage4Url = await _uploadCarImageToStorage('4');
+          } catch (e) {
+            print('Car image 4 upload failed: $e');
+          }
+        }
+
         // Update the document in Firestore
         final userId = _editedData['id']?.toString();
         if (userId != null) {
@@ -735,6 +962,40 @@ class _UserDetailPageState extends State<UserDetailPage> {
           if (updateData['driversLicenseExpirationDate'] is DateTime) {
             updateData['driversLicenseExpirationDate'] =
                 Timestamp.fromDate(updateData['driversLicenseExpirationDate'] as DateTime);
+          }
+
+          // Update vehicle data with new car images if uploaded
+          if (updateData['vehicle'] != null &&
+              updateData['vehicle'] is List &&
+              (updateData['vehicle'] as List).isNotEmpty) {
+            final vehicleList = updateData['vehicle'] as List;
+            final vehicle = Map<String, dynamic>.from(vehicleList[0] as Map<String, dynamic>);
+            final existingPhotos = List<String>.from((vehicle['photos'] as List<dynamic>?) ?? []);
+
+            // Debug logging
+            print('Original vehicle data: $vehicle');
+            print('Main car image URL: $mainCarImageUrl');
+            print('Car image 1 URL: $carImage1Url');
+            print('Car image 2 URL: $carImage2Url');
+            print('Car image 3 URL: $carImage3Url');
+            print('Car image 4 URL: $carImage4Url');
+
+            // Add new car images to photos array
+            if (carImage1Url != null) existingPhotos.add(carImage1Url);
+            if (carImage2Url != null) existingPhotos.add(carImage2Url);
+            if (carImage3Url != null) existingPhotos.add(carImage3Url);
+            if (carImage4Url != null) existingPhotos.add(carImage4Url);
+
+            // Update primary photo if main car image was uploaded
+            if (mainCarImageUrl != null) {
+              vehicle['primaryPhoto'] = mainCarImageUrl;
+              print('Updated primary photo to: $mainCarImageUrl');
+            }
+
+            vehicle['photos'] = existingPhotos;
+            updateData['vehicle'] = [vehicle];
+
+            print('Final vehicle data: ${updateData['vehicle']}');
           }
 
           updateData['updatedAt'] = FieldValue.serverTimestamp();
@@ -755,6 +1016,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
           // Exit edit mode
           setState(() {
             _isEditing = false;
+            // Clear selected car images after successful save
+            _selectedMainCarImage = null;
+            _selectedCarImage1 = null;
+            _selectedCarImage2 = null;
+            _selectedCarImage3 = null;
+            _selectedCarImage4 = null;
           });
         }
       } catch (e) {
@@ -836,6 +1103,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
         return;
       }
 
+      // Delete user data from Firebase Storage
+      print('Deleting user data from Firebase Storage...'); // Debug log
+      await _deleteUserStorageData(userId);
+      print('User data deleted from Firebase Storage successfully'); // Debug log
+
       // Delete the user document from Firestore
       print('Deleting user from Firestore...'); // Debug log
       await FirebaseFirestore.instance.collection('users').doc(userId).delete();
@@ -860,6 +1132,56 @@ class _UserDetailPageState extends State<UserDetailPage> {
       // Remove loading overlay if it exists
       overlayEntry?.remove();
       _showErrorDialog(context, 'Error deleting user: $e');
+    }
+  }
+
+  Future<void> _deleteUserStorageData(String userId) async {
+    try {
+      final storage = FirebaseStorage.instance;
+
+      // Delete profile image
+      try {
+        final profileImageRef = storage.ref().child('users/$userId/images/profile.png');
+        await profileImageRef.delete();
+        print('Profile image deleted successfully');
+      } catch (e) {
+        // Profile image might not exist, which is fine
+        print('Profile image not found or already deleted: $e');
+      }
+
+      // Delete car images
+      try {
+        // Delete main car image
+        final mainCarImageRef = storage.ref().child('users/$userId/images/cars/main.png');
+        await mainCarImageRef.delete();
+        print('Main car image deleted successfully');
+      } catch (e) {
+        print('Main car image not found or already deleted: $e');
+      }
+
+      // Delete additional car images (1, 2, 3, 4)
+      for (int i = 1; i <= 4; i++) {
+        try {
+          final carImageRef = storage.ref().child('users/$userId/images/cars/$i.png');
+          await carImageRef.delete();
+          print('Car image $i deleted successfully');
+        } catch (e) {
+          print('Car image $i not found or already deleted: $e');
+        }
+      }
+
+      // Delete the entire user folder (this will delete any other files in the user's folder)
+      try {
+        final userFolderRef = storage.ref().child('users/$userId');
+        await userFolderRef.delete();
+        print('User folder deleted successfully');
+      } catch (e) {
+        print('User folder not found or already deleted: $e');
+      }
+    } catch (e) {
+      print('Error deleting user storage data: $e');
+      // Don't throw the error here, as we still want to delete the Firestore document
+      // even if storage deletion fails
     }
   }
 
@@ -910,10 +1232,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
     if (value != null) {
       if (value is DateTime) {
-        displayValue = '${value.day}/${value.month}/${value.year}';
+        displayValue =
+            '${value.day}/${value.month}/${value.year} ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
       } else if (value is Timestamp) {
         final date = value.toDate();
-        displayValue = '${date.day}/${date.month}/${date.year}';
+        displayValue =
+            '${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
       } else if (value is bool) {
         displayValue = value ? 'Yes' : 'No';
       } else {
@@ -945,7 +1269,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
           ),
           Expanded(
             child: isImageField && hasValidUrl
-                ? FutureBuilder<String>(
+                ? FutureBuilder<String?>(
                     future: _getDownloadUrlFromGsUri(value),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -978,21 +1302,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               height: 150,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  width: 200,
-                                  height: 150,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.error,
-                                      color: Colors.grey,
-                                      size: 40,
-                                    ),
-                                  ),
-                                );
+                                print('Network image error for $imageUrl: $error');
+                                return _buildCarImagePlaceholder(0, 'Failed', Colors.orange);
                               },
                               loadingBuilder: (context, child, loadingProgress) {
                                 if (loadingProgress == null) return child;
@@ -1031,5 +1342,906 @@ class _UserDetailPageState extends State<UserDetailPage> {
         ],
       ),
     );
+  }
+
+  Widget _buildCarImagesUploadSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Car Images', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 16),
+
+        // Main Car Image
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Primary Car Image',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                // Image Preview
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: _selectedMainCarImage != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(
+                            _selectedMainCarImage!,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : FutureBuilder<String?>(
+                          future: _loadMainCarImageFromStorage(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Center(child: CircularProgressIndicator());
+                            }
+
+                            if (snapshot.hasData && snapshot.data != null) {
+                              // Show existing main car image from Firebase Storage
+                              return ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  snapshot.data!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        'https://placehold.co/80x80/CCCCCC/666666?text=Main',
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return const Icon(Icons.directions_car, size: 40, color: Colors.grey);
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                            }
+
+                            // Show placeholder if no image exists
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                'https://placehold.co/80x80/CCCCCC/666666?text=Main',
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(Icons.directions_car, size: 40, color: Colors.grey);
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                ),
+                const SizedBox(width: 16),
+                // Upload Button
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _isUploadingCarImage
+                            ? null
+                            : () async {
+                                final image = await _pickCarImage();
+                                if (image != null) {
+                                  setState(() {
+                                    _selectedMainCarImage = image;
+                                  });
+                                }
+                              },
+                        icon: _isUploadingCarImage
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.camera_alt),
+                        label: Text(_isUploadingCarImage ? 'Uploading...' : 'Change'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _selectedMainCarImage != null
+                            ? 'Image selected: ${_selectedMainCarImage!.path.split('/').last}'
+                            : 'No main image selected',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 20),
+
+        // Additional Car Images Grid
+        Text('Additional Car Images (1-4)',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+
+        // Grid of car images for editing
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.2,
+          ),
+          itemCount: 4,
+          itemBuilder: (context, index) {
+            final imageNumber = index + 1;
+            File? selectedImage;
+
+            // Determine which image variable to use based on index
+            switch (imageNumber) {
+              case 1:
+                selectedImage = _selectedCarImage1;
+                break;
+              case 2:
+                selectedImage = _selectedCarImage2;
+                break;
+              case 3:
+                selectedImage = _selectedCarImage3;
+                break;
+              case 4:
+                selectedImage = _selectedCarImage4; // 4th car image, separate from main
+                break;
+            }
+
+            // If no locally selected image, try to load from Firebase Storage
+            if (selectedImage == null) {
+              final userId = _editedData['id'] as String?;
+              if (userId != null) {
+                final gsUri = 'gs://otogapo-dev.appspot.com/users/$userId/images/cars/$imageNumber.png';
+
+                return FutureBuilder<String?>(
+                  future: _getDownloadUrlFromGsUri(gsUri),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Center(child: CircularProgressIndicator()),
+                      );
+                    }
+
+                    // If image exists in Firebase Storage, show it
+                    if (snapshot.hasData && snapshot.data != null) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                snapshot.data!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.grey.shade100,
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Car $imageNumber',
+                                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            // Image number overlay
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '$imageNumber',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Upload button overlay
+                            Positioned(
+                              bottom: 4,
+                              left: 4,
+                              right: 4,
+                              child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  final pickedImage = await _pickCarImage();
+                                  if (pickedImage != null) {
+                                    setState(() {
+                                      switch (imageNumber) {
+                                        case 1:
+                                          _selectedCarImage1 = pickedImage;
+                                          break;
+                                        case 2:
+                                          _selectedCarImage2 = pickedImage;
+                                          break;
+                                        case 3:
+                                          _selectedCarImage3 = pickedImage;
+                                          break;
+                                        case 4:
+                                          _selectedCarImage4 = pickedImage;
+                                          break;
+                                      }
+                                    });
+                                  }
+                                },
+                                icon: const Icon(Icons.camera_alt, size: 16),
+                                label: const Text(
+                                  'Change',
+                                  style: TextStyle(fontSize: 10),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  minimumSize: const Size(0, 24),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    // If no image exists, show placeholder
+                    return Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              'https://placehold.co/300x200/CCCCCC/666666?text=Car+$imageNumber',
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.grey.shade100,
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Car $imageNumber',
+                                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          // Image number overlay
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '$imageNumber',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Upload button overlay
+                          Positioned(
+                            bottom: 4,
+                            left: 4,
+                            right: 4,
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                final pickedImage = await _pickCarImage();
+                                if (pickedImage != null) {
+                                  setState(() {
+                                    switch (imageNumber) {
+                                      case 1:
+                                        _selectedCarImage1 = pickedImage;
+                                        break;
+                                      case 2:
+                                        _selectedCarImage2 = pickedImage;
+                                        break;
+                                      case 3:
+                                        _selectedCarImage3 = pickedImage;
+                                        break;
+                                      case 4:
+                                        _selectedCarImage4 = pickedImage;
+                                        break;
+                                    }
+                                  });
+                                }
+                              },
+                              icon: const Icon(Icons.camera_alt, size: 16),
+                              label: const Text(
+                                'Upload',
+                                style: TextStyle(fontSize: 10),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                minimumSize: const Size(0, 24),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              }
+            }
+
+            // If locally selected image exists, show it
+            return Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Stack(
+                children: [
+                  // Image or Placeholder
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: selectedImage != null
+                        ? Image.file(
+                            selectedImage,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                          )
+                        : Image.network(
+                            'https://placehold.co/300x200/CCCCCC/666666?text=Car+$imageNumber',
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey.shade100,
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Car $imageNumber',
+                                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                  // Image number overlay
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '$imageNumber',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Upload button overlay
+                  Positioned(
+                    bottom: 4,
+                    left: 4,
+                    right: 4,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final pickedImage = await _pickCarImage();
+                        if (pickedImage != null) {
+                          setState(() {
+                            switch (imageNumber) {
+                              case 1:
+                                _selectedCarImage1 = pickedImage;
+                                break;
+                              case 2:
+                                _selectedCarImage2 = pickedImage;
+                                break;
+                              case 3:
+                                _selectedCarImage3 = pickedImage;
+                                break;
+                              case 4:
+                                _selectedCarImage4 = pickedImage;
+                                break;
+                            }
+                          });
+                        }
+                      },
+                      icon: const Icon(Icons.camera_alt, size: 16),
+                      label: Text(
+                        selectedImage != null ? 'Change' : 'Upload',
+                        style: const TextStyle(fontSize: 10),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        minimumSize: const Size(0, 24),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCarImagesDisplaySection(Map<String, dynamic> vehicle) {
+    final primaryPhoto = vehicle['primaryPhoto'] as String?;
+
+    // Debug logging
+    print('Vehicle data: $vehicle');
+    print('Primary photo: $primaryPhoto');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Car Primary Image',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 16),
+
+        // Main car image display
+        FutureBuilder<String?>(
+          future: _loadMainCarImageFromStorage(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (snapshot.hasError) {
+              return Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.red.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error, color: Colors.red, size: 32),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Error loading main car image',
+                        style: TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            if (snapshot.hasData && snapshot.data != null) {
+              // Show main car image from Firebase Storage
+              return Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    snapshot.data!,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey.shade100,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.error, color: Colors.grey, size: 32),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Failed to load main car image',
+                                style: TextStyle(color: Colors.grey, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            }
+
+            // Show placeholder if no main image exists
+            return Container(
+              height: 200,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  'https://placehold.co/400x200/CCCCCC/666666?text=Main+Car+Image',
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey.shade100,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.directions_car, size: 48, color: Colors.grey),
+                            const SizedBox(height: 8),
+                            Text(
+                              'No main car image',
+                              style: TextStyle(color: Colors.grey, fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            );
+          },
+        ),
+
+        const SizedBox(height: 24),
+
+        // Additional Car Images Grid (1-4)
+        Text('Car Images (1-4)', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+
+        // Grid of car images
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.2,
+          ),
+          itemCount: 4,
+          itemBuilder: (context, index) {
+            final imageNumber = index + 1;
+            final userId = _editedData['id'] as String?;
+
+            if (userId == null) {
+              return _buildCarImagePlaceholder(imageNumber, 'No user ID', Colors.grey);
+            }
+
+            // Create gs:// URI for the car image
+            final gsUri = 'gs://otogapo-dev.appspot.com/users/$userId/images/cars/$imageNumber.png';
+
+            return FutureBuilder<String?>(
+              future: _getDownloadUrlFromGsUri(gsUri),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                // If image is missing (null), use placehold.co
+                if (snapshot.data == null) {
+                  final placeholderUrl = 'https://placehold.co/300x200/CCCCCC/666666?text=Car+$imageNumber';
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Stack(
+                        children: [
+                          Image.network(
+                            placeholderUrl,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildCarImagePlaceholder(imageNumber, 'Empty', Colors.grey);
+                            },
+                          ),
+                          // Image number overlay
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '$imageNumber',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                // Check if the error is due to missing file (404) vs actual error
+                if (snapshot.hasError) {
+                  final error = snapshot.error.toString();
+                  // If it's a "not found" error, use placehold.co
+                  if (error.contains('not found') || error.contains('404') || error.contains('object does not exist')) {
+                    final placeholderUrl = 'https://placehold.co/300x200/CCCCCC/666666?text=Car+$imageNumber';
+                    return Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Stack(
+                          children: [
+                            Image.network(
+                              placeholderUrl,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildCarImagePlaceholder(imageNumber, 'Empty', Colors.grey);
+                              },
+                            ),
+                            // Image number overlay
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '$imageNumber',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  // For actual errors, show error state
+                  print('Error loading car image $imageNumber: $error');
+                  return _buildCarImagePlaceholder(imageNumber, 'Error', Colors.red);
+                }
+
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  final placeholderUrl = 'https://placehold.co/300x200/CCCCCC/666666?text=Car+$imageNumber';
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Stack(
+                        children: [
+                          Image.network(
+                            placeholderUrl,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildCarImagePlaceholder(imageNumber, 'Empty', Colors.grey);
+                            },
+                          ),
+                          // Image number overlay
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '$imageNumber',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                print('Successfully loaded car image $imageNumber: ${snapshot.data}');
+                return Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Stack(
+                      children: [
+                        Image.network(
+                          snapshot.data!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          errorBuilder: (context, error, stackTrace) {
+                            print('Network image error for $imageNumber: $error');
+                            return _buildCarImagePlaceholder(imageNumber, 'Failed', Colors.orange);
+                          },
+                        ),
+                        // Image number overlay
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '$imageNumber',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCarImagePlaceholder(int imageNumber, String status, Color color) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: color),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              status == 'Empty' ? Icons.directions_car : Icons.error,
+              color: color,
+              size: 32,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '$status $imageNumber',
+              style: TextStyle(color: color, fontSize: 10),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<String?> _loadMainCarImageFromStorage() async {
+    final userId = _editedData['id'] as String?;
+    if (userId == null) {
+      throw Exception('User ID not found in user data');
+    }
+    final gsUri = 'gs://otogapo-dev.appspot.com/users/$userId/images/cars/main.png';
+    return await _getDownloadUrlFromGsUri(gsUri);
   }
 }
