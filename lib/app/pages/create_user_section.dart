@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:math';
+import 'dart:async';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -45,6 +47,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   final TextEditingController _isAdminController = TextEditingController();
   final TextEditingController _memberNumberController = TextEditingController();
   final TextEditingController _membershipTypeController = TextEditingController();
+  String? _selectedMembershipType = '3'; // Default to Member
   final TextEditingController _middleNameController = TextEditingController();
   final TextEditingController _nationalityController = TextEditingController();
   final TextEditingController _profileImageController = TextEditingController();
@@ -74,6 +77,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   Color _selectedVehicleColor = Colors.black;
   String? _message;
 
+  // Debounce timer for vehicle make search
+  Timer? _debounceTimer;
+
   // Profile image upload variables
   final ImagePicker _imagePicker = ImagePicker();
   File? _selectedProfileImage;
@@ -93,185 +99,84 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   String? _uploadedCarImage3Url;
   String? _uploadedCarImage4Url;
 
-  // Test data arrays for auto-fill
-  final List<String> _testFirstNames = [
-    'John',
-    'Maria',
-    'Carlos',
-    'Ana',
-    'Michael',
-    'Sofia',
-    'David',
-    'Isabella',
-    'James',
-    'Camila',
-    'Robert',
-    'Valentina',
-    'William',
-    'Gabriela',
-    'Richard',
-    'Lucia',
-    'Joseph',
-    'Emma',
-    'Thomas',
-    'Olivia',
-    'Christopher',
-    'Ava',
-    'Charles',
-    'Mia',
-    'Daniel',
-    'Ella',
-    'Matthew',
-    'Grace',
-    'Anthony',
-    'Chloe'
-  ];
+  // Helper method to create consistent TextField styling
+  InputDecoration _buildInputDecoration({
+    required String labelText,
+    String? hintText,
+    String? prefixText,
+    String? suffixText,
+    Widget? prefixIcon,
+  }) {
+    return InputDecoration(
+      labelText: labelText,
+      hintText: hintText,
+      prefixText: prefixText,
+      suffixText: suffixText,
+      prefixIcon: prefixIcon,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.sp),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.sp),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.sp),
+        borderSide: BorderSide(color: Colors.blue, width: 2),
+      ),
+      labelStyle: TextStyle(
+        fontSize: 14.sp,
+        color: Colors.grey[600],
+      ),
+      hintStyle: TextStyle(
+        fontSize: 13.sp,
+        color: Colors.grey[400],
+      ),
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: 12.sp,
+        vertical: 12.sp,
+      ),
+    );
+  }
 
-  final List<String> _testLastNames = [
-    'Santos',
-    'Garcia',
-    'Rodriguez',
-    'Martinez',
-    'Hernandez',
-    'Lopez',
-    'Gonzalez',
-    'Perez',
-    'Torres',
-    'Ramirez',
-    'Cruz',
-    'Morales',
-    'Reyes',
-    'Flores',
-    'Rivera',
-    'Gomez',
-    'Diaz',
-    'Reyes',
-    'Torres',
-    'Jimenez',
-    'Moreno',
-    'Romero',
-    'Alvarez',
-    'Mendoza',
-    'Castillo',
-    'Ortiz',
-    'Silva',
-    'Vargas',
-    'Castro',
-    'Fernandez'
-  ];
+  // Helper method to create consistent TextField text style
+  TextStyle _buildTextStyle() {
+    return TextStyle(
+      fontSize: 14.sp,
+      color: Colors.black87,
+    );
+  }
 
-  final List<String> _testMiddleNames = [
-    'Antonio',
-    'Isabella',
-    'Miguel',
-    'Carmen',
-    'Jose',
-    'Elena',
-    'Francisco',
-    'Rosa',
-    'Manuel',
-    'Teresa',
-    'Pedro',
-    'Ana',
-    'Luis',
-    'Maria',
-    'Carlos',
-    'Josefa',
-    'Juan',
-    'Dolores',
-    'Rafael',
-    'Concepcion',
-    'Diego',
-    'Mercedes',
-    'Fernando',
-    'Consuelo',
-    'Alberto',
-    'Guadalupe',
-    'Ricardo',
-    'Patricia',
-    'Eduardo',
-    'Monica'
-  ];
-
-  final List<String> _testBirthplaces = [
-    'Manila',
-    'Quezon City',
-    'Caloocan',
-    'Las Pinas',
-    'Makati',
-    'Malabon',
-    'Mandaluyong',
-    'Marikina',
-    'Muntinlupa',
-    'Navotas',
-    'Paranaque',
-    'Pasay',
-    'Pasig',
-    'San Juan',
-    'Taguig',
-    'Valenzuela',
-    'Pateros',
-    'Antipolo',
-    'Bacoor',
-    'Cabuyao',
-    'Cainta',
-    'Calamba',
-    'Dasmarinas',
-    'Imus',
-    'Laguna',
-    'Muntinlupa',
-    'San Pedro',
-    'Santa Rosa',
-    'Taytay',
-    'Trece Martires'
-  ];
-
-  final List<String> _testBloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-  final List<String> _testCivilStatus = ['Single', 'Married', 'Widowed', 'Separated', 'Divorced', 'Annulled'];
-  final List<String> _testReligions = [
-    'Catholic',
-    'Protestant',
-    'Islam',
-    'Buddhism',
-    'Hinduism',
-    'Atheist',
-    'Agnostic',
-    'Other'
-  ];
-  final List<String> _testVehicleColors = [
-    'White',
-    'Black',
-    'Silver',
-    'Gray',
-    'Red',
-    'Blue',
-    'Green',
-    'Yellow',
-    'Orange',
-    'Purple'
-  ];
-  final List<String> _testVehicleTypes = [
-    'Sedan',
-    'SUV',
-    'Hatchback',
-    'Coupe',
-    'Convertible',
-    'Wagon',
-    'Van',
-    'Truck',
-    'Motorcycle'
-  ];
+  // Helper method to create consistent dropdown text style
+  TextStyle _buildDropdownTextStyle() {
+    return TextStyle(
+      fontSize: 14.sp,
+      color: Colors.black87,
+    );
+  }
 
   @override
   void initState() {
     super.initState();
     _fetchVehicleMakes();
+    // Initialize membership type controller with default value (Member = 3)
+    _membershipTypeController.text = '3';
+
+    // Add focus listener to hide suggestions when focus is lost
+    _vehicleMakeFocusNode.addListener(() {
+      if (!_vehicleMakeFocusNode.hasFocus) {
+        setState(() {
+          _showSuggestions = false;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _vehicleMakeController.dispose();
     _vehicleMakeFocusNode.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
@@ -435,6 +340,65 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         });
       }
     }
+  }
+
+  void _onVehicleMakeTextChanged(String value) {
+    // Cancel any existing timer
+    _debounceTimer?.cancel();
+
+    // Set a new timer to debounce the search
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        setState(() {
+          if (value.isEmpty) {
+            _showSuggestions = false;
+            _selectedVehicleMake = null;
+            _selectedVehicleModel = null;
+            _vehicleModels = [];
+          } else {
+            _showSuggestions = true;
+          }
+        });
+      }
+    });
+  }
+
+  List<String> _getFilteredVehicleMakes() {
+    final searchText = _vehicleMakeController.text.toLowerCase().trim();
+
+    // If search text is empty, return empty list
+    if (searchText.isEmpty) {
+      return [];
+    }
+
+    // Use more efficient filtering
+    final filteredMakes = <String>[];
+    for (final make in _vehicleMakes) {
+      if (make.toLowerCase().contains(searchText)) {
+        filteredMakes.add(make);
+        // Limit to 20 results for performance
+        if (filteredMakes.length >= 20) break;
+      }
+    }
+
+    // Sort results to show exact matches first, then partial matches
+    filteredMakes.sort((a, b) {
+      final aLower = a.toLowerCase();
+      final bLower = b.toLowerCase();
+
+      // Exact matches first
+      if (aLower == searchText && bLower != searchText) return -1;
+      if (bLower == searchText && aLower != searchText) return 1;
+
+      // Starts with matches second
+      if (aLower.startsWith(searchText) && !bLower.startsWith(searchText)) return -1;
+      if (bLower.startsWith(searchText) && !aLower.startsWith(searchText)) return 1;
+
+      // Alphabetical order for the rest
+      return aLower.compareTo(bLower);
+    });
+
+    return filteredMakes;
   }
 
   String _generateRandomString(int length) {
@@ -681,6 +645,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
   Future<void> _createUser() async {
     final email = _newEmailController.text.trim();
+    final password = _newPasswordController.text.trim();
     final firstName = _newFirstNameController.text.trim();
     final lastName = _newLastNameController.text.trim();
     // Additional fields
@@ -716,17 +681,28 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     final vehicleType = _vehicleTypeController.text.trim();
     final vehicleYear = _selectedVehicleYear ?? 0;
     final vehicleMake = _selectedVehicleMake ?? '';
-    if (email.isEmpty || firstName.isEmpty || lastName.isEmpty) {
-      setState(() => _createUserMessage = 'Please fill in all required fields.');
+
+    if (email.isEmpty || password.isEmpty || firstName.isEmpty || lastName.isEmpty) {
+      setState(
+          () => _createUserMessage = 'Please fill in all required fields (email, password, first name, last name).');
       return;
     }
+
     setState(() {
       _isCreatingUser = true;
       _createUserMessage = null;
     });
+
     try {
-      // Generate a unique ID for the user instead of using Firebase Auth
-      final uid = _generateRandomString(28); // Firebase UIDs are typically 28 characters
+      // First, create Firebase Authentication user
+      print('Creating Firebase Authentication user with email: $email');
+      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final uid = userCredential.user!.uid;
+      print('Firebase Authentication user created successfully with UID: $uid');
 
       // Upload profile image if selected
       String? profileImageUrl;
@@ -786,7 +762,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         }
       }
 
-      // Create user document in Firestore
+      // Create user document in Firestore using the Firebase Auth UID
+      print('Creating Firestore document with UID: $uid');
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         "age": age,
         "birthplace": birthplace,
@@ -805,7 +782,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         "emergencyContactNumber": emergencyContactNumber,
         "firstName": firstName,
         "gender": '', // Add gender field if needed
-        "id": uid, // Add the generated ID to the document
+        "id": uid, // Add the Firebase Auth UID to the document
         "isActive": isActive,
         "isAdmin": isAdmin,
         "lastName": lastName,
@@ -836,10 +813,15 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           }
         ]
       });
+
+      print('Firestore document created successfully');
+
       setState(() {
         _isCreatingUser = false;
-        _createUserMessage = 'User record created successfully!';
+        _createUserMessage =
+            'User created successfully! Firebase Auth user and Firestore document created with UID: $uid';
         _newEmailController.clear();
+        _newPasswordController.clear();
         _newFirstNameController.clear();
         _newLastNameController.clear();
         _ageController.clear();
@@ -886,82 +868,38 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         _uploadedCarImage3Url = null;
         _uploadedCarImage4Url = null;
       });
+    } on FirebaseAuthException catch (e) {
+      // Handle Firebase Authentication errors
+      String errorMessage = 'Authentication error: ';
+      switch (e.code) {
+        case 'weak-password':
+          errorMessage += 'The password provided is too weak.';
+          break;
+        case 'email-already-in-use':
+          errorMessage += 'An account already exists for that email.';
+          break;
+        case 'invalid-email':
+          errorMessage += 'The email address is invalid.';
+          break;
+        case 'operation-not-allowed':
+          errorMessage += 'Email/password accounts are not enabled.';
+          break;
+        default:
+          errorMessage += e.message ?? 'Unknown authentication error.';
+      }
+
+      setState(() {
+        _isCreatingUser = false;
+        _createUserMessage = errorMessage;
+      });
+      print('Firebase Authentication error: ${e.code} - ${e.message}');
     } catch (e) {
       setState(() {
         _isCreatingUser = false;
         _createUserMessage = 'Error: $e';
       });
+      print('General error during user creation: $e');
     }
-  }
-
-  Widget _buildSuggestionsList() {
-    final searchText = _vehicleMakeController.text.toLowerCase();
-    final filteredMakes = _vehicleMakes.where((make) {
-      return make.toLowerCase().contains(searchText);
-    }).toList();
-
-    // Sort results to show exact matches first, then partial matches
-    filteredMakes.sort((a, b) {
-      final aLower = a.toLowerCase();
-      final bLower = b.toLowerCase();
-
-      // Exact matches first
-      if (aLower == searchText && bLower != searchText) return -1;
-      if (bLower == searchText && aLower != searchText) return 1;
-
-      // Starts with matches second
-      if (aLower.startsWith(searchText) && !bLower.startsWith(searchText)) return -1;
-      if (bLower.startsWith(searchText) && !aLower.startsWith(searchText)) return 1;
-
-      // Alphabetical order for the rest
-      return aLower.compareTo(bLower);
-    });
-
-    // Limit results to first 20 for better performance
-    final limitedMakes = filteredMakes.take(20).toList();
-
-    if (limitedMakes.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Text(
-          'No vehicle makes found',
-          style: TextStyle(
-            color: Colors.grey,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      shrinkWrap: true,
-      padding: EdgeInsets.zero,
-      itemCount: limitedMakes.length,
-      itemBuilder: (context, index) {
-        final make = limitedMakes[index];
-        return ListTile(
-          title: Text(
-            make,
-            style: const TextStyle(fontWeight: FontWeight.w500),
-          ),
-          subtitle: Text(
-            'Tap to select',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
-          ),
-          leading: const Icon(Icons.directions_car, size: 20),
-          onTap: () {
-            _vehicleMakeController.text = make;
-            _onVehicleMakeChanged(make);
-            setState(() {
-              _showSuggestions = false;
-            });
-          },
-        );
-      },
-    );
   }
 
   // Helper method to get random item from a list
@@ -1089,10 +1027,18 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       final randomEmail =
           '${randomFirstName.toLowerCase()}.${randomLastName.toLowerCase()}${_generateRandomString(3)}@gmail.com';
 
-      // Generate a unique ID for the user
-      final uid = _generateRandomString(28);
+      // First, create Firebase Authentication user with default password
+      print('Creating Firebase Authentication user for test user with email: $randomEmail');
+      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: randomEmail,
+        password: '123456', // Default password for test users
+      );
 
-      // Create user document in Firestore
+      final uid = userCredential.user!.uid;
+      print('Firebase Authentication test user created successfully with UID: $uid');
+
+      // Create user document in Firestore using the Firebase Auth UID
+      print('Creating Firestore document for test user with UID: $uid');
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         "age": randomAge.toString(),
         "birthplace": randomBirthplace,
@@ -1138,8 +1084,34 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         ]
       });
 
+      print('Firestore document for test user created successfully');
+
       // Create random payment records for the last 6 months
       await _createRandomPaymentRecords(uid);
+
+      print('Test user creation completed successfully for UID: $uid');
+    } on FirebaseAuthException catch (e) {
+      // Handle Firebase Authentication errors for test users
+      String errorMessage = 'Test user authentication error: ';
+      switch (e.code) {
+        case 'weak-password':
+          errorMessage += 'The password provided is too weak.';
+          break;
+        case 'email-already-in-use':
+          errorMessage += 'An account already exists for that email.';
+          break;
+        case 'invalid-email':
+          errorMessage += 'The email address is invalid.';
+          break;
+        case 'operation-not-allowed':
+          errorMessage += 'Email/password accounts are not enabled.';
+          break;
+        default:
+          errorMessage += e.message ?? 'Unknown authentication error.';
+      }
+
+      print('Firebase Authentication error for test user: ${e.code} - ${e.message}');
+      // For test users, we might want to continue with a different email or handle differently
     } catch (e) {
       print('Error creating random test user: $e');
     }
@@ -1169,6 +1141,175 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       print('Error creating payment records: $e');
     }
   }
+
+  // Test data arrays for auto-fill
+  final List<String> _testFirstNames = [
+    'John',
+    'Maria',
+    'Carlos',
+    'Ana',
+    'Michael',
+    'Sofia',
+    'David',
+    'Isabella',
+    'James',
+    'Camila',
+    'Robert',
+    'Valentina',
+    'William',
+    'Gabriela',
+    'Richard',
+    'Lucia',
+    'Joseph',
+    'Emma',
+    'Thomas',
+    'Olivia',
+    'Christopher',
+    'Ava',
+    'Charles',
+    'Mia',
+    'Daniel',
+    'Ella',
+    'Matthew',
+    'Grace',
+    'Anthony',
+    'Chloe'
+  ];
+
+  final List<String> _testLastNames = [
+    'Santos',
+    'Garcia',
+    'Rodriguez',
+    'Martinez',
+    'Hernandez',
+    'Lopez',
+    'Gonzalez',
+    'Perez',
+    'Torres',
+    'Ramirez',
+    'Cruz',
+    'Morales',
+    'Reyes',
+    'Flores',
+    'Rivera',
+    'Gomez',
+    'Diaz',
+    'Reyes',
+    'Torres',
+    'Jimenez',
+    'Moreno',
+    'Romero',
+    'Alvarez',
+    'Mendoza',
+    'Castillo',
+    'Ortiz',
+    'Silva',
+    'Vargas',
+    'Castro',
+    'Fernandez'
+  ];
+
+  final List<String> _testMiddleNames = [
+    'Antonio',
+    'Isabella',
+    'Miguel',
+    'Carmen',
+    'Jose',
+    'Elena',
+    'Francisco',
+    'Rosa',
+    'Manuel',
+    'Teresa',
+    'Pedro',
+    'Ana',
+    'Luis',
+    'Maria',
+    'Carlos',
+    'Josefa',
+    'Juan',
+    'Dolores',
+    'Rafael',
+    'Concepcion',
+    'Diego',
+    'Mercedes',
+    'Fernando',
+    'Consuelo',
+    'Alberto',
+    'Guadalupe',
+    'Ricardo',
+    'Patricia',
+    'Eduardo',
+    'Monica'
+  ];
+
+  final List<String> _testBirthplaces = [
+    'Manila',
+    'Quezon City',
+    'Caloocan',
+    'Las Pinas',
+    'Makati',
+    'Malabon',
+    'Mandaluyong',
+    'Marikina',
+    'Muntinlupa',
+    'Navotas',
+    'Paranaque',
+    'Pasay',
+    'Pasig',
+    'San Juan',
+    'Taguig',
+    'Valenzuela',
+    'Pateros',
+    'Antipolo',
+    'Bacoor',
+    'Cabuyao',
+    'Cainta',
+    'Calamba',
+    'Dasmarinas',
+    'Imus',
+    'Laguna',
+    'Muntinlupa',
+    'San Pedro',
+    'Santa Rosa',
+    'Taytay',
+    'Trece Martires'
+  ];
+
+  final List<String> _testBloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  final List<String> _testCivilStatus = ['Single', 'Married', 'Widowed', 'Separated', 'Divorced', 'Annulled'];
+  final List<String> _testReligions = [
+    'Catholic',
+    'Protestant',
+    'Islam',
+    'Buddhism',
+    'Hinduism',
+    'Atheist',
+    'Agnostic',
+    'Other'
+  ];
+  final List<String> _testVehicleColors = [
+    'White',
+    'Black',
+    'Silver',
+    'Gray',
+    'Red',
+    'Blue',
+    'Green',
+    'Yellow',
+    'Orange',
+    'Purple'
+  ];
+  final List<String> _testVehicleTypes = [
+    'Sedan',
+    'SUV',
+    'Hatchback',
+    'Coupe',
+    'Convertible',
+    'Wagon',
+    'Van',
+    'Truck',
+    'Motorcycle'
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -1387,16 +1528,22 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Personal Information', style: Theme.of(context).textTheme.titleMedium),
+              Text('Personal Information',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[700],
+                  )),
               const SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _newFirstNameController,
-                      decoration: const InputDecoration(
+                      style: _buildTextStyle(),
+                      decoration: _buildInputDecoration(
                         labelText: 'First Name',
-                        border: OutlineInputBorder(),
+                        hintText: 'Enter your first name',
                       ),
                     ),
                   ),
@@ -1404,9 +1551,10 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   Expanded(
                     child: TextField(
                       controller: _newLastNameController,
-                      decoration: const InputDecoration(
+                      style: _buildTextStyle(),
+                      decoration: _buildInputDecoration(
                         labelText: 'Last Name',
-                        border: OutlineInputBorder(),
+                        hintText: 'Enter your last name',
                       ),
                     ),
                   ),
@@ -1415,23 +1563,29 @@ class _CreateUserSectionState extends State<CreateUserSection> {
               const SizedBox(height: 20),
               TextField(
                 controller: _middleNameController,
-                decoration: const InputDecoration(labelText: 'Middle Name', border: OutlineInputBorder()),
+                style: _buildTextStyle(),
+                decoration: _buildInputDecoration(
+                  labelText: 'Middle Name',
+                  hintText: 'Enter your middle name (optional)',
+                ),
               ),
               const SizedBox(height: 20),
               TextField(
                 controller: _newEmailController,
-                decoration: const InputDecoration(
+                style: _buildTextStyle(),
+                decoration: _buildInputDecoration(
                   labelText: 'Email',
-                  border: OutlineInputBorder(),
+                  hintText: 'Enter your email address',
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 20),
               TextField(
                 controller: _newPasswordController,
-                decoration: const InputDecoration(
+                style: _buildTextStyle(),
+                decoration: _buildInputDecoration(
                   labelText: 'Password',
-                  border: OutlineInputBorder(),
+                  hintText: 'Enter your password',
                 ),
                 obscureText: true,
               ),
@@ -1442,11 +1596,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   Expanded(
                     child: TextField(
                       controller: _ageController,
-                      decoration: const InputDecoration(
+                      style: _buildTextStyle(),
+                      decoration: _buildInputDecoration(
                         labelText: 'Age',
-                        border: OutlineInputBorder(),
-                        suffixText: 'years',
                         hintText: 'Enter age (1-120)',
+                        suffixText: 'years',
                       ),
                       keyboardType: TextInputType.number,
                       inputFormatters: [
@@ -1466,7 +1620,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   Expanded(
                     child: TextField(
                       controller: _birthplaceController,
-                      decoration: const InputDecoration(labelText: 'Birthplace', border: OutlineInputBorder()),
+                      style: _buildTextStyle(),
+                      decoration: _buildInputDecoration(
+                        labelText: 'Birthplace',
+                        hintText: 'Enter your birthplace',
+                      ),
                     ),
                   ),
                 ],
@@ -1477,19 +1635,20 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: _selectedBloodType,
-                      decoration: const InputDecoration(
+                      style: _buildDropdownTextStyle(),
+                      decoration: _buildInputDecoration(
                         labelText: 'Blood Type',
-                        border: OutlineInputBorder(),
+                        hintText: 'Blood type',
                       ),
                       items: const [
-                        DropdownMenuItem(value: 'A+', child: Text('A+')),
-                        DropdownMenuItem(value: 'A-', child: Text('A-')),
-                        DropdownMenuItem(value: 'B+', child: Text('B+')),
-                        DropdownMenuItem(value: 'B-', child: Text('B-')),
-                        DropdownMenuItem(value: 'AB+', child: Text('AB+')),
-                        DropdownMenuItem(value: 'AB-', child: Text('AB-')),
-                        DropdownMenuItem(value: 'O+', child: Text('O+')),
-                        DropdownMenuItem(value: 'O-', child: Text('O-')),
+                        DropdownMenuItem(value: 'A+', child: Text('A+', style: TextStyle(fontSize: 14))),
+                        DropdownMenuItem(value: 'A-', child: Text('A-', style: TextStyle(fontSize: 14))),
+                        DropdownMenuItem(value: 'B+', child: Text('B+', style: TextStyle(fontSize: 14))),
+                        DropdownMenuItem(value: 'B-', child: Text('B-', style: TextStyle(fontSize: 14))),
+                        DropdownMenuItem(value: 'AB+', child: Text('AB+', style: TextStyle(fontSize: 14))),
+                        DropdownMenuItem(value: 'AB-', child: Text('AB-', style: TextStyle(fontSize: 14))),
+                        DropdownMenuItem(value: 'O+', child: Text('O+', style: TextStyle(fontSize: 14))),
+                        DropdownMenuItem(value: 'O-', child: Text('O-', style: TextStyle(fontSize: 14))),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -1503,17 +1662,18 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: _selectedCivilStatus,
-                      decoration: const InputDecoration(
+                      style: _buildDropdownTextStyle(),
+                      decoration: _buildInputDecoration(
                         labelText: 'Civil Status',
-                        border: OutlineInputBorder(),
+                        hintText: 'Civil status',
                       ),
                       items: const [
-                        DropdownMenuItem(value: 'Single', child: Text('Single')),
-                        DropdownMenuItem(value: 'Married', child: Text('Married')),
-                        DropdownMenuItem(value: 'Widowed', child: Text('Widowed')),
-                        DropdownMenuItem(value: 'Separated', child: Text('Separated')),
-                        DropdownMenuItem(value: 'Divorced', child: Text('Divorced')),
-                        DropdownMenuItem(value: 'Annulled', child: Text('Annulled')),
+                        DropdownMenuItem(value: 'Single', child: Text('Single', style: TextStyle(fontSize: 14))),
+                        DropdownMenuItem(value: 'Married', child: Text('Married', style: TextStyle(fontSize: 14))),
+                        DropdownMenuItem(value: 'Widowed', child: Text('Widowed', style: TextStyle(fontSize: 14))),
+                        DropdownMenuItem(value: 'Separated', child: Text('Separated', style: TextStyle(fontSize: 14))),
+                        DropdownMenuItem(value: 'Divorced', child: Text('Divorced', style: TextStyle(fontSize: 14))),
+                        DropdownMenuItem(value: 'Annulled', child: Text('Annulled', style: TextStyle(fontSize: 14))),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -1528,11 +1688,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
               const SizedBox(height: 20),
               TextField(
                 controller: _contactNumberController,
-                decoration: const InputDecoration(
+                style: _buildTextStyle(),
+                decoration: _buildInputDecoration(
                   labelText: 'Contact Number',
-                  border: OutlineInputBorder(),
-                  prefixText: '+63 ',
                   hintText: '9XX XXX XXXX',
+                  prefixText: '+63 ',
                 ),
                 keyboardType: TextInputType.phone,
                 maxLength: 10,
@@ -1552,7 +1712,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                       _selectedDateOfBirth != null
                           ? 'Date of Birth: ${_selectedDateOfBirth!.day}/${_selectedDateOfBirth!.month}/${_selectedDateOfBirth!.year}'
                           : 'Select Date of Birth',
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   ElevatedButton(
@@ -1585,19 +1749,22 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   Expanded(
                     child: TextField(
                       controller: _emergencyContactNameController,
-                      decoration:
-                          const InputDecoration(labelText: 'Emergency Contact Name', border: OutlineInputBorder()),
+                      style: _buildTextStyle(),
+                      decoration: _buildInputDecoration(
+                        labelText: 'Emergency Contact Name',
+                        hintText: 'Name',
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       controller: _emergencyContactNumberController,
-                      decoration: const InputDecoration(
-                        labelText: 'Emergency Contact Number',
-                        border: OutlineInputBorder(),
-                        prefixText: '+63 ',
+                      style: _buildTextStyle(),
+                      decoration: _buildInputDecoration(
+                        labelText: 'Number',
                         hintText: '9XX XXX XXXX',
+                        prefixText: '+63 ',
                       ),
                       keyboardType: TextInputType.phone,
                     ),
@@ -1610,14 +1777,22 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   Expanded(
                     child: TextField(
                       controller: _nationalityController,
-                      decoration: const InputDecoration(labelText: 'Nationality', border: OutlineInputBorder()),
+                      style: _buildTextStyle(),
+                      decoration: _buildInputDecoration(
+                        labelText: 'Nationality',
+                        hintText: 'Enter your nationality',
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       controller: _religionController,
-                      decoration: const InputDecoration(labelText: 'Religion', border: OutlineInputBorder()),
+                      style: _buildTextStyle(),
+                      decoration: _buildInputDecoration(
+                        labelText: 'Religion',
+                        hintText: 'Enter your religion',
+                      ),
                     ),
                   ),
                 ],
@@ -1628,30 +1803,38 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   Expanded(
                     child: TextField(
                       controller: _spouseNameController,
-                      decoration: const InputDecoration(labelText: 'Spouse Name', border: OutlineInputBorder()),
+                      style: _buildTextStyle(),
+                      decoration: _buildInputDecoration(
+                        labelText: 'Spouse Name',
+                        hintText: 'Enter spouse name (if applicable)',
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       controller: _spouseContactNumberController,
-                      decoration: const InputDecoration(
+                      style: _buildTextStyle(),
+                      decoration: _buildInputDecoration(
                         labelText: 'Spouse Contact Number',
-                        border: OutlineInputBorder(),
-                        prefixText: '+63 ',
                         hintText: '9XX XXX XXXX',
+                        prefixText: '+63 ',
                       ),
                       keyboardType: TextInputType.phone,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
               // Profile Image Upload Section
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Profile Image', style: Theme.of(context).textTheme.titleMedium),
+                  Text('Profile Image',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[700],
+                      )),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -1713,9 +1896,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   // Fallback URL field (optional)
                   TextField(
                     controller: _profileImageController,
-                    decoration: const InputDecoration(
+                    style: _buildTextStyle(),
+                    decoration: _buildInputDecoration(
                       labelText: 'Profile Image URL (Optional)',
-                      border: OutlineInputBorder(),
                       hintText: 'Or enter a URL if you prefer',
                     ),
                   ),
@@ -1734,11 +1917,20 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Driver\'s License', style: Theme.of(context).textTheme.titleMedium),
+              Text('Driver\'s License',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[700],
+                  )),
               const SizedBox(height: 20),
               TextField(
                 controller: _driversLicenseNumberController,
-                decoration: const InputDecoration(labelText: 'Driver License Number', border: OutlineInputBorder()),
+                style: _buildTextStyle(),
+                decoration: _buildInputDecoration(
+                  labelText: 'Driver License Number',
+                  hintText: 'Enter your driver license number',
+                ),
               ),
               const SizedBox(height: 20),
               Row(
@@ -1748,7 +1940,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                       _selectedLicenseExpirationDate != null
                           ? 'License Expiration: ${_selectedLicenseExpirationDate!.day}/${_selectedLicenseExpirationDate!.month}/${_selectedLicenseExpirationDate!.year}'
                           : 'Select License Expiration Date',
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   ElevatedButton(
@@ -1756,8 +1952,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                       final now = DateTime.now();
                       final picked = await showDatePicker(
                         context: context,
-                        initialDate: _selectedLicenseExpirationDate ?? DateTime(now.year + 1),
-                        firstDate: DateTime(now.year),
+                        initialDate: _selectedLicenseExpirationDate ?? now,
+                        firstDate: now,
                         lastDate: DateTime(now.year + 10),
                         helpText: 'Select License Expiration Date',
                         fieldLabelText: 'License Expiration Date',
@@ -1778,8 +1974,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
               const SizedBox(height: 20),
               TextField(
                 controller: _driversLicenseRestrictionCodeController,
-                decoration:
-                    const InputDecoration(labelText: 'Driver License Restriction Code', border: OutlineInputBorder()),
+                style: _buildTextStyle(),
+                decoration: _buildInputDecoration(
+                  labelText: 'Driver License Restriction Code',
+                  hintText: 'Enter restriction code (if any)',
+                ),
               ),
             ],
           ),
@@ -1794,56 +1993,21 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Account & Membership', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Is Active',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ),
-                  Switch(
-                    value: _isActive,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _isActive = value;
-                        _isActiveController.text = value.toString();
-                      });
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Is Admin',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ),
-                  Switch(
-                    value: _isAdmin,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _isAdmin = value;
-                        _isAdminController.text = value.toString();
-                      });
-                    },
-                  ),
-                ],
-              ),
+              Text('Account & Membership',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[700],
+                  )),
               const SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _memberNumberController,
-                      decoration: const InputDecoration(
+                      style: _buildTextStyle(),
+                      decoration: _buildInputDecoration(
                         labelText: 'Member #',
-                        border: OutlineInputBorder(),
                         hintText: 'Enter member number',
                       ),
                       keyboardType: TextInputType.number,
@@ -1854,9 +2018,24 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: TextField(
-                      controller: _membershipTypeController,
-                      decoration: const InputDecoration(labelText: 'Membership Type', border: OutlineInputBorder()),
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedMembershipType,
+                      isExpanded: true,
+                      style: _buildDropdownTextStyle(),
+                      decoration: _buildInputDecoration(
+                        labelText: 'Membership Type',
+                        hintText: 'Select membership type',
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: '2', child: Text('Admin', style: TextStyle(fontSize: 14))),
+                        DropdownMenuItem(value: '3', child: Text('Member', style: TextStyle(fontSize: 14))),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedMembershipType = value;
+                          _membershipTypeController.text = value ?? '3';
+                        });
+                      },
                     ),
                   ),
                 ],
@@ -1874,18 +2053,23 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Vehicle Details', style: Theme.of(context).textTheme.titleMedium),
+              Text('Vehicle Details',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[700],
+                  )),
               const SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _vehicleColorController,
-                      decoration: const InputDecoration(
+                      style: _buildTextStyle(),
+                      decoration: _buildInputDecoration(
                         labelText: 'Vehicle Color (Hex)',
-                        border: OutlineInputBorder(),
-                        prefixText: '#',
                         hintText: 'FF0000',
+                        prefixText: '#',
                       ),
                       onChanged: (value) {
                         if (value.length == 6) {
@@ -1912,489 +2096,139 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  ElevatedButton(
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Pick a color'),
-                            content: SingleChildScrollView(
-                              child: ColorPicker(
-                                pickerColor: _selectedVehicleColor,
-                                onColorChanged: (Color color) {
-                                  setState(() {
-                                    _selectedVehicleColor = color;
-                                    _vehicleColorController.text =
-                                        color.value.toRadixString(16).padLeft(8, '0').substring(2);
-                                  });
-                                },
-                                pickerAreaHeightPercent: 0.8,
-                                enableAlpha: false,
-                                labelTypes: const [],
-                                displayThumbColor: true,
-                              ),
-                            ),
-                            actions: <Widget>[
-                              TextButton(
-                                child: const Text('Done'),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          );
+                  Expanded(
+                    child: TextField(
+                      controller: _vehicleTypeController,
+                      style: _buildTextStyle(),
+                      decoration: _buildInputDecoration(
+                        labelText: 'Vehicle Type',
+                        hintText: 'e.g., Sedan, SUV, Truck',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _vehicleMakeController,
+                focusNode: _vehicleMakeFocusNode,
+                style: _buildTextStyle(),
+                decoration: _buildInputDecoration(
+                  labelText: 'Search Vehicle Make',
+                  hintText: 'Type to search (e.g., Toyota, Honda, Ford)',
+                  prefixIcon: const Icon(Icons.search),
+                ),
+                onChanged: _onVehicleMakeTextChanged,
+              ),
+              if (_showSuggestions && _vehicleMakes.isNotEmpty)
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 200),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white,
+                  ),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _getFilteredVehicleMakes().length,
+                    itemBuilder: (context, index) {
+                      final make = _getFilteredVehicleMakes()[index];
+                      return ListTile(
+                        title: Text(
+                          make,
+                          style: _buildDropdownTextStyle(),
+                        ),
+                        onTap: () {
+                          _onVehicleMakeChanged(make);
+                          _vehicleMakeFocusNode.unfocus();
+                          setState(() {
+                            _showSuggestions = false;
+                          });
                         },
                       );
                     },
-                    child: const Text('Pick Color'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              if (_isLoadingVehicleMakes)
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      SizedBox(width: 8),
-                      Text('Loading vehicle makes...'),
-                    ],
                   ),
                 ),
-              if (_vehicleMakes.isEmpty && !_isLoadingVehicleMakes)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.warning, color: Colors.orange, size: 16),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Vehicle makes not loaded. Please check your internet connection.',
-                          style: TextStyle(color: Colors.orange[700]),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: _fetchVehicleMakes,
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                ),
-              if (_message != null && _message!.contains('fallback'))
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info, color: Colors.blue, size: 16),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _message!,
-                          style: TextStyle(color: Colors.blue[700]),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: _fetchVehicleMakes,
-                        child: const Text('Refresh'),
-                      ),
-                    ],
-                  ),
-                ),
-              if (_vehicleMakes.isNotEmpty)
-                Text(
-                  'Available vehicle makes: ${_vehicleMakes.length}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
-                        fontStyle: FontStyle.italic,
-                      ),
-                ),
-              const SizedBox(height: 10),
-              GestureDetector(
-                onTap: () {
-                  if (_showSuggestions) {
-                    setState(() {
-                      _showSuggestions = false;
-                    });
-                    _vehicleMakeFocusNode.unfocus();
-                  }
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 20),
+              if (_selectedVehicleMake != null) ...[
+                Row(
                   children: [
-                    TextField(
-                      controller: _vehicleMakeController,
-                      focusNode: _vehicleMakeFocusNode,
-                      decoration: InputDecoration(
-                        labelText: 'Search Vehicle Make',
-                        hintText: 'Type to search (e.g., Toyota, Honda, Ford)',
-                        border: const OutlineInputBorder(),
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _selectedVehicleMake != null
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  _vehicleMakeController.clear();
-                                  _onVehicleMakeChanged(null);
-                                  setState(() {
-                                    _showSuggestions = false;
-                                  });
-                                },
-                              )
-                            : null,
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _showSuggestions = value.isNotEmpty;
-                        });
-                      },
-                      onTap: () {
-                        setState(() {
-                          _showSuggestions = _vehicleMakeController.text.isNotEmpty;
-                        });
-                      },
+                    Expanded(
+                      child: Text('Selected Make: $_selectedVehicleMake'),
                     ),
-                    if (_showSuggestions)
-                      Container(
-                        constraints: const BoxConstraints(maxHeight: 200),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(4),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: _buildSuggestionsList(),
-                      ),
+                    TextButton(
+                      onPressed: () {
+                        _vehicleMakeController.clear();
+                        _onVehicleMakeChanged(null);
+                        setState(() {
+                          _showSuggestions = false;
+                        });
+                      },
+                      child: const Text('Clear'),
+                    ),
                   ],
                 ),
-              ),
-              if (_selectedVehicleMake != null && _isLoadingVehicleModels)
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      SizedBox(width: 8),
-                      Text('Loading vehicle models...'),
-                    ],
-                  ),
-                ),
-              if (_selectedVehicleMake != null && _vehicleModels.isNotEmpty) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
                   value: _selectedVehicleModel,
-                  items: [
-                    ..._vehicleModels
-                        .map((model) => DropdownMenuItem(
-                              value: model,
-                              child: Text(model),
-                            ))
-                        .toList(),
-                    const DropdownMenuItem(
-                      value: 'custom',
-                      child: Text(
-                        'Custom',
-                        style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ],
                   onChanged: (value) {
                     setState(() {
                       _selectedVehicleModel = value;
-                      if (value == 'custom') {
-                        _showManualModelEntry = true;
-                        _vehicleModelController.clear();
-                      } else {
-                        _showManualModelEntry = false;
-                        _vehicleModelController.text = value ?? '';
-                      }
+                      _vehicleModelController.text = value ?? '';
                     });
                   },
-                  decoration: const InputDecoration(
+                  style: _buildDropdownTextStyle(),
+                  decoration: _buildInputDecoration(
                     labelText: 'Vehicle Model',
-                    border: OutlineInputBorder(),
+                    hintText: 'Select vehicle model',
                   ),
+                  items: _vehicleModels.map((model) {
+                    return DropdownMenuItem(
+                      value: model,
+                      child: Text(
+                        model,
+                        style: _buildDropdownTextStyle(),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 10),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _showManualModelEntry = true;
+                    });
+                  },
+                  child: const Text('Or enter custom model'),
                 ),
               ],
-              const SizedBox(height: 10),
               if (_showManualModelEntry)
                 TextField(
                   controller: _vehicleModelController,
-                  decoration: const InputDecoration(
+                  style: _buildTextStyle(),
+                  decoration: _buildInputDecoration(
                     labelText: 'Enter Custom Vehicle Model',
                     hintText: 'Type your custom vehicle model',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.edit),
+                    prefixIcon: const Icon(Icons.edit),
                   ),
                 ),
               const SizedBox(height: 10),
-              // Car Images Upload Section
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Car Images', style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 10),
-
-                  // Main Car Image
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Primary Car Image',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          // Image Preview
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: _selectedMainCarImage != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.file(
-                                      _selectedMainCarImage!,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  )
-                                : const Icon(Icons.directions_car, size: 40, color: Colors.grey),
-                          ),
-                          const SizedBox(width: 16),
-                          // Upload Button
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ElevatedButton.icon(
-                                  onPressed: _isUploadingCarImage
-                                      ? null
-                                      : () async {
-                                          final image = await _pickCarImage();
-                                          if (image != null) {
-                                            setState(() {
-                                              _selectedMainCarImage = image;
-                                            });
-                                          }
-                                        },
-                                  icon: _isUploadingCarImage
-                                      ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
-                                        )
-                                      : const Icon(Icons.camera_alt),
-                                  label: Text(_isUploadingCarImage ? 'Uploading...' : 'Upload Main Image'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _selectedMainCarImage != null
-                                      ? 'Image selected: ${_selectedMainCarImage!.path.split('/').last}'
-                                      : 'No main image selected',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Additional Car Images
-                  Text('Additional Car Images (1-4)',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-
-                  // Grid of additional car images
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 1.2,
-                    ),
-                    itemCount: 4,
-                    itemBuilder: (context, index) {
-                      final imageNumber = index + 1;
-                      File? selectedImage;
-
-                      // Determine which image variable to use based on index
-                      switch (imageNumber) {
-                        case 1:
-                          selectedImage = _selectedCarImage1;
-                          break;
-                        case 2:
-                          selectedImage = _selectedCarImage2;
-                          break;
-                        case 3:
-                          selectedImage = _selectedCarImage3;
-                          break;
-                        case 4:
-                          selectedImage = _selectedCarImage4;
-                          break;
-                      }
-
-                      return Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Stack(
-                            children: [
-                              // Image display
-                              selectedImage != null
-                                  ? Image.file(
-                                      selectedImage,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      height: double.infinity,
-                                    )
-                                  : Image.network(
-                                      'https://placehold.co/300x200/CCCCCC/666666?text=Car+$imageNumber',
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      height: double.infinity,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Container(
-                                          color: Colors.grey.shade100,
-                                          child: Center(
-                                            child: Column(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Icon(Icons.directions_car, size: 32, color: Colors.grey),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  'Car $imageNumber',
-                                                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                              // Image number overlay
-                              Positioned(
-                                top: 4,
-                                right: 4,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.7),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    '$imageNumber',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              // Upload button overlay
-                              Positioned(
-                                bottom: 4,
-                                left: 4,
-                                right: 4,
-                                child: ElevatedButton.icon(
-                                  onPressed: () async {
-                                    final pickedImage = await _pickCarImage();
-                                    if (pickedImage != null) {
-                                      setState(() {
-                                        switch (imageNumber) {
-                                          case 1:
-                                            _selectedCarImage1 = pickedImage;
-                                            break;
-                                          case 2:
-                                            _selectedCarImage2 = pickedImage;
-                                            break;
-                                          case 3:
-                                            _selectedCarImage3 = pickedImage;
-                                            break;
-                                          case 4:
-                                            _selectedCarImage4 = pickedImage;
-                                            break;
-                                        }
-                                      });
-                                    }
-                                  },
-                                  icon: const Icon(Icons.camera_alt, size: 16),
-                                  label: Text(
-                                    selectedImage != null ? 'Change' : 'Upload',
-                                    style: const TextStyle(fontSize: 10),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    minimumSize: const Size(0, 24),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
               TextField(
                 controller: _vehiclePlateNumberController,
-                decoration: const InputDecoration(labelText: 'Vehicle Plate Number', border: OutlineInputBorder()),
+                style: _buildTextStyle(),
+                decoration: _buildInputDecoration(
+                  labelText: 'Vehicle Plate Number',
+                  hintText: 'Enter vehicle plate number',
+                ),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _vehicleTypeController,
-                decoration: const InputDecoration(labelText: 'Vehicle Type', border: OutlineInputBorder()),
+                style: _buildTextStyle(),
+                decoration: _buildInputDecoration(
+                  labelText: 'Vehicle Type',
+                  hintText: 'e.g., Sedan, SUV, Truck',
+                ),
               ),
               const SizedBox(height: 10),
               Row(
@@ -2402,7 +2236,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   Expanded(
                     child: Text(
                       _selectedVehicleYear != null ? 'Vehicle Year: ${_selectedVehicleYear!}' : 'Select Vehicle Year',
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   ElevatedButton(

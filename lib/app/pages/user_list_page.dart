@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:otogapo/app/pages/user_detail_page.dart';
@@ -12,14 +14,23 @@ class UserListPage extends StatefulWidget {
 
 class _UserListPageState extends State<UserListPage> {
   bool _isMigrating = false;
-  int _refreshCounter = 0; // Add refresh counter to force stream rebuild
+  int _refreshCounter = 0;
   Stream<QuerySnapshot>? _userStream;
-  bool _useStream = true; // Flag to switch between stream and one-time query
+  bool _useStream = true;
+  String _searchQuery = '';
+  TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
     _initializeStream();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _initializeStream() {
@@ -40,46 +51,83 @@ class _UserListPageState extends State<UserListPage> {
     });
   }
 
+  void _onSearchChanged(String query) {
+    setState(() {
+      _searchQuery = query.toLowerCase();
+    });
+  }
+
+  List<DocumentSnapshot> _filterUsers(List<DocumentSnapshot> docs) {
+    if (_searchQuery.isEmpty) return docs;
+
+    return docs.where((doc) {
+      final data = doc.data() as Map<String, dynamic>?;
+      if (data == null) return false;
+
+      final firstName = (data['firstName'] ?? '').toString().toLowerCase();
+      final lastName = (data['lastName'] ?? '').toString().toLowerCase();
+      final email = (data['email'] ?? '').toString().toLowerCase();
+      final memberNumber = (data['memberNumber'] ?? '').toString().toLowerCase();
+
+      return firstName.contains(_searchQuery) ||
+          lastName.contains(_searchQuery) ||
+          email.contains(_searchQuery) ||
+          memberNumber.contains(_searchQuery);
+    }).toList();
+  }
+
   Future<void> _refreshAuthentication() async {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
-        // Only reload the user profile, don't force token refresh
         await currentUser.reload();
-
         print('User profile refreshed successfully');
-
-        // Refresh the stream after profile refresh
         _refreshStream();
       }
     } catch (e) {
       print('Error refreshing user profile: $e');
-      // If profile refresh fails, try switching to query mode
       _switchToQuery();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Check if user is authenticated
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
       return Scaffold(
+        backgroundColor: Colors.grey[50],
         appBar: AppBar(
           title: const Text('User List'),
           centerTitle: true,
+          elevation: 0,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black87,
         ),
-        body: const Center(
-          child: Text('Please sign in to view users'),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock, size: 64.sp, color: Colors.grey[400]),
+              SizedBox(height: 16.sp),
+              Text(
+                'Please sign in to view users',
+                style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text('User List'),
         centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
         actions: [
           if (!_isMigrating)
             IconButton(
@@ -95,131 +143,400 @@ class _UserListPageState extends State<UserListPage> {
             ),
         ],
       ),
-      body: _useStream && _userStream != null
-          ? StreamBuilder<QuerySnapshot>(
-              stream: _userStream,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  // Check if it's a permission error
-                  final error = snapshot.error.toString();
-                  final isPermissionError = error.contains('permission-denied') ||
-                      error.contains('permission') ||
-                      error.contains('PERMISSION_DENIED');
-
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(isPermissionError ? Icons.security : Icons.error,
-                            size: 64, color: isPermissionError ? Colors.orange : Colors.red),
-                        const SizedBox(height: 16),
-                        Text(
-                          isPermissionError
-                              ? 'Permission Error: Unable to access user data'
-                              : 'Error: ${snapshot.error}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                        const SizedBox(height: 16),
-                        if (isPermissionError) ...[
-                          const Text(
-                            'This might be due to recent changes. Please try refreshing.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                        ElevatedButton(
-                          onPressed: _refreshStream,
-                          child: const Text('Retry Stream'),
-                        ),
-                        const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: _refreshAuthentication,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Refresh Auth'),
-                        ),
-                        const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: _switchToQuery,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Use One-Time Query'),
-                        ),
-                        const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Force refresh by navigating away and back
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (context) => const UserListPage(),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Refresh Page'),
-                        ),
-                      ],
+      body: Column(
+        children: [
+          // Search Bar
+          Container(
+            padding: EdgeInsets.all(16.sp),
+            color: Colors.white,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12.sp),
                     ),
-                  );
-                }
-                return _buildUserList(snapshot.data?.docs ?? []);
-              },
-            )
-          : FutureBuilder<QuerySnapshot>(
-              future: FirebaseFirestore.instance.collection('users').get(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.error, size: 64, color: Colors.red),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Error: ${snapshot.error}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 16),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: _onSearchChanged,
+                      decoration: InputDecoration(
+                        hintText: 'Search users...',
+                        prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16.sp,
+                          vertical: 12.sp,
                         ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              // Retry the query
-                            });
-                          },
-                          child: const Text('Retry'),
-                        ),
-                        const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: _refreshStream,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Switch to Stream'),
-                        ),
-                      ],
+                      ),
                     ),
-                  );
-                }
-                return _buildUserList(snapshot.data?.docs ?? []);
-              },
+                  ),
+                ),
+                if (_searchQuery.isNotEmpty)
+                  IconButton(
+                    icon: Icon(Icons.clear, color: Colors.grey[600]),
+                    onPressed: () {
+                      _searchController.clear();
+                      _onSearchChanged('');
+                    },
+                  ),
+              ],
             ),
+          ),
+
+          // User List
+          Expanded(
+            child: _useStream && _userStream != null
+                ? StreamBuilder<QuerySnapshot>(
+                    stream: _userStream,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 16.sp),
+                              Text(
+                                'Loading users...',
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      if (snapshot.hasError) {
+                        final error = snapshot.error.toString();
+                        final isPermissionError = error.contains('permission-denied') ||
+                            error.contains('permission') ||
+                            error.contains('PERMISSION_DENIED');
+
+                        return _buildErrorWidget(isPermissionError, error);
+                      }
+
+                      final filteredDocs = _filterUsers(snapshot.data?.docs ?? []);
+                      return _buildUserList(filteredDocs);
+                    },
+                  )
+                : FutureBuilder<QuerySnapshot>(
+                    future: FirebaseFirestore.instance.collection('users').get(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 16.sp),
+                              Text(
+                                'Loading users...',
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      if (snapshot.hasError) {
+                        return _buildErrorWidget(false, snapshot.error.toString());
+                      }
+
+                      final filteredDocs = _filterUsers(snapshot.data?.docs ?? []);
+                      return _buildUserList(filteredDocs);
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget(bool isPermissionError, String error) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(24.sp),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(20.sp),
+              decoration: BoxDecoration(
+                color: isPermissionError ? Colors.orange.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16.sp),
+              ),
+              child: Icon(
+                isPermissionError ? Icons.security : Icons.error,
+                size: 48.sp,
+                color: isPermissionError ? Colors.orange : Colors.red,
+              ),
+            ),
+            SizedBox(height: 16.sp),
+            Text(
+              isPermissionError ? 'Permission Error' : 'Error Loading Users',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: isPermissionError ? Colors.orange : Colors.red,
+              ),
+            ),
+            SizedBox(height: 8.sp),
+            Text(
+              isPermissionError ? 'Unable to access user data. This might be due to recent changes.' : error,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+            ),
+            SizedBox(height: 24.sp),
+            Wrap(
+              spacing: 8.sp,
+              runSpacing: 8.sp,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _refreshStream,
+                  icon: Icon(Icons.refresh, size: 16.sp),
+                  label: Text('Retry'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _refreshAuthentication,
+                  icon: Icon(Icons.autorenew, size: 16.sp),
+                  label: Text('Refresh Auth'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _switchToQuery,
+                  icon: Icon(Icons.query_stats, size: 16.sp),
+                  label: Text('Use Query'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserList(List<DocumentSnapshot> docs) {
+    if (docs.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _searchQuery.isNotEmpty ? Icons.search_off : Icons.people_outline,
+              size: 64.sp,
+              color: Colors.grey[400],
+            ),
+            SizedBox(height: 16.sp),
+            Text(
+              _searchQuery.isNotEmpty ? 'No users found matching "$_searchQuery"' : 'No users found',
+              style: TextStyle(
+                fontSize: 16.sp,
+                color: Colors.grey[600],
+              ),
+            ),
+            if (_searchQuery.isNotEmpty) ...[
+              SizedBox(height: 8.sp),
+              TextButton(
+                onPressed: () {
+                  _searchController.clear();
+                  _onSearchChanged('');
+                },
+                child: Text('Clear search'),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: EdgeInsets.all(8.sp),
+      itemCount: docs.length,
+      itemBuilder: (context, index) {
+        final doc = docs[index];
+        final data = doc.data() as Map<String, dynamic>?;
+        final firstName = (data?['firstName'] ?? '').toString();
+        final lastName = (data?['lastName'] ?? '').toString();
+        final name = '$firstName $lastName'.trim();
+        final email = (data?['email'] ?? '').toString();
+        final memberNumber = (data?['memberNumber'] ?? '').toString();
+        final displayMemberNumber = memberNumber == '${memberNumber}' ? 'OM-${memberNumber}' : memberNumber;
+
+        String creationDate = 'Unknown';
+        if (data?['createdAt'] != null) {
+          final createdAt = data!['createdAt'];
+          if (createdAt is Timestamp) {
+            final date = createdAt.toDate();
+            creationDate = '${date.day}/${date.month}/${date.year}';
+          }
+        }
+
+        final userData = Map<String, dynamic>.from(data ?? {});
+        userData['id'] = doc.id;
+
+        return Container(
+          margin: EdgeInsets.only(bottom: 8.sp),
+          child: Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.sp),
+            ),
+            child: InkWell(
+              onTap: () async {
+                final result = await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => UserDetailPage(userData: userData),
+                  ),
+                );
+
+                if (result == 'deleted' && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(Icons.check_circle, color: Colors.white),
+                          SizedBox(width: 8.sp),
+                          Text('User deleted successfully'),
+                        ],
+                      ),
+                      backgroundColor: Colors.green,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                  _refreshStream();
+                } else if (result != null && result.toString().startsWith('error:') && mounted) {
+                  final errorMessage = result.toString().substring(6);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(Icons.error, color: Colors.white),
+                          SizedBox(width: 8.sp),
+                          Text('Failed to delete user: $errorMessage'),
+                        ],
+                      ),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                }
+              },
+              borderRadius: BorderRadius.circular(12.sp),
+              child: Padding(
+                padding: EdgeInsets.all(16.sp),
+                child: Row(
+                  children: [
+                    // Avatar
+                    Container(
+                      width: 48.sp,
+                      height: 48.sp,
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(24.sp),
+                      ),
+                      child: Icon(
+                        Icons.person,
+                        color: Colors.blue,
+                        size: 24.sp,
+                      ),
+                    ),
+                    SizedBox(width: 16.sp),
+
+                    // User Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name.isEmpty ? '(No Name)' : name,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          SizedBox(height: 4.sp),
+                          Text(
+                            email,
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          SizedBox(height: 4.sp),
+                          Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 6.sp,
+                                  vertical: 2.sp,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4.sp),
+                                ),
+                                child: Text(
+                                  displayMemberNumber,
+                                  style: TextStyle(
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 8.sp),
+                              Text(
+                                'Created: $creationDate',
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: Colors.grey[500],
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Arrow
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16.sp,
+                      color: Colors.grey[400],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        )
+            .animate()
+            .fadeIn(
+              delay: Duration(milliseconds: index * 50),
+              duration: const Duration(milliseconds: 300),
+            )
+            .slideX(
+              begin: 0.1,
+              delay: Duration(milliseconds: index * 50),
+              duration: const Duration(milliseconds: 300),
+            );
+      },
     );
   }
 
@@ -328,94 +645,5 @@ class _UserListPageState extends State<UserListPage> {
         _isMigrating = false;
       });
     }
-  }
-
-  Widget _buildUserList(List<DocumentSnapshot> docs) {
-    if (docs.isEmpty) {
-      return const Center(child: Text('No users found.'));
-    }
-    return ListView.separated(
-      itemCount: docs.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final doc = docs[index];
-        final data = doc.data() as Map<String, dynamic>?;
-        final firstName = (data?['firstName'] ?? '').toString();
-        final lastName = (data?['lastName'] ?? '').toString();
-        final name = '$firstName $lastName'.trim();
-        final email = (data?['email'] ?? '').toString();
-        final memberNumber = (data?['memberNumber'] ?? '').toString();
-        final displayMemberNumber = memberNumber == '31' ? 'OM-31' : memberNumber;
-
-        // Format creation date
-        String creationDate = 'Unknown';
-        if (data?['createdAt'] != null) {
-          final createdAt = data!['createdAt'];
-          if (createdAt is Timestamp) {
-            final date = createdAt.toDate();
-            creationDate = '${date.day}/${date.month}/${date.year}';
-          }
-        }
-
-        // Create user data with document ID included
-        final userData = Map<String, dynamic>.from(data ?? {});
-        userData['id'] = doc.id; // Add the document ID
-
-        return ListTile(
-          leading: const Icon(Icons.person),
-          title: Text(name.isEmpty ? '(No Name)' : name),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(email),
-              Text(
-                'Created: $creationDate',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
-          ),
-          trailing: Text(displayMemberNumber),
-          onTap: () async {
-            final result = await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => UserDetailPage(
-                  userData: userData,
-                ),
-              ),
-            );
-
-            // Check if user was deleted (result will be 'deleted')
-            if (result == 'deleted' && mounted) {
-              print('User was deleted, showing success message'); // Debug log
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('User deleted successfully'),
-                  backgroundColor: Colors.green,
-                  duration: Duration(seconds: 3),
-                ),
-              );
-
-              // Refresh the stream to show updated list
-              _refreshStream();
-            } else if (result != null && result.toString().startsWith('error:') && mounted) {
-              // Handle error result
-              final errorMessage = result.toString().substring(6); // Remove 'error: ' prefix
-              print('User deletion failed: $errorMessage'); // Debug log
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Failed to delete user: $errorMessage'),
-                  backgroundColor: Colors.red,
-                  duration: Duration(seconds: 5),
-                ),
-              );
-            }
-          },
-        );
-      },
-    );
   }
 }

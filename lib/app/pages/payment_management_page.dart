@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class PaymentManagementPage extends StatefulWidget {
   const PaymentManagementPage({Key? key}) : super(key: key);
@@ -224,6 +225,22 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
     });
   }
 
+  // Helper method to get profile image download URL
+  Future<String?> _getProfileImageUrl(String userId, String? profileImageUri) async {
+    if (profileImageUri == null || profileImageUri.isEmpty) return null;
+
+    try {
+      if (profileImageUri.startsWith('gs://')) {
+        final ref = FirebaseStorage.instance.refFromURL(profileImageUri);
+        return await ref.getDownloadURL();
+      }
+      return profileImageUri;
+    } catch (e) {
+      print('Error getting profile image URL: $e');
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -422,7 +439,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
               children: [
                 Expanded(
                   child: _buildSummaryItem(
-                    'Total Members',
+                    'embers',
                     _users.length.toString(),
                     Icons.people,
                     Colors.blue,
@@ -434,7 +451,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                     builder: (context, snapshot) {
                       final stats = snapshot.data ?? {'totalPaid': 0, 'totalUnpaid': 0};
                       return _buildSummaryItem(
-                        'Total Paid',
+                        'Paid',
                         stats['totalPaid'].toString(),
                         Icons.check_circle,
                         Colors.green,
@@ -448,10 +465,24 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                     builder: (context, snapshot) {
                       final stats = snapshot.data ?? {'totalPaid': 0, 'totalUnpaid': 0};
                       return _buildSummaryItem(
-                        'Total Unpaid',
+                        'Unpaid',
                         stats['totalUnpaid'].toString(),
                         Icons.cancel,
                         Colors.red,
+                      );
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: FutureBuilder<int>(
+                    future: _getAdvancePaymentCount(),
+                    builder: (context, snapshot) {
+                      final advanceCount = snapshot.data ?? 0;
+                      return _buildSummaryItem(
+                        'Advance',
+                        advanceCount.toString(),
+                        Icons.schedule,
+                        Colors.purple,
                       );
                     },
                   ),
@@ -635,9 +666,22 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                 CircleAvatar(
                   radius: 18,
                   backgroundColor: Theme.of(context).primaryColor,
-                  child: Text(
-                    ((user['firstName'] as String?) ?? '')[0].toUpperCase(),
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                  child: FutureBuilder<String?>(
+                    future: _getProfileImageUrl(user['id'] as String, user['profile_image'] as String?),
+                    builder: (context, snapshot) {
+                      final profileImageUrl = snapshot.data;
+                      return profileImageUrl == null
+                          ? Text(
+                              ((user['firstName'] as String?) ?? '')[0].toUpperCase(),
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                            )
+                          : Image.network(
+                              profileImageUrl,
+                              width: 36,
+                              height: 36,
+                              fit: BoxFit.cover,
+                            );
+                    },
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -822,9 +866,22 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                         leading: CircleAvatar(
                           radius: 16,
                           backgroundColor: Theme.of(context).primaryColor,
-                          child: Text(
-                            ((user['firstName'] as String?) ?? '')[0].toUpperCase(),
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                          child: FutureBuilder<String?>(
+                            future: _getProfileImageUrl(user['id'] as String, user['profile_image'] as String?),
+                            builder: (context, snapshot) {
+                              final profileImageUrl = snapshot.data;
+                              return profileImageUrl == null
+                                  ? Text(
+                                      ((user['firstName'] as String?) ?? '')[0].toUpperCase(),
+                                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                                    )
+                                  : Image.network(
+                                      profileImageUrl,
+                                      width: 32,
+                                      height: 32,
+                                      fit: BoxFit.cover,
+                                    );
+                            },
                           ),
                         ),
                         title: Text(
@@ -1073,6 +1130,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                             setState(() {
                                               _showBulkUpdateDialog = false;
                                               _selectedMonthsForBulkUpdate.clear();
+                                              _cachedMonthStatus.clear(); // Clear cache after update
                                             });
                                           },
                                     style: ElevatedButton.styleFrom(
@@ -1101,6 +1159,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                             setState(() {
                                               _showBulkUpdateDialog = false;
                                               _selectedMonthsForBulkUpdate.clear();
+                                              _cachedMonthStatus.clear(); // Clear cache after update
                                             });
                                           },
                                     style: ElevatedButton.styleFrom(
@@ -1129,5 +1188,25 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         ),
       ),
     );
+  }
+
+  Future<int> _getAdvancePaymentCount() async {
+    int count = 0;
+    final now = DateTime.now();
+
+    for (final user in _users) {
+      for (final month in _availableMonths) {
+        final date = DateFormat('yyyy_MM').parse(month);
+
+        // Only count future months that have been paid
+        if (date.isAfter(DateTime(now.year, now.month, 1))) {
+          final paymentData = await _getPaymentStatus(user['id'] as String, month);
+          if ((paymentData?['status'] as bool?) == true) {
+            count++;
+          }
+        }
+      }
+    }
+    return count;
   }
 }

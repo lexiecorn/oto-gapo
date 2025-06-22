@@ -60,8 +60,24 @@ abstract class User with _$User {
   factory User.fromDoc(DocumentSnapshot<Object?> userDoc, String uid) {
     try {
       final data = userDoc.data()! as Map<String, dynamic>;
+      print('User.fromDoc - Document ID: ${userDoc.id}');
+      print('User.fromDoc - UID: $uid');
+      print('User.fromDoc - Raw data: $data');
+
       data['uid'] = uid;
-      return User.fromJson(data);
+
+      // Check for required fields
+      print('User.fromDoc - firstName: ${data['firstName']}');
+      print('User.fromDoc - lastName: ${data['lastName']}');
+      print('User.fromDoc - memberNumber: ${data['memberNumber']}');
+      print('User.fromDoc - membership_type: ${data['membership_type']}');
+
+      final user = User.fromJson(data);
+      print('User.fromDoc - Created user successfully');
+      print('User.fromDoc - User memberNumber: ${user.memberNumber}');
+      print('User.fromDoc - User membership_type: ${user.membership_type}');
+
+      return user;
     } catch (e, stack) {
       print('Error in User.fromDoc: $e');
       print('Stack trace: $stack');
@@ -77,7 +93,7 @@ abstract class User with _$User {
         middleName: '',
         lastName: '',
         gender: '',
-        memberNumber: '0',
+        memberNumber: '',
         civilStatus: '',
         dateOfBirth: Timestamp.now(),
         birthplace: '',
