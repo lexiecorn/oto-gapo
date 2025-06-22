@@ -59,8 +59,7 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> {
     }
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20.sp),
-      padding: EdgeInsets.only(left: 40.sp, right: 40.sp),
+      padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 8.sp),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         color: Colors.white,
@@ -83,7 +82,7 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> {
           itemBuilder: (context, index) {
             final announcement = _announcements[index];
             return Padding(
-              padding: EdgeInsets.only(top: index == 0 ? 40.sp : 0),
+              padding: EdgeInsets.only(top: index == 0 ? 10.sp : 0),
               child: Column(
                 children: [
                   ListTile(
@@ -111,7 +110,7 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> {
                     title: Text(
                       announcement['title'] as String,
                       style: TextStyle(
-                        fontSize: 40.sp,
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -120,12 +119,12 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> {
                       children: [
                         Text(
                           announcement['content'] as String,
-                          style: TextStyle(fontSize: 40.sp),
+                          style: TextStyle(fontSize: 14.sp),
                         ),
                         Text(
                           DateFormat('MMM dd, yyyy').format((announcement['date'] as Timestamp).toDate()),
                           textAlign: TextAlign.end,
-                          style: TextStyle(fontSize: 30.sp, color: Colors.grey),
+                          style: TextStyle(fontSize: 12.sp, color: Colors.grey),
                         ),
                       ],
                     ),

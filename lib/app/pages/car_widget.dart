@@ -27,10 +27,7 @@ class CarWidget extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(
           horizontal: 6,
-          vertical: 12,
         ),
-        width: 100,
-        height: 100,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           color: Colors.grey[300],
@@ -44,14 +41,14 @@ class CarWidget extends StatelessWidget {
                 child: isAssetImage
                     ? Image.asset(
                         vehicleImagePath,
-                        width: 100,
-                        height: 100,
+                        width: 90,
+                        height: 90,
                         fit: BoxFit.cover,
                       )
                     : OpstechExtendedImageNetwork(
                         img: vehicleImagePath,
-                        width: 100,
-                        height: 100,
+                        width: 90,
+                        height: 90,
                         borderrRadius: 10,
                       ),
               ),
@@ -60,34 +57,38 @@ class CarWidget extends StatelessWidget {
                   padding: const EdgeInsets.only(left: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         '${state.user.vehicle.isNotEmpty ? state.user.vehicle.first.make : 'No Vehicle'} '
                         '${state.user.vehicle.isNotEmpty ? state.user.vehicle.first.model : ''}',
                         style: OpstechTextTheme.heading2.copyWith(
                           color: Colors.black87,
-                          fontSize: 44.sp,
+                          fontSize: 22.sp,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 5),
                       if (state.user.vehicle.isNotEmpty) ...[
                         Text(
                           'Plate Number: ${state.user.vehicle.first.plateNumber}',
                           style: OpstechTextTheme.regular.copyWith(
                             color: Colors.black54,
+                            fontSize: 14.sp,
                           ),
                         ),
                         Text(
                           'Color: ${state.user.vehicle.first.color}',
                           style: OpstechTextTheme.regular.copyWith(
                             color: Colors.black54,
+                            fontSize: 14.sp,
                           ),
                         ),
                         Text(
                           'Year: ${state.user.vehicle.first.year}',
                           style: OpstechTextTheme.regular.copyWith(
                             color: Colors.black54,
+                            fontSize: 14.sp,
                           ),
                         ),
                       ] else ...[
@@ -95,6 +96,7 @@ class CarWidget extends StatelessWidget {
                           'No vehicle information available',
                           style: OpstechTextTheme.regular.copyWith(
                             color: Colors.black54,
+                            fontSize: 14.sp,
                           ),
                         ),
                       ],

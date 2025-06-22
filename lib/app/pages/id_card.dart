@@ -46,8 +46,8 @@ class IdCard extends StatelessWidget {
         children: [
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: 70.sp,
-              vertical: 20,
+              horizontal: 16.w,
+              vertical: 20.h,
             ),
             child: Column(
               children: [
@@ -55,26 +55,25 @@ class IdCard extends StatelessWidget {
                   child: _isAssetImage
                       ? OpstechExtendedImageAsset(
                           img: imagePath,
-                          width: 80,
-                          height: 80,
-                          borderrRadius: 40,
+                          width: 80.w,
+                          height: 80.w,
+                          borderrRadius: 40.r,
                         )
                       : OpstechExtendedImageNetwork(
                           img: imagePath,
-                          width: 80,
-                          height: 80,
-                          borderrRadius: 40,
+                          width: 80.w,
+                          height: 80.w,
+                          borderrRadius: 40.r,
                         ),
                 ),
                 const SizedBox(height: 10),
-                const SizedBox(height: 5),
                 Container(
                   alignment: Alignment.center,
                   child: Text(
                     '# $membersNum',
                     style: OpstechTextTheme.heading4.copyWith(
                       color: Colors.amber,
-                      fontSize: 60.sp,
+                      fontSize: 20.sp,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -85,42 +84,43 @@ class IdCard extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   name.toUpperCase(),
-                  // ignore: lines_longer_than_80_chars
                   style: OpstechTextTheme.heading2.copyWith(
                     color: Colors.white,
-                    fontSize: 54.sp,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 10),
-                // ignore: lines_longer_than_80_chars
                 Text(
                   'License #: $licenseNum',
                   style: OpstechTextTheme.regular.copyWith(
                     color: Colors.white,
+                    fontSize: 11.sp,
                   ),
                 ),
                 Text(
                   'DOB: $dob',
                   style: OpstechTextTheme.regular.copyWith(
                     color: Colors.white,
+                    fontSize: 11.sp,
                   ),
                 ),
-
                 Text(
                   'ID Number: $idNumber',
                   style: OpstechTextTheme.regular.copyWith(
                     color: Colors.white,
+                    fontSize: 11.sp,
                   ),
                 ),
-
                 Text(
                   'Joined: December 20, 2023',
                   style: OpstechTextTheme.regular.copyWith(
                     color: Colors.white,
+                    fontSize: 11.sp,
                   ),
                 ),
               ],

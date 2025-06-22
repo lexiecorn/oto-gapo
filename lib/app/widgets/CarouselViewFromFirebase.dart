@@ -57,7 +57,7 @@ class _CarouselViewFromFirebaseState extends State<CarouselViewFromFirebase> {
                   return OpstechExtendedImageNetwork(
                     img: imageUrl,
                     width: 90.sw,
-                    height: 10.sp,
+                    height: 200.h,
                     borderrRadius: 15.r,
                     border: Border.all(
                       color: Colors.white.withOpacity(.1),

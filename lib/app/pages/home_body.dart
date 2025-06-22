@@ -74,19 +74,14 @@ class HomeBodyState extends State<HomeBody> {
               // Carousel occupies a fixed height
               Container(
                 color: Colors.black,
-                height: 600.sp,
+                height: 220.h,
                 child: const CarouselViewFromFirebase(),
               ),
 
               // Announcements Widget takes the remaining space
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.only(
-                    top: 50.sp,
-                    left: 60.sp,
-                    right: 60.sp,
-                    bottom: 60.sp,
-                  ),
+                  padding: EdgeInsets.all(16.sp),
                   child: const AnnouncementsWidget(),
                 ),
               ),

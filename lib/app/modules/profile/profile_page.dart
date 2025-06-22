@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/car_widget.dart';
 import 'package:otogapo/app/pages/id_card.dart';
+import 'package:otogapo/app/pages/current_user_account_page.dart';
 
 @RoutePage(
   name: 'ProfilePageRouter',
@@ -71,36 +72,40 @@ class ProfilePageState extends State<ProfilePage> {
             );
           }
 
-          return SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.only(
-                top: 60.sp,
-                left: 8,
-                right: 8,
-              ),
-              child: Column(
-                children: [
-                  FutureBuilder<Widget>(
-                    future: _userProfileCard(state),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
-                      } else if (snapshot.hasError) {
-                        return const Text('Error loading profile');
-                      } else {
-                        return snapshot.data ?? const SizedBox.shrink();
-                      }
-                    },
-                  ),
-                  SizedBox(height: 15.sp),
-                  CarWidget(state: state),
-                  SizedBox(height: 15.sp),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                ],
-              ),
+          return ListView(
+            padding: EdgeInsets.only(
+              top: 50.sp,
+              left: 8,
+              right: 8,
+              bottom: 20,
             ),
+            children: [
+              FutureBuilder<Widget>(
+                future: _userProfileCard(state),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return const Text('Error loading profile');
+                  } else if (snapshot.hasData) {
+                    return InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const CurrentUserAccountPage(),
+                          ),
+                        );
+                      },
+                      child: snapshot.data,
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
+              ),
+              SizedBox(height: 12.sp),
+              CarWidget(state: state),
+            ],
           );
         },
       ),

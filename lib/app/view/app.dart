@@ -10,7 +10,6 @@ import 'package:otogapo/app/modules/signup/signup_cubit.dart';
 import 'package:otogapo/app/routes/app_router.dart';
 import 'package:otogapo/bootstrap.dart';
 
-
 class App extends StatelessWidget {
   const App({required AuthRepository authRepository, super.key}) : _authRepository = authRepository;
 
@@ -73,7 +72,6 @@ class App extends StatelessWidget {
               profileRepository: context.read<ProfileRepository>(),
             ),
           ),
-
         ],
         child: const AppView(),
       ),
@@ -89,7 +87,7 @@ class AppView extends StatelessWidget {
     final appRouter = getIt<AppRouter>();
 
     return ScreenUtilInit(
-      designSize: const Size(1080, 2460),
+      designSize: const Size(375, 812),
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, _) {
