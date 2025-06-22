@@ -229,6 +229,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
   bool _isLoading = true;
   int _paidCount = 0;
   int _unpaidCount = 0;
+  int _advanceCount = 0;
   double _totalAmount = 0.0;
   List<Map<String, dynamic>> _recentPayments = [];
 
@@ -248,25 +249,26 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
       final currentYear = now.year;
       final currentMonth = now.month;
 
-      // Generate months from January of current year to current month
+      // Generate months from January of current year to current month only
       final months = <String>[];
       for (int month = 1; month <= currentMonth; month++) {
         final monthKey = '${currentYear}_${month.toString().padLeft(2, '0')}';
         months.add(monthKey);
       }
 
-      // Also include last 6 months from previous year if we're in early months
-      if (currentMonth <= 6) {
-        for (int month = 7; month <= 12; month++) {
-          final monthKey = '${currentYear - 1}_${month.toString().padLeft(2, '0')}';
-          months.add(monthKey);
-        }
+      // Generate future months for advance payment calculation (current month + 1 to December)
+      final futureMonths = <String>[];
+      for (int month = currentMonth + 1; month <= 12; month++) {
+        final monthKey = '${currentYear}_${month.toString().padLeft(2, '0')}';
+        futureMonths.add(monthKey);
       }
 
       int paid = 0;
       int unpaid = 0;
+      int advance = 0;
       final recentPayments = <Map<String, dynamic>>[];
 
+      // Check current year months (January to current month)
       for (final month in months) {
         try {
           final doc = await FirebaseFirestore.instance
@@ -297,6 +299,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
               'isPaid': isPaid,
               'amount': amount,
               'updatedAt': updatedAt is Timestamp ? updatedAt : null,
+              'isAdvance': false,
             });
           } else {
             // No payment record exists, consider as unpaid
@@ -306,11 +309,48 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
               'isPaid': false,
               'amount': amount,
               'updatedAt': null,
+              'isAdvance': false,
             });
           }
         } catch (e) {
           print('Error loading payment for month $month: $e');
           unpaid++;
+        }
+      }
+
+      // Check future months for advance payments
+      for (final month in futureMonths) {
+        try {
+          final doc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(widget.userId)
+              .collection('monthly_dues')
+              .doc(month)
+              .get();
+
+          final date = DateFormat('yyyy_MM').parse(month);
+          final displayText = DateFormat('MMMM yyyy').format(date);
+          final amount = 100.0; // Fixed amount per month
+
+          if (doc.exists) {
+            final data = doc.data()!;
+            final status = data['status'];
+            final isPaid = status is bool ? status : false;
+
+            if (isPaid) {
+              advance++;
+              final updatedAt = data['updated_at'];
+              recentPayments.add({
+                'month': displayText,
+                'isPaid': isPaid,
+                'amount': amount,
+                'updatedAt': updatedAt is Timestamp ? updatedAt : null,
+                'isAdvance': true,
+              });
+            }
+          }
+        } catch (e) {
+          print('Error loading advance payment for month $month: $e');
         }
       }
 
@@ -330,6 +370,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
       setState(() {
         _paidCount = paid;
         _unpaidCount = unpaid;
+        _advanceCount = advance;
         _totalAmount = (paid + unpaid) * 100.0;
         _recentPayments = displayPayments;
         _isLoading = false;
@@ -383,7 +424,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                 ),
                 SizedBox(width: 8.sp),
                 Text(
-                  'Payment Status',
+                  'Monthly Dues',
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
@@ -419,6 +460,14 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                     _unpaidCount.toString(),
                     Icons.cancel,
                     Colors.red,
+                  ),
+                ),
+                Expanded(
+                  child: _buildSummaryItem(
+                    'Advance',
+                    _advanceCount.toString(),
+                    Icons.fast_forward,
+                    Colors.purple,
                   ),
                 ),
                 Expanded(
@@ -462,16 +511,40 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
               Column(
                 children: _recentPayments.map((payment) {
                   final isPaid = payment['isPaid'] as bool? ?? false;
+                  final isAdvance = payment['isAdvance'] as bool? ?? false;
                   final month = payment['month'] as String? ?? '';
                   final amount = payment['amount'] as double? ?? 0.0;
+
+                  // Determine icon and color based on payment status
+                  IconData icon;
+                  Color color;
+                  String statusText;
+                  Color statusColor;
+
+                  if (isAdvance) {
+                    icon = Icons.fast_forward;
+                    color = Colors.purple;
+                    statusText = 'ADVANCE';
+                    statusColor = Colors.purple;
+                  } else if (isPaid) {
+                    icon = Icons.check_circle;
+                    color = Colors.green;
+                    statusText = 'PAID';
+                    statusColor = Colors.green;
+                  } else {
+                    icon = Icons.cancel;
+                    color = Colors.red;
+                    statusText = 'UNPAID';
+                    statusColor = Colors.red;
+                  }
 
                   return Padding(
                     padding: EdgeInsets.only(bottom: 8.sp),
                     child: Row(
                       children: [
                         Icon(
-                          isPaid ? Icons.check_circle : Icons.cancel,
-                          color: isPaid ? Colors.green : Colors.red,
+                          icon,
+                          color: color,
                           size: 16.sp,
                         ),
                         SizedBox(width: 8.sp),
@@ -487,19 +560,19 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                             vertical: 2.sp,
                           ),
                           decoration: BoxDecoration(
-                            color: isPaid ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                            color: statusColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8.sp),
                             border: Border.all(
-                              color: isPaid ? Colors.green : Colors.red,
+                              color: statusColor,
                               width: 0.5,
                             ),
                           ),
                           child: Text(
-                            isPaid ? 'PAID' : 'UNPAID',
+                            statusText,
                             style: TextStyle(
                               fontSize: 10.sp,
                               fontWeight: FontWeight.bold,
-                              color: isPaid ? Colors.green : Colors.red,
+                              color: statusColor,
                             ),
                           ),
                         ),
@@ -509,7 +582,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                           style: TextStyle(
                             fontSize: 12.sp,
                             fontWeight: FontWeight.w600,
-                            color: isPaid ? Colors.green : Colors.red,
+                            color: color,
                           ),
                         ),
                       ],
