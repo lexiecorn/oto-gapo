@@ -21,6 +21,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   List<String> _selectedMonthsForBulkUpdate = [];
   bool _showUserSelectionDialog = false;
   bool _showBulkUpdateDialog = false;
+  Map<String, bool> _cachedMonthStatus = {}; // Cache for month status data
 
   @override
   void initState() {
@@ -890,6 +891,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                           setState(() {
                             _showBulkUpdateDialog = false;
                             _selectedMonthsForBulkUpdate.clear();
+                            _cachedMonthStatus.clear(); // Clear cache when dialog closes
                           });
                         },
                         icon: const Icon(Icons.close),
@@ -910,34 +912,24 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      // const Text(
-                      //   'Select months to update:',
-                      //   style: TextStyle(
-                      //     fontSize: 12,
-                      //     fontWeight: FontWeight.bold,
-                      //   ),
-                      // ),
-                      // const SizedBox(height: 8),
-                      // const Text(
-                      //   'All months for current year and next year are shown. You can pay for past months, current month, or advance pay for future months up to next year.',
-                      //   style: TextStyle(
-                      //     fontSize: 11,
-                      //     color: Colors.grey,
-                      //   ),
-                      // ),
                     ],
                   ),
                 ),
                 Expanded(
-                  child: FutureBuilder<Map<String, bool>>(
-                    future: _getUserAllMonthsWithStatus(_selectedUser!['id'] as String),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
+                  child: StatefulBuilder(
+                    builder: (context, setDialogState) {
+                      if (_cachedMonthStatus.isEmpty && _selectedUser != null) {
+                        // Load data only once when dialog opens
+                        _getUserAllMonthsWithStatus(_selectedUser!['id'] as String).then((monthStatus) {
+                          setDialogState(() {
+                            _cachedMonthStatus = monthStatus;
+                          });
+                        });
                         return const Center(child: CircularProgressIndicator());
                       }
 
-                      final monthStatus = snapshot.data ?? {};
-                      final allMonths = monthStatus.keys.toList()..sort((a, b) => a.compareTo(b)); // Sort oldest first
+                      final allMonths = _cachedMonthStatus.keys.toList()
+                        ..sort((a, b) => a.compareTo(b)); // Sort oldest first
 
                       if (allMonths.isEmpty) {
                         return const Padding(
@@ -963,7 +955,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                   final month = allMonths[index];
                                   final date = DateFormat('yyyy_MM').parse(month);
                                   final displayText = DateFormat('MMMM yyyy').format(date);
-                                  final isPaid = monthStatus[month] ?? false;
+                                  final isPaid = _cachedMonthStatus[month] ?? false;
                                   final isSelected = _selectedMonthsForBulkUpdate.contains(month);
 
                                   return Theme(
@@ -1058,113 +1050,6 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                     child: const Text(
                                       'Clear All',
                                       style: TextStyle(fontSize: 12),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 2, 16, 2),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      final unpaidMonths = allMonths
-                                          .where((month) => !(monthStatus[month] ?? false) && !_isFutureMonth(month))
-                                          .toList();
-                                      setState(() {
-                                        _selectedMonthsForBulkUpdate = unpaidMonths;
-                                      });
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    child: const Text(
-                                      'Select Unpaid',
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      final paidMonths =
-                                          allMonths.where((month) => monthStatus[month] ?? false).toList();
-                                      setState(() {
-                                        _selectedMonthsForBulkUpdate = paidMonths;
-                                      });
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    child: const Text(
-                                      'Select Paid',
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 2, 16, 2),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      final currentYear = DateTime.now().year;
-                                      final currentYearMonths = allMonths.where((month) {
-                                        final date = DateFormat('yyyy_MM').parse(month);
-                                        return date.year == currentYear;
-                                      }).toList();
-                                      setState(() {
-                                        _selectedMonthsForBulkUpdate = currentYearMonths;
-                                      });
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blue,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    child: Text(
-                                      'Select ${DateTime.now().year}',
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      final nextYear = DateTime.now().year + 1;
-                                      final nextYearMonths = allMonths.where((month) {
-                                        final date = DateFormat('yyyy_MM').parse(month);
-                                        return date.year == nextYear;
-                                      }).toList();
-                                      setState(() {
-                                        _selectedMonthsForBulkUpdate = nextYearMonths;
-                                      });
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.purple,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    child: Text(
-                                      'Select ${DateTime.now().year + 1}',
-                                      style: const TextStyle(fontSize: 12),
                                     ),
                                   ),
                                 ),
