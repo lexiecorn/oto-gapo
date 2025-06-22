@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:otogapo/app/pages/user_detail_page.dart';
 
 class UserListPage extends StatefulWidget {
@@ -55,6 +56,50 @@ class _UserListPageState extends State<UserListPage> {
     setState(() {
       _searchQuery = query.toLowerCase();
     });
+  }
+
+  String _toTitleCase(String text) {
+    if (text.isEmpty) return text;
+
+    // Split the text into words
+    final words = text.trim().split(' ');
+
+    // Capitalize each word
+    final titleCaseWords = words.map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).toList();
+
+    // Join the words back together
+    return titleCaseWords.join(' ');
+  }
+
+  Future<String?> _getProfileImageUrl(String userId) async {
+    try {
+      // Check if user has a profile image URL stored
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      final userData = userDoc.data();
+
+      if (userData != null && userData['profile_image'] != null) {
+        final profileImage = userData['profile_image'].toString();
+
+        // If it's a gs:// URI, get the download URL
+        if (profileImage.startsWith('gs://')) {
+          final ref = FirebaseStorage.instance.refFromURL(profileImage);
+          return await ref.getDownloadURL();
+        } else if (profileImage.isNotEmpty) {
+          // It might be a pre-fetched HTTPS URL
+          return profileImage;
+        }
+      }
+
+      // Try to get the default profile image path
+      final defaultImageRef = FirebaseStorage.instance.ref().child('users/$userId/images/profile.png');
+      return await defaultImageRef.getDownloadURL();
+    } catch (e) {
+      // Return null if image doesn't exist or there's an error
+      return null;
+    }
   }
 
   List<DocumentSnapshot> _filterUsers(List<DocumentSnapshot> docs) {
@@ -160,8 +205,16 @@ class _UserListPageState extends State<UserListPage> {
                     child: TextField(
                       controller: _searchController,
                       onChanged: _onSearchChanged,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.black87,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Search users...',
+                        hintStyle: TextStyle(
+                          fontSize: 13.sp,
+                          color: Colors.grey[400],
+                        ),
                         prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(
@@ -372,7 +425,9 @@ class _UserListPageState extends State<UserListPage> {
         final data = doc.data() as Map<String, dynamic>?;
         final firstName = (data?['firstName'] ?? '').toString();
         final lastName = (data?['lastName'] ?? '').toString();
-        final name = '$firstName $lastName'.trim();
+        final fullName = '$firstName $lastName'.trim();
+        final titleCaseName = _toTitleCase(fullName);
+        final displayName = titleCaseName.isEmpty ? '(no_name)' : titleCaseName;
         final email = (data?['email'] ?? '').toString();
         final memberNumber = (data?['memberNumber'] ?? '').toString();
         final displayMemberNumber = memberNumber == '${memberNumber}' ? 'OM-${memberNumber}' : memberNumber;
@@ -449,10 +504,78 @@ class _UserListPageState extends State<UserListPage> {
                         color: Colors.blue.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(24.sp),
                       ),
-                      child: Icon(
-                        Icons.person,
-                        color: Colors.blue,
-                        size: 24.sp,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24.sp),
+                        child: FutureBuilder<String?>(
+                          future: _getProfileImageUrl(doc.id),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return Container(
+                                color: Colors.blue.withOpacity(0.1),
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 16.sp,
+                                    height: 16.sp,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                            if (snapshot.hasError) {
+                              return Container(
+                                color: Colors.red.withOpacity(0.1),
+                                child: Icon(
+                                  Icons.error,
+                                  color: Colors.red,
+                                  size: 20.sp,
+                                ),
+                              );
+                            }
+                            if (snapshot.hasData && snapshot.data != null) {
+                              return Image.network(
+                                snapshot.data!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.blue.withOpacity(0.1),
+                                    child: Icon(
+                                      Icons.person,
+                                      color: Colors.blue,
+                                      size: 24.sp,
+                                    ),
+                                  );
+                                },
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Container(
+                                    color: Colors.blue.withOpacity(0.1),
+                                    child: Center(
+                                      child: SizedBox(
+                                        width: 16.sp,
+                                        height: 16.sp,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            }
+                            return Container(
+                              color: Colors.blue.withOpacity(0.1),
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.blue,
+                                size: 24.sp,
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
                     SizedBox(width: 16.sp),
@@ -463,7 +586,7 @@ class _UserListPageState extends State<UserListPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            name.isEmpty ? '(No Name)' : name,
+                            displayName,
                             style: TextStyle(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.w600,

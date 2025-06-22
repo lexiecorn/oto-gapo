@@ -1,11 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:otogapo/app/pages/user_list_page.dart';
 import 'package:otogapo/app/pages/create_user_page.dart';
 
-class UserManagementPage extends StatelessWidget {
+class UserManagementPage extends StatefulWidget {
   const UserManagementPage({Key? key}) : super(key: key);
+
+  @override
+  State<UserManagementPage> createState() => _UserManagementPageState();
+}
+
+class _UserManagementPageState extends State<UserManagementPage> {
+  int _totalUsers = 0;
+  int _newThisMonth = 0;
+  int _activeUsers = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserStatistics();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh statistics when page becomes visible
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserStatistics();
+    });
+  }
+
+  Future<void> _loadUserStatistics() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Get total users count
+      final totalUsersSnapshot = await FirebaseFirestore.instance.collection('users').get();
+      final totalUsers = totalUsersSnapshot.docs.length;
+
+      // Get current month and year
+      final now = DateTime.now();
+      final currentMonth = now.month;
+      final currentYear = now.year;
+
+      // Get new users this month
+      int newThisMonth = 0;
+      int activeUsers = 0;
+
+      for (final doc in totalUsersSnapshot.docs) {
+        final data = doc.data();
+
+        // Check if user was created this month
+        if (data['createdAt'] != null) {
+          final createdAt = data['createdAt'] as Timestamp;
+          final createdDate = createdAt.toDate();
+
+          if (createdDate.month == currentMonth && createdDate.year == currentYear) {
+            newThisMonth++;
+          }
+        }
+
+        // Check if user is active
+        if (data['isActive'] == true) {
+          activeUsers++;
+        }
+      }
+
+      setState(() {
+        _totalUsers = totalUsers;
+        _newThisMonth = newThisMonth;
+        _activeUsers = activeUsers;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading user statistics: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +99,11 @@ class UserManagementPage extends StatelessWidget {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadUserStatistics,
+            tooltip: 'Refresh Statistics',
+          ),
           IconButton(
             icon: const Icon(Icons.help_outline),
             onPressed: () {
@@ -140,7 +223,7 @@ class UserManagementPage extends StatelessWidget {
           child: _buildStatCard(
             icon: Icons.people,
             title: 'Total Users',
-            value: '0',
+            value: _totalUsers.toString(),
             color: Colors.blue,
             delay: const Duration(milliseconds: 100),
           ),
@@ -150,7 +233,7 @@ class UserManagementPage extends StatelessWidget {
           child: _buildStatCard(
             icon: Icons.person_add,
             title: 'New This Month',
-            value: '0',
+            value: _newThisMonth.toString(),
             color: Colors.green,
             delay: const Duration(milliseconds: 200),
           ),
@@ -160,7 +243,7 @@ class UserManagementPage extends StatelessWidget {
           child: _buildStatCard(
             icon: Icons.verified_user,
             title: 'Active Users',
-            value: '0',
+            value: _activeUsers.toString(),
             color: Colors.orange,
             delay: const Duration(milliseconds: 300),
           ),
@@ -204,14 +287,23 @@ class UserManagementPage extends StatelessWidget {
             ),
           ),
           SizedBox(height: 8.sp),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
+          _isLoading
+              ? SizedBox(
+                  width: 16.sp,
+                  height: 16.sp,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(color),
+                  ),
+                )
+              : Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
           Text(
             title,
             style: TextStyle(
@@ -247,10 +339,12 @@ class UserManagementPage extends StatelessWidget {
                 title: 'User List',
                 subtitle: 'View and manage all users',
                 color: Colors.blue,
-                onTap: () {
-                  Navigator.of(context).push(
+                onTap: () async {
+                  await Navigator.of(context).push(
                     MaterialPageRoute(builder: (context) => const UserListPage()),
                   );
+                  // Refresh statistics when returning
+                  _loadUserStatistics();
                 },
                 delay: const Duration(milliseconds: 100),
               ),
@@ -263,10 +357,12 @@ class UserManagementPage extends StatelessWidget {
                 title: 'Create User',
                 subtitle: 'Add new user account',
                 color: Colors.green,
-                onTap: () {
-                  Navigator.of(context).push(
+                onTap: () async {
+                  await Navigator.of(context).push(
                     MaterialPageRoute(builder: (context) => const CreateUserPage()),
                   );
+                  // Refresh statistics when returning
+                  _loadUserStatistics();
                 },
                 delay: const Duration(milliseconds: 200),
               ),
