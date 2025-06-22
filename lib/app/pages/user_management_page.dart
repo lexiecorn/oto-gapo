@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:otogapo/providers/theme_provider.dart';
 import 'package:otogapo/app/pages/user_list_page.dart';
 import 'package:otogapo/app/pages/create_user_page.dart';
 
@@ -87,25 +89,48 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: isDark ? colorScheme.surface : Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'User Management',
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: isDark ? colorScheme.onSurface : Colors.black87,
+          ),
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: isDark ? colorScheme.surface : Colors.white,
+        foregroundColor: isDark ? colorScheme.onSurface : Colors.black87,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(
+              isDark ? Icons.light_mode : Icons.dark_mode,
+              color: isDark ? colorScheme.onSurface : Colors.black87,
+            ),
+            onPressed: () {
+              // Toggle theme using the theme provider
+              context.read<ThemeProvider>().toggleTheme();
+            },
+            tooltip: 'Toggle Theme',
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.refresh,
+              color: isDark ? colorScheme.onSurface : Colors.black87,
+            ),
             onPressed: _loadUserStatistics,
             tooltip: 'Refresh Statistics',
           ),
           IconButton(
-            icon: const Icon(Icons.help_outline),
+            icon: Icon(
+              Icons.help_outline,
+              color: isDark ? colorScheme.onSurface : Colors.black87,
+            ),
             onPressed: () {
               _showHelpDialog(context);
             },
@@ -150,6 +175,15 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 .fadeIn(delay: const Duration(milliseconds: 600), duration: const Duration(milliseconds: 600))
                 .slideY(
                     begin: -0.2, delay: const Duration(milliseconds: 600), duration: const Duration(milliseconds: 600)),
+
+            SizedBox(height: 24.sp),
+
+            // Theme Info Section
+            _buildThemeInfoSection(context)
+                .animate()
+                .fadeIn(delay: const Duration(milliseconds: 800), duration: const Duration(milliseconds: 600))
+                .slideY(
+                    begin: -0.2, delay: const Duration(milliseconds: 800), duration: const Duration(milliseconds: 600)),
           ],
         ),
       ),
@@ -157,6 +191,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
   }
 
   Widget _buildHeaderSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(20.sp),
@@ -164,15 +201,20 @@ class _UserManagementPageState extends State<UserManagementPage> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.blue[600]!,
-            Colors.blue[800]!,
-          ],
+          colors: isDark
+              ? [
+                  colorScheme.primary,
+                  colorScheme.primary.withOpacity(0.8),
+                ]
+              : [
+                  Colors.blue[600]!,
+                  Colors.blue[800]!,
+                ],
         ),
         borderRadius: BorderRadius.circular(16.sp),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
+            color: (isDark ? colorScheme.primary : Colors.blue).withOpacity(0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -183,13 +225,13 @@ class _UserManagementPageState extends State<UserManagementPage> {
           Container(
             padding: EdgeInsets.all(16.sp),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: (isDark ? colorScheme.onPrimary : Colors.white).withOpacity(0.2),
               borderRadius: BorderRadius.circular(12.sp),
             ),
             child: Icon(
               Icons.admin_panel_settings,
               size: 32.sp,
-              color: Colors.white,
+              color: isDark ? colorScheme.onPrimary : Colors.white,
             ),
           ),
           SizedBox(height: 16.sp),
@@ -198,7 +240,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
             style: TextStyle(
               fontSize: 24.sp,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: isDark ? colorScheme.onPrimary : Colors.white,
             ),
             textAlign: TextAlign.center,
           ),
@@ -207,7 +249,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
             'Manage user accounts, permissions, and system access',
             style: TextStyle(
               fontSize: 14.sp,
-              color: Colors.white.withOpacity(0.9),
+              color: (isDark ? colorScheme.onPrimary : Colors.white).withOpacity(0.9),
             ),
             textAlign: TextAlign.center,
           ),
@@ -259,18 +301,22 @@ class _UserManagementPageState extends State<UserManagementPage> {
     required Color color,
     required Duration delay,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: EdgeInsets.all(16.sp),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? colorScheme.surface : Colors.white,
         borderRadius: BorderRadius.circular(12.sp),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: (isDark ? Colors.black : Colors.grey).withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
+        border: isDark ? Border.all(color: colorScheme.outline.withOpacity(0.2)) : null,
       ),
       child: Column(
         children: [
@@ -283,14 +329,14 @@ class _UserManagementPageState extends State<UserManagementPage> {
             child: Icon(
               icon,
               color: color,
-              size: 20.sp,
+              size: 24.sp,
             ),
           ),
-          SizedBox(height: 8.sp),
+          SizedBox(height: 12.sp),
           _isLoading
               ? SizedBox(
-                  width: 16.sp,
-                  height: 16.sp,
+                  width: 20.sp,
+                  height: 20.sp,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(color),
@@ -299,25 +345,28 @@ class _UserManagementPageState extends State<UserManagementPage> {
               : Text(
                   value,
                   style: TextStyle(
-                    fontSize: 20.sp,
+                    fontSize: 24.sp,
                     fontWeight: FontWeight.bold,
-                    color: color,
+                    color: isDark ? colorScheme.onSurface : Colors.black87,
                   ),
                 ),
           Text(
             title,
             style: TextStyle(
               fontSize: 12.sp,
-              color: Colors.grey[600],
+              color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
             ),
             textAlign: TextAlign.center,
           ),
         ],
       ),
-    ).animate().fadeIn(delay: delay, duration: const Duration(milliseconds: 400));
+    ).animate().fadeIn(delay: delay, duration: const Duration(milliseconds: 600));
   }
 
   Widget _buildMainActionsSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -326,7 +375,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: isDark ? colorScheme.onSurface : Colors.black87,
           ),
         ),
         SizedBox(height: 16.sp),
@@ -382,6 +431,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
     required VoidCallback onTap,
     required Duration delay,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -390,12 +442,12 @@ class _UserManagementPageState extends State<UserManagementPage> {
         child: Container(
           padding: EdgeInsets.all(20.sp),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? colorScheme.surface : Colors.white,
             borderRadius: BorderRadius.circular(12.sp),
             border: Border.all(color: color.withOpacity(0.2)),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: (isDark ? Colors.black : Colors.grey).withOpacity(0.1),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -421,7 +473,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: isDark ? colorScheme.onSurface : Colors.black87,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -430,7 +482,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 subtitle,
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: Colors.grey[600],
+                  color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -442,6 +494,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
   }
 
   Widget _buildQuickActionsSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -450,22 +505,23 @@ class _UserManagementPageState extends State<UserManagementPage> {
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: isDark ? colorScheme.onSurface : Colors.black87,
           ),
         ),
         SizedBox(height: 16.sp),
         Container(
           padding: EdgeInsets.all(16.sp),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? colorScheme.surface : Colors.white,
             borderRadius: BorderRadius.circular(12.sp),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: (isDark ? Colors.black : Colors.grey).withOpacity(0.1),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
             ],
+            border: isDark ? Border.all(color: colorScheme.outline.withOpacity(0.2)) : null,
           ),
           child: Column(
             children: [
@@ -481,7 +537,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   );
                 },
               ),
-              Divider(height: 1, color: Colors.grey[200]),
+              Divider(height: 1, color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey[200]),
               _buildQuickActionTile(
                 context: context,
                 icon: Icons.download,
@@ -494,7 +550,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   );
                 },
               ),
-              Divider(height: 1, color: Colors.grey[200]),
+              Divider(height: 1, color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey[200]),
               _buildQuickActionTile(
                 context: context,
                 icon: Icons.settings,
@@ -521,6 +577,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -533,13 +592,13 @@ class _UserManagementPageState extends State<UserManagementPage> {
               Container(
                 padding: EdgeInsets.all(8.sp),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.grey[100],
                   borderRadius: BorderRadius.circular(8.sp),
                 ),
                 child: Icon(
                   icon,
                   size: 20.sp,
-                  color: Colors.grey[700],
+                  color: isDark ? colorScheme.primary : Colors.grey[700],
                 ),
               ),
               SizedBox(width: 12.sp),
@@ -552,14 +611,14 @@ class _UserManagementPageState extends State<UserManagementPage> {
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: isDark ? colorScheme.onSurface : Colors.black87,
                       ),
                     ),
                     Text(
                       subtitle,
                       style: TextStyle(
                         fontSize: 12.sp,
-                        color: Colors.grey[600],
+                        color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
                       ),
                     ),
                   ],
@@ -568,7 +627,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16.sp,
-                color: Colors.grey[400],
+                color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[400],
               ),
             ],
           ),
@@ -578,14 +637,23 @@ class _UserManagementPageState extends State<UserManagementPage> {
   }
 
   void _showHelpDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: isDark ? colorScheme.surface : Colors.white,
         title: Row(
           children: [
-            Icon(Icons.help_outline, color: Colors.blue),
+            Icon(Icons.help_outline, color: isDark ? colorScheme.primary : Colors.blue),
             SizedBox(width: 8.sp),
-            Text('User Management Help'),
+            Text(
+              'User Management Help',
+              style: TextStyle(
+                color: isDark ? colorScheme.onSurface : Colors.black87,
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -620,7 +688,12 @@ class _UserManagementPageState extends State<UserManagementPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Got it'),
+            child: Text(
+              'Got it',
+              style: TextStyle(
+                color: isDark ? colorScheme.primary : Colors.blue,
+              ),
+            ),
           ),
         ],
       ),
@@ -632,10 +705,13 @@ class _UserManagementPageState extends State<UserManagementPage> {
     required String title,
     required String description,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20.sp, color: Colors.blue),
+        Icon(icon, size: 20.sp, color: isDark ? colorScheme.primary : Colors.blue),
         SizedBox(width: 12.sp),
         Expanded(
           child: Column(
@@ -646,19 +722,96 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14.sp,
+                  color: isDark ? colorScheme.onSurface : Colors.black87,
                 ),
               ),
               Text(
                 description,
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: Colors.grey[600],
+                  color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
                 ),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildThemeInfoSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: EdgeInsets.all(20.sp),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  colorScheme.secondary,
+                  colorScheme.secondary.withOpacity(0.8),
+                ]
+              : [
+                  Colors.purple[600]!,
+                  Colors.purple[800]!,
+                ],
+        ),
+        borderRadius: BorderRadius.circular(16.sp),
+        boxShadow: [
+          BoxShadow(
+            color: (isDark ? colorScheme.secondary : Colors.purple).withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(16.sp),
+            decoration: BoxDecoration(
+              color: (isDark ? colorScheme.onSecondary : Colors.white).withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12.sp),
+            ),
+            child: Icon(
+              isDark ? Icons.dark_mode : Icons.light_mode,
+              size: 32.sp,
+              color: isDark ? colorScheme.onSecondary : Colors.white,
+            ),
+          ),
+          SizedBox(height: 16.sp),
+          Text(
+            'Theme Information',
+            style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              color: isDark ? colorScheme.onSecondary : Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 8.sp),
+          Text(
+            'Current Theme: ${isDark ? 'Dark' : 'Light'} Mode',
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: (isDark ? colorScheme.onSecondary : Colors.white).withOpacity(0.9),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 12.sp),
+          Text(
+            'Tap the theme icon in the app bar to switch themes',
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: (isDark ? colorScheme.onSecondary : Colors.white).withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }

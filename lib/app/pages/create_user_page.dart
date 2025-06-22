@@ -8,20 +8,29 @@ class CreateUserPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: isDark ? colorScheme.surface : Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Create New User',
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: isDark ? colorScheme.onSurface : Colors.black87,
+          ),
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: isDark ? colorScheme.surface : Colors.white,
+        foregroundColor: isDark ? colorScheme.onSurface : Colors.black87,
         actions: [
           IconButton(
-            icon: const Icon(Icons.help_outline),
+            icon: Icon(
+              Icons.help_outline,
+              color: isDark ? colorScheme.onSurface : Colors.black87,
+            ),
             onPressed: () {
               _showHelpDialog(context);
             },
@@ -39,14 +48,19 @@ class CreateUserPage extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Colors.green[600]!,
-                  Colors.green[800]!,
-                ],
+                colors: isDark
+                    ? [
+                        colorScheme.secondary,
+                        colorScheme.secondary.withOpacity(0.8),
+                      ]
+                    : [
+                        Colors.green[600]!,
+                        Colors.green[800]!,
+                      ],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.green.withOpacity(0.3),
+                  color: (isDark ? colorScheme.secondary : Colors.green).withOpacity(0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -57,13 +71,13 @@ class CreateUserPage extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(16.sp),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: (isDark ? colorScheme.onSecondary : Colors.white).withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12.sp),
                   ),
                   child: Icon(
                     Icons.person_add_alt_1,
                     size: 32.sp,
-                    color: Colors.white,
+                    color: isDark ? colorScheme.onSecondary : Colors.white,
                   ),
                 ),
                 SizedBox(height: 16.sp),
@@ -72,7 +86,7 @@ class CreateUserPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 24.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? colorScheme.onSecondary : Colors.white,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -81,7 +95,7 @@ class CreateUserPage extends StatelessWidget {
                   'Add a new member to the system with complete details',
                   style: TextStyle(
                     fontSize: 14.sp,
-                    color: Colors.white.withOpacity(0.9),
+                    color: (isDark ? colorScheme.onSecondary : Colors.white).withOpacity(0.9),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -111,14 +125,23 @@ class CreateUserPage extends StatelessWidget {
   }
 
   void _showHelpDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: isDark ? colorScheme.surface : Colors.white,
         title: Row(
           children: [
-            Icon(Icons.help_outline, color: Colors.green),
+            Icon(Icons.help_outline, color: isDark ? colorScheme.secondary : Colors.green),
             SizedBox(width: 8.sp),
-            Text('Create User Help'),
+            Text(
+              'Create User Help',
+              style: TextStyle(
+                color: isDark ? colorScheme.onSurface : Colors.black87,
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -126,24 +149,28 @@ class CreateUserPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHelpItem(
+              context: context,
               icon: Icons.person,
               title: 'Personal Information',
               description: 'Fill in the user\'s basic personal details like name, email, and contact information.',
             ),
             SizedBox(height: 12.sp),
             _buildHelpItem(
+              context: context,
               icon: Icons.directions_car,
               title: 'Vehicle Information',
               description: 'Add vehicle details including make, model, color, and license plate number.',
             ),
             SizedBox(height: 12.sp),
             _buildHelpItem(
+              context: context,
               icon: Icons.photo_camera,
               title: 'Profile & Vehicle Photos',
               description: 'Upload profile picture and vehicle photos for identification purposes.',
             ),
             SizedBox(height: 12.sp),
             _buildHelpItem(
+              context: context,
               icon: Icons.security,
               title: 'Account Settings',
               description: 'Set user permissions, membership type, and account status.',
@@ -153,7 +180,12 @@ class CreateUserPage extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Got it'),
+            child: Text(
+              'Got it',
+              style: TextStyle(
+                color: isDark ? colorScheme.secondary : Colors.green,
+              ),
+            ),
           ),
         ],
       ),
@@ -161,14 +193,18 @@ class CreateUserPage extends StatelessWidget {
   }
 
   Widget _buildHelpItem({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String description,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20.sp, color: Colors.green),
+        Icon(icon, size: 20.sp, color: isDark ? colorScheme.secondary : Colors.green),
         SizedBox(width: 12.sp),
         Expanded(
           child: Column(
@@ -179,13 +215,14 @@ class CreateUserPage extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14.sp,
+                  color: isDark ? colorScheme.onSurface : Colors.black87,
                 ),
               ),
               Text(
                 description,
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: Colors.grey[600],
+                  color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
                 ),
               ),
             ],

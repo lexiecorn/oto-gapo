@@ -107,6 +107,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     String? suffixText,
     Widget? prefixIcon,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return InputDecoration(
       labelText: labelText,
       hintText: hintText,
@@ -118,19 +121,19 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.sp),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderSide: BorderSide(color: isDark ? colorScheme.outline.withOpacity(0.5) : Colors.grey.shade300),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.sp),
-        borderSide: BorderSide(color: Colors.blue, width: 2),
+        borderSide: BorderSide(color: isDark ? colorScheme.primary : Colors.blue, width: 2),
       ),
       labelStyle: TextStyle(
         fontSize: 14.sp,
-        color: Colors.grey[600],
+        color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
       ),
       hintStyle: TextStyle(
         fontSize: 13.sp,
-        color: Colors.grey[400],
+        color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[400],
       ),
       contentPadding: EdgeInsets.symmetric(
         horizontal: 12.sp,
@@ -141,17 +144,23 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
   // Helper method to create consistent TextField text style
   TextStyle _buildTextStyle() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return TextStyle(
       fontSize: 14.sp,
-      color: Colors.black87,
+      color: isDark ? colorScheme.onSurface : Colors.black87,
     );
   }
 
   // Helper method to create consistent dropdown text style
   TextStyle _buildDropdownTextStyle() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return TextStyle(
       fontSize: 14.sp,
-      color: Colors.black87,
+      color: isDark ? colorScheme.onSurface : Colors.black87,
     );
   }
 
@@ -1313,216 +1322,231 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Text('Create New User', style: Theme.of(context).textTheme.titleLarge),
-        // const SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () async {
-            if (_vehicleMakes.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Vehicle makes not loaded yet!')),
-              );
-              return;
-            }
-            final selectedMake = _vehicleMakes.contains('Toyota') ? 'Toyota' : _vehicleMakes.first;
-            await _onVehicleMakeChanged(selectedMake);
-
-            // Generate random data
-            final randomFirstName = _getRandomItem(_testFirstNames);
-            final randomLastName = _getRandomItem(_testLastNames);
-            final randomMiddleName = _getRandomItem(_testMiddleNames);
-            final randomBirthplace = _getRandomItem(_testBirthplaces);
-            final randomBloodType = _getRandomItem(_testBloodTypes);
-            final randomCivilStatus = _getRandomItem(_testCivilStatus);
-            final randomReligion = _getRandomItem(_testReligions);
-            final randomVehicleColor = _getRandomItem(_testVehicleColors);
-            final randomVehicleType = _getRandomItem(_testVehicleTypes);
-            final randomAge = _getRandomAge();
-            final randomMemberNumber = _getRandomMemberNumber();
-            final randomPlateNumber = _getRandomPlateNumber();
-            final randomPhoneNumber = _getRandomPhoneNumber();
-            final randomDateOfBirth = _getRandomDateOfBirth();
-            final randomLicenseExpiration = _getRandomLicenseExpiration();
-            final randomVehicleYear = _getRandomVehicleYear();
-
-            setState(() {
-              _newFirstNameController.text = randomFirstName;
-              _newLastNameController.text = randomLastName;
-              _newEmailController.text =
-                  '${randomFirstName.toLowerCase()}.${randomLastName.toLowerCase()}${_generateRandomString(3)}@gmail.com';
-              _newPasswordController.text = '123456';
-              _ageController.text = randomAge.toString();
-              _birthplaceController.text = randomBirthplace;
-              _bloodTypeController.text = randomBloodType;
-              _selectedBloodType = randomBloodType;
-              _civilStatusController.text = randomCivilStatus;
-              _selectedCivilStatus = randomCivilStatus;
-              _contactNumberController.text = randomPhoneNumber;
-              _selectedDateOfBirth = randomDateOfBirth;
-              _dateOfBirthController.text =
-                  '${randomDateOfBirth.day}/${randomDateOfBirth.month}/${randomDateOfBirth.year}';
-              _selectedLicenseExpirationDate = randomLicenseExpiration;
-              _driversLicenseExpirationDateController.text =
-                  '${randomLicenseExpiration.day}/${randomLicenseExpiration.month}/${randomLicenseExpiration.year}';
-              _driversLicenseNumberController.text = '${_generateRandomString(12)}';
-              _driversLicenseRestrictionCodeController.text = '${Random().nextInt(9) + 1}';
-              _emergencyContactNameController.text =
-                  '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}';
-              _emergencyContactNumberController.text = _getRandomPhoneNumber();
-              _isActive = true;
-              _isAdmin = Random().nextBool(); // Random admin status
-              _memberNumberController.text = randomMemberNumber;
-              _membershipTypeController.text = '3';
-              _middleNameController.text = randomMiddleName;
-              _nationalityController.text = 'Filipino';
-              _profileImageController.text =
-                  'gs://otogapo-dev.appspot.com/users/TS4E73z29qdpfsyBiBsxnBN10I43/images/profile.png';
-              _religionController.text = randomReligion;
-              _spouseContactNumberController.text = randomCivilStatus == 'Married' ? _getRandomPhoneNumber() : '';
-              _spouseNameController.text = randomCivilStatus == 'Married'
-                  ? '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}'
-                  : '';
-              _vehicleColorController.text = randomVehicleColor;
-              _selectedVehicleColor = _getColorFromName(randomVehicleColor);
-              _vehicleMakeController.text = selectedMake;
-              _vehicleModelController.text = _vehicleModels.isNotEmpty ? _vehicleModels.first : 'yaris';
-              _selectedVehicleModel = _vehicleModels.isNotEmpty ? _vehicleModels.first : null;
-              _vehiclePhotosController.text = '';
-              _vehiclePlateNumberController.text = randomPlateNumber;
-              _vehiclePrimaryPhotoController.text = '';
-              _vehicleTypeController.text = randomVehicleType;
-              _selectedVehicleYear = randomVehicleYear;
-            });
-          },
-          child: const Text('Test (Auto-fill All Fields)'),
-        ),
-        const SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: () async {
-            if (_vehicleMakes.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Vehicle makes not loaded yet!')),
-              );
-              return;
-            }
-
-            // Show confirmation dialog
-            final shouldProceed = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Generate Multiple Test Users'),
-                content: const Text('This will create 10 test users with random data. Continue?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text('Generate'),
-                  ),
-                ],
-              ),
-            );
-
-            if (shouldProceed != true) return;
-
-            final selectedMake = _vehicleMakes.contains('Toyota') ? 'Toyota' : _vehicleMakes.first;
-            await _onVehicleMakeChanged(selectedMake);
-
-            // Generate 10 test users
-            for (int i = 0; i < 10; i++) {
-              await _createRandomTestUser(selectedMake);
-              // Small delay between creations
-              await Future.delayed(const Duration(milliseconds: 500));
-            }
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Successfully created 10 test users!'),
-                backgroundColor: Colors.green,
-              ),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange,
-            foregroundColor: Colors.white,
+        ExpansionTile(
+          title: Text(
+            'Test/Developer Tools',
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.primary,
+            ),
           ),
-          child: const Text('Generate 10 Test Users'),
-        ),
-        const SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: () async {
-            // Show confirmation dialog
-            final shouldProceed = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Clear Test Users'),
-                content: const Text(
-                    'This will delete all users with membership_type = 3 (regular members). This action cannot be undone. Continue?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    style: TextButton.styleFrom(foregroundColor: Colors.red),
-                    child: const Text('Delete All'),
-                  ),
-                ],
-              ),
-            );
+          initiallyExpanded: false,
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                if (_vehicleMakes.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Vehicle makes not loaded yet!')),
+                  );
+                  return;
+                }
+                final selectedMake = _vehicleMakes.contains('Toyota') ? 'Toyota' : _vehicleMakes.first;
+                await _onVehicleMakeChanged(selectedMake);
 
-            if (shouldProceed != true) return;
+                // Generate random data
+                final randomFirstName = _getRandomItem(_testFirstNames);
+                final randomLastName = _getRandomItem(_testLastNames);
+                final randomMiddleName = _getRandomItem(_testMiddleNames);
+                final randomBirthplace = _getRandomItem(_testBirthplaces);
+                final randomBloodType = _getRandomItem(_testBloodTypes);
+                final randomCivilStatus = _getRandomItem(_testCivilStatus);
+                final randomReligion = _getRandomItem(_testReligions);
+                final randomVehicleColor = _getRandomItem(_testVehicleColors);
+                final randomVehicleType = _getRandomItem(_testVehicleTypes);
+                final randomAge = _getRandomAge();
+                final randomMemberNumber = _getRandomMemberNumber();
+                final randomPlateNumber = _getRandomPlateNumber();
+                final randomPhoneNumber = _getRandomPhoneNumber();
+                final randomDateOfBirth = _getRandomDateOfBirth();
+                final randomLicenseExpiration = _getRandomLicenseExpiration();
+                final randomVehicleYear = _getRandomVehicleYear();
 
-            try {
-              // Get all users with membership_type = 3
-              final usersSnapshot =
-                  await FirebaseFirestore.instance.collection('users').where('membership_type', isEqualTo: 3).get();
-
-              int deletedCount = 0;
-              for (final doc in usersSnapshot.docs) {
-                // Delete the user document
-                await doc.reference.delete();
-
-                // Delete associated payment records
-                final paymentSnapshot = await doc.reference.collection('monthly_dues').get();
-                for (final paymentDoc in paymentSnapshot.docs) {
-                  await paymentDoc.reference.delete();
+                setState(() {
+                  _newFirstNameController.text = randomFirstName;
+                  _newLastNameController.text = randomLastName;
+                  _newEmailController.text =
+                      '${randomFirstName.toLowerCase()}.${randomLastName.toLowerCase()}${_generateRandomString(3)}@gmail.com';
+                  _newPasswordController.text = '123456';
+                  _ageController.text = randomAge.toString();
+                  _birthplaceController.text = randomBirthplace;
+                  _bloodTypeController.text = randomBloodType;
+                  _selectedBloodType = randomBloodType;
+                  _civilStatusController.text = randomCivilStatus;
+                  _selectedCivilStatus = randomCivilStatus;
+                  _contactNumberController.text = randomPhoneNumber;
+                  _selectedDateOfBirth = randomDateOfBirth;
+                  _dateOfBirthController.text =
+                      '${randomDateOfBirth.day}/${randomDateOfBirth.month}/${randomDateOfBirth.year}';
+                  _selectedLicenseExpirationDate = randomLicenseExpiration;
+                  _driversLicenseExpirationDateController.text =
+                      '${randomLicenseExpiration.day}/${randomLicenseExpiration.month}/${randomLicenseExpiration.year}';
+                  _driversLicenseNumberController.text = '${_generateRandomString(12)}';
+                  _driversLicenseRestrictionCodeController.text = '${Random().nextInt(9) + 1}';
+                  _emergencyContactNameController.text =
+                      '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}';
+                  _emergencyContactNumberController.text = _getRandomPhoneNumber();
+                  _isActive = true;
+                  _isAdmin = Random().nextBool(); // Random admin status
+                  _memberNumberController.text = randomMemberNumber;
+                  _membershipTypeController.text = '3';
+                  _middleNameController.text = randomMiddleName;
+                  _nationalityController.text = 'Filipino';
+                  _profileImageController.text =
+                      'gs://otogapo-dev.appspot.com/users/TS4E73z29qdpfsyBiBsxnBN10I43/images/profile.png';
+                  _religionController.text = randomReligion;
+                  _spouseContactNumberController.text = randomCivilStatus == 'Married' ? _getRandomPhoneNumber() : '';
+                  _spouseNameController.text = randomCivilStatus == 'Married'
+                      ? '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}'
+                      : '';
+                  _vehicleColorController.text = randomVehicleColor;
+                  _selectedVehicleColor = _getColorFromName(randomVehicleColor);
+                  _vehicleMakeController.text = selectedMake;
+                  _vehicleModelController.text = _vehicleModels.isNotEmpty ? _vehicleModels.first : 'yaris';
+                  _selectedVehicleModel = _vehicleModels.isNotEmpty ? _vehicleModels.first : null;
+                  _vehiclePhotosController.text = '';
+                  _vehiclePlateNumberController.text = randomPlateNumber;
+                  _vehiclePrimaryPhotoController.text = '';
+                  _vehicleTypeController.text = randomVehicleType;
+                  _selectedVehicleYear = randomVehicleYear;
+                });
+              },
+              child: const Text('Test (Auto-fill All Fields)'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () async {
+                if (_vehicleMakes.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Vehicle makes not loaded yet!')),
+                  );
+                  return;
                 }
 
-                deletedCount++;
-              }
+                // Show confirmation dialog
+                final shouldProceed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Generate Multiple Test Users'),
+                    content: const Text('This will create 10 test users with random data. Continue?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text('Generate'),
+                      ),
+                    ],
+                  ),
+                );
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Successfully deleted $deletedCount test users!'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Error deleting test users: $e'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-          ),
-          child: const Text('Clear All Test Users'),
+                if (shouldProceed != true) return;
+
+                final selectedMake = _vehicleMakes.contains('Toyota') ? 'Toyota' : _vehicleMakes.first;
+                await _onVehicleMakeChanged(selectedMake);
+
+                // Generate 10 test users
+                for (int i = 0; i < 10; i++) {
+                  await _createRandomTestUser(selectedMake);
+                  // Small delay between creations
+                  await Future.delayed(const Duration(milliseconds: 500));
+                }
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Successfully created 10 test users!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Generate 10 Test Users'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () async {
+                // Show confirmation dialog
+                final shouldProceed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Clear Test Users'),
+                    content: const Text(
+                        'This will delete all users with membership_type = 3 (regular members). This action cannot be undone. Continue?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: TextButton.styleFrom(foregroundColor: Colors.red),
+                        child: const Text('Delete All'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (shouldProceed != true) return;
+
+                try {
+                  // Get all users with membership_type = 3
+                  final usersSnapshot =
+                      await FirebaseFirestore.instance.collection('users').where('membership_type', isEqualTo: 3).get();
+
+                  int deletedCount = 0;
+                  for (final doc in usersSnapshot.docs) {
+                    // Delete the user document
+                    await doc.reference.delete();
+
+                    // Delete associated payment records
+                    final paymentSnapshot = await doc.reference.collection('monthly_dues').get();
+                    for (final paymentDoc in paymentSnapshot.docs) {
+                      await paymentDoc.reference.delete();
+                    }
+
+                    deletedCount++;
+                  }
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Successfully deleted $deletedCount test users!'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error deleting test users: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Clear All Test Users'),
+            ),
+            const SizedBox(height: 20),
+          ],
         ),
-        const SizedBox(height: 20),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
+            color: isDark ? colorScheme.surfaceVariant : Colors.white,
+            border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -1532,7 +1556,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue[700],
+                    color: colorScheme.onSurface.withOpacity(0.87),
                   )),
               const SizedBox(height: 20),
               Row(
@@ -1833,7 +1857,10 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue[700],
+                        color: colorScheme.onSurface,
+                        shadows: isDark
+                            ? [Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 2, offset: Offset(0, 1))]
+                            : [],
                       )),
                   const SizedBox(height: 10),
                   Row(
@@ -1911,7 +1938,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
+            color: isDark ? colorScheme.surfaceVariant : Colors.white,
+            border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -1921,7 +1949,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue[700],
+                    color: colorScheme.onSurface.withOpacity(0.87),
                   )),
               const SizedBox(height: 20),
               TextField(
@@ -1987,7 +2015,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
+            color: isDark ? colorScheme.surfaceVariant : Colors.white,
+            border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -1997,7 +2026,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue[700],
+                    color: colorScheme.onSurface.withOpacity(0.87),
                   )),
               const SizedBox(height: 20),
               Row(
@@ -2047,7 +2076,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
+            color: isDark ? colorScheme.surfaceVariant : Colors.white,
+            border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -2057,7 +2087,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue[700],
+                    color: colorScheme.onSurface.withOpacity(0.87),
                   )),
               const SizedBox(height: 20),
               Row(

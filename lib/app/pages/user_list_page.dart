@@ -138,26 +138,34 @@ class _UserListPageState extends State<UserListPage> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
 
     if (user == null) {
       return Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: isDark ? colorScheme.surface : Colors.grey[50],
         appBar: AppBar(
-          title: const Text('User List'),
+          title: Text(
+            'User List',
+            style: TextStyle(
+              color: isDark ? colorScheme.onSurface : Colors.black87,
+            ),
+          ),
           centerTitle: true,
           elevation: 0,
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black87,
+          backgroundColor: isDark ? colorScheme.surface : Colors.white,
+          foregroundColor: isDark ? colorScheme.onSurface : Colors.black87,
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.lock, size: 64.sp, color: Colors.grey[400]),
+              Icon(Icons.lock, size: 64.sp, color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[400]),
               SizedBox(height: 16.sp),
               Text(
                 'Please sign in to view users',
-                style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
+                style: TextStyle(
+                    fontSize: 16.sp, color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600]),
               ),
             ],
           ),
@@ -166,23 +174,34 @@ class _UserListPageState extends State<UserListPage> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: isDark ? colorScheme.surface : Colors.grey[50],
       appBar: AppBar(
-        title: const Text('User List'),
+        title: Text(
+          'User List',
+          style: TextStyle(
+            color: isDark ? colorScheme.onSurface : Colors.black87,
+          ),
+        ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: isDark ? colorScheme.surface : Colors.white,
+        foregroundColor: isDark ? colorScheme.onSurface : Colors.black87,
         actions: [
           if (!_isMigrating)
             IconButton(
-              icon: const Icon(Icons.refresh),
+              icon: Icon(
+                Icons.refresh,
+                color: isDark ? colorScheme.onSurface : Colors.black87,
+              ),
               onPressed: _refreshStream,
               tooltip: 'Refresh List',
             ),
           if (!_isMigrating)
             IconButton(
-              icon: const Icon(Icons.update),
+              icon: Icon(
+                Icons.update,
+                color: isDark ? colorScheme.onSurface : Colors.black87,
+              ),
               onPressed: _migrateExistingUsers,
               tooltip: 'Migrate existing users',
             ),
@@ -193,29 +212,31 @@ class _UserListPageState extends State<UserListPage> {
           // Search Bar
           Container(
             padding: EdgeInsets.all(16.sp),
-            color: Colors.white,
+            color: isDark ? colorScheme.surface : Colors.white,
             child: Row(
               children: [
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: isDark ? colorScheme.surfaceVariant : Colors.grey[100],
                       borderRadius: BorderRadius.circular(12.sp),
+                      border: isDark ? Border.all(color: colorScheme.outline.withOpacity(0.2)) : null,
                     ),
                     child: TextField(
                       controller: _searchController,
                       onChanged: _onSearchChanged,
                       style: TextStyle(
                         fontSize: 14.sp,
-                        color: Colors.black87,
+                        color: isDark ? colorScheme.onSurface : Colors.black87,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Search users...',
                         hintStyle: TextStyle(
                           fontSize: 13.sp,
-                          color: Colors.grey[400],
+                          color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[400],
                         ),
-                        prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                        prefixIcon: Icon(Icons.search,
+                            color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600]),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(
                           horizontal: 16.sp,
@@ -227,7 +248,7 @@ class _UserListPageState extends State<UserListPage> {
                 ),
                 if (_searchQuery.isNotEmpty)
                   IconButton(
-                    icon: Icon(Icons.clear, color: Colors.grey[600]),
+                    icon: Icon(Icons.clear, color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600]),
                     onPressed: () {
                       _searchController.clear();
                       _onSearchChanged('');
@@ -248,13 +269,15 @@ class _UserListPageState extends State<UserListPage> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              CircularProgressIndicator(),
+                              CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(isDark ? colorScheme.primary : Colors.blue),
+                              ),
                               SizedBox(height: 16.sp),
                               Text(
                                 'Loading users...',
                                 style: TextStyle(
                                   fontSize: 14.sp,
-                                  color: Colors.grey[600],
+                                  color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
                                 ),
                               ),
                             ],
@@ -282,13 +305,15 @@ class _UserListPageState extends State<UserListPage> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              CircularProgressIndicator(),
+                              CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(isDark ? colorScheme.primary : Colors.blue),
+                              ),
                               SizedBox(height: 16.sp),
                               Text(
                                 'Loading users...',
                                 style: TextStyle(
                                   fontSize: 14.sp,
-                                  color: Colors.grey[600],
+                                  color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
                                 ),
                               ),
                             ],
@@ -310,6 +335,9 @@ class _UserListPageState extends State<UserListPage> {
   }
 
   Widget _buildErrorWidget(bool isPermissionError, String error) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Padding(
         padding: EdgeInsets.all(24.sp),
@@ -319,8 +347,14 @@ class _UserListPageState extends State<UserListPage> {
             Container(
               padding: EdgeInsets.all(20.sp),
               decoration: BoxDecoration(
-                color: isPermissionError ? Colors.orange.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                color: isPermissionError
+                    ? (isDark ? Colors.orange.withOpacity(0.2) : Colors.orange.withOpacity(0.1))
+                    : (isDark ? Colors.red.withOpacity(0.2) : Colors.red.withOpacity(0.1)),
                 borderRadius: BorderRadius.circular(16.sp),
+                border: isDark
+                    ? Border.all(
+                        color: isPermissionError ? Colors.orange.withOpacity(0.3) : Colors.red.withOpacity(0.3))
+                    : null,
               ),
               child: Icon(
                 isPermissionError ? Icons.security : Icons.error,
@@ -341,7 +375,8 @@ class _UserListPageState extends State<UserListPage> {
             Text(
               isPermissionError ? 'Unable to access user data. This might be due to recent changes.' : error,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+              style:
+                  TextStyle(fontSize: 14.sp, color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600]),
             ),
             SizedBox(height: 24.sp),
             Wrap(
@@ -353,8 +388,8 @@ class _UserListPageState extends State<UserListPage> {
                   icon: Icon(Icons.refresh, size: 16.sp),
                   label: Text('Retry'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
+                    backgroundColor: isDark ? colorScheme.primary : Colors.blue,
+                    foregroundColor: isDark ? colorScheme.onPrimary : Colors.white,
                   ),
                 ),
                 ElevatedButton.icon(
@@ -384,6 +419,9 @@ class _UserListPageState extends State<UserListPage> {
   }
 
   Widget _buildUserList(List<DocumentSnapshot> docs) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (docs.isEmpty) {
       return Center(
         child: Column(
@@ -392,14 +430,14 @@ class _UserListPageState extends State<UserListPage> {
             Icon(
               _searchQuery.isNotEmpty ? Icons.search_off : Icons.people_outline,
               size: 64.sp,
-              color: Colors.grey[400],
+              color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[400],
             ),
             SizedBox(height: 16.sp),
             Text(
               _searchQuery.isNotEmpty ? 'No users found matching "$_searchQuery"' : 'No users found',
               style: TextStyle(
                 fontSize: 16.sp,
-                color: Colors.grey[600],
+                color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
               ),
             ),
             if (_searchQuery.isNotEmpty) ...[
@@ -409,7 +447,12 @@ class _UserListPageState extends State<UserListPage> {
                   _searchController.clear();
                   _onSearchChanged('');
                 },
-                child: Text('Clear search'),
+                child: Text(
+                  'Clear search',
+                  style: TextStyle(
+                    color: isDark ? colorScheme.primary : Colors.blue,
+                  ),
+                ),
               ),
             ],
           ],
@@ -447,7 +490,8 @@ class _UserListPageState extends State<UserListPage> {
         return Container(
           margin: EdgeInsets.only(bottom: 8.sp),
           child: Card(
-            elevation: 2,
+            elevation: isDark ? 0 : 2,
+            color: isDark ? colorScheme.surfaceVariant : Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.sp),
             ),
@@ -501,7 +545,7 @@ class _UserListPageState extends State<UserListPage> {
                       width: 48.sp,
                       height: 48.sp,
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
+                        color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(24.sp),
                       ),
                       child: ClipRRect(
@@ -511,14 +555,15 @@ class _UserListPageState extends State<UserListPage> {
                           builder: (context, snapshot) {
                             if (snapshot.connectionState == ConnectionState.waiting) {
                               return Container(
-                                color: Colors.blue.withOpacity(0.1),
+                                color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
                                 child: Center(
                                   child: SizedBox(
                                     width: 16.sp,
                                     height: 16.sp,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                      valueColor:
+                                          AlwaysStoppedAnimation<Color>(isDark ? colorScheme.primary : Colors.blue),
                                     ),
                                   ),
                                 ),
@@ -526,7 +571,7 @@ class _UserListPageState extends State<UserListPage> {
                             }
                             if (snapshot.hasError) {
                               return Container(
-                                color: Colors.red.withOpacity(0.1),
+                                color: isDark ? Colors.red.withOpacity(0.1) : Colors.red.withOpacity(0.1),
                                 child: Icon(
                                   Icons.error,
                                   color: Colors.red,
@@ -540,10 +585,10 @@ class _UserListPageState extends State<UserListPage> {
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Container(
-                                    color: Colors.blue.withOpacity(0.1),
+                                    color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
                                     child: Icon(
                                       Icons.person,
-                                      color: Colors.blue,
+                                      color: isDark ? colorScheme.primary : Colors.blue,
                                       size: 24.sp,
                                     ),
                                   );
@@ -551,14 +596,15 @@ class _UserListPageState extends State<UserListPage> {
                                 loadingBuilder: (context, child, loadingProgress) {
                                   if (loadingProgress == null) return child;
                                   return Container(
-                                    color: Colors.blue.withOpacity(0.1),
+                                    color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
                                     child: Center(
                                       child: SizedBox(
                                         width: 16.sp,
                                         height: 16.sp,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(isDark ? colorScheme.primary : Colors.blue),
                                         ),
                                       ),
                                     ),
@@ -567,10 +613,10 @@ class _UserListPageState extends State<UserListPage> {
                               );
                             }
                             return Container(
-                              color: Colors.blue.withOpacity(0.1),
+                              color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
                               child: Icon(
                                 Icons.person,
-                                color: Colors.blue,
+                                color: isDark ? colorScheme.primary : Colors.blue,
                                 size: 24.sp,
                               ),
                             );
@@ -590,7 +636,7 @@ class _UserListPageState extends State<UserListPage> {
                             style: TextStyle(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                              color: isDark ? colorScheme.onSurface : Colors.black87,
                             ),
                           ),
                           SizedBox(height: 4.sp),
@@ -598,7 +644,7 @@ class _UserListPageState extends State<UserListPage> {
                             email,
                             style: TextStyle(
                               fontSize: 14.sp,
-                              color: Colors.grey[600],
+                              color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
                             ),
                           ),
                           SizedBox(height: 4.sp),
@@ -610,8 +656,9 @@ class _UserListPageState extends State<UserListPage> {
                                   vertical: 2.sp,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.green.withOpacity(0.1),
+                                  color: isDark ? Colors.green.withOpacity(0.2) : Colors.green.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(4.sp),
+                                  border: isDark ? Border.all(color: Colors.green.withOpacity(0.3)) : null,
                                 ),
                                 child: Text(
                                   displayMemberNumber,
@@ -627,7 +674,7 @@ class _UserListPageState extends State<UserListPage> {
                                 'Created: $creationDate',
                                 style: TextStyle(
                                   fontSize: 12.sp,
-                                  color: Colors.grey[500],
+                                  color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
                                   fontStyle: FontStyle.italic,
                                 ),
                               ),
@@ -641,7 +688,7 @@ class _UserListPageState extends State<UserListPage> {
                     Icon(
                       Icons.arrow_forward_ios,
                       size: 16.sp,
-                      color: Colors.grey[400],
+                      color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[400],
                     ),
                   ],
                 ),
@@ -664,6 +711,9 @@ class _UserListPageState extends State<UserListPage> {
   }
 
   void _migrateExistingUsers() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     setState(() {
       _isMigrating = true;
     });
@@ -674,19 +724,38 @@ class _UserListPageState extends State<UserListPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Migrate Existing Users'),
-            content: const Text(
+            backgroundColor: isDark ? colorScheme.surface : Colors.white,
+            title: Text(
+              'Migrate Existing Users',
+              style: TextStyle(
+                color: isDark ? colorScheme.onSurface : Colors.black87,
+              ),
+            ),
+            content: Text(
               'This will add createdAt and updatedAt fields to existing users that don\'t have them. '
               'This action cannot be undone. Continue?',
+              style: TextStyle(
+                color: isDark ? colorScheme.onSurface.withOpacity(0.8) : Colors.black87,
+              ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: isDark ? colorScheme.primary : Colors.blue,
+                  ),
+                ),
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Migrate'),
+                child: Text(
+                  'Migrate',
+                  style: TextStyle(
+                    color: isDark ? colorScheme.primary : Colors.blue,
+                  ),
+                ),
               ),
             ],
           );
@@ -704,12 +773,20 @@ class _UserListPageState extends State<UserListPage> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const AlertDialog(
+        builder: (context) => AlertDialog(
+          backgroundColor: isDark ? colorScheme.surface : Colors.white,
           content: Row(
             children: [
-              CircularProgressIndicator(),
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(isDark ? colorScheme.primary : Colors.blue),
+              ),
               SizedBox(width: 16),
-              Text('Migrating users...'),
+              Text(
+                'Migrating users...',
+                style: TextStyle(
+                  color: isDark ? colorScheme.onSurface : Colors.black87,
+                ),
+              ),
             ],
           ),
         ),
