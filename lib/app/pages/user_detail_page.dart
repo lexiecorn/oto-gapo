@@ -8,12 +8,10 @@ import 'dart:io';
 
 class UserDetailPage extends StatefulWidget {
   final Map<String, dynamic> userData;
-  final VoidCallback? onUserDeleted;
 
   const UserDetailPage({
     Key? key,
     required this.userData,
-    this.onUserDeleted,
   }) : super(key: key);
 
   @override
@@ -90,19 +88,37 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
   Future<String?> _getDownloadUrlFromGsUri(String gsUri) async {
     try {
-      // Re-throwing the error so the FutureBuilder can catch it
       if (gsUri.startsWith('gs://')) {
-        return await FirebaseStorage.instance.refFromURL(gsUri).getDownloadURL();
+        // Use a more direct approach to avoid 404 logging
+        final ref = FirebaseStorage.instance.refFromURL(gsUri);
+
+        // Try to get the download URL directly, but catch 404s silently
+        try {
+          return await ref.getDownloadURL();
+        } catch (e) {
+          // Silently handle 404 errors without logging
+          final errorStr = e.toString().toLowerCase();
+          if (errorStr.contains('not found') ||
+              errorStr.contains('404') ||
+              errorStr.contains('object does not exist') ||
+              errorStr.contains('no object exists')) {
+            return null; // Return null for missing files without logging
+          }
+          // Re-throw actual errors
+          rethrow;
+        }
       }
       return gsUri; // It's already an HTTPS URL
     } catch (e) {
-      // Check if it's a "not found" error
-      if (e.toString().contains('not found') ||
-          e.toString().contains('404') ||
-          e.toString().contains('object does not exist')) {
-        return null; // Return null for missing files
+      // Only log non-404 errors
+      final errorStr = e.toString().toLowerCase();
+      if (!errorStr.contains('not found') &&
+          !errorStr.contains('404') &&
+          !errorStr.contains('object does not exist') &&
+          !errorStr.contains('no object exists')) {
+        print('Error getting download URL for $gsUri: $e');
       }
-      rethrow; // Re-throw actual errors
+      return null; // Return null for any error
     }
   }
 
@@ -371,258 +387,249 @@ class _UserDetailPageState extends State<UserDetailPage> {
       final vehicles = _editedData['vehicle'] as List<dynamic>? ?? [];
       final firstVehicle = vehicles.isNotEmpty ? vehicles.first as Map<String, dynamic>? : null;
 
-      return WillPopScope(
-        onWillPop: () async {
-          // Call the callback when user manually goes back
-          if (widget.onUserDeleted != null) {
-            widget.onUserDeleted!();
-          }
-          return true;
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('User Details'),
-            centerTitle: true,
-            actions: [
-              if (!_isEditing)
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    setState(() {
-                      _isEditing = true;
-                    });
-                  },
-                  tooltip: 'Edit User',
-                ),
-              if (_isEditing) ...[
-                IconButton(
-                  icon: const Icon(Icons.save),
-                  onPressed: _saveChanges,
-                  tooltip: 'Save Changes',
-                ),
-                IconButton(
-                  icon: const Icon(Icons.cancel),
-                  onPressed: _cancelEdit,
-                  tooltip: 'Cancel Edit',
-                ),
-              ],
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('User Details'),
+          centerTitle: true,
+          actions: [
+            if (!_isEditing)
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  setState(() {
+                    _isEditing = true;
+                  });
+                },
+                tooltip: 'Edit User',
+              ),
+            if (_isEditing) ...[
+              IconButton(
+                icon: const Icon(Icons.save),
+                onPressed: _saveChanges,
+                tooltip: 'Save Changes',
+              ),
+              IconButton(
+                icon: const Icon(Icons.cancel),
+                onPressed: _cancelEdit,
+                tooltip: 'Cancel Edit',
+              ),
             ],
-          ),
-          body: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Profile Image
-                  Center(
-                    child: Stack(
-                      children: [
-                        if (_editedData['profile_image'] != null)
-                          FutureBuilder<String?>(
-                            future: _profileImageUrlFuture,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return const CircleAvatar(radius: 60, child: CircularProgressIndicator());
-                              }
-                              if (snapshot.hasError) {
-                                return CircleAvatar(
-                                  radius: 60,
-                                  backgroundColor: Colors.red.shade100,
-                                  child: Tooltip(
-                                    message: snapshot.error.toString(),
-                                    child: const Icon(Icons.error, size: 60, color: Colors.red),
-                                  ),
-                                );
-                              }
-                              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                return const CircleAvatar(radius: 60, child: Icon(Icons.person, size: 60));
-                              }
-                              final imageUrl = snapshot.data!;
+          ],
+        ),
+        body: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Profile Image
+                Center(
+                  child: Stack(
+                    children: [
+                      if (_editedData['profile_image'] != null)
+                        FutureBuilder<String?>(
+                          future: _profileImageUrlFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const CircleAvatar(radius: 60, child: CircularProgressIndicator());
+                            }
+                            if (snapshot.hasError) {
                               return CircleAvatar(
                                 radius: 60,
-                                backgroundImage: NetworkImage(imageUrl),
+                                backgroundColor: Colors.red.shade100,
+                                child: Tooltip(
+                                  message: snapshot.error.toString(),
+                                  child: const Icon(Icons.error, size: 60, color: Colors.red),
+                                ),
                               );
-                            },
-                          )
-                        else
-                          const CircleAvatar(radius: 60, child: Icon(Icons.person, size: 60)),
+                            }
+                            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                              return const CircleAvatar(radius: 60, child: Icon(Icons.person, size: 60));
+                            }
+                            final imageUrl = snapshot.data!;
+                            return CircleAvatar(
+                              radius: 60,
+                              backgroundImage: NetworkImage(imageUrl),
+                            );
+                          },
+                        )
+                      else
+                        const CircleAvatar(radius: 60, child: Icon(Icons.person, size: 60)),
 
-                        // Edit button overlay (only show when editing)
-                        if (_isEditing)
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.blue,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
-                              ),
-                              child: _isUploadingImage
-                                  ? const Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                        ),
-                                      ),
-                                    )
-                                  : IconButton(
-                                      icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
-                                      onPressed: _pickAndUploadImage,
-                                      tooltip: 'Change Profile Image',
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(
-                                        minWidth: 32,
-                                        minHeight: 32,
+                      // Edit button overlay (only show when editing)
+                      if (_isEditing)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: _isUploadingImage
+                                ? const Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                       ),
                                     ),
-                            ),
+                                  )
+                                : IconButton(
+                                    icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                                    onPressed: _pickAndUploadImage,
+                                    tooltip: 'Change Profile Image',
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(
+                                      minWidth: 32,
+                                      minHeight: 32,
+                                    ),
+                                  ),
                           ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Personal Information Section
-                  _buildSection(
-                    'Personal Information',
-                    [
-                      _buildEditableField('First Name', 'firstName'),
-                      _buildEditableField('Middle Name', 'middleName'),
-                      _buildEditableField('Last Name', 'lastName'),
-                      _buildEditableField('Age', 'age', isNumber: true),
-                      _buildEditableField('Date of Birth', 'dateOfBirth', isDate: true),
-                      _buildEditableField('Birthplace', 'birthplace'),
-                      _buildEditableField('Nationality', 'nationality'),
-                      _buildEditableField('Religion', 'religion'),
-                      _buildEditableField('Civil Status', 'civilStatus'),
-                      _buildEditableField('Gender', 'gender',
-                          isDropdown: true, dropdownOptions: ['Male', 'Female', 'Other']),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Contact Information Section
-                  _buildSection(
-                    'Contact Information',
-                    [
-                      _buildEditableField('Contact Number', 'contactNumber'),
-                      _buildEditableField('Emergency Contact Name', 'emergencyContactName'),
-                      _buildEditableField('Emergency Contact Number', 'emergencyContactNumber'),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Membership Information Section
-                  _buildSection(
-                    'Membership Information',
-                    [
-                      _buildEditableField('Member Number', 'memberNumber', isNumber: true),
-                      _buildEditableField('Membership Type', 'membership_type'),
-                      _buildEditableField('Is Active', 'isActive', isBoolean: true),
-                      _buildEditableField('Is Admin', 'isAdmin', isBoolean: true),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Driver's License Information Section
-                  _buildSection(
-                    'Driver\'s License Information',
-                    [
-                      _buildEditableField('License Number', 'driversLicenseNumber'),
-                      _buildEditableField('License Exp. Date', 'driversLicenseExpirationDate', isDate: true),
-                      _buildEditableField('License Restriction Code', 'driversLicenseRestrictionCode', isNumber: true),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Spouse Information Section
-                  _buildSection(
-                    'Spouse Information',
-                    [
-                      _buildEditableField('Spouse Name', 'spouseName'),
-                      _buildEditableField('Spouse Contact Number', 'spouseContactNumber'),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Vehicle Information Section
-                  if (firstVehicle != null)
-                    _buildSection(
-                      'Vehicle Information',
-                      [
-                        _buildDetailRow('Vehicle Make', firstVehicle['make']),
-                        _buildDetailRow('Vehicle Model', firstVehicle['model']),
-                        _buildDetailRow('Vehicle Year', firstVehicle['year']),
-                        _buildDetailRow('Vehicle Color', firstVehicle['color']),
-                        _buildDetailRow('Vehicle Type', firstVehicle['type']),
-                        _buildDetailRow('License Plate', firstVehicle['plateNumber']),
-                        if (_isEditing) ...[
-                          const SizedBox(height: 16),
-                          _buildCarImagesUploadSection(),
-                        ] else ...[
-                          const SizedBox(height: 16),
-                          _buildCarImagesDisplaySection(firstVehicle),
-                        ],
-                      ],
-                    ),
-
-                  const SizedBox(height: 24),
-
-                  // Medical Information Section
-                  _buildSection(
-                    'Medical Information',
-                    [
-                      _buildEditableField('Blood Type', 'bloodType',
-                          isDropdown: true, dropdownOptions: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // System Information Section
-                  _buildSection(
-                    'System Information',
-                    [
-                      _buildDetailRow('Created At', _editedData['createdAt']),
-                      _buildDetailRow('Updated At', _editedData['updatedAt']),
-                    ],
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Delete Button
-                  Center(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _showDeleteConfirmation(context),
-                      icon: const Icon(Icons.delete, color: Colors.white),
-                      label: const Text(
-                        'Delete',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
                         ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Personal Information Section
+                _buildSection(
+                  'Personal Information',
+                  [
+                    _buildEditableField('First Name', 'firstName'),
+                    _buildEditableField('Middle Name', 'middleName'),
+                    _buildEditableField('Last Name', 'lastName'),
+                    _buildEditableField('Age', 'age', isNumber: true),
+                    _buildEditableField('Date of Birth', 'dateOfBirth', isDate: true),
+                    _buildEditableField('Birthplace', 'birthplace'),
+                    _buildEditableField('Contact Number', 'contactNumber'),
+                    _buildEditableField('Nationality', 'nationality'),
+                    _buildEditableField('Religion', 'religion'),
+                    _buildEditableField('Civil Status', 'civilStatus'),
+                    _buildEditableField('Gender', 'gender',
+                        isDropdown: true, dropdownOptions: ['Male', 'Female', 'Other']),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Contact Information Section
+                _buildSection(
+                  'Emergency Contact ',
+                  [
+                    _buildEditableField('Contact Name', 'emergencyContactName'),
+                    _buildEditableField('Contact Number', 'emergencyContactNumber'),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Membership Information Section
+                _buildSection(
+                  'Membership Information',
+                  [
+                    _buildEditableField('Member Number', 'memberNumber', isNumber: true),
+                    _buildEditableField('Membership Type', 'membership_type'),
+                    _buildEditableField('Is Active', 'isActive', isBoolean: true),
+                    _buildEditableField('Is Admin', 'isAdmin', isBoolean: true),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Driver's License Information Section
+                _buildSection(
+                  'Driver\'s License Information',
+                  [
+                    _buildEditableField('License Number', 'driversLicenseNumber'),
+                    _buildEditableField('License Exp. Date', 'driversLicenseExpirationDate', isDate: true),
+                    _buildEditableField('License Restriction Code', 'driversLicenseRestrictionCode', isNumber: true),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Spouse Information Section
+                _buildSection(
+                  'Spouse Information',
+                  [
+                    _buildEditableField('Spouse Name', 'spouseName'),
+                    _buildEditableField('Spouse Contact Number', 'spouseContactNumber'),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Vehicle Information Section
+                if (firstVehicle != null)
+                  _buildSection(
+                    'Vehicle Information',
+                    [
+                      _buildDetailRow('Vehicle Make', firstVehicle['make']),
+                      _buildDetailRow('Vehicle Model', firstVehicle['model']),
+                      _buildDetailRow('Vehicle Year', firstVehicle['year']),
+                      _buildDetailRow('Vehicle Color', firstVehicle['color']),
+                      _buildDetailRow('Vehicle Type', firstVehicle['type']),
+                      _buildDetailRow('License Plate', firstVehicle['plateNumber']),
+                      if (_isEditing) ...[
+                        const SizedBox(height: 16),
+                        _buildCarImagesUploadSection(),
+                      ] else ...[
+                        const SizedBox(height: 16),
+                        _buildCarImagesDisplaySection(firstVehicle),
+                      ],
+                    ],
+                  ),
+
+                const SizedBox(height: 24),
+
+                // Medical Information Section
+                _buildSection(
+                  'Medical Information',
+                  [
+                    _buildEditableField('Blood Type', 'bloodType',
+                        isDropdown: true, dropdownOptions: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // System Information Section
+                _buildSection(
+                  'System Information',
+                  [
+                    _buildDetailRow('Created At', _editedData['createdAt']),
+                    _buildDetailRow('Updated At', _editedData['updatedAt']),
+                  ],
+                ),
+
+                const SizedBox(height: 32),
+
+                // Delete Button
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showDeleteConfirmation(context),
+                    icon: const Icon(Icons.delete, color: Colors.white),
+                    label: const Text(
+                      'Delete',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -973,12 +980,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
             final existingPhotos = List<String>.from((vehicle['photos'] as List<dynamic>?) ?? []);
 
             // Debug logging
-            print('Original vehicle data: $vehicle');
-            print('Main car image URL: $mainCarImageUrl');
-            print('Car image 1 URL: $carImage1Url');
-            print('Car image 2 URL: $carImage2Url');
-            print('Car image 3 URL: $carImage3Url');
-            print('Car image 4 URL: $carImage4Url');
+            // print('Original vehicle data: $vehicle');
+            // print('Main car image URL: $mainCarImageUrl');
+            // print('Car image 1 URL: $carImage1Url');
+            // print('Car image 2 URL: $carImage2Url');
+            // print('Car image 3 URL: $carImage3Url');
+            // print('Car image 4 URL: $carImage4Url');
 
             // Add new car images to photos array
             if (carImage1Url != null) existingPhotos.add(carImage1Url);
@@ -989,13 +996,15 @@ class _UserDetailPageState extends State<UserDetailPage> {
             // Update primary photo if main car image was uploaded
             if (mainCarImageUrl != null) {
               vehicle['primaryPhoto'] = mainCarImageUrl;
-              print('Updated primary photo to: $mainCarImageUrl');
+              // Debug logging
+              // print('Updated primary photo to: $mainCarImageUrl');
             }
 
             vehicle['photos'] = existingPhotos;
             updateData['vehicle'] = [vehicle];
 
-            print('Final vehicle data: ${updateData['vehicle']}');
+            // Debug logging
+            // print('Final vehicle data: ${updateData['vehicle']}');
           }
 
           updateData['updatedAt'] = FieldValue.serverTimestamp();
@@ -1083,6 +1092,36 @@ class _UserDetailPageState extends State<UserDetailPage> {
     try {
       print('Starting delete process...'); // Debug log
 
+      // Get the user document ID from the userData
+      final userId = (_editedData['id'] ?? _editedData['uid'])?.toString();
+      // print('User ID to delete: $userId'); // Debug log
+
+      if (userId == null || userId.isEmpty) {
+        // Remove loading overlay
+        if (overlayEntry != null) {
+          overlayEntry!.remove();
+          overlayEntry = null;
+        }
+        print('User ID not found, returning error result...'); // Debug log
+        Navigator.of(context).pop('error: User ID not found');
+        print('Error result returned successfully'); // Debug log
+        return;
+      }
+
+      // Check if trying to delete current user's account
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null && currentUser.uid == userId) {
+        // Remove loading overlay
+        if (overlayEntry != null) {
+          overlayEntry!.remove();
+          overlayEntry = null;
+        }
+        print('Attempting to delete own account, returning error result...'); // Debug log
+        Navigator.of(context).pop('error: Cannot delete your own account');
+        print('Error result returned successfully'); // Debug log
+        return;
+      }
+
       // Show loading indicator using overlay
       final overlay = Overlay.of(context);
       overlayEntry = OverlayEntry(
@@ -1093,45 +1132,53 @@ class _UserDetailPageState extends State<UserDetailPage> {
       );
       overlay.insert(overlayEntry);
 
-      // Get the user document ID from the userData
-      final userId = (_editedData['id'] ?? _editedData['uid'])?.toString();
-      print('User ID to delete: $userId'); // Debug log
-
-      if (userId == null || userId.isEmpty) {
-        overlayEntry?.remove(); // Remove loading overlay
-        _showErrorDialog(context, 'Error: User ID not found');
-        return;
-      }
-
       // Delete user data from Firebase Storage
-      print('Deleting user data from Firebase Storage...'); // Debug log
+      // print('Deleting user data from Firebase Storage...'); // Debug log
       await _deleteUserStorageData(userId);
-      print('User data deleted from Firebase Storage successfully'); // Debug log
+      // print('User data deleted from Firebase Storage successfully'); // Debug log
 
       // Delete the user document from Firestore
-      print('Deleting user from Firestore...'); // Debug log
-      await FirebaseFirestore.instance.collection('users').doc(userId).delete();
-      print('User deleted from Firestore successfully'); // Debug log
-
-      // Remove loading overlay
-      overlayEntry?.remove();
-      print('Loading overlay removed'); // Debug log
-
-      // Call the callback if provided
-      if (widget.onUserDeleted != null) {
-        print('Calling onUserDeleted callback'); // Debug log
-        widget.onUserDeleted!();
+      // print('Deleting user from Firestore...'); // Debug log
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(userId).delete();
+        // print('User deleted from Firestore successfully'); // Debug log
+      } catch (firestoreError) {
+        print('Firestore deletion error: $firestoreError'); // Debug log
+        // Check if it's a permission error
+        if (firestoreError.toString().contains('permission-denied') ||
+            firestoreError.toString().contains('permission') ||
+            firestoreError.toString().contains('PERMISSION_DENIED')) {
+          throw Exception('Permission denied: Unable to delete user. Please check your permissions or try again.');
+        }
+        throw firestoreError; // Re-throw other errors
       }
 
-      // Return a result to indicate successful deletion
+      // Add a small delay to ensure the deletion is processed
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Remove loading overlay
+      if (overlayEntry != null) {
+        overlayEntry!.remove();
+        overlayEntry = null;
+      }
+      print('Loading overlay removed'); // Debug log
+
+      // Navigate back immediately after successful deletion
       print('Returning result to previous page...'); // Debug log
       Navigator.of(context).pop('deleted');
       print('Result returned successfully'); // Debug log
     } catch (e) {
       print('Error during delete: $e'); // Debug log
       // Remove loading overlay if it exists
-      overlayEntry?.remove();
-      _showErrorDialog(context, 'Error deleting user: $e');
+      if (overlayEntry != null) {
+        overlayEntry!.remove();
+        overlayEntry = null;
+      }
+
+      // Instead of showing error dialog, just return error result
+      print('Returning error result to previous page...'); // Debug log
+      Navigator.of(context).pop('error: $e');
+      print('Error result returned successfully'); // Debug log
     }
   }
 
@@ -1145,8 +1192,14 @@ class _UserDetailPageState extends State<UserDetailPage> {
         await profileImageRef.delete();
         print('Profile image deleted successfully');
       } catch (e) {
-        // Profile image might not exist, which is fine
-        print('Profile image not found or already deleted: $e');
+        // Check if it's a "not found" error (expected for missing files)
+        if (e.toString().contains('object-not-found') ||
+            e.toString().contains('404') ||
+            e.toString().contains('Object does not exist')) {
+          print('Profile image not found (expected for new users)');
+        } else {
+          print('Unexpected error deleting profile image: $e');
+        }
       }
 
       // Delete car images
@@ -1156,7 +1209,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
         await mainCarImageRef.delete();
         print('Main car image deleted successfully');
       } catch (e) {
-        print('Main car image not found or already deleted: $e');
+        if (e.toString().contains('object-not-found') ||
+            e.toString().contains('404') ||
+            e.toString().contains('Object does not exist')) {
+          print('Main car image not found (expected for users without car images)');
+        } else {
+          print('Unexpected error deleting main car image: $e');
+        }
       }
 
       // Delete additional car images (1, 2, 3, 4)
@@ -1166,7 +1225,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
           await carImageRef.delete();
           print('Car image $i deleted successfully');
         } catch (e) {
-          print('Car image $i not found or already deleted: $e');
+          if (e.toString().contains('object-not-found') ||
+              e.toString().contains('404') ||
+              e.toString().contains('Object does not exist')) {
+            print('Car image $i not found (expected for users with fewer than $i car images)');
+          } else {
+            print('Unexpected error deleting car image $i: $e');
+          }
         }
       }
 
@@ -1176,31 +1241,19 @@ class _UserDetailPageState extends State<UserDetailPage> {
         await userFolderRef.delete();
         print('User folder deleted successfully');
       } catch (e) {
-        print('User folder not found or already deleted: $e');
+        if (e.toString().contains('object-not-found') ||
+            e.toString().contains('404') ||
+            e.toString().contains('Object does not exist')) {
+          print('User folder not found (expected for users without any uploaded files)');
+        } else {
+          print('Unexpected error deleting user folder: $e');
+        }
       }
     } catch (e) {
-      print('Error deleting user storage data: $e');
+      print('Error in storage deletion process: $e');
       // Don't throw the error here, as we still want to delete the Firestore document
       // even if storage deletion fails
     }
-  }
-
-  void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Error'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Widget _buildSection(String title, List<Widget> children) {
@@ -1232,12 +1285,68 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
     if (value != null) {
       if (value is DateTime) {
-        displayValue =
-            '${value.day}/${value.month}/${value.year} ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+        // Format for createdAt and updatedAt fields
+        if (label == 'Created At' || label == 'Updated At') {
+          final months = [
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December'
+          ];
+          final month = months[value.month - 1];
+          final day = value.day;
+          final year = value.year;
+          final hour = value.hour;
+          final minute = value.minute;
+          final period = hour >= 12 ? 'PM' : 'AM';
+          final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+          final displayMinute = minute.toString().padLeft(2, '0');
+
+          displayValue = '$month $day, $year $displayHour:$displayMinute $period';
+        } else {
+          displayValue =
+              '${value.day}/${value.month}/${value.year} ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+        }
       } else if (value is Timestamp) {
         final date = value.toDate();
-        displayValue =
-            '${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+        // Format for createdAt and updatedAt fields
+        if (label == 'Created At' || label == 'Updated At') {
+          final months = [
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December'
+          ];
+          final month = months[date.month - 1];
+          final day = date.day;
+          final year = date.year;
+          final hour = date.hour;
+          final minute = date.minute;
+          final period = hour >= 12 ? 'PM' : 'AM';
+          final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+          final displayMinute = minute.toString().padLeft(2, '0');
+
+          displayValue = '$month $day, $year $displayHour:$displayMinute $period';
+        } else {
+          displayValue =
+              '${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+        }
       } else if (value is bool) {
         displayValue = value ? 'Yes' : 'No';
       } else {
@@ -1709,9 +1818,9 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                 }
                               },
                               icon: const Icon(Icons.camera_alt, size: 16),
-                              label: const Text(
-                                'Upload',
-                                style: TextStyle(fontSize: 10),
+                              label: Text(
+                                selectedImage != null ? 'Change' : 'Upload',
+                                style: const TextStyle(fontSize: 10),
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
@@ -1845,8 +1954,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
     final primaryPhoto = vehicle['primaryPhoto'] as String?;
 
     // Debug logging
-    print('Vehicle data: $vehicle');
-    print('Primary photo: $primaryPhoto');
+    // print('Vehicle data: $vehicle');
+    // print('Primary photo: $primaryPhoto');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2107,7 +2216,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     );
                   }
                   // For actual errors, show error state
-                  print('Error loading car image $imageNumber: $error');
+                  // print('Error loading car image $imageNumber: $error');
                   return _buildCarImagePlaceholder(imageNumber, 'Error', Colors.red);
                 }
 
@@ -2157,7 +2266,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   );
                 }
 
-                print('Successfully loaded car image $imageNumber: ${snapshot.data}');
+                // print('Successfully loaded car image $imageNumber: ${snapshot.data}');
                 return Container(
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey.shade300),
@@ -2173,7 +2282,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                           width: double.infinity,
                           height: double.infinity,
                           errorBuilder: (context, error, stackTrace) {
-                            print('Network image error for $imageNumber: $error');
+                            // print('Network image error for $imageNumber: $error');
                             return _buildCarImagePlaceholder(imageNumber, 'Failed', Colors.orange);
                           },
                         ),
