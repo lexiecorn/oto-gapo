@@ -14,11 +14,27 @@ Future<Widget> errorDialog(
       context: context,
       builder: (context) {
         return CupertinoAlertDialog(
-          title: Text(errorCode),
-          content: Text('$errorPlugin\n$errorMessage'),
+          title: Text(
+            errorCode,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          content: Text(
+            '$errorPlugin\n$errorMessage',
+            style: const TextStyle(
+              fontSize: 14,
+            ),
+          ),
           actions: [
             CupertinoDialogAction(
-              child: const Text('OK'),
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontSize: 16,
+                ),
+              ),
               onPressed: () => Navigator.pop(context),
             ),
           ],
@@ -30,11 +46,27 @@ Future<Widget> errorDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(errorCode),
-          content: Text('$errorPlugin\n$errorMessage'),
+          title: Text(
+            errorCode,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          content: Text(
+            '$errorPlugin\n$errorMessage',
+            style: const TextStyle(
+              fontSize: 14,
+            ),
+          ),
           actions: [
             TextButton(
-              child: const Text('OK'),
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontSize: 16,
+                ),
+              ),
               onPressed: () => Navigator.pop(context),
             ),
           ],

@@ -163,7 +163,11 @@ class SigninPageState extends State<SigninPage> {
                             TextFormField(
                               keyboardType: TextInputType.emailAddress,
                               autocorrect: false,
-                              decoration: loginFormFeildDecor('Email'),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                              ),
+                              decoration: loginFormFeildDecor(context, 'Email'),
                               validator: (String? value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return 'Email required';
@@ -183,7 +187,11 @@ class SigninPageState extends State<SigninPage> {
                             ),
                             TextFormField(
                               obscureText: true,
-                              decoration: loginFormFeildDecor('Password'),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                              ),
+                              decoration: loginFormFeildDecor(context, 'Password'),
                               validator: (String? value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return 'Password required';
@@ -230,43 +238,56 @@ class SigninPageState extends State<SigninPage> {
                         const SizedBox(height: 40),
                         // Row of 2 buttons, with google login button and facebook
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Expanded(
-                              child: ElevatedButton(
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.3),
+                                    spreadRadius: 1,
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: IconButton(
                                 onPressed: () {
-                                  // Implement Google Sign In functionality here
-
                                   state.signinStatus == SigninStatus.submitting ? null : _handleGoogleSignIn(context);
                                 },
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Image.asset(
-                                      'assets/icons/goog.png',
-                                      height: 20,
-                                      width: 20,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    const Text('Google'),
-                                  ],
+                                icon: Image.asset(
+                                  'assets/icons/goog.png',
+                                  height: 24,
+                                  width: 24,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: ElevatedButton(
+                            const SizedBox(width: 20),
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.3),
+                                    spreadRadius: 1,
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: IconButton(
                                 onPressed: () {},
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Image.network(
-                                      'https://www.facebook.com/favicon.ico', // Facebook logo URL
-                                      height: 10,
-                                      width: 20,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    const Text('Facebook'),
-                                  ],
+                                icon: Image.network(
+                                  'https://www.facebook.com/favicon.ico',
+                                  height: 24,
+                                  width: 24,
                                 ),
                               ),
                             ),
@@ -287,11 +308,11 @@ class SigninPageState extends State<SigninPage> {
 
   String submitBtnTxt(SigninState state) => state.signinStatus == SigninStatus.submitting ? 'Loading...' : 'Sign in';
 
-  InputDecoration loginFormFeildDecor([String? s]) {
+  InputDecoration loginFormFeildDecor(BuildContext context, [String? s]) {
     return InputDecoration(
       hintText: s,
-      hintStyle: const TextStyle(
-        color: Colors.black38,
+      hintStyle: TextStyle(
+        color: Theme.of(context).hintColor,
         fontWeight: FontWeight.w200,
       ),
       focusedBorder: const OutlineInputBorder(
@@ -305,8 +326,8 @@ class SigninPageState extends State<SigninPage> {
       filled: true,
       // labelText: s,
       // prefixIcon: const Icon(Icons.lock),
-      labelStyle: const TextStyle(
-        color: Colors.black38,
+      labelStyle: TextStyle(
+        color: Theme.of(context).hintColor,
       ),
     );
   }

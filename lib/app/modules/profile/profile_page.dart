@@ -128,7 +128,7 @@ class ProfilePageState extends State<ProfilePage> {
 
           return ListView(
             padding: EdgeInsets.only(
-              top: 50.sp,
+              top: 20.sp,
               left: 8,
               right: 8,
               bottom: 20,
@@ -410,9 +410,8 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
 
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 8.sp),
-      child: Padding(
-        padding: EdgeInsets.all(16.sp),
-        child: Column(
+      child: ExpansionTile(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -442,8 +441,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
               ],
             ),
             SizedBox(height: 12.sp),
-
-            // Summary Row
+            // Summary Row - Always visible
             Row(
               children: [
                 Expanded(
@@ -480,155 +478,162 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                 ),
               ],
             ),
-
-            SizedBox(height: 16.sp),
-
-            // Recent Payments
-            Text(
-              'Recent Payments',
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(height: 8.sp),
-
-            if (_recentPayments.isEmpty)
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.sp),
-                child: Center(
-                  child: Text(
-                    'No payment records found',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: Colors.grey,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-              )
-            else
-              Column(
-                children: _recentPayments.map((payment) {
-                  final isPaid = payment['isPaid'] as bool? ?? false;
-                  final isAdvance = payment['isAdvance'] as bool? ?? false;
-                  final month = payment['month'] as String? ?? '';
-                  final amount = payment['amount'] as double? ?? 0.0;
-
-                  // Determine icon and color based on payment status
-                  IconData icon;
-                  Color color;
-                  String statusText;
-                  Color statusColor;
-
-                  if (isAdvance) {
-                    icon = Icons.fast_forward;
-                    color = Colors.purple;
-                    statusText = 'ADVANCE';
-                    statusColor = Colors.purple;
-                  } else if (isPaid) {
-                    icon = Icons.check_circle;
-                    color = Colors.green;
-                    statusText = 'PAID';
-                    statusColor = Colors.green;
-                  } else {
-                    icon = Icons.cancel;
-                    color = Colors.red;
-                    statusText = 'UNPAID';
-                    statusColor = Colors.red;
-                  }
-
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: 8.sp),
-                    child: Row(
-                      children: [
-                        Icon(
-                          icon,
-                          color: color,
-                          size: 16.sp,
-                        ),
-                        SizedBox(width: 8.sp),
-                        Expanded(
-                          child: Text(
-                            month,
-                            style: TextStyle(fontSize: 12.sp),
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 6.sp,
-                            vertical: 2.sp,
-                          ),
-                          decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8.sp),
-                            border: Border.all(
-                              color: statusColor,
-                              width: 0.5,
-                            ),
-                          ),
-                          child: Text(
-                            statusText,
-                            style: TextStyle(
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.bold,
-                              color: statusColor,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 8.sp),
-                        Text(
-                          '₱${amount.toInt()}',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                            color: color,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
-
-            SizedBox(height: 12.sp),
-
-            // Payment Status Summary
-            Container(
-              padding: EdgeInsets.all(12.sp),
-              decoration: BoxDecoration(
-                color: _unpaidCount > 0 ? Colors.orange.withOpacity(0.1) : Colors.green.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8.sp),
-                border: Border.all(
-                  color: _unpaidCount > 0 ? Colors.orange : Colors.green,
-                  width: 0.5,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    _unpaidCount > 0 ? Icons.warning : Icons.check_circle,
-                    color: _unpaidCount > 0 ? Colors.orange : Colors.green,
-                    size: 16.sp,
-                  ),
-                  SizedBox(width: 8.sp),
-                  Expanded(
-                    child: Text(
-                      _unpaidCount > 0
-                          ? 'You have $_unpaidCount unpaid monthly due(s)'
-                          : 'All payments are up to date!',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w500,
-                        color: _unpaidCount > 0 ? Colors.orange : Colors.green,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
+        children: [
+          Padding(
+            padding: EdgeInsets.all(16.sp),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Recent Payments
+                Text(
+                  'Recent Payments',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 8.sp),
+
+                if (_recentPayments.isEmpty)
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.sp),
+                    child: Center(
+                      child: Text(
+                        'No payment records found',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Colors.grey,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Column(
+                    children: _recentPayments.map((payment) {
+                      final isPaid = payment['isPaid'] as bool? ?? false;
+                      final isAdvance = payment['isAdvance'] as bool? ?? false;
+                      final month = payment['month'] as String? ?? '';
+                      final amount = payment['amount'] as double? ?? 0.0;
+
+                      // Determine icon and color based on payment status
+                      IconData icon;
+                      Color color;
+                      String statusText;
+                      Color statusColor;
+
+                      if (isAdvance) {
+                        icon = Icons.fast_forward;
+                        color = Colors.purple;
+                        statusText = 'ADVANCE';
+                        statusColor = Colors.purple;
+                      } else if (isPaid) {
+                        icon = Icons.check_circle;
+                        color = Colors.green;
+                        statusText = 'PAID';
+                        statusColor = Colors.green;
+                      } else {
+                        icon = Icons.cancel;
+                        color = Colors.red;
+                        statusText = 'UNPAID';
+                        statusColor = Colors.red;
+                      }
+
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: 8.sp),
+                        child: Row(
+                          children: [
+                            Icon(
+                              icon,
+                              color: color,
+                              size: 16.sp,
+                            ),
+                            SizedBox(width: 8.sp),
+                            Expanded(
+                              child: Text(
+                                month,
+                                style: TextStyle(fontSize: 12.sp),
+                              ),
+                            ),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 6.sp,
+                                vertical: 2.sp,
+                              ),
+                              decoration: BoxDecoration(
+                                color: statusColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8.sp),
+                                border: Border.all(
+                                  color: statusColor,
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Text(
+                                statusText,
+                                style: TextStyle(
+                                  fontSize: 10.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: statusColor,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 8.sp),
+                            Text(
+                              '₱${amount.toInt()}',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w600,
+                                color: color,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+
+                SizedBox(height: 12.sp),
+
+                // Payment Status Summary
+                Container(
+                  padding: EdgeInsets.all(12.sp),
+                  decoration: BoxDecoration(
+                    color: _unpaidCount > 0 ? Colors.orange.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8.sp),
+                    border: Border.all(
+                      color: _unpaidCount > 0 ? Colors.orange : Colors.green,
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _unpaidCount > 0 ? Icons.warning : Icons.check_circle,
+                        color: _unpaidCount > 0 ? Colors.orange : Colors.green,
+                        size: 16.sp,
+                      ),
+                      SizedBox(width: 8.sp),
+                      Expanded(
+                        child: Text(
+                          _unpaidCount > 0
+                              ? 'You have $_unpaidCount unpaid monthly due(s)'
+                              : 'All payments are up to date!',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w500,
+                            color: _unpaidCount > 0 ? Colors.orange : Colors.green,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     )
         .animate()
