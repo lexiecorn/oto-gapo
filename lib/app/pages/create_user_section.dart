@@ -2289,7 +2289,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                     prefixIcon: const Icon(Icons.edit),
                   ),
                 ),
-              const SizedBox(height: 10),
+              // const SizedBox(height: 0),
               TextField(
                 controller: _vehiclePlateNumberController,
                 style: _buildTextStyle(),
@@ -2298,7 +2298,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   hintText: 'Enter vehicle plate number',
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
               DropdownButtonFormField<String>(
                 value: _selectedVehicleType,
                 style: _buildDropdownTextStyle(),
