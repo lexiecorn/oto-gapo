@@ -61,6 +61,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   final TextEditingController _vehiclePlateNumberController = TextEditingController();
   final TextEditingController _vehiclePrimaryPhotoController = TextEditingController();
   final TextEditingController _vehicleTypeController = TextEditingController();
+  String? _selectedVehicleType = 'Sedan'; // Default to Sedan
   int? _selectedVehicleYear;
   bool _isCreatingUser = false;
   String? _createUserMessage;
@@ -170,6 +171,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     _fetchVehicleMakes();
     // Initialize membership type controller with default value (Member = 3)
     _membershipTypeController.text = '3';
+    // Initialize vehicle type controller with default value (Sedan)
+    _vehicleTypeController.text = 'Sedan';
 
     // Add focus listener to hide suggestions when focus is lost
     _vehicleMakeFocusNode.addListener(() {
@@ -527,18 +530,30 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Select Image Source'),
+            title: Text(
+              'Select Image Source',
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
                   leading: const Icon(Icons.photo_library),
-                  title: const Text('Gallery'),
+                  title: Text(
+                    'Gallery',
+                    style: TextStyle(fontSize: 14.sp),
+                  ),
                   onTap: () => Navigator.of(context).pop(ImageSource.gallery),
                 ),
                 ListTile(
                   leading: const Icon(Icons.camera_alt),
-                  title: const Text('Camera'),
+                  title: Text(
+                    'Camera',
+                    style: TextStyle(fontSize: 14.sp),
+                  ),
                   onTap: () => Navigator.of(context).pop(ImageSource.camera),
                 ),
               ],
@@ -687,7 +702,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         _vehiclePhotosController.text.trim().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
     final vehiclePlateNumber = _vehiclePlateNumberController.text.trim();
     final vehiclePrimaryPhoto = _vehiclePrimaryPhotoController.text.trim();
-    final vehicleType = _vehicleTypeController.text.trim();
+    final vehicleType = _selectedVehicleType ?? 'Sedan';
     final vehicleYear = _selectedVehicleYear ?? 0;
     final vehicleMake = _selectedVehicleMake ?? '';
 
@@ -860,6 +875,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         _vehiclePlateNumberController.clear();
         _vehiclePrimaryPhotoController.clear();
         _vehicleTypeController.clear();
+        _selectedVehicleType = 'Sedan'; // Reset to default
         _selectedVehicleYear = null;
         _selectedVehicleMake = null;
         // Clear profile image variables
@@ -1413,6 +1429,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   _vehiclePhotosController.text = '';
                   _vehiclePlateNumberController.text = randomPlateNumber;
                   _vehiclePrimaryPhotoController.text = '';
+                  _selectedVehicleType = randomVehicleType;
                   _vehicleTypeController.text = randomVehicleType;
                   _selectedVehicleYear = randomVehicleYear;
                 });
@@ -1433,16 +1450,31 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 final shouldProceed = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('Generate Multiple Test Users'),
-                    content: const Text('This will create 10 test users with random data. Continue?'),
+                    title: Text(
+                      'Generate Multiple Test Users',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    content: Text(
+                      'This will create 10 test users with random data. Continue?',
+                      style: TextStyle(fontSize: 14.sp),
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Cancel'),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(fontSize: 14.sp),
+                        ),
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text('Generate'),
+                        child: Text(
+                          'Generate',
+                          style: TextStyle(fontSize: 14.sp),
+                        ),
                       ),
                     ],
                   ),
@@ -1480,18 +1512,32 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 final shouldProceed = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('Clear Test Users'),
-                    content: const Text(
-                        'This will delete all users with membership_type = 3 (regular members). This action cannot be undone. Continue?'),
+                    title: Text(
+                      'Clear Test Users',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    content: Text(
+                      'This will delete all users with membership_type = 3 (regular members). This action cannot be undone. Continue?',
+                      style: TextStyle(fontSize: 14.sp),
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Cancel'),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(fontSize: 14.sp),
+                        ),
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(true),
                         style: TextButton.styleFrom(foregroundColor: Colors.red),
-                        child: const Text('Delete All'),
+                        child: Text(
+                          'Delete All',
+                          style: TextStyle(fontSize: 14.sp),
+                        ),
                       ),
                     ],
                   ),
@@ -1664,15 +1710,15 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         labelText: 'Blood Type',
                         hintText: 'Blood type',
                       ),
-                      items: const [
-                        DropdownMenuItem(value: 'A+', child: Text('A+', style: TextStyle(fontSize: 14))),
-                        DropdownMenuItem(value: 'A-', child: Text('A-', style: TextStyle(fontSize: 14))),
-                        DropdownMenuItem(value: 'B+', child: Text('B+', style: TextStyle(fontSize: 14))),
-                        DropdownMenuItem(value: 'B-', child: Text('B-', style: TextStyle(fontSize: 14))),
-                        DropdownMenuItem(value: 'AB+', child: Text('AB+', style: TextStyle(fontSize: 14))),
-                        DropdownMenuItem(value: 'AB-', child: Text('AB-', style: TextStyle(fontSize: 14))),
-                        DropdownMenuItem(value: 'O+', child: Text('O+', style: TextStyle(fontSize: 14))),
-                        DropdownMenuItem(value: 'O-', child: Text('O-', style: TextStyle(fontSize: 14))),
+                      items: [
+                        DropdownMenuItem(value: 'A+', child: Text('A+', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(value: 'A-', child: Text('A-', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(value: 'B+', child: Text('B+', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(value: 'B-', child: Text('B-', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(value: 'AB+', child: Text('AB+', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(value: 'AB-', child: Text('AB-', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(value: 'O+', child: Text('O+', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(value: 'O-', child: Text('O-', style: TextStyle(fontSize: 14.sp))),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -1691,13 +1737,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         labelText: 'Civil Status',
                         hintText: 'Civil status',
                       ),
-                      items: const [
-                        DropdownMenuItem(value: 'Single', child: Text('Single', style: TextStyle(fontSize: 14))),
-                        DropdownMenuItem(value: 'Married', child: Text('Married', style: TextStyle(fontSize: 14))),
-                        DropdownMenuItem(value: 'Widowed', child: Text('Widowed', style: TextStyle(fontSize: 14))),
-                        DropdownMenuItem(value: 'Separated', child: Text('Separated', style: TextStyle(fontSize: 14))),
-                        DropdownMenuItem(value: 'Divorced', child: Text('Divorced', style: TextStyle(fontSize: 14))),
-                        DropdownMenuItem(value: 'Annulled', child: Text('Annulled', style: TextStyle(fontSize: 14))),
+                      items: [
+                        DropdownMenuItem(value: 'Single', child: Text('Single', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(value: 'Married', child: Text('Married', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(value: 'Widowed', child: Text('Widowed', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: 'Separated', child: Text('Separated', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(value: 'Divorced', child: Text('Divorced', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(value: 'Annulled', child: Text('Annulled', style: TextStyle(fontSize: 14.sp))),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -1910,7 +1957,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                                   ? 'Image selected: ${_selectedProfileImage!.path.split('/').last}'
                                   : 'No image selected',
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 12.sp,
                                 color: Colors.grey[600],
                               ),
                             ),
@@ -2055,9 +2102,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         labelText: 'Membership Type',
                         hintText: 'Select membership type',
                       ),
-                      items: const [
-                        DropdownMenuItem(value: '2', child: Text('Admin', style: TextStyle(fontSize: 14))),
-                        DropdownMenuItem(value: '3', child: Text('Member', style: TextStyle(fontSize: 14))),
+                      items: [
+                        DropdownMenuItem(value: '2', child: Text('Admin', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(value: '3', child: Text('Member', style: TextStyle(fontSize: 14.sp))),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -2125,17 +2172,17 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: _vehicleTypeController,
-                      style: _buildTextStyle(),
-                      decoration: _buildInputDecoration(
-                        labelText: 'Vehicle Type',
-                        hintText: 'e.g., Sedan, SUV, Truck',
-                      ),
-                    ),
-                  ),
+                  // const SizedBox(width: 10),
+                  // Expanded(
+                  //   child: TextField(
+                  //     controller: _vehicleTypeController,
+                  //     style: _buildTextStyle(),
+                  //     decoration: _buildInputDecoration(
+                  //       labelText: 'Vehicle Type',
+                  //       hintText: 'e.g., Sedan, SUV, Truck',
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -2252,13 +2299,28 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 ),
               ),
               const SizedBox(height: 10),
-              TextField(
-                controller: _vehicleTypeController,
-                style: _buildTextStyle(),
+              DropdownButtonFormField<String>(
+                value: _selectedVehicleType,
+                style: _buildDropdownTextStyle(),
                 decoration: _buildInputDecoration(
                   labelText: 'Vehicle Type',
-                  hintText: 'e.g., Sedan, SUV, Truck',
+                  hintText: 'Select vehicle type',
                 ),
+                items: _testVehicleTypes.map((type) {
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Text(
+                      type,
+                      style: _buildDropdownTextStyle(),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedVehicleType = value;
+                    _vehicleTypeController.text = value ?? 'Sedan';
+                  });
+                },
               ),
               const SizedBox(height: 10),
               Row(
@@ -2295,6 +2357,249 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                     child: const Text('Pick Year'),
                   ),
                 ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        // Car Images Upload Section
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? colorScheme.surfaceVariant : Colors.white,
+            border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Car Images',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface.withOpacity(0.87),
+                  )),
+              const SizedBox(height: 20),
+
+              // Main Car Image
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Primary Car Image',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface.withOpacity(0.87),
+                      )),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      // Image Preview
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: _selectedMainCarImage != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  _selectedMainCarImage!,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : const Icon(Icons.directions_car, size: 40, color: Colors.grey),
+                      ),
+                      const SizedBox(width: 16),
+                      // Upload Button
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: _isUploadingCarImage
+                                  ? null
+                                  : () async {
+                                      final image = await _pickCarImage();
+                                      if (image != null) {
+                                        setState(() {
+                                          _selectedMainCarImage = image;
+                                        });
+                                      }
+                                    },
+                              icon: _isUploadingCarImage
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.camera_alt),
+                              label: Text(_isUploadingCarImage ? 'Uploading...' : 'Upload Main Image'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _selectedMainCarImage != null
+                                  ? 'Image selected: ${_selectedMainCarImage!.path.split('/').last}'
+                                  : 'No main image selected',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Additional Car Images Grid
+              Text('Additional Car Images (1-4)',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface.withOpacity(0.87),
+                  )),
+              const SizedBox(height: 8),
+
+              // Grid of car images
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1.2,
+                ),
+                itemCount: 4,
+                itemBuilder: (context, index) {
+                  final imageNumber = index + 1;
+                  File? selectedImage;
+
+                  // Determine which image variable to use based on index
+                  switch (imageNumber) {
+                    case 1:
+                      selectedImage = _selectedCarImage1;
+                      break;
+                    case 2:
+                      selectedImage = _selectedCarImage2;
+                      break;
+                    case 3:
+                      selectedImage = _selectedCarImage3;
+                      break;
+                    case 4:
+                      selectedImage = _selectedCarImage4;
+                      break;
+                  }
+
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Stack(
+                      children: [
+                        // Image or placeholder
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: selectedImage != null
+                              ? Image.file(
+                                  selectedImage,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                )
+                              : Container(
+                                  color: Colors.grey.shade100,
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Car $imageNumber',
+                                          style: TextStyle(color: Colors.grey, fontSize: 12.sp),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                        ),
+                        // Image number overlay
+                        Positioned(
+                          top: 4,
+                          left: 4,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '$imageNumber',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Upload button overlay
+                        Positioned(
+                          bottom: 4,
+                          left: 4,
+                          right: 4,
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              final pickedImage = await _pickCarImage();
+                              if (pickedImage != null) {
+                                setState(() {
+                                  switch (imageNumber) {
+                                    case 1:
+                                      _selectedCarImage1 = pickedImage;
+                                      break;
+                                    case 2:
+                                      _selectedCarImage2 = pickedImage;
+                                      break;
+                                    case 3:
+                                      _selectedCarImage3 = pickedImage;
+                                      break;
+                                    case 4:
+                                      _selectedCarImage4 = pickedImage;
+                                      break;
+                                  }
+                                });
+                              }
+                            },
+                            icon: const Icon(Icons.camera_alt, size: 16),
+                            label: Text(
+                              selectedImage != null ? 'Change' : 'Upload',
+                              style: const TextStyle(fontSize: 10),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              minimumSize: const Size(0, 24),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ],
           ),
