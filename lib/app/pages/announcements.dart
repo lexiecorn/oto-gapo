@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:otogapo/providers/theme_provider.dart';
 
 class AnnouncementsWidget extends StatefulWidget {
   const AnnouncementsWidget({super.key});
@@ -10,17 +12,54 @@ class AnnouncementsWidget extends StatefulWidget {
   State<AnnouncementsWidget> createState() => _AnnouncementsWidgetState();
 }
 
-class _AnnouncementsWidgetState extends State<AnnouncementsWidget> {
+class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerProviderStateMixin {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  final ScrollController _announcementScrolllController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
   List<Map<String, dynamic>> _announcements = [];
   bool _isLoading = true;
   String _errorMessage = '';
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    ));
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeOutCubic,
+    ));
+
     _fetchAnnouncements();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _slideController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchAnnouncements() async {
@@ -30,110 +69,583 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> {
 
       if (docSnapshot.exists) {
         final announcementsData = docSnapshot.data()!['announcements'] as List<dynamic>?;
-        if (announcementsData != null) {
+        if (announcementsData != null && announcementsData.isNotEmpty) {
           _announcements = announcementsData.map((announcement) => announcement as Map<String, dynamic>).toList();
+          // Sort by date (newest first)
+          _announcements.sort((a, b) {
+            final dateA = (a['date'] as Timestamp).toDate();
+            final dateB = (b['date'] as Timestamp).toDate();
+            return dateB.compareTo(dateA);
+          });
         } else {
-          _errorMessage = 'No announcements found';
+          _errorMessage = 'No announcements available';
         }
       } else {
-        _errorMessage = 'No announcements document found';
+        _errorMessage = 'No announcements found';
       }
     } catch (e) {
-      _errorMessage = 'Error fetching announcements: $e';
-      print(e);
+      _errorMessage = 'Failed to load announcements';
+      print('Error fetching announcements: $e');
     } finally {
       setState(() {
         _isLoading = false;
       });
+      if (_announcements.isNotEmpty) {
+        _fadeController.forward();
+        _slideController.forward();
+      }
+    }
+  }
+
+  Color _getTypeColor(String type, bool isDark) {
+    switch (type) {
+      case 'announce':
+        return isDark ? Colors.blue[300]! : Colors.blue[600]!;
+      case 'warning':
+        return isDark ? Colors.red[300]! : Colors.red[600]!;
+      case 'notice':
+        return isDark ? Colors.orange[300]! : Colors.orange[600]!;
+      case 'info':
+        return isDark ? Colors.green[300]! : Colors.green[600]!;
+      default:
+        return isDark ? Colors.grey[400]! : Colors.grey[600]!;
+    }
+  }
+
+  IconData _getTypeIcon(String type) {
+    switch (type) {
+      case 'announce':
+        return Icons.announcement;
+      case 'warning':
+        return Icons.warning_rounded;
+      case 'notice':
+        return Icons.info_rounded;
+      case 'info':
+        return Icons.lightbulb_rounded;
+      default:
+        return Icons.info_rounded;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Container(
+        height: 200.sp,
+        padding: EdgeInsets.all(16.sp),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16.sp),
+          color: isDark ? colorScheme.surface : Colors.white,
+          border: Border.all(
+            color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade200,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: (isDark ? Colors.black : Colors.grey).withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 32.sp,
+                height: 32.sp,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    isDark ? colorScheme.primary : colorScheme.primary,
+                  ),
+                ),
+              ),
+              SizedBox(height: 16.sp),
+              Text(
+                'Loading announcements...',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     if (_errorMessage.isNotEmpty) {
-      return Center(child: Text(_errorMessage));
+      return Container(
+        height: 120.sp,
+        padding: EdgeInsets.all(16.sp),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16.sp),
+          color: isDark ? colorScheme.surface : Colors.white,
+          border: Border.all(
+            color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade200,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: (isDark ? Colors.black : Colors.grey).withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.announcement_outlined,
+                size: 32.sp,
+                color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[400],
+              ),
+              SizedBox(height: 8.sp),
+              Text(
+                _errorMessage,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: Container(
+          constraints: BoxConstraints(maxHeight: 400.sp),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16.sp),
+            color: isDark ? colorScheme.surface : Colors.white,
+            border: Border.all(
+              color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade200,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: (isDark ? Colors.black : Colors.grey).withOpacity(0.1),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Container(
+                padding: EdgeInsets.all(16.sp),
+                decoration: BoxDecoration(
+                  color: isDark ? colorScheme.primary.withOpacity(0.1) : colorScheme.primary.withOpacity(0.05),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16.sp),
+                    topRight: Radius.circular(16.sp),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8.sp),
+                      decoration: BoxDecoration(
+                        color: isDark ? colorScheme.primary : colorScheme.primary,
+                        borderRadius: BorderRadius.circular(8.sp),
+                      ),
+                      child: Icon(
+                        Icons.announcement_rounded,
+                        size: 20.sp,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(width: 12.sp),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Announcements',
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? colorScheme.onSurface : Colors.black87,
+                            ),
+                          ),
+                          Text(
+                            '${_announcements.length} announcement${_announcements.length != 1 ? 's' : ''}',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (_announcements.isNotEmpty)
+                      IconButton(
+                        onPressed: _fetchAnnouncements,
+                        icon: Icon(
+                          Icons.refresh_rounded,
+                          size: 20.sp,
+                          color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                        ),
+                        tooltip: 'Refresh',
+                      ),
+                  ],
+                ),
+              ),
+
+              // Announcements List
+              Expanded(
+                child: _announcements.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.announcement_outlined,
+                              size: 48.sp,
+                              color: isDark ? colorScheme.onSurface.withOpacity(0.3) : Colors.grey[300],
+                            ),
+                            SizedBox(height: 16.sp),
+                            Text(
+                              'No announcements',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w500,
+                                color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                              ),
+                            ),
+                            SizedBox(height: 8.sp),
+                            Text(
+                              'Check back later for updates',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                color: isDark ? colorScheme.onSurface.withOpacity(0.4) : Colors.grey[400],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Scrollbar(
+                        controller: _scrollController,
+                        thumbVisibility: true,
+                        trackVisibility: true,
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          padding: EdgeInsets.zero,
+                          itemCount: _announcements.length,
+                          itemBuilder: (context, index) {
+                            final announcement = _announcements[index];
+                            final isLast = index == _announcements.length - 1;
+
+                            return _buildAnnouncementCard(
+                              announcement: announcement,
+                              isDark: isDark,
+                              colorScheme: colorScheme,
+                              isLast: isLast,
+                              index: index,
+                            );
+                          },
+                        ),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnnouncementCard({
+    required Map<String, dynamic> announcement,
+    required bool isDark,
+    required ColorScheme colorScheme,
+    required bool isLast,
+    required int index,
+  }) {
+    final type = announcement['type'] as String? ?? 'info';
+    final title = announcement['title'] as String? ?? 'No Title';
+    final content = announcement['content'] as String? ?? 'No content';
+    final date = announcement['date'] as Timestamp?;
+
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 8.sp),
+      margin: EdgeInsets.only(
+        left: 16.sp,
+        right: 16.sp,
+        top: 12.sp,
+        bottom: isLast ? 16.sp : 0,
+      ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: Colors.white,
-        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12.sp),
+        color: isDark ? colorScheme.surface : Colors.white,
+        border: Border.all(
+          color: isDark ? colorScheme.outline.withOpacity(0.1) : Colors.grey.shade100,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(.5),
-            spreadRadius: 1,
-            blurRadius: 1,
+            color: (isDark ? Colors.black : Colors.grey).withOpacity(0.05),
+            blurRadius: 4,
             offset: const Offset(0, 1),
           ),
         ],
       ),
-      child: Scrollbar(
-        controller: _announcementScrolllController,
-        trackVisibility: true,
-        child: ListView.builder(
-          controller: _announcementScrolllController,
-          itemCount: _announcements.length,
-          itemBuilder: (context, index) {
-            final announcement = _announcements[index];
-            return Padding(
-              padding: EdgeInsets.only(top: index == 0 ? 10.sp : 0),
-              child: Column(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12.sp),
+          onTap: () {
+            _showAnnouncementDetails(announcement, isDark, colorScheme);
+          },
+          child: Padding(
+            padding: EdgeInsets.all(16.sp),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Icon
+                Container(
+                  padding: EdgeInsets.all(10.sp),
+                  decoration: BoxDecoration(
+                    color: _getTypeColor(type, isDark).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10.sp),
+                  ),
+                  child: Icon(
+                    _getTypeIcon(type),
+                    size: 20.sp,
+                    color: _getTypeColor(type, isDark),
+                  ),
+                ),
+
+                SizedBox(width: 16.sp),
+
+                // Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? colorScheme.onSurface : Colors.black87,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8.sp, vertical: 4.sp),
+                            decoration: BoxDecoration(
+                              color: _getTypeColor(type, isDark).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12.sp),
+                            ),
+                            child: Text(
+                              type.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w600,
+                                color: _getTypeColor(type, isDark),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.sp),
+                      Text(
+                        content,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: isDark ? colorScheme.onSurface.withOpacity(0.8) : Colors.grey[700],
+                          height: 1.4,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 12.sp),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.schedule_rounded,
+                            size: 14.sp,
+                            color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                          ),
+                          SizedBox(width: 4.sp),
+                          Text(
+                            date != null ? DateFormat('MMM dd, yyyy • h:mm a').format(date.toDate()) : 'No date',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                            ),
+                          ),
+                          const Spacer(),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 12.sp,
+                            color: isDark ? colorScheme.onSurface.withOpacity(0.3) : Colors.grey[400],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAnnouncementDetails(Map<String, dynamic> announcement, bool isDark, ColorScheme colorScheme) {
+    final type = announcement['type'] as String? ?? 'info';
+    final title = announcement['title'] as String? ?? 'No Title';
+    final content = announcement['content'] as String? ?? 'No content';
+    final date = announcement['date'] as Timestamp?;
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: isDark ? colorScheme.surface : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.sp),
+        ),
+        child: Container(
+          padding: EdgeInsets.all(24.sp),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
                 children: [
-                  ListTile(
-                    visualDensity: VisualDensity.compact,
-                    contentPadding: EdgeInsets.zero,
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.grey.shade200,
-                      child: Icon(
-                        announcement['type'] == 'announce'
-                            ? Icons.announcement
-                            : announcement['type'] == 'warning'
-                                ? Icons.warning
-                                : announcement['type'] == 'notice'
-                                    ? Icons.info
-                                    : Icons.info,
-                        color: announcement['type'] == 'announce'
-                            ? Colors.blue
-                            : announcement['type'] == 'warning'
-                                ? Colors.red
-                                : announcement['type'] == 'notice'
-                                    ? Colors.orange
-                                    : Colors.grey,
-                      ),
+                  Container(
+                    padding: EdgeInsets.all(12.sp),
+                    decoration: BoxDecoration(
+                      color: _getTypeColor(type, isDark).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12.sp),
                     ),
-                    title: Text(
-                      announcement['title'] as String,
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Icon(
+                      _getTypeIcon(type),
+                      size: 24.sp,
+                      color: _getTypeColor(type, isDark),
                     ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                  ),
+                  SizedBox(width: 16.sp),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          announcement['content'] as String,
-                          style: TextStyle(fontSize: 14.sp),
+                          title,
+                          style: TextStyle(
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? colorScheme.onSurface : Colors.black87,
+                          ),
                         ),
-                        Text(
-                          DateFormat('MMM dd, yyyy').format((announcement['date'] as Timestamp).toDate()),
-                          textAlign: TextAlign.end,
-                          style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+                        SizedBox(height: 4.sp),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 10.sp, vertical: 4.sp),
+                          decoration: BoxDecoration(
+                            color: _getTypeColor(type, isDark).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12.sp),
+                          ),
+                          child: Text(
+                            type.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w600,
+                              color: _getTypeColor(type, isDark),
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const Divider(),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: Icon(
+                      Icons.close_rounded,
+                      color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                    ),
+                  ),
                 ],
               ),
-            );
-          },
+
+              SizedBox(height: 20.sp),
+
+              // Content
+              Text(
+                content,
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  color: isDark ? colorScheme.onSurface.withOpacity(0.9) : Colors.grey[800],
+                  height: 1.5,
+                ),
+              ),
+
+              SizedBox(height: 20.sp),
+
+              // Date
+              Row(
+                children: [
+                  Icon(
+                    Icons.schedule_rounded,
+                    size: 16.sp,
+                    color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                  ),
+                  SizedBox(width: 8.sp),
+                  Text(
+                    date != null
+                        ? DateFormat('EEEE, MMMM dd, yyyy • h:mm a').format(date.toDate())
+                        : 'No date available',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 24.sp),
+
+              // Close button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isDark ? colorScheme.primary : colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 16.sp),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.sp),
+                    ),
+                  ),
+                  child: Text(
+                    'Close',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
