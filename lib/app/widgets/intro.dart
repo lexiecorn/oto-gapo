@@ -54,7 +54,7 @@ class _IntroPageState extends State<IntroPage> {
   ];
 
   final colorizeTextStyle = TextStyle(
-    fontSize: 250.sp,
+    fontSize: 100.sp,
     fontFamily: 'Horizon',
     fontWeight: FontWeight.bold,
   );
@@ -166,7 +166,7 @@ class _IntroPageState extends State<IntroPage> {
             }
 
             // Use a fallback for empty member number
-            final displayMemberNumber = state.user.memberNumber.isNotEmpty ? state.user.memberNumber : 'Member';
+            final displayMemberNumber = state.user.memberNumber.isNotEmpty ? state.user.memberNumber : 'X';
 
             return Container(
               decoration: const BoxDecoration(
