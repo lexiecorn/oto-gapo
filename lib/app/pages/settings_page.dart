@@ -155,7 +155,13 @@ class _SettingsPageState extends State<SettingsPage> {
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
-                            title: const Text('Confirm Logout'),
+                            title: const Text(
+                              'Confirm Logout',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                             content: const Text('Are you sure you want to logout?'),
                             actions: [
                               TextButton(
