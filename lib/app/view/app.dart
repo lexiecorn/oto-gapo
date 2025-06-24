@@ -116,7 +116,7 @@ class AppView extends StatelessWidget {
         return Consumer<ThemeProvider>(
           builder: (context, themeProvider, child) {
             return MaterialApp.router(
-              title: 'Otogapo',
+              title: 'OTOGAPO',
               debugShowCheckedModeBanner: false,
               routerConfig: appRouter.config(),
               theme: themeProvider.theme,

@@ -6,6 +6,7 @@ import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/profile_page.dart';
 import 'package:otogapo/app/pages/home_body.dart';
 import 'package:otogapo/app/pages/settings_page.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 @RoutePage(
   name: 'HomePageRouter',
@@ -28,11 +29,19 @@ class HomePageState extends State<HomePage> {
       child: const HomeBody(),
     ),
     const ProfilePage(),
-    const Text(
-      'Index 1: Business',
-      style: optionStyle,
-    ),
     SettingsPage(),
+  ];
+
+  final List<String> _pageTitles = [
+    'OTOGAPO',
+    'Profile',
+    'Settings',
+  ];
+
+  final List<IconData> _pageIcons = [
+    Icons.home_rounded,
+    Icons.person_rounded,
+    Icons.settings_rounded,
   ];
 
   void _onItemTapped(int index) {
@@ -52,7 +61,7 @@ class HomePageState extends State<HomePage> {
         // ,
         appBar: AppBar(
           title: Text(
-            _selectedIndex == 3 ? 'Settings' : 'Otogapo',
+            _selectedIndex == 2 ? 'Settings' : _pageTitles.elementAt(_selectedIndex),
             style: TextStyle(
               color: Colors.white,
               fontSize: 24,
@@ -62,7 +71,7 @@ class HomePageState extends State<HomePage> {
           centerTitle: true,
           backgroundColor: Colors.black,
           elevation: 0,
-          actions: _selectedIndex == 3
+          actions: _selectedIndex == 2
               ? [
                   IconButton(
                     icon: Icon(Icons.refresh, color: Colors.white),
@@ -80,32 +89,94 @@ class HomePageState extends State<HomePage> {
               : [],
         ),
         body: _widgetOptions.elementAt(_selectedIndex),
-        bottomNavigationBar: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-              backgroundColor: Colors.black,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
-              backgroundColor: Colors.black,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.business),
-              label: 'Business',
-              backgroundColor: Colors.black,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: 'Settings',
-              backgroundColor: Colors.black,
+        bottomNavigationBar: _buildBottomNavigationBar(),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigationBar() {
+    return Animate(
+      effects: [
+        SlideEffect(
+          begin: const Offset(0, 1.0),
+          end: Offset.zero,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeOutCubic,
+        ),
+        FadeEffect(
+          delay: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 600),
+        ),
+      ],
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: Offset(0, -5),
             ),
           ],
-          currentIndex: _selectedIndex,
-          selectedItemColor: Colors.amber[800],
-          onTap: _onItemTapped,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(20),
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(
+                _pageIcons.length,
+                (index) => _buildNavItem(index),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index) {
+    final isSelected = _selectedIndex == index;
+    return GestureDetector(
+      onTap: () => _onItemTapped(index),
+      child: Animate(
+        effects: [
+          ScaleEffect(
+            delay: Duration(milliseconds: index * 100),
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutBack,
+          ),
+        ],
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.amber[600] : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _pageIcons[index],
+                color: isSelected ? Colors.white : Colors.grey[600],
+                size: 24,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _pageTitles[index],
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.grey[600],
+                  fontSize: 12.sp,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
