@@ -1414,8 +1414,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   _membershipTypeController.text = '3';
                   _middleNameController.text = randomMiddleName;
                   _nationalityController.text = 'Filipino';
-                  _profileImageController.text =
-                      'gs://otogapo-dev.appspot.com/users/TS4E73z29qdpfsyBiBsxnBN10I43/images/profile.png';
+                  _profileImageController.text = '';
                   _religionController.text = randomReligion;
                   _spouseContactNumberController.text = randomCivilStatus == 'Married' ? _getRandomPhoneNumber() : '';
                   _spouseNameController.text = randomCivilStatus == 'Married'

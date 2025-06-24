@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo_core/otogapo_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class CarWidget extends StatelessWidget {
   const CarWidget({
@@ -10,18 +11,26 @@ class CarWidget extends StatelessWidget {
   });
   final ProfileState state;
 
+  Future<String?> _getCarImageUrl() async {
+    try {
+      final userId = state.user.uid;
+      if (userId == null || userId.isEmpty) {
+        return null;
+      }
+
+      // Try to get the main car image from Firebase Storage
+      final storageRef = FirebaseStorage.instance.ref().child('users/$userId/images/cars/main.png');
+
+      return await storageRef.getDownloadURL();
+    } catch (e) {
+      // If the image doesn't exist or there's an error, return null
+      // This will fall back to the default image
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Get the vehicle's primary photo or use a default image
-    String vehicleImagePath = 'assets/images/vios.jpg'; // Default fallback
-    if (state.user.vehicle.isNotEmpty &&
-        state.user.vehicle.first.primaryPhoto != null &&
-        state.user.vehicle.first.primaryPhoto!.isNotEmpty) {
-      vehicleImagePath = state.user.vehicle.first.primaryPhoto!;
-    }
-
-    bool isAssetImage = vehicleImagePath.startsWith('assets/');
-
     return SizedBox(
       width: double.infinity,
       child: Container(
@@ -38,19 +47,42 @@ class CarWidget extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: isAssetImage
-                    ? Image.asset(
-                        vehicleImagePath,
+                child: FutureBuilder<String?>(
+                  future: _getCarImageUrl(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Container(
                         width: 90,
                         height: 90,
-                        fit: BoxFit.cover,
-                      )
-                    : OpstechExtendedImageNetwork(
-                        img: vehicleImagePath,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+
+                    if (snapshot.hasData && snapshot.data != null) {
+                      // Show the car image from Firebase Storage
+                      return OpstechExtendedImageNetwork(
+                        img: snapshot.data!,
                         width: 90,
                         height: 90,
                         borderrRadius: 10,
-                      ),
+                      );
+                    }
+
+                    // Fallback to default image if no car image exists
+                    return Image.asset(
+                      'assets/images/vios.jpg',
+                      width: 90,
+                      height: 90,
+                      fit: BoxFit.cover,
+                    );
+                  },
+                ),
               ),
               Expanded(
                 child: Padding(

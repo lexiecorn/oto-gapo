@@ -314,13 +314,35 @@ class _UserDetailPageState extends State<UserDetailPage> {
         throw Exception('User ID not found in user data');
       }
 
+      print('Uploading car image $imageName for user $userId');
+
       // Upload to Firebase Storage
       final storageRef = FirebaseStorage.instance.ref().child('users/$userId/images/cars/$imageName.png');
 
-      await storageRef.putFile(selectedImage);
+      // Upload the file with metadata
+      final uploadTask = storageRef.putFile(
+        selectedImage,
+        SettableMetadata(
+          contentType: 'image/png',
+          customMetadata: {
+            'uploadedAt': DateTime.now().toIso8601String(),
+            'imageName': imageName,
+            'userId': userId,
+          },
+        ),
+      );
+
+      // Wait for upload to complete
+      final snapshot = await uploadTask;
+      print('Upload completed for $imageName. Bytes transferred: ${snapshot.bytesTransferred}');
+
+      // Get the download URL
+      final downloadUrl = await storageRef.getDownloadURL();
+      print('Download URL for $imageName: $downloadUrl');
 
       // Get the gs:// URI
       final gsUri = 'gs://${storageRef.bucket}/${storageRef.fullPath}';
+      print('GS URI for $imageName: $gsUri');
 
       // Update the corresponding URL variable
       switch (imageName) {
@@ -355,12 +377,36 @@ class _UserDetailPageState extends State<UserDetailPage> {
         _isUploadingCarImage = false;
       });
 
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Car image $imageName uploaded successfully!'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+
       return gsUri;
     } catch (e) {
+      print('Error uploading car image $imageName: $e');
       setState(() {
         _isUploadingCarImage = false;
       });
-      throw Exception('Error uploading car image: $e');
+
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error uploading car image $imageName: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+
+      throw Exception('Error uploading car image $imageName: $e');
     }
   }
 
@@ -414,6 +460,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 tooltip: 'Cancel Edit',
               ),
             ],
+            // Debug button for testing car images
+            IconButton(
+              icon: const Icon(Icons.bug_report),
+              onPressed: _debugCarImages,
+              tooltip: 'Debug Car Images',
+            ),
           ],
         ),
         body: Form(
@@ -2352,5 +2404,47 @@ class _UserDetailPageState extends State<UserDetailPage> {
     }
     final gsUri = 'gs://otogapo-dev.appspot.com/users/$userId/images/cars/main.png';
     return await _getDownloadUrlFromGsUri(gsUri);
+  }
+
+  Future<bool> _checkCarImageExists(String imageName) async {
+    try {
+      final userId = _editedData['id'] as String?;
+      if (userId == null) {
+        return false;
+      }
+
+      final storageRef = FirebaseStorage.instance.ref().child('users/$userId/images/cars/$imageName.png');
+
+      // Try to get metadata to check if file exists
+      await storageRef.getMetadata();
+      return true;
+    } catch (e) {
+      // File doesn't exist or other error
+      return false;
+    }
+  }
+
+  Future<void> _debugCarImages() async {
+    print('=== Debugging Car Images ===');
+    final userId = _editedData['id'] as String?;
+    print('User ID: $userId');
+
+    if (userId != null) {
+      for (String imageName in ['main', '1', '2', '3', '4']) {
+        final exists = await _checkCarImageExists(imageName);
+        print('Car image $imageName exists: $exists');
+
+        if (exists) {
+          try {
+            final storageRef = FirebaseStorage.instance.ref().child('users/$userId/images/cars/$imageName.png');
+            final downloadUrl = await storageRef.getDownloadURL();
+            print('Car image $imageName download URL: $downloadUrl');
+          } catch (e) {
+            print('Error getting download URL for $imageName: $e');
+          }
+        }
+      }
+    }
+    print('=== End Debug ===');
   }
 }
