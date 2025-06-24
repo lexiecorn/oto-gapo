@@ -371,7 +371,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
         _paidCount = paid;
         _unpaidCount = unpaid;
         _advanceCount = advance;
-        _totalAmount = (paid + unpaid) * 100.0;
+        _totalAmount = (paid + advance) * 100.0;
         _recentPayments = displayPayments;
         _isLoading = false;
       });

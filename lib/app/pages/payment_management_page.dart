@@ -40,10 +40,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   Future<void> _loadUsers() async {
     try {
-      final usersSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where('membership_type', whereIn: [3]) // Only regular members
-          .get();
+      final usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
 
       final users = <Map<String, dynamic>>[];
       for (final doc in usersSnapshot.docs) {
