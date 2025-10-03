@@ -1,0 +1,43 @@
+---
+alwaysApply: false
+description: Common workspace commands and generation steps
+---
+
+## Workspace Conventions
+
+- **Code generation**:
+
+  - Routes (auto_route):
+    ```bash
+    dart run build_runner build --delete-conflicting-outputs
+    ```
+
+- **Run flavors**:
+
+  - DEV:
+    ```bash
+    flutter run -t lib/main_development.dart
+    ```
+  - STAGING:
+    ```bash
+    flutter run -t lib/main_staging.dart
+    ```
+  - PROD:
+    ```bash
+    flutter run -t lib/main_production.dart
+    ```
+
+- **Android signing and Firebase**:
+
+  - Ensure `android/app/google-services.json` is present for DEV/PROD as appropriate.
+  - iOS uses `Runner/GoogleService-Info.plist` (not shown here).
+
+- **Testing**:
+  ```bash
+  flutter test
+  ```
+
+Notes:
+
+- After adding assets, `flutter pub get` and hot-restart.
+- Keep `pubspec.yaml` versions aligned across packages.

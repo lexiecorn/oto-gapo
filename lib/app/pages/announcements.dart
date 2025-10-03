@@ -2,8 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import 'package:otogapo/providers/theme_provider.dart';
+ 
 
 class AnnouncementsWidget extends StatefulWidget {
   const AnnouncementsWidget({super.key});
@@ -85,7 +84,7 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
       }
     } catch (e) {
       _errorMessage = 'Failed to load announcements';
-      print('Error fetching announcements: $e');
+      debugPrint('Error fetching announcements: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -515,7 +514,7 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
     final content = announcement['content'] as String? ?? 'No content';
     final date = announcement['date'] as Timestamp?;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => Dialog(
         backgroundColor: isDark ? colorScheme.surface : Colors.white,

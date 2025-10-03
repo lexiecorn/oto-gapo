@@ -7,7 +7,7 @@ import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/app.dart';
 import 'package:otogapo/bootstrap.dart';
-import 'package:otogapo/firebase_options_dev.dart';
+import 'package:otogapo/firebase_options_prod.dart';
 
 Future<void> main() async {
   await runZonedGuarded(() async {
@@ -31,9 +31,8 @@ Future<void> main() async {
           ),
         );
 
-        // Setup the Development Flavor
         FlavorConfig(
-          name: 'DEV',
+          name: 'PROD',
           variables: {
             'pkgInfoVersion': 'Ver:${packageInfo.version} Build:${packageInfo.buildNumber}',
           },

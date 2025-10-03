@@ -1,0 +1,46 @@
+---
+alwaysApply: true
+---
+
+## Flutter Project Structure
+
+Use this map to navigate the app quickly.
+
+- **Entry points**:
+
+  - `lib/main_development.dart` (DEV flavor)
+  - `lib/main_staging.dart` (STAGING flavor)
+  - `lib/main_production.dart` (PROD flavor)
+  - Each entry calls `bootstrap` in `lib/bootstrap.dart` to wire logging, Firebase, DI, and run the `App` widget.
+
+- **App shell**:
+
+  - `lib/app/view/app.dart` provides repositories and blocs, theme via `ThemeProvider`, and builds `MaterialApp.router` with `AppRouter`.
+  - `lib/app/app.dart` re-exports `view/app.dart`.
+
+- **Routing**:
+
+  - `lib/app/routes/app_router.dart` defines routes using `auto_route` and a generated `lib/app/routes/app_router.gr.dart`.
+
+- **State management**:
+
+  - Bloc: `lib/app/modules/**` holds `AuthBloc`, `SigninCubit`, `SignupCubit`, `ProfileCubit`.
+  - Provider: `lib/providers/**` contains `ThemeProvider`, `AuthProvider`, `UserProvider`.
+
+- **Theming**:
+
+  - `ThemeProvider` selects `OpstechTheme` from `packages/otogapo_core`.
+
+- **Networking & DI**:
+
+  - `Dio` and `AppRouter` singletons via `get_it` in `lib/bootstrap.dart`.
+
+- **Firebase**:
+
+  - Initialized in flavor mains using `firebase_core` with options from `lib/firebase_options_*.dart`.
+
+- **Assets & Layout**:
+  - `pubspec.yaml` registers `assets/`, `assets/images/`, `assets/icons/`.
+  - `flutter_screenutil` is used in `AppView` and pages for responsive sizing.
+
+Cross-reference files as needed while exploring the codebase.

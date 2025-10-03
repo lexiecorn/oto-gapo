@@ -1,0 +1,30 @@
+---
+globs: lib/main_*.dart,lib/bootstrap.dart
+description: Flavor setup and Firebase initialization for each entrypoint
+---
+
+## Flavors and Firebase
+
+- **Entrypoints**:
+
+  - DEV: `lib/main_development.dart`
+  - STAGING: `lib/main_staging.dart`
+  - PROD: `lib/main_production.dart`
+
+- **Firebase**:
+
+  - Each main initializes Firebase via `Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)` using the corresponding `firebase_options_*.dart`.
+  - Keep `firebase_options_dev.dart`/`firebase_options_prod.dart` in sync with your Firebase projects.
+
+- **FlavorConfig**:
+
+  - DEV main sets `FlavorConfig(name: 'DEV', variables: {'pkgInfoVersion': 'Ver:${packageInfo.version} Build:${packageInfo.buildNumber}'})`.
+  - Access flavor name via `FlavorConfig.instance.name`; variables via `FlavorConfig.instance.variables[key]`.
+
+- **Bootstrap** (`lib/bootstrap.dart`):
+  - Initializes `Bloc.observer` and global singletons (`AppRouter`, `Dio`) with `get_it`.
+  - Provides `AuthRepository` and `LocalStorage` to the `App` builder.
+
+Notes:
+
+- If you add environment-specific variables (e.g., API base URLs), set them in the flavor mains and read via `FlavorConfig.instance.variables`.

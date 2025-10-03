@@ -1,0 +1,26 @@
+---
+globs: lib/**/*.dart,packages/**/*.dart
+description: Dart style, naming, and lint rules for this workspace
+---
+
+## Dart Style
+
+- **Analysis**: Uses `very_good_analysis` and `flutter_lints`.
+- **Naming**:
+  - Prefer descriptive names (avoid 1–2 letter identifiers).
+  - Functions as verbs; classes and variables as nouns.
+- **Types**:
+  - Annotate public APIs and exports explicitly; avoid `dynamic`/`any`-like patterns.
+- **Control flow**:
+  - Use guard clauses and early returns; avoid deep nesting.
+  - Handle errors meaningfully; do not swallow exceptions.
+- **Formatting**:
+  - Match existing style; keep lines readable and avoid dense one-liners.
+- **Comments**:
+  - Explain "why" for complex code; avoid trivial comments.
+
+Project specifics:
+
+- Keep bloc logic side-effect free; put IO in repositories.
+- Use `context.read<T>()`/`context.watch<T>()` appropriately in widgets.
+- Keep theming via `ThemeProvider` and avoid instantiating `ThemeData` inline.

@@ -1,0 +1,22 @@
+---
+globs: lib/**/**.dart,pubspec.yaml
+description: Asset loading and ScreenUtil usage conventions
+---
+
+## Assets and ScreenUtil
+
+- **Assets**:
+
+  - Declared in `pubspec.yaml` under `flutter.assets`: `assets/`, `assets/images/`, `assets/icons/`.
+  - Reference with `Image.asset('assets/images/your.png')` or similar APIs.
+  - Keep filenames lowercase with underscores; update `pubspec.yaml` when adding folders.
+
+- **ScreenUtil**:
+  - Initialize via `ScreenUtilInit` in `AppView` with `designSize: Size(375, 812)`.
+  - Use `xx.sp` for font sizes, `xx.w`/`xx.h`/`xx.r` for sizes/radius. Example: `16.sp`, `24.w`.
+  - Ensure `await ScreenUtil.ensureScreenSize()` is called in `main_*` before building.
+
+Guidelines:
+
+- Prefer vector or high-resolution raster images and cache where appropriate.
+- Keep UI spacing consistent by standardizing on `ScreenUtil` helpers across pages.

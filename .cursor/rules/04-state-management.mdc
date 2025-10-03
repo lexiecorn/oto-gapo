@@ -1,0 +1,25 @@
+---
+globs: lib/**/bloc/**/*.dart,lib/providers/**/*.dart,lib/app/view/app.dart
+description: How blocs, cubits, and providers are wired into the app
+---
+
+## State Management
+
+- Bloc/Cubit:
+
+  - Provided in `App` via `MultiBlocProvider` for `AuthBloc`, `SigninCubit`, `SignupCubit`, and `ProfileCubit`.
+  - Repositories are injected using `MultiRepositoryProvider` (e.g., `AuthRepository`, `ProfileRepository`).
+  - Create new blocs in `lib/app/modules/<feature>/bloc` and register them in `App`.
+
+- Provider:
+
+  - `ThemeProvider` uses `SharedPreferences` to persist theme mode and exposes `theme` from `OpstechTheme`.
+  - `AuthProvider` and `UserProvider` are `ChangeNotifier` classes for local state where Bloc is not needed.
+
+- DI:
+  - Use `get_it` for singletons configured in `bootstrap.dart` (e.g., `AppRouter`, `Dio`).
+
+Guidelines:
+
+- Prefer Bloc/Cubit for async flows and feature logic; use Provider for lightweight local UI state.
+- Keep repositories side-effectful and blocs pure; inject repositories via `context.read<T>()`.
