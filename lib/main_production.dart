@@ -35,6 +35,7 @@ Future<void> main() async {
           name: 'PROD',
           variables: {
             'pkgInfoVersion': 'Ver:${packageInfo.version} Build:${packageInfo.buildNumber}',
+            'pocketbaseUrl': 'https://pb.lexserver.org',
           },
         );
 

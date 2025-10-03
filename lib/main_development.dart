@@ -41,6 +41,7 @@ Future<void> main() async {
           name: 'DEV',
           variables: {
             'pkgInfoVersion': 'Ver:${packageInfo.version} Build:${packageInfo.buildNumber}',
+            'pocketbaseUrl': 'https://pb.lexserver.org',
           },
         );
 
