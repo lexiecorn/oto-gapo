@@ -1,0 +1,11 @@
+---
+alwaysApply: true
+description: Require explicit approval for any git commit/push operations
+---
+
+## Git Operation Policy
+
+- Do not perform `git commit`, `git push`, `git tag`, or branch deletion automatically.
+- All git operations must be explicitly requested by the user and confirmed per action.
+- When proposing git actions, show the exact command and wait for user approval before executing.
+- Prefer staging changes and showing a summary (`git status`, `git diff --name-only`) before any commit.

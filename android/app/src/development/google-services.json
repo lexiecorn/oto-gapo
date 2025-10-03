@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "967485709855-qful4joj2db7puk4gnvio1n06romenlo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.digitappstudio.otogapo.dev",
+            "certificate_hash": "67bc108763a7dc3e3aa71f6b2716eb3435465edd"
+          }
+        },
+        {
           "client_id": "967485709855-s6lj2khfsfr110phllphdvqagb639le7.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
