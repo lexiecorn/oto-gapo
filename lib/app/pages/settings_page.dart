@@ -37,10 +37,10 @@ class _SettingsPageState extends State<SettingsPage> {
       // Get user from PocketBase authentication only
       final authState = context.read<AuthBloc>().state;
       print('Settings Page - AuthBloc state: ${authState.runtimeType}');
-      // print('Settings Page - AuthBloc user: ${authState.user}');
 
       if (authState.user != null) {
         print('Settings Page - User authenticated with PocketBase via AuthBloc');
+        print('Settings Page - AuthBloc user ID: ${authState.user!.id}');
         try {
           final pocketBaseService = PocketBaseService();
           final userRecord = await pocketBaseService.getUser(authState.user!.id);
@@ -58,12 +58,45 @@ class _SettingsPageState extends State<SettingsPage> {
           });
         } catch (e) {
           print('Settings Page - Error getting user from PocketBase: $e');
-          setState(() {
-            _isAdmin = false;
-            _userName = 'User';
-            _userEmail = '';
-            _isLoading = false;
-          });
+          print('Settings Page - User ID ${authState.user!.id} not found in PocketBase, trying ProfileCubit fallback');
+
+          // Try ProfileCubit fallback immediately
+          try {
+            final profileCubit = context.read<ProfileCubit>();
+            final profileState = profileCubit.state;
+
+            if (profileState.user.uid.isNotEmpty) {
+              print('Settings Page - Using ProfileCubit data as fallback');
+              print('Settings Page - ProfileCubit user UID: ${profileState.user.uid}');
+              print('Settings Page - ProfileCubit user membership_type: ${profileState.user.membership_type}');
+              setState(() {
+                final membershipType = profileState.user.membership_type;
+                print(
+                    'Settings Page - ProfileCubit user membership_type: $membershipType (type: ${membershipType.runtimeType})');
+                _isAdmin = membershipType == 1 || membershipType == 2;
+                print('Settings Page - _isAdmin: $_isAdmin');
+                _userName = '${profileState.user.firstName} ${profileState.user.lastName}'.trim();
+                _userEmail = ''; // User model doesn't have email field
+                _isLoading = false;
+              });
+            } else {
+              print('Settings Page - ProfileCubit user data is empty');
+              setState(() {
+                _isAdmin = false;
+                _userName = 'User';
+                _userEmail = '';
+                _isLoading = false;
+              });
+            }
+          } catch (profileError) {
+            print('Settings Page - ProfileCubit fallback also failed: $profileError');
+            setState(() {
+              _isAdmin = false;
+              _userName = 'User';
+              _userEmail = '';
+              _isLoading = false;
+            });
+          }
         }
       } else {
         print('Settings Page - No PocketBase user in AuthBloc');
@@ -76,41 +109,12 @@ class _SettingsPageState extends State<SettingsPage> {
       }
     } catch (e) {
       print('Error checking user status: $e');
-      // If PocketBase fails, try to get user data from ProfileCubit instead
-      try {
-        final profileCubit = context.read<ProfileCubit>();
-        final profileState = profileCubit.state;
-
-        if (profileState.user.uid.isNotEmpty) {
-          print('Settings Page - Using ProfileCubit data as fallback');
-          setState(() {
-            final membershipType = profileState.user.membership_type;
-            print(
-                'Settings Page - ProfileCubit user membership_type: $membershipType (type: ${membershipType.runtimeType})');
-            _isAdmin = membershipType == 1 || membershipType == 2;
-            print('Settings Page - _isAdmin: $_isAdmin');
-            _userName = '${profileState.user.firstName} ${profileState.user.lastName}'.trim();
-            _userEmail = ''; // User model doesn't have email field
-            _isLoading = false;
-          });
-        } else {
-          print('Settings Page - ProfileCubit user data is empty');
-          setState(() {
-            _isAdmin = false;
-            _userName = 'User';
-            _userEmail = '';
-            _isLoading = false;
-          });
-        }
-      } catch (profileError) {
-        print('Settings Page - ProfileCubit fallback also failed: $profileError');
-        setState(() {
-          _isAdmin = false;
-          _userName = 'User';
-          _userEmail = '';
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _isAdmin = false;
+        _userName = 'User';
+        _userEmail = '';
+        _isLoading = false;
+      });
     }
   }
 
@@ -273,26 +277,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(builder: (context) => const AdminPage()),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  // Force admin status for testing
-                  _buildSettingsCard(
-                    icon: Icons.settings,
-                    title: 'Force Admin Status',
-                    subtitle: 'Click to manually set admin status',
-                    onTap: () {
-                      setState(() {
-                        _isAdmin = true;
-                        _userName = 'Admin User';
-                        _userEmail = 'admin@example.com';
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Admin status forced! Refresh the page to see changes.'),
-                          duration: Duration(seconds: 2),
-                        ),
                       );
                     },
                   ),
