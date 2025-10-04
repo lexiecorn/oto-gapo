@@ -52,7 +52,7 @@ class PocketBaseUsageExample {
             'type': 'Sedan',
             'year': 2023,
           }
-        ]
+        ],
       });
 
       print('Profile updated successfully');
@@ -102,7 +102,6 @@ class PocketBaseUsageExample {
         await _pocketBase.createAnnouncement(
           title: 'New Feature Released!',
           content: 'We have added new features to the app. Check them out!',
-          authorId: userData!.id,
           type: 'feature',
         );
         print('Announcement created successfully');

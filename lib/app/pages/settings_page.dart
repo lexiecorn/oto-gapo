@@ -1,15 +1,13 @@
 // ignore_for_file: prefer_single_quotes
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:otogapo/app/pages/admin_page.dart';
-import 'package:otogapo/providers/theme_provider.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
-import 'package:otogapo/services/pocketbase_service.dart';
-import 'package:otogapo/app/pages/current_user_account_page.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
+import 'package:otogapo/app/pages/admin_page.dart';
+import 'package:otogapo/app/pages/current_user_account_page.dart';
+import 'package:otogapo/providers/theme_provider.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -49,7 +47,7 @@ class _SettingsPageState extends State<SettingsPage> {
           setState(() {
             final membershipType = userData['membership_type'];
             print(
-                'Settings Page - PocketBase user membership_type: $membershipType (type: ${membershipType.runtimeType})');
+                'Settings Page - PocketBase user membership_type: $membershipType (type: ${membershipType.runtimeType})',);
             _isAdmin = membershipType == 1 || membershipType == 2 || membershipType == "1" || membershipType == "2";
             print('Settings Page - _isAdmin: $_isAdmin');
             _userName = '${userData['firstName']?.toString() ?? ''} ${userData['lastName']?.toString() ?? ''}'.trim();
@@ -72,7 +70,7 @@ class _SettingsPageState extends State<SettingsPage> {
               setState(() {
                 final membershipType = profileState.user.membership_type;
                 print(
-                    'Settings Page - ProfileCubit user membership_type: $membershipType (type: ${membershipType.runtimeType})');
+                    'Settings Page - ProfileCubit user membership_type: $membershipType (type: ${membershipType.runtimeType})',);
                 _isAdmin = membershipType == 1 || membershipType == 2;
                 print('Settings Page - _isAdmin: $_isAdmin');
                 _userName = '${profileState.user.firstName} ${profileState.user.lastName}'.trim();
@@ -137,7 +135,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return Scaffold(
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             // Profile Section

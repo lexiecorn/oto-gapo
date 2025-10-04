@@ -1,12 +1,13 @@
 import 'dart:async';
-import 'package:pocketbase/pocketbase.dart';
-import '../models/monthly_dues.dart';
+
 import 'package:flutter_flavor/flutter_flavor.dart';
+import 'package:otogapo/models/monthly_dues.dart';
+import 'package:pocketbase/pocketbase.dart';
 
 class PocketBaseService {
-  static final PocketBaseService _instance = PocketBaseService._internal();
   factory PocketBaseService() => _instance;
   PocketBaseService._internal();
+  static final PocketBaseService _instance = PocketBaseService._internal();
 
   PocketBase? _pb;
   bool _isInitialized = false;
@@ -78,12 +79,12 @@ class PocketBaseService {
       ...?additionalData,
     };
 
-    return await pb.collection('users').create(body: data);
+    return pb.collection('users').create(body: data);
   }
 
   // Update user data
   Future<RecordModel> updateUser(String userId, Map<String, dynamic> data) async {
-    return await pb.collection('users').update(userId, body: data);
+    return pb.collection('users').update(userId, body: data);
   }
 
   // Delete user
@@ -93,7 +94,7 @@ class PocketBaseService {
 
   // Get user data
   Future<RecordModel> getUser(String userId) async {
-    return await pb.collection('users').getOne(userId);
+    return pb.collection('users').getOne(userId);
   }
 
   // Get all users (admin only)
@@ -124,7 +125,7 @@ class PocketBaseService {
       'type': type ?? 'general',
     };
 
-    return await pb.collection('Announcements').create(body: data);
+    return pb.collection('Announcements').create(body: data);
   }
 
   // Get app data
@@ -156,7 +157,7 @@ class PocketBaseService {
       'isActive': true,
     };
 
-    return await pb.collection('app_data').create(body: data);
+    return pb.collection('app_data').create(body: data);
   }
 
   // Update user profile
@@ -214,12 +215,12 @@ class PocketBaseService {
     if (isAdmin != null) data['isAdmin'] = isAdmin;
     if (vehicle != null) data['vehicle'] = vehicle;
 
-    return await pb.collection('users').update(userId, body: data);
+    return pb.collection('users').update(userId, body: data);
   }
 
   // Subscribe to real-time updates
   Future<UnsubscribeFunc> subscribeToUsers(void Function(RecordModel) onUpdate) async {
-    return await pb.collection('users').subscribe('*', (e) {
+    return pb.collection('users').subscribe('*', (e) {
       if ((e.action == 'create' || e.action == 'update') && e.record != null) {
         onUpdate(e.record!);
       }
@@ -228,7 +229,7 @@ class PocketBaseService {
 
   // Subscribe to announcements
   Future<UnsubscribeFunc> subscribeToAnnouncements(void Function(RecordModel) onUpdate) async {
-    return await pb.collection('Announcements').subscribe('*', (e) {
+    return pb.collection('Announcements').subscribe('*', (e) {
       if ((e.action == 'create' || e.action == 'update') && e.record != null) {
         onUpdate(e.record!);
       }
@@ -271,9 +272,9 @@ class PocketBaseService {
         }).toList();
 
         print(
-            'PocketBaseService.getMonthlyDuesForUser - Found ${filteredRecords.length} monthly dues records for user "$userId" after filtering');
+            'PocketBaseService.getMonthlyDuesForUser - Found ${filteredRecords.length} monthly dues records for user "$userId" after filtering',);
 
-        return filteredRecords.map((record) => MonthlyDues.fromRecord(record)).toList();
+        return filteredRecords.map(MonthlyDues.fromRecord).toList();
       } catch (e) {
         print('PocketBaseService.getMonthlyDuesForUser - Error getting monthly dues: $e');
         return [];
@@ -345,10 +346,10 @@ class PocketBaseService {
     final existingDues = await getMonthlyDuesForUserAndMonth(userId, month);
     final status = isPaid ? 'Paid' : 'Unpaid';
 
-    return await createOrUpdateMonthlyDues(
+    return createOrUpdateMonthlyDues(
       userId: userId,
       dueForMonth: month,
-      amount: 100.0, // Fixed amount per month
+      amount: 100, // Fixed amount per month
       status: status,
       paymentDate: isPaid ? (paymentDate ?? DateTime.now()) : null,
       notes: notes,
@@ -363,9 +364,9 @@ class PocketBaseService {
       final now = DateTime.now();
       final currentYear = now.year;
 
-      int paid = 0;
-      int unpaid = 0;
-      int advance = 0;
+      var paid = 0;
+      var unpaid = 0;
+      var advance = 0;
 
       for (final due in dues) {
         if (due.dueForMonth != null) {
@@ -407,7 +408,7 @@ class PocketBaseService {
       final result = await pb.collection('monthly_dues').getFullList(
             sort: '-due_for_month',
           );
-      return result.map((record) => MonthlyDues.fromRecord(record)).toList();
+      return result.map(MonthlyDues.fromRecord).toList();
     } catch (e) {
       print('Error getting all monthly dues: $e');
       return [];
@@ -433,7 +434,7 @@ class PocketBaseService {
 
       print('Total records: ${allResult.length}');
 
-      for (int i = 0; i < allResult.length; i++) {
+      for (var i = 0; i < allResult.length; i++) {
         final record = allResult[i];
         print('Record ${i + 1}:');
         print('  - ID: ${record.id}');
@@ -471,8 +472,8 @@ class PocketBaseService {
       }
 
       final now = DateTime.now();
-      final currentMonth = DateTime(now.year, now.month, 1);
-      final lastMonth = DateTime(now.year, now.month - 1, 1);
+      final currentMonth = DateTime(now.year, now.month);
+      final lastMonth = DateTime(now.year, now.month - 1);
 
       // Create a record for last month (paid)
       final record1 = await pb.collection('monthly_dues').create(body: {
@@ -482,7 +483,7 @@ class PocketBaseService {
         'status': 'Paid',
         'payment_date': lastMonth.toIso8601String().split('T')[0],
         'notes': 'Test payment for debugging',
-      });
+      },);
 
       print('Created test record 1: ${record1.id}');
 
@@ -493,7 +494,7 @@ class PocketBaseService {
         'due_for_month': currentMonth.toIso8601String().split('T')[0],
         'status': 'Unpaid',
         'notes': 'Current month dues',
-      });
+      },);
 
       print('Created test record 2: ${record2.id}');
       print('=== Test Records Created Successfully ===');
@@ -514,7 +515,7 @@ class PocketBaseService {
 
   // Subscribe to monthly dues updates
   Future<UnsubscribeFunc> subscribeToMonthlyDues(void Function(RecordModel) onUpdate) async {
-    return await pb.collection('monthly_dues').subscribe('*', (e) {
+    return pb.collection('monthly_dues').subscribe('*', (e) {
       if ((e.action == 'create' || e.action == 'update' || e.action == 'delete') && e.record != null) {
         onUpdate(e.record!);
       }

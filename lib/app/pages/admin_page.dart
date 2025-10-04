@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:otogapo/app/pages/user_management_page.dart';
-import 'package:otogapo/app/pages/payment_management_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
+import 'package:otogapo/app/pages/payment_management_page.dart';
+import 'package:otogapo/app/pages/user_management_page.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 
 class AdminPage extends StatefulWidget {
-  const AdminPage({Key? key}) : super(key: key);
+  const AdminPage({super.key});
 
   @override
   State<AdminPage> createState() => _AdminPageState();
@@ -96,13 +96,13 @@ class _AdminPageState extends State<AdminPage> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -204,7 +204,7 @@ class _AdminPageState extends State<AdminPage> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

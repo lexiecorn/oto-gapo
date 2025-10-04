@@ -1,15 +1,15 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_flavor/flutter_flavor.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 
 class CurrentUserAccountPage extends StatefulWidget {
-  const CurrentUserAccountPage({Key? key}) : super(key: key);
+  const CurrentUserAccountPage({super.key});
 
   @override
   State<CurrentUserAccountPage> createState() => _CurrentUserAccountPageState();
@@ -241,7 +241,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
 
               // Driver's License Information Section
               _buildInfoSection(
-                title: 'Driver\'s License Information',
+                title: "Driver's License Information",
                 icon: Icons.drive_eta,
                 color: Colors.orange,
                 children: [

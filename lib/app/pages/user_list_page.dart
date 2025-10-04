@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/pages/user_detail_page.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 
 class UserListPage extends StatefulWidget {
-  const UserListPage({Key? key}) : super(key: key);
+  const UserListPage({super.key});
 
   @override
   State<UserListPage> createState() => _UserListPageState();
@@ -16,7 +16,7 @@ class _UserListPageState extends State<UserListPage> {
   bool _isLoading = true;
   List<dynamic> _users = [];
   String _searchQuery = '';
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -151,9 +151,9 @@ class _UserListPageState extends State<UserListPage> {
     final displayName = titleCaseName.isEmpty ? '(no_name)' : titleCaseName;
     final email = (userData['email'] ?? '').toString();
     final memberNumber = (userData['memberNumber'] ?? '').toString();
-    final displayMemberNumber = memberNumber == '${memberNumber}' ? 'OM-${memberNumber}' : memberNumber;
+    final displayMemberNumber = memberNumber == memberNumber ? 'OM-$memberNumber' : memberNumber;
 
-    String creationDate = 'Unknown';
+    var creationDate = 'Unknown';
     if (userData['created'] != null) {
       try {
         final date = DateTime.parse(userData['created'].toString());
@@ -170,7 +170,7 @@ class _UserListPageState extends State<UserListPage> {
       margin: EdgeInsets.only(bottom: 8.sp),
       child: Card(
         elevation: isDark ? 0 : 2,
-        color: isDark ? colorScheme.surfaceVariant : Colors.white,
+        color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.sp),
         ),
@@ -373,7 +373,7 @@ class _UserListPageState extends State<UserListPage> {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isDark ? colorScheme.surfaceVariant : Colors.grey[100],
+                      color: isDark ? colorScheme.surfaceContainerHighest : Colors.grey[100],
                       borderRadius: BorderRadius.circular(12.sp),
                       border: isDark ? Border.all(color: colorScheme.outline.withOpacity(0.2)) : null,
                     ),
@@ -391,7 +391,7 @@ class _UserListPageState extends State<UserListPage> {
                           color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[400],
                         ),
                         prefixIcon: Icon(Icons.search,
-                            color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600]),
+                            color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600],),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(
                           horizontal: 16.sp,

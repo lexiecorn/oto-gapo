@@ -20,7 +20,7 @@ class ProfileState extends Equatable {
       profileStatus: ProfileStatus.initial,
       user: my_auth_repo.User.empty(),
       error: CustomError.initial(),
-      vehicles: [],
+      vehicles: const [],
     );
   }
   final ProfileStatus profileStatus;

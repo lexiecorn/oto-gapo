@@ -3,14 +3,14 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/car_widget.dart';
-import 'package:otogapo/app/pages/id_card.dart';
 import 'package:otogapo/app/pages/current_user_account_page.dart';
+import 'package:otogapo/app/pages/id_card.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 
 @RoutePage(
@@ -47,12 +47,12 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     );
 
     _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
+      begin: 0,
+      end: 1,
     ).animate(CurvedAnimation(
       parent: _pageAnimationController,
       curve: Curves.easeOut,
-    ));
+    ),);
 
     // Start animation
     _pageAnimationController.forward();
@@ -321,7 +321,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Container(
                     height: 16,
                     width: 150,
@@ -415,9 +415,9 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 }
 
 class PaymentStatusCard extends StatefulWidget {
-  final String userId;
 
-  const PaymentStatusCard({Key? key, required this.userId}) : super(key: key);
+  const PaymentStatusCard({required this.userId, super.key});
+  final String userId;
 
   @override
   State<PaymentStatusCard> createState() => _PaymentStatusCardState();
@@ -428,7 +428,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
   int _paidCount = 0;
   int _unpaidCount = 0;
   int _advanceCount = 0;
-  double _totalAmount = 0.0;
+  double _totalAmount = 0;
   List<Map<String, dynamic>> _recentPayments = [];
 
   @override

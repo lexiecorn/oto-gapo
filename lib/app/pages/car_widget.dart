@@ -1,9 +1,9 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo_core/otogapo_core.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 
 class CarWidget extends StatefulWidget {
   const CarWidget({
@@ -38,12 +38,12 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
     );
 
     _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
+      begin: 0,
+      end: 1,
     ).animate(CurvedAnimation(
       parent: _carAnimationController,
-      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-    ));
+      curve: const Interval(0, 0.6, curve: Curves.easeOut),
+    ),);
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.2),
@@ -51,15 +51,15 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
     ).animate(CurvedAnimation(
       parent: _carAnimationController,
       curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
-    ));
+    ),);
 
     _scaleAnimation = Tween<double>(
       begin: 0.9,
-      end: 1.0,
+      end: 1,
     ).animate(CurvedAnimation(
       parent: _carAnimationController,
-      curve: const Interval(0.3, 1.0, curve: Curves.easeOutBack),
-    ));
+      curve: const Interval(0.3, 1, curve: Curves.easeOutBack),
+    ),);
 
     // Start animations with delay
     Future.delayed(const Duration(milliseconds: 300), () {
@@ -79,16 +79,16 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
   Future<List<String>> _getCarImageUrls() async {
     try {
       final userId = widget.state.user.uid;
-      if (userId == null || userId.isEmpty) {
-        print('CarWidget: User ID is null or empty');
+      if (userId.isEmpty) {
+        print('CarWidget: User ID is empty');
         return [];
       }
 
       print('CarWidget: Fetching car images for user: $userId');
-      final List<String> imageUrls = [];
+      final imageUrls = <String>[];
 
       // Try to get 4 car images from Firebase Storage
-      for (int i = 1; i <= 4; i++) {
+      for (var i = 1; i <= 4; i++) {
         try {
           final imagePath = 'users/$userId/images/cars/$i.png';
           print('CarWidget: Trying to fetch image: $imagePath');
@@ -116,7 +116,7 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
   Future<List<String>> _listCarImages() async {
     try {
       final userId = widget.state.user.uid;
-      if (userId == null || userId.isEmpty) {
+      if (userId.isEmpty) {
         return [];
       }
 
@@ -124,9 +124,9 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
       final carsRef = FirebaseStorage.instance.ref().child('users/$userId/images/cars/');
 
       final result = await carsRef.listAll();
-      final List<String> fileNames = [];
+      final fileNames = <String>[];
 
-      for (var item in result.items) {
+      for (final item in result.items) {
         fileNames.add(item.name);
         print('CarWidget: Found file: ${item.name}');
       }
@@ -146,9 +146,9 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
     });
 
     final userId = widget.state.user.uid;
-    final mainImageFuture = (userId != null && userId.isNotEmpty)
+    final mainImageFuture = userId.isNotEmpty
         ? FirebaseStorage.instance.ref().child('users/$userId/images/cars/main.png').getDownloadURL()
-        : Future.value(null);
+        : Future.value();
 
     return FadeTransition(
       opacity: _fadeAnimation,
@@ -269,7 +269,6 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                                   img: snapshot.data!,
                                   width: 140,
                                   height: 140,
-                                  borderrRadius: 10,
                                 )
                                     .animate()
                                     .fadeIn(delay: 800.ms, duration: 800.ms)
@@ -348,7 +347,6 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                                 img: imageUrls[index],
                                 width: double.infinity,
                                 height: double.infinity,
-                                borderrRadius: 10,
                               ),
                             )
                                 .animate()

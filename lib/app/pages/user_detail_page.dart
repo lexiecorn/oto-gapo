@@ -1,20 +1,18 @@
-import 'package:flutter/material.dart';
-import 'package:otogapo/app/pages/user_list_page.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:otogapo/app/modules/auth/auth_bloc.dart';
-import 'package:otogapo/services/pocketbase_service.dart';
 import 'dart:io';
 
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:otogapo/app/modules/auth/auth_bloc.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
+
 class UserDetailPage extends StatefulWidget {
-  final Map<String, dynamic> userData;
 
   const UserDetailPage({
-    Key? key,
-    required this.userData,
-  }) : super(key: key);
+    required this.userData, super.key,
+  });
+  final Map<String, dynamic> userData;
 
   @override
   State<UserDetailPage> createState() => _UserDetailPageState();
@@ -131,7 +129,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       });
 
       // Show image source selection dialog
-      final ImageSource? source = await showDialog<ImageSource>(
+      final source = await showDialog<ImageSource>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -163,7 +161,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
 
       // Pick the image
-      final XFile? pickedFile = await _imagePicker.pickImage(
+      final pickedFile = await _imagePicker.pickImage(
         source: source,
         maxWidth: 1024,
         maxHeight: 1024,
@@ -233,7 +231,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   Future<File?> _pickCarImage() async {
     try {
       // Show image source selection dialog
-      final ImageSource? source = await showDialog<ImageSource>(
+      final source = await showDialog<ImageSource>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -260,7 +258,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       if (source == null) return null;
 
       // Pick the image
-      final XFile? pickedFile = await _imagePicker.pickImage(
+      final pickedFile = await _imagePicker.pickImage(
         source: source,
         maxWidth: 1024,
         maxHeight: 1024,
@@ -290,19 +288,14 @@ class _UserDetailPageState extends State<UserDetailPage> {
     switch (imageName) {
       case 'main':
         selectedImage = _selectedMainCarImage;
-        break;
       case '1':
         selectedImage = _selectedCarImage1;
-        break;
       case '2':
         selectedImage = _selectedCarImage2;
-        break;
       case '3':
         selectedImage = _selectedCarImage3;
-        break;
       case '4':
         selectedImage = _selectedCarImage4;
-        break;
     }
 
     if (selectedImage == null) return null;
@@ -353,27 +346,22 @@ class _UserDetailPageState extends State<UserDetailPage> {
           setState(() {
             _uploadedMainCarImageUrl = gsUri;
           });
-          break;
         case '1':
           setState(() {
             _uploadedCarImage1Url = gsUri;
           });
-          break;
         case '2':
           setState(() {
             _uploadedCarImage2Url = gsUri;
           });
-          break;
         case '3':
           setState(() {
             _uploadedCarImage3Url = gsUri;
           });
-          break;
         case '4':
           setState(() {
             _uploadedCarImage4Url = gsUri;
           });
-          break;
       }
 
       setState(() {
@@ -418,12 +406,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
     final authState = context.read<AuthBloc>().state;
     if (authState.user == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text("Authentication Error")),
+        appBar: AppBar(title: const Text('Authentication Error')),
         body: const Center(
           child: Padding(
-            padding: EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16),
             child: Text(
-              "You are not logged in. Please log in again to view user details.",
+              'You are not logged in. Please log in again to view user details.',
               textAlign: TextAlign.center,
             ),
           ),
@@ -525,7 +513,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             ),
                             child: _isUploadingImage
                                 ? const Padding(
-                                    padding: EdgeInsets.all(8.0),
+                                    padding: EdgeInsets.all(8),
                                     child: SizedBox(
                                       width: 16,
                                       height: 16,
@@ -567,7 +555,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     _buildEditableField('Religion', 'religion'),
                     _buildEditableField('Civil Status', 'civilStatus'),
                     _buildEditableField('Gender', 'gender',
-                        isDropdown: true, dropdownOptions: ['Male', 'Female', 'Other']),
+                        isDropdown: true, dropdownOptions: ['Male', 'Female', 'Other'],),
                   ],
                 ),
 
@@ -599,7 +587,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
                 // Driver's License Information Section
                 _buildSection(
-                  'Driver\'s License Information',
+                  "Driver's License Information",
                   [
                     _buildEditableField('License Number', 'driversLicenseNumber'),
                     _buildEditableField('License Exp. Date', 'driversLicenseExpirationDate', isDate: true),
@@ -648,7 +636,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   'Medical Information',
                   [
                     _buildEditableField('Blood Type', 'bloodType',
-                        isDropdown: true, dropdownOptions: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']),
+                        isDropdown: true, dropdownOptions: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'],),
                   ],
                 ),
 
@@ -709,7 +697,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       bool isBoolean = false,
       bool isDate = false,
       bool isDropdown = false,
-      List<String>? dropdownOptions}) {
+      List<String>? dropdownOptions,}) {
     try {
       if (_isEditing) {
         if (isDate) {
@@ -775,7 +763,6 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             helpText: 'Select $label',
                             fieldLabelText: label,
                             fieldHintText: 'Date',
-                            initialEntryMode: DatePickerEntryMode.calendar,
                           );
                           if (picked != null) {
                             setState(() {
@@ -800,7 +787,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
           final currentValue = _editedData[field]?.toString().trim();
           String? validValue;
           if (currentValue != null && currentValue.isNotEmpty) {
-            for (var option in dropdownOptions) {
+            for (final option in dropdownOptions) {
               if (option.toLowerCase() == currentValue.toLowerCase()) {
                 validValue = option;
                 break;
@@ -829,7 +816,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                         .map((option) => DropdownMenuItem(
                               value: option,
                               child: Text(option),
-                            ))
+                            ),)
                         .toList(),
                     onChanged: (value) {
                       if (value != null) {
@@ -941,10 +928,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 ),
               ),
             ),
-            Expanded(
+            const Expanded(
               child: Text(
                 'Error loading field',
-                style: const TextStyle(color: Colors.red),
+                style: TextStyle(color: Colors.red),
               ),
             ),
           ],
@@ -953,7 +940,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
     }
   }
 
-  void _saveChanges() async {
+  Future<void> _saveChanges() async {
     if (_formKey.currentState!.validate()) {
       try {
         // Show loading indicator
@@ -1143,10 +1130,6 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
       if (userId == null || userId.isEmpty) {
         // Remove loading overlay
-        if (overlayEntry != null) {
-          overlayEntry!.remove();
-          overlayEntry = null;
-        }
         print('User ID not found, returning error result...'); // Debug log
         Navigator.of(context).pop('error: User ID not found');
         print('Error result returned successfully'); // Debug log
@@ -1157,10 +1140,6 @@ class _UserDetailPageState extends State<UserDetailPage> {
       final authState = context.read<AuthBloc>().state;
       if (authState.user != null && authState.user!.id == userId) {
         // Remove loading overlay
-        if (overlayEntry != null) {
-          overlayEntry!.remove();
-          overlayEntry = null;
-        }
         print('Attempting to delete own account, returning error result...'); // Debug log
         Navigator.of(context).pop('error: Cannot delete your own account');
         print('Error result returned successfully'); // Debug log
@@ -1170,9 +1149,9 @@ class _UserDetailPageState extends State<UserDetailPage> {
       // Show loading indicator using overlay
       final overlay = Overlay.of(context);
       overlayEntry = OverlayEntry(
-        builder: (context) => Container(
+        builder: (context) => const ColoredBox(
           color: Colors.black54,
-          child: const Center(child: CircularProgressIndicator()),
+          child: Center(child: CircularProgressIndicator()),
         ),
       );
       overlay.insert(overlayEntry);
@@ -1196,18 +1175,16 @@ class _UserDetailPageState extends State<UserDetailPage> {
             pocketBaseError.toString().contains('PERMISSION_DENIED')) {
           throw Exception('Permission denied: Unable to delete user. Please check your permissions or try again.');
         }
-        throw pocketBaseError; // Re-throw other errors
+        rethrow; // Re-throw other errors
       }
 
       // Add a small delay to ensure the deletion is processed
       await Future.delayed(const Duration(milliseconds: 500));
 
       // Remove loading overlay
-      if (overlayEntry != null) {
-        overlayEntry!.remove();
-        overlayEntry = null;
-      }
-      print('Loading overlay removed'); // Debug log
+      overlayEntry.remove();
+      overlayEntry = null;
+          print('Loading overlay removed'); // Debug log
 
       // Navigate back immediately after successful deletion
       print('Returning result to previous page...'); // Debug log
@@ -1217,7 +1194,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       print('Error during delete: $e'); // Debug log
       // Remove loading overlay if it exists
       if (overlayEntry != null) {
-        overlayEntry!.remove();
+        overlayEntry.remove();
         overlayEntry = null;
       }
 
@@ -1265,7 +1242,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
 
       // Delete additional car images (1, 2, 3, 4)
-      for (int i = 1; i <= 4; i++) {
+      for (var i = 1; i <= 4; i++) {
         try {
           final carImageRef = storage.ref().child('users/$userId/images/cars/$i.png');
           await carImageRef.delete();
@@ -1327,7 +1304,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   }
 
   Widget _buildDetailRow(String label, dynamic value) {
-    String displayValue = 'Not provided';
+    var displayValue = 'Not provided';
 
     if (value != null) {
       if (value is DateTime) {
@@ -1345,7 +1322,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
             'September',
             'October',
             'November',
-            'December'
+            'December',
           ];
           final month = months[value.month - 1];
           final day = value.day;
@@ -1377,7 +1354,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
             'September',
             'October',
             'November',
-            'December'
+            'December',
           ];
           final month = months[date.month - 1];
           final day = date.day;
@@ -1401,11 +1378,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
     }
 
     // Check if this is an image field and has a valid URL
-    bool isImageField = label.toLowerCase().contains('photo') ||
+    final isImageField = label.toLowerCase().contains('photo') ||
         label.toLowerCase().contains('image') ||
         label.toLowerCase().contains('picture');
 
-    bool hasValidUrl = value is String && value.isNotEmpty;
+    final hasValidUrl = value is String && value.isNotEmpty;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -1511,7 +1488,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Primary Car Image',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -1627,7 +1604,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
         // Additional Car Images Grid
         Text('Additional Car Images (1-4)',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),),
         const SizedBox(height: 8),
 
         // Grid of car images for editing
@@ -1649,16 +1626,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
             switch (imageNumber) {
               case 1:
                 selectedImage = _selectedCarImage1;
-                break;
               case 2:
                 selectedImage = _selectedCarImage2;
-                break;
               case 3:
                 selectedImage = _selectedCarImage3;
-                break;
               case 4:
                 selectedImage = _selectedCarImage4; // 4th car image, separate from main
-                break;
             }
 
             // If no locally selected image, try to load from Firebase Storage
@@ -1697,17 +1670,17 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                 width: double.infinity,
                                 height: double.infinity,
                                 errorBuilder: (context, error, stackTrace) {
-                                  return Container(
+                                  return ColoredBox(
                                     color: Colors.grey.shade100,
                                     child: Center(
                                       child: Column(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                          const Icon(Icons.directions_car, size: 32, color: Colors.grey),
                                           const SizedBox(height: 4),
                                           Text(
                                             'Car $imageNumber',
-                                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                                            style: const TextStyle(color: Colors.grey, fontSize: 12),
                                           ),
                                         ],
                                       ),
@@ -1749,16 +1722,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                       switch (imageNumber) {
                                         case 1:
                                           _selectedCarImage1 = pickedImage;
-                                          break;
                                         case 2:
                                           _selectedCarImage2 = pickedImage;
-                                          break;
                                         case 3:
                                           _selectedCarImage3 = pickedImage;
-                                          break;
                                         case 4:
                                           _selectedCarImage4 = pickedImage;
-                                          break;
                                       }
                                     });
                                   }
@@ -1797,17 +1766,17 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               width: double.infinity,
                               height: double.infinity,
                               errorBuilder: (context, error, stackTrace) {
-                                return Container(
+                                return ColoredBox(
                                   color: Colors.grey.shade100,
                                   child: Center(
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                        const Icon(Icons.directions_car, size: 32, color: Colors.grey),
                                         const SizedBox(height: 4),
                                         Text(
                                           'Car $imageNumber',
-                                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                                          style: const TextStyle(color: Colors.grey, fontSize: 12),
                                         ),
                                       ],
                                     ),
@@ -1849,16 +1818,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                     switch (imageNumber) {
                                       case 1:
                                         _selectedCarImage1 = pickedImage;
-                                        break;
                                       case 2:
                                         _selectedCarImage2 = pickedImage;
-                                        break;
                                       case 3:
                                         _selectedCarImage3 = pickedImage;
-                                        break;
                                       case 4:
                                         _selectedCarImage4 = pickedImage;
-                                        break;
                                     }
                                   });
                                 }
@@ -1908,17 +1873,17 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             width: double.infinity,
                             height: double.infinity,
                             errorBuilder: (context, error, stackTrace) {
-                              return Container(
+                              return ColoredBox(
                                 color: Colors.grey.shade100,
                                 child: Center(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                      const Icon(Icons.directions_car, size: 32, color: Colors.grey),
                                       const SizedBox(height: 4),
                                       Text(
                                         'Car $imageNumber',
-                                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                                        style: const TextStyle(color: Colors.grey, fontSize: 12),
                                       ),
                                     ],
                                   ),
@@ -1960,16 +1925,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             switch (imageNumber) {
                               case 1:
                                 _selectedCarImage1 = pickedImage;
-                                break;
                               case 2:
                                 _selectedCarImage2 = pickedImage;
-                                break;
                               case 3:
                                 _selectedCarImage3 = pickedImage;
-                                break;
                               case 4:
                                 _selectedCarImage4 = pickedImage;
-                                break;
                             }
                           });
                         }
@@ -2007,7 +1968,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Car Primary Image',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),),
         const SizedBox(height: 16),
 
         // Main car image display
@@ -2032,12 +1993,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   border: Border.all(color: Colors.red.shade300),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Center(
+                child: const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.error, color: Colors.red, size: 32),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
                         'Error loading main car image',
                         style: TextStyle(color: Colors.red, fontSize: 12),
@@ -2064,14 +2025,14 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     width: double.infinity,
                     height: double.infinity,
                     errorBuilder: (context, error, stackTrace) {
-                      return Container(
+                      return ColoredBox(
                         color: Colors.grey.shade100,
-                        child: Center(
+                        child: const Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.error, color: Colors.grey, size: 32),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Text(
                                 'Failed to load main car image',
                                 style: TextStyle(color: Colors.grey, fontSize: 12),
@@ -2101,14 +2062,14 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   width: double.infinity,
                   height: double.infinity,
                   errorBuilder: (context, error, stackTrace) {
-                    return Container(
+                    return ColoredBox(
                       color: Colors.grey.shade100,
-                      child: Center(
+                      child: const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.directions_car, size: 48, color: Colors.grey),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text(
                               'No main car image',
                               style: TextStyle(color: Colors.grey, fontSize: 14),
@@ -2397,7 +2358,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       throw Exception('User ID not found in user data');
     }
     final gsUri = 'gs://otogapo-dev.appspot.com/users/$userId/images/cars/main.png';
-    return await _getDownloadUrlFromGsUri(gsUri);
+    return _getDownloadUrlFromGsUri(gsUri);
   }
 
   Future<bool> _checkCarImageExists(String imageName) async {
@@ -2424,7 +2385,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
     print('User ID: $userId');
 
     if (userId != null) {
-      for (String imageName in ['main', '1', '2', '3', '4']) {
+      for (final imageName in ['main', '1', '2', '3', '4']) {
         final exists = await _checkCarImageExists(imageName);
         print('Car image $imageName exists: $exists');
 
@@ -2449,7 +2410,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       } else if (value is Map<String, dynamic>) {
         _convertTimestampsToIso(value);
       } else if (value is List) {
-        for (int i = 0; i < value.length; i++) {
+        for (var i = 0; i < value.length; i++) {
           if (value[i] is DateTime) {
             value[i] = (value[i] as DateTime).toIso8601String();
           } else if (value[i] is Map<String, dynamic>) {

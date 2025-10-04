@@ -1,7 +1,7 @@
 import 'package:authentication_repository/authentication_repository.dart' as my_auth_repo;
+import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:authentication_repository/src/profile_failure.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 
 ///Profile Repository
 class ProfileRepository {
@@ -24,9 +24,9 @@ class ProfileRepository {
       if (!pocketBaseAuth.isAuthenticated) {
         print('ProfileRepository.getProfile - User not authenticated with PocketBase');
         print(
-            'ProfileRepository.getProfile - PocketBase auth store valid: ${pocketBaseAuth.pocketBase.authStore.isValid}');
+            'ProfileRepository.getProfile - PocketBase auth store valid: ${pocketBaseAuth.pocketBase.authStore.isValid}',);
         print(
-            'ProfileRepository.getProfile - PocketBase auth store model: ${pocketBaseAuth.pocketBase.authStore.model}');
+            'ProfileRepository.getProfile - PocketBase auth store model: ${pocketBaseAuth.pocketBase.authStore.model}',);
 
         throw ProfileFailure(
           code: 'Not Authenticated',

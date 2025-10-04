@@ -1,6 +1,6 @@
 import 'package:authentication_repository/src/models/auth_failure.dart';
-import 'package:pocketbase/pocketbase.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
+import 'package:pocketbase/pocketbase.dart';
 
 class PocketBaseAuthRepository {
   PocketBase? _pocketBase;
@@ -90,7 +90,7 @@ class PocketBaseAuthRepository {
     final user = currentUser;
     if (user == null) throw Exception('No authenticated user');
 
-    return await pocketBase.collection('users').update(user.id, body: data);
+    return pocketBase.collection('users').update(user.id, body: data);
   }
 
   /// Get user profile

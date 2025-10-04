@@ -4,10 +4,10 @@ import 'package:authentication_repository/src/models/auth_failure.dart';
 import 'package:authentication_repository/src/models/token_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:fresh_dio/fresh_dio.dart';
 import 'package:local_storage/local_storage.dart';
 import 'package:pocketbase/pocketbase.dart';
-import 'package:flutter_flavor/flutter_flavor.dart';
 
 /// Firaebause API Eception
 class FirebaseAuthApiFailure implements Exception {
@@ -234,7 +234,7 @@ class AuthRepository {
       ...?additionalData,
     };
 
-    return await pocketBase.collection('users').create(body: data);
+    return pocketBase.collection('users').create(body: data);
   }
 
   /// Get current user data from PocketBase
@@ -242,7 +242,7 @@ class AuthRepository {
     final user = firebaseAuth.currentUser;
     if (user == null) return null;
 
-    return await _getUserByFirebaseUid(user.uid);
+    return _getUserByFirebaseUid(user.uid);
   }
 
   /// Update user data in PocketBase
@@ -253,7 +253,7 @@ class AuthRepository {
     final pocketBaseUser = await _getUserByFirebaseUid(user.uid);
     if (pocketBaseUser == null) throw Exception('User not found in PocketBase');
 
-    return await pocketBase.collection('users').update(pocketBaseUser.id, body: data);
+    return pocketBase.collection('users').update(pocketBaseUser.id, body: data);
   }
 
   /// Get announcements from PocketBase

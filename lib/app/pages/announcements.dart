@@ -33,12 +33,12 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
     );
 
     _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
+      begin: 0,
+      end: 1,
     ).animate(CurvedAnimation(
       parent: _fadeController,
       curve: Curves.easeInOut,
-    ));
+    ),);
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
@@ -46,7 +46,7 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
     ).animate(CurvedAnimation(
       parent: _slideController,
       curve: Curves.easeOutCubic,
-    ));
+    ),);
 
     _fetchAnnouncements();
   }

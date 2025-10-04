@@ -50,14 +50,14 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   void resetProfile() {
     print('ProfileCubit.resetProfile - Resetting profile state');
-    print('ProfileCubit.resetProfile - Current state before reset: ${state}');
+    print('ProfileCubit.resetProfile - Current state before reset: $state');
     emit(ProfileState.initial());
     print('ProfileCubit.resetProfile - State reset to initial');
   }
 
   void forceClear() {
     print('ProfileCubit.forceClear - Force clearing profile state');
-    print('ProfileCubit.forceClear - Current state before clear: ${state}');
+    print('ProfileCubit.forceClear - Current state before clear: $state');
     emit(ProfileState.initial());
     print('ProfileCubit.forceClear - State cleared');
   }

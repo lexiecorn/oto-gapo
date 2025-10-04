@@ -1,10 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/profile/profile_page.dart';
 import 'package:otogapo/app/pages/home_body.dart';
 import 'package:otogapo/app/pages/settings_page.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 @RoutePage(
   name: 'HomePageRouter',
@@ -27,7 +27,7 @@ class HomePageState extends State<HomePage> {
       child: const HomeBody(),
     ),
     const ProfilePage(),
-    SettingsPage(),
+    const SettingsPage(),
   ];
 
   final List<String> _pageTitles = [
@@ -60,7 +60,7 @@ class HomePageState extends State<HomePage> {
         appBar: AppBar(
           title: Text(
             _selectedIndex == 2 ? 'Settings' : _pageTitles.elementAt(_selectedIndex),
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -72,13 +72,13 @@ class HomePageState extends State<HomePage> {
           actions: _selectedIndex == 2
               ? [
                   IconButton(
-                    icon: Icon(Icons.refresh, color: Colors.white),
+                    icon: const Icon(Icons.refresh, color: Colors.white),
                     onPressed: () {
                       // Optionally: trigger a refresh in SettingsPage
                     },
                   ),
                   IconButton(
-                    icon: Icon(Icons.help_outline, color: Colors.white),
+                    icon: const Icon(Icons.help_outline, color: Colors.white),
                     onPressed: () {
                       // Optionally: show help dialog
                     },
@@ -94,16 +94,16 @@ class HomePageState extends State<HomePage> {
 
   Widget _buildBottomNavigationBar() {
     return Animate(
-      effects: [
+      effects: const [
         SlideEffect(
-          begin: const Offset(0, 1.0),
+          begin: Offset(0, 1),
           end: Offset.zero,
-          duration: const Duration(milliseconds: 600),
+          duration: Duration(milliseconds: 600),
           curve: Curves.easeOutCubic,
         ),
         FadeEffect(
-          delay: const Duration(milliseconds: 200),
-          duration: const Duration(milliseconds: 600),
+          delay: Duration(milliseconds: 200),
+          duration: Duration(milliseconds: 600),
         ),
       ],
       child: Container(
@@ -113,21 +113,21 @@ class HomePageState extends State<HomePage> {
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
               blurRadius: 20,
-              offset: Offset(0, -5),
+              offset: const Offset(0, -5),
             ),
           ],
-          borderRadius: BorderRadius.vertical(
+          borderRadius: const BorderRadius.vertical(
             top: Radius.circular(20),
           ),
         ),
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: List.generate(
                 _pageIcons.length,
-                (index) => _buildNavItem(index),
+                _buildNavItem,
               ),
             ),
           ),

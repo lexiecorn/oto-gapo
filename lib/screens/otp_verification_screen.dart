@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:otogapo/providers/auth_provider.dart';
-import 'package:otogapo/providers/user_provider.dart';
 import 'package:otogapo/providers/theme_provider.dart';
+import 'package:otogapo/providers/user_provider.dart';
 import 'package:otogapo/utils/validators.dart';
 import 'package:otogapo/widgets/custom_button.dart';
 import 'package:otogapo/widgets/custom_text_field.dart';
 import 'package:otogapo/widgets/loading_overlay.dart';
-import 'package:otogapo/widgets/error_dialog.dart';
+import 'package:provider/provider.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
 

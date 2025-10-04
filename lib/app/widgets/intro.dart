@@ -82,9 +82,7 @@ class _IntroPageState extends State<IntroPage> {
             context.read<ProfileCubit>().forceClear();
 
             // Add a small delay to ensure state is cleared
-            Future.delayed(const Duration(milliseconds: 100), () {
-              _getProfile();
-            });
+            Future.delayed(const Duration(milliseconds: 100), _getProfile);
           }
         },
         child: BlocConsumer<ProfileCubit, ProfileState>(
@@ -109,9 +107,7 @@ class _IntroPageState extends State<IntroPage> {
               print('Intro Widget - Profile user UID: ${state.user.uid}');
               print('Intro Widget - Force clearing profile for new user');
               context.read<ProfileCubit>().forceClear();
-              Future.delayed(const Duration(milliseconds: 100), () {
-                _getProfile();
-              });
+              Future.delayed(const Duration(milliseconds: 100), _getProfile);
             }
 
             // Handle different profile states
@@ -129,7 +125,7 @@ class _IntroPageState extends State<IntroPage> {
                     Text('Error loading profile: ${state.error.message}'),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => _getProfile(),
+                      onPressed: _getProfile,
                       child: const Text('Retry'),
                     ),
                   ],
@@ -157,7 +153,7 @@ class _IntroPageState extends State<IntroPage> {
                     Text('Last Name: "${state.user.lastName}"'),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => _getProfile(),
+                      onPressed: _getProfile,
                       child: const Text('Reload Profile'),
                     ),
                   ],

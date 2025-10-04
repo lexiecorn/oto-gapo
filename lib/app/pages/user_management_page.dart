@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:provider/provider.dart';
-import 'package:otogapo/providers/theme_provider.dart';
-import 'package:otogapo/app/pages/user_list_page.dart';
 import 'package:otogapo/app/pages/create_user_page.dart';
+import 'package:otogapo/app/pages/user_list_page.dart';
+import 'package:otogapo/providers/theme_provider.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:provider/provider.dart';
 
 class UserManagementPage extends StatefulWidget {
-  const UserManagementPage({Key? key}) : super(key: key);
+  const UserManagementPage({super.key});
 
   @override
   State<UserManagementPage> createState() => _UserManagementPageState();
@@ -53,8 +53,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
       final currentYear = now.year;
 
       // Get new users this month and active users
-      int newThisMonth = 0;
-      int activeUsers = 0;
+      var newThisMonth = 0;
+      var activeUsers = 0;
 
       for (final user in pocketBaseUsers) {
         final data = user.data;
@@ -156,7 +156,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 .animate()
                 .fadeIn(delay: const Duration(milliseconds: 200), duration: const Duration(milliseconds: 600))
                 .slideY(
-                    begin: -0.2, delay: const Duration(milliseconds: 200), duration: const Duration(milliseconds: 600)),
+                    begin: -0.2, delay: const Duration(milliseconds: 200), duration: const Duration(milliseconds: 600),),
 
             SizedBox(height: 24.sp),
 
@@ -165,7 +165,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 .animate()
                 .fadeIn(delay: const Duration(milliseconds: 400), duration: const Duration(milliseconds: 600))
                 .slideY(
-                    begin: -0.2, delay: const Duration(milliseconds: 400), duration: const Duration(milliseconds: 600)),
+                    begin: -0.2, delay: const Duration(milliseconds: 400), duration: const Duration(milliseconds: 600),),
 
             SizedBox(height: 24.sp),
 
@@ -174,7 +174,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 .animate()
                 .fadeIn(delay: const Duration(milliseconds: 600), duration: const Duration(milliseconds: 600))
                 .slideY(
-                    begin: -0.2, delay: const Duration(milliseconds: 600), duration: const Duration(milliseconds: 600)),
+                    begin: -0.2, delay: const Duration(milliseconds: 600), duration: const Duration(milliseconds: 600),),
 
             SizedBox(height: 24.sp),
 
@@ -183,7 +183,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 .animate()
                 .fadeIn(delay: const Duration(milliseconds: 800), duration: const Duration(milliseconds: 600))
                 .slideY(
-                    begin: -0.2, delay: const Duration(milliseconds: 800), duration: const Duration(milliseconds: 600)),
+                    begin: -0.2, delay: const Duration(milliseconds: 800), duration: const Duration(milliseconds: 600),),
           ],
         ),
       ),
@@ -333,16 +333,14 @@ class _UserManagementPageState extends State<UserManagementPage> {
             ),
           ),
           SizedBox(height: 12.sp),
-          _isLoading
-              ? SizedBox(
+          if (_isLoading) SizedBox(
                   width: 20.sp,
                   height: 20.sp,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(color),
                   ),
-                )
-              : Text(
+                ) else Text(
                   value,
                   style: TextStyle(
                     fontSize: 24.sp,

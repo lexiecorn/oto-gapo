@@ -1,10 +1,10 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 
 class PaymentManagementPage extends StatefulWidget {
-  const PaymentManagementPage({Key? key}) : super(key: key);
+  const PaymentManagementPage({super.key});
 
   @override
   State<PaymentManagementPage> createState() => _PaymentManagementPageState();
@@ -67,9 +67,9 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
     // Generate months from January of current year to December of next year
     // This covers current year + next year (24 months total)
-    for (int year = now.year; year <= now.year + 1; year++) {
-      for (int month = 1; month <= 12; month++) {
-        final date = DateTime(year, month, 1);
+    for (var year = now.year; year <= now.year + 1; year++) {
+      for (var month = 1; month <= 12; month++) {
+        final date = DateTime(year, month);
         final monthKey = DateFormat('yyyy_MM').format(date);
         months.add(monthKey);
       }
@@ -182,7 +182,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   bool _isFutureMonth(String month) {
     final date = DateFormat('yyyy_MM').parse(month);
     final now = DateTime.now();
-    return date.isAfter(DateTime(now.year, now.month, 1));
+    return date.isAfter(DateTime(now.year, now.month));
   }
 
   // New method to show user selection dialog
@@ -263,7 +263,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       ),
       body: Stack(
         children: [
-          _showOverview ? _buildOverviewView() : _buildSingleMonthView(),
+          if (_showOverview) _buildOverviewView() else _buildSingleMonthView(),
           // User selection dialog
           if (_showUserSelectionDialog) _buildUserSelectionDialog(),
           // Bulk update dialog
@@ -500,7 +500,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
             final date = DateFormat('yyyy_MM').parse(month);
             final displayText = DateFormat('MMM yy').format(date);
             return DataColumn(label: Text(displayText));
-          }).toList(),
+          }),
           const DataColumn(label: Text('Total')),
         ],
         rows: _users.map((user) {
@@ -545,7 +545,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                     },
                   ),
                 );
-              }).toList(),
+              }),
               DataCell(
                 FutureBuilder<int>(
                   future: _getUserTotalPaid(user['id'] as String),
@@ -554,7 +554,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                     final now = DateTime.now();
                     final monthsUpToCurrent = _availableMonths.where((month) {
                       final date = DateFormat('yyyy_MM').parse(month);
-                      return date.isBefore(DateTime(now.year, now.month + 1, 1));
+                      return date.isBefore(DateTime(now.year, now.month + 1));
                     }).length;
                     return Text(
                       '$totalPaid/$monthsUpToCurrent',
@@ -571,8 +571,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   }
 
   Future<Map<String, int>> _getOverviewStats() async {
-    int totalPaid = 0;
-    int totalUnpaid = 0;
+    var totalPaid = 0;
+    var totalUnpaid = 0;
     final now = DateTime.now();
 
     for (final user in _users) {
@@ -580,7 +580,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         final date = DateFormat('yyyy_MM').parse(month);
 
         // Only count months up to current month (not future months)
-        if (date.isBefore(DateTime(now.year, now.month + 1, 1))) {
+        if (date.isBefore(DateTime(now.year, now.month + 1))) {
           final paymentData = await _getPaymentStatus(user['id'] as String, month);
           if ((paymentData?['status'] as bool?) == true) {
             totalPaid++;
@@ -595,14 +595,14 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   }
 
   Future<int> _getUserTotalPaid(String userId) async {
-    int count = 0;
+    var count = 0;
     final now = DateTime.now();
 
     for (final month in _availableMonths) {
       final date = DateFormat('yyyy_MM').parse(month);
 
       // Only count months up to current month (not future months)
-      if (date.isBefore(DateTime(now.year, now.month + 1, 1))) {
+      if (date.isBefore(DateTime(now.year, now.month + 1))) {
         final paymentData = await _getPaymentStatus(userId, month);
         if ((paymentData?['status'] as bool?) == true) {
           count++;
@@ -768,7 +768,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   }
 
   Future<int> _getPaidCount() async {
-    int count = 0;
+    var count = 0;
 
     for (final user in _users) {
       final paymentData = await _getPaymentStatus(user['id'] as String, _selectedMonth);
@@ -781,7 +781,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   }
 
   Future<int> _getUnpaidCount() async {
-    int count = 0;
+    var count = 0;
 
     for (final user in _users) {
       final paymentData = await _getPaymentStatus(user['id'] as String, _selectedMonth);
@@ -795,7 +795,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   // User selection dialog
   Widget _buildUserSelectionDialog() {
-    return Container(
+    return ColoredBox(
       color: Colors.black54,
       child: Center(
         child: Card(
@@ -843,7 +843,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
                       return ListTile(
                         visualDensity: VisualDensity.compact,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                         leading: CircleAvatar(
                           radius: 16,
                           backgroundColor: Theme.of(context).primaryColor,
@@ -900,7 +900,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   // Bulk update dialog
   Widget _buildBulkUpdateDialog() {
-    return Container(
+    return ColoredBox(
       color: Colors.black54,
       child: Center(
         child: Card(
@@ -1001,12 +1001,12 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                       listTileTheme: const ListTileThemeData(
                                         dense: true,
                                         minVerticalPadding: 0,
-                                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
                                       ),
                                     ),
                                     child: CheckboxListTile(
                                       visualDensity: VisualDensity.compact,
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                                       title: Text(
                                         displayText,
                                         style: const TextStyle(
@@ -1172,7 +1172,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   }
 
   Future<int> _getAdvancePaymentCount() async {
-    int count = 0;
+    var count = 0;
     final now = DateTime.now();
 
     for (final user in _users) {
@@ -1180,7 +1180,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         final date = DateFormat('yyyy_MM').parse(month);
 
         // Only count future months that have been paid
-        if (date.isAfter(DateTime(now.year, now.month, 1))) {
+        if (date.isAfter(DateTime(now.year, now.month))) {
           final paymentData = await _getPaymentStatus(user['id'] as String, month);
           if ((paymentData?['status'] as bool?) == true) {
             count++;

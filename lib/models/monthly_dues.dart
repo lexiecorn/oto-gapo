@@ -1,26 +1,13 @@
 import 'package:pocketbase/pocketbase.dart';
 
 class MonthlyDues {
-  final String id;
-  final double amount;
-  final DateTime? dueForMonth;
-  final String status;
-  final DateTime? paymentDate;
-  final String? notes;
-  final String userId;
-  final DateTime created;
-  final DateTime updated;
 
   const MonthlyDues({
     required this.id,
     required this.amount,
-    this.dueForMonth,
-    required this.status,
+    required this.status, required this.userId, required this.created, required this.updated, this.dueForMonth,
     this.paymentDate,
     this.notes,
-    required this.userId,
-    required this.created,
-    required this.updated,
   });
 
   factory MonthlyDues.fromRecord(RecordModel record) {
@@ -36,6 +23,15 @@ class MonthlyDues {
       updated: _parseDate(record.updated),
     );
   }
+  final String id;
+  final double amount;
+  final DateTime? dueForMonth;
+  final String status;
+  final DateTime? paymentDate;
+  final String? notes;
+  final String userId;
+  final DateTime created;
+  final DateTime updated;
 
   // Helper method to safely parse dates from PocketBase
   static DateTime _parseDate(String dateString) {
@@ -47,7 +43,7 @@ class MonthlyDues {
       } else if (dateString.contains(' ')) {
         // Format with space: "2025-11-01 12:00:00.000Z"
         // Convert to ISO format by replacing space with T
-        String isoFormat = dateString.replaceFirst(' ', 'T');
+        final isoFormat = dateString.replaceFirst(' ', 'T');
         return DateTime.parse(isoFormat);
       } else {
         // Date only format: "2025-11-01"
