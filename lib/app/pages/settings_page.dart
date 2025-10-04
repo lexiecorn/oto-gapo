@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_single_quotes
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
@@ -30,15 +31,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _checkUserStatus() async {
     try {
-      print('Settings Page - Starting _checkUserStatus');
+      debugPrint('Settings Page - Starting _checkUserStatus');
 
       // Get user from PocketBase authentication only
       final authState = context.read<AuthBloc>().state;
-      print('Settings Page - AuthBloc state: ${authState.runtimeType}');
+      debugPrint('Settings Page - AuthBloc state: ${authState.runtimeType}');
 
       if (authState.user != null) {
-        print('Settings Page - User authenticated with PocketBase via AuthBloc');
-        print('Settings Page - AuthBloc user ID: ${authState.user!.id}');
+        debugPrint('Settings Page - User authenticated with PocketBase via AuthBloc');
+        debugPrint('Settings Page - AuthBloc user ID: ${authState.user!.id}');
         try {
           final pocketBaseService = PocketBaseService();
           final userRecord = await pocketBaseService.getUser(authState.user!.id);
@@ -46,17 +47,21 @@ class _SettingsPageState extends State<SettingsPage> {
 
           setState(() {
             final membershipType = userData['membership_type'];
-            print(
-                'Settings Page - PocketBase user membership_type: $membershipType (type: ${membershipType.runtimeType})',);
-            _isAdmin = membershipType == 1 || membershipType == 2 || membershipType == "1" || membershipType == "2";
-            print('Settings Page - _isAdmin: $_isAdmin');
-            _userName = '${userData['firstName']?.toString() ?? ''} ${userData['lastName']?.toString() ?? ''}'.trim();
+            debugPrint(
+              'Settings Page - PocketBase user membership_type: $membershipType (type: ${membershipType.runtimeType})',
+            );
+            _isAdmin = membershipType == 1 || membershipType == 2 || membershipType == '1' || membershipType == '2';
+            debugPrint('Settings Page - _isAdmin: $_isAdmin');
+            _userName =
+                '${userData['firstName']?.toString() ?? ''} ' + '${userData['lastName']?.toString() ?? ''}'.trim();
             _userEmail = userData['email']?.toString() ?? '';
             _isLoading = false;
           });
         } catch (e) {
-          print('Settings Page - Error getting user from PocketBase: $e');
-          print('Settings Page - User ID ${authState.user!.id} not found in PocketBase, trying ProfileCubit fallback');
+          debugPrint('Settings Page - Error getting user from PocketBase: $e');
+          debugPrint(
+            'Settings Page - User ID ${authState.user!.id} not found in PocketBase, trying ProfileCubit fallback',
+          );
 
           // Try ProfileCubit fallback immediately
           try {
@@ -64,21 +69,24 @@ class _SettingsPageState extends State<SettingsPage> {
             final profileState = profileCubit.state;
 
             if (profileState.user.uid.isNotEmpty) {
-              print('Settings Page - Using ProfileCubit data as fallback');
-              print('Settings Page - ProfileCubit user UID: ${profileState.user.uid}');
-              print('Settings Page - ProfileCubit user membership_type: ${profileState.user.membership_type}');
+              debugPrint('Settings Page - Using ProfileCubit data as fallback');
+              debugPrint('Settings Page - ProfileCubit user UID: ${profileState.user.uid}');
+              debugPrint(
+                'Settings Page - ProfileCubit user membership_type: ${profileState.user.membership_type}',
+              );
               setState(() {
                 final membershipType = profileState.user.membership_type;
-                print(
-                    'Settings Page - ProfileCubit user membership_type: $membershipType (type: ${membershipType.runtimeType})',);
+                debugPrint(
+                  'Settings Page - ProfileCubit user membership_type: $membershipType (type: ${membershipType.runtimeType})',
+                );
                 _isAdmin = membershipType == 1 || membershipType == 2;
-                print('Settings Page - _isAdmin: $_isAdmin');
+                debugPrint('Settings Page - _isAdmin: $_isAdmin');
                 _userName = '${profileState.user.firstName} ${profileState.user.lastName}'.trim();
                 _userEmail = ''; // User model doesn't have email field
                 _isLoading = false;
               });
             } else {
-              print('Settings Page - ProfileCubit user data is empty');
+              debugPrint('Settings Page - ProfileCubit user data is empty');
               setState(() {
                 _isAdmin = false;
                 _userName = 'User';
@@ -87,7 +95,7 @@ class _SettingsPageState extends State<SettingsPage> {
               });
             }
           } catch (profileError) {
-            print('Settings Page - ProfileCubit fallback also failed: $profileError');
+            debugPrint('Settings Page - ProfileCubit fallback also failed: $profileError');
             setState(() {
               _isAdmin = false;
               _userName = 'User';
@@ -97,7 +105,7 @@ class _SettingsPageState extends State<SettingsPage> {
           }
         }
       } else {
-        print('Settings Page - No PocketBase user in AuthBloc');
+        debugPrint('Settings Page - No PocketBase user in AuthBloc');
         setState(() {
           _isAdmin = false;
           _userName = 'User';
@@ -106,7 +114,7 @@ class _SettingsPageState extends State<SettingsPage> {
         });
       }
     } catch (e) {
-      print('Error checking user status: $e');
+      debugPrint('Error checking user status: $e');
       setState(() {
         _isAdmin = false;
         _userName = 'User';
@@ -313,7 +321,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     );
 
                     if (shouldLogout == true && mounted) {
-                      await _handleLogout();
+                      await _handleLogout(context);
                     }
                   },
                 ),
@@ -337,7 +345,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Future<void> _handleLogout() async {
+  Future<void> _handleLogout(BuildContext context) async {
     try {
       // Get the current authentication state
       final authState = context.read<AuthBloc>().state;
@@ -346,7 +354,7 @@ class _SettingsPageState extends State<SettingsPage> {
         // User is authenticated with PocketBase, sign out from PocketBase
         final pocketBaseService = PocketBaseService();
         pocketBaseService.pb.authStore.clear();
-        print('Logged out from PocketBase');
+        debugPrint('Logged out from PocketBase');
       }
 
       // Navigate to login screen
@@ -354,7 +362,7 @@ class _SettingsPageState extends State<SettingsPage> {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
-      print('Error during logout: $e');
+      debugPrint('Error during logout: $e');
       // Still navigate to login screen even if logout fails
       if (mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
