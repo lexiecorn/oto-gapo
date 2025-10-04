@@ -58,3 +58,5 @@ class UpdatePhotoUrlEvent extends AuthEvent {
 }
 
 class SignoutRequestedEvent extends AuthEvent {}
+
+class CheckExistingAuthEvent extends AuthEvent {}

@@ -5,13 +5,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/car_widget.dart';
 import 'package:otogapo/app/pages/id_card.dart';
 import 'package:otogapo/app/pages/current_user_account_page.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 
 @RoutePage(
   name: 'ProfilePageRouter',
@@ -443,119 +443,84 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
         _isLoading = true;
       });
 
-      final now = DateTime.now();
-      final currentYear = now.year;
-      final currentMonth = now.month;
+      print('PaymentStatusCard - Loading payment data for userId: "${widget.userId}"');
+      final pocketBaseService = PocketBaseService();
 
-      // Generate months from January of current year to current month only
-      final months = <String>[];
-      for (int month = 1; month <= currentMonth; month++) {
-        final monthKey = '${currentYear}_${month.toString().padLeft(2, '0')}';
-        months.add(monthKey);
+      // Debug: Let's see ALL monthly dues records first
+      await pocketBaseService.debugAllMonthlyDues();
+
+      // If no records exist, create test records
+      final allDues = await pocketBaseService.getAllMonthlyDues();
+      if (allDues.isEmpty) {
+        print('No monthly dues records found, creating test records...');
+        await pocketBaseService.createTestMonthlyDues(widget.userId);
       }
 
-      // Generate future months for advance payment calculation (current month + 1 to December)
-      final futureMonths = <String>[];
-      for (int month = currentMonth + 1; month <= 12; month++) {
-        final monthKey = '${currentYear}_${month.toString().padLeft(2, '0')}';
-        futureMonths.add(monthKey);
+      // First, let's check what user data we have
+      try {
+        final userRecord = await pocketBaseService.pb.collection('users').getOne(widget.userId);
+        print('PaymentStatusCard - User record data: ${userRecord.data}');
+        print('PaymentStatusCard - User record ID: ${userRecord.id}');
+
+        // Check all possible user identifiers
+        final userEmail = userRecord.data['email'] as String?;
+        final userFirstName = userRecord.data['firstName'] as String?;
+        final userMemberNumber = userRecord.data['memberNumber']?.toString();
+        final userEmailPrefix = userEmail?.split('@').first;
+
+        print('PaymentStatusCard - User email: $userEmail');
+        print('PaymentStatusCard - User firstName: $userFirstName');
+        print('PaymentStatusCard - User memberNumber: $userMemberNumber');
+        print('PaymentStatusCard - User emailPrefix: $userEmailPrefix');
+      } catch (e) {
+        print('PaymentStatusCard - Error getting user record: $e');
       }
 
-      int paid = 0;
-      int unpaid = 0;
-      int advance = 0;
+      // Get payment statistics
+      final stats = await pocketBaseService.getPaymentStatistics(widget.userId);
+      print('PaymentStatusCard - Payment statistics: $stats');
+
+      // Get all monthly dues for the user
+      final monthlyDues = await pocketBaseService.getMonthlyDuesForUser(widget.userId);
+      print('PaymentStatusCard - Monthly dues count: ${monthlyDues.length}');
+      for (final due in monthlyDues) {
+        print('PaymentStatusCard - Due: ${due.id}, Status: ${due.status}, Amount: ${due.amount}, User: ${due.userId}');
+      }
+
+      // Also check all monthly dues records to see what user identifiers exist
+      try {
+        final allMonthlyDues = await pocketBaseService.getAllMonthlyDues();
+        print('PaymentStatusCard - Total monthly dues records in database: ${allMonthlyDues.length}');
+        for (final due in allMonthlyDues) {
+          print('PaymentStatusCard - All dues - ID: ${due.id}, User: ${due.userId}, Status: ${due.status}');
+        }
+      } catch (e) {
+        print('PaymentStatusCard - Error getting all monthly dues: $e');
+      }
+
       final recentPayments = <Map<String, dynamic>>[];
 
-      // Check current year months (January to current month)
-      for (final month in months) {
-        try {
-          final doc = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(widget.userId)
-              .collection('monthly_dues')
-              .doc(month)
-              .get();
+      // Convert monthly dues to recent payments format
+      for (final due in monthlyDues) {
+        if (due.dueForMonth != null) {
+          final displayText = DateFormat('MMMM yyyy').format(due.dueForMonth!);
+          final isAdvance = due.dueForMonth!.isAfter(DateTime.now());
 
-          final date = DateFormat('yyyy_MM').parse(month);
-          final displayText = DateFormat('MMMM yyyy').format(date);
-          final amount = 100.0; // Fixed amount per month
-
-          if (doc.exists) {
-            final data = doc.data()!;
-            final status = data['status'];
-            final isPaid = status is bool ? status : false;
-
-            if (isPaid) {
-              paid++;
-            } else {
-              unpaid++;
-            }
-
-            final updatedAt = data['updated_at'];
-            recentPayments.add({
-              'month': displayText,
-              'isPaid': isPaid,
-              'amount': amount,
-              'updatedAt': updatedAt is Timestamp ? updatedAt : null,
-              'isAdvance': false,
-            });
-          } else {
-            // No payment record exists, consider as unpaid
-            unpaid++;
-            recentPayments.add({
-              'month': displayText,
-              'isPaid': false,
-              'amount': amount,
-              'updatedAt': null,
-              'isAdvance': false,
-            });
-          }
-        } catch (e) {
-          print('Error loading payment for month $month: $e');
-          unpaid++;
-        }
-      }
-
-      // Check future months for advance payments
-      for (final month in futureMonths) {
-        try {
-          final doc = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(widget.userId)
-              .collection('monthly_dues')
-              .doc(month)
-              .get();
-
-          final date = DateFormat('yyyy_MM').parse(month);
-          final displayText = DateFormat('MMMM yyyy').format(date);
-          final amount = 100.0; // Fixed amount per month
-
-          if (doc.exists) {
-            final data = doc.data()!;
-            final status = data['status'];
-            final isPaid = status is bool ? status : false;
-
-            if (isPaid) {
-              advance++;
-              final updatedAt = data['updated_at'];
-              recentPayments.add({
-                'month': displayText,
-                'isPaid': isPaid,
-                'amount': amount,
-                'updatedAt': updatedAt is Timestamp ? updatedAt : null,
-                'isAdvance': true,
-              });
-            }
-          }
-        } catch (e) {
-          print('Error loading advance payment for month $month: $e');
+          recentPayments.add({
+            'month': displayText,
+            'isPaid': due.isPaid,
+            'amount': due.amount,
+            'updatedAt': due.paymentDate,
+            'isAdvance': isAdvance,
+            'status': due.status,
+          });
         }
       }
 
       // Sort recent payments by date (newest first)
       recentPayments.sort((a, b) {
-        final aDate = a['updatedAt'] as Timestamp?;
-        final bDate = b['updatedAt'] as Timestamp?;
+        final aDate = a['updatedAt'] as DateTime?;
+        final bDate = b['updatedAt'] as DateTime?;
         if (aDate == null && bDate == null) return 0;
         if (aDate == null) return 1;
         if (bDate == null) return -1;
@@ -566,10 +531,10 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
       final displayPayments = recentPayments.take(6).toList();
 
       setState(() {
-        _paidCount = paid;
-        _unpaidCount = unpaid;
-        _advanceCount = advance;
-        _totalAmount = (paid + advance) * 100.0;
+        _paidCount = stats['paid'] ?? 0;
+        _unpaidCount = stats['unpaid'] ?? 0;
+        _advanceCount = stats['advance'] ?? 0;
+        _totalAmount = (stats['paid']! + stats['advance']!) * 100.0;
         _recentPayments = displayPayments;
         _isLoading = false;
       });

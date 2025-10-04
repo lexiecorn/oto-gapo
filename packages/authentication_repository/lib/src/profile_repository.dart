@@ -22,9 +22,15 @@ class ProfileRepository {
 
       // Check if user is authenticated
       if (!pocketBaseAuth.isAuthenticated) {
+        print('ProfileRepository.getProfile - User not authenticated with PocketBase');
+        print(
+            'ProfileRepository.getProfile - PocketBase auth store valid: ${pocketBaseAuth.pocketBase.authStore.isValid}');
+        print(
+            'ProfileRepository.getProfile - PocketBase auth store model: ${pocketBaseAuth.pocketBase.authStore.model}');
+
         throw ProfileFailure(
           code: 'Not Authenticated',
-          message: 'User is not authenticated',
+          message: 'User is not authenticated with PocketBase',
           plugin: 'pocketbase_auth',
         );
       }

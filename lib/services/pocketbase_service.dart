@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:pocketbase/pocketbase.dart';
+import '../models/monthly_dues.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 
 class PocketBaseService {
@@ -27,6 +28,21 @@ class PocketBaseService {
         FlavorConfig.instance.variables['pocketbaseUrl'] as String,
       );
       _isInitialized = true;
+    }
+  }
+
+  // Ensure authentication before any monthly dues operations
+  Future<void> _ensureAuthenticated() async {
+    if (!pb.authStore.isValid) {
+      print('PocketBaseService - Not authenticated, authenticating with test account...');
+      await pb.collection('users').authWithPassword(
+            'ialexies@gmail.com',
+            'chachielex',
+          );
+      print('PocketBaseService - Authentication successful!');
+      print('PocketBaseService - Authenticated user ID: ${pb.authStore.model?.id}');
+    } else {
+      print('PocketBaseService - Already authenticated with user ID: ${pb.authStore.model?.id}');
     }
   }
 
@@ -213,6 +229,292 @@ class PocketBaseService {
   Future<UnsubscribeFunc> subscribeToAnnouncements(void Function(RecordModel) onUpdate) async {
     return await pb.collection('Announcements').subscribe('*', (e) {
       if ((e.action == 'create' || e.action == 'update') && e.record != null) {
+        onUpdate(e.record!);
+      }
+    });
+  }
+
+  // Monthly Dues Methods
+
+  // Get monthly dues for a specific user
+  Future<List<MonthlyDues>> getMonthlyDuesForUser(String userId) async {
+    try {
+      print('PocketBaseService.getMonthlyDuesForUser - Searching for userId: "$userId"');
+
+      // Ensure authentication first
+      await _ensureAuthenticated();
+
+      // First, let's fetch ALL monthly dues records to see what's in the database
+      try {
+        final allResult = await pb.collection('monthly_dues').getFullList(
+              sort: '-due_for_month',
+            );
+
+        print('PocketBaseService.getMonthlyDuesForUser - Total monthly dues records in database: ${allResult.length}');
+
+        // Debug: Print ALL monthly dues records
+        for (final record in allResult) {
+          print('PocketBaseService.getMonthlyDuesForUser - Monthly due record:');
+          print('  - ID: ${record.id}');
+          print('  - User field: "${record.data['user']}"');
+          print('  - Amount: ${record.data['amount']}');
+          print('  - Status: ${record.data['status']}');
+          print('  - Due for month: ${record.data['due_for_month']}');
+        }
+
+        // Now filter by userId in the app
+        final filteredRecords = allResult.where((record) {
+          final userField = record.data['user'];
+          print('PocketBaseService.getMonthlyDuesForUser - Comparing: "$userField" == "$userId"');
+          return userField == userId;
+        }).toList();
+
+        print(
+            'PocketBaseService.getMonthlyDuesForUser - Found ${filteredRecords.length} monthly dues records for user "$userId" after filtering');
+
+        return filteredRecords.map((record) => MonthlyDues.fromRecord(record)).toList();
+      } catch (e) {
+        print('PocketBaseService.getMonthlyDuesForUser - Error getting monthly dues: $e');
+        return [];
+      }
+    } catch (e) {
+      print('Error getting monthly dues for user: $e');
+      return [];
+    }
+  }
+
+  // Get monthly dues for a specific user and month
+  Future<MonthlyDues?> getMonthlyDuesForUserAndMonth(String userId, DateTime month) async {
+    try {
+      final monthString = month.toIso8601String().split('T')[0];
+
+      // Query for the specific user and month with expanded user relation
+      final result = await pb.collection('monthly_dues').getFirstListItem(
+            'user = "$userId" && due_for_month = "$monthString"',
+            expand: 'user',
+          );
+
+      return MonthlyDues.fromRecord(result);
+    } catch (e) {
+      print('Error getting monthly dues for user and month: $e');
+      return null;
+    }
+  }
+
+  // Create or update monthly dues
+  Future<MonthlyDues> createOrUpdateMonthlyDues({
+    required String userId,
+    required DateTime dueForMonth,
+    required double amount,
+    required String status,
+    DateTime? paymentDate,
+    String? notes,
+    String? existingId,
+  }) async {
+    // Since we're using PocketBase authentication, userId should be the PocketBase record ID
+    print('PocketBaseService.createOrUpdateMonthlyDues - Using userId: "$userId"');
+
+    final data = {
+      'user': userId, // Use the PocketBase record ID directly since it's a relation field
+      'due_for_month': dueForMonth.toIso8601String().split('T')[0],
+      'amount': amount,
+      'status': status,
+      'payment_date': paymentDate?.toIso8601String().split('T')[0],
+      'notes': notes ?? '',
+    };
+
+    RecordModel record;
+    if (existingId != null) {
+      record = await pb.collection('monthly_dues').update(existingId, body: data);
+    } else {
+      record = await pb.collection('monthly_dues').create(body: data);
+    }
+
+    return MonthlyDues.fromRecord(record);
+  }
+
+  // Mark payment status for a specific month
+  Future<MonthlyDues> markPaymentStatus({
+    required String userId,
+    required DateTime month,
+    required bool isPaid,
+    DateTime? paymentDate,
+    String? notes,
+  }) async {
+    final existingDues = await getMonthlyDuesForUserAndMonth(userId, month);
+    final status = isPaid ? 'Paid' : 'Unpaid';
+
+    return await createOrUpdateMonthlyDues(
+      userId: userId,
+      dueForMonth: month,
+      amount: 100.0, // Fixed amount per month
+      status: status,
+      paymentDate: isPaid ? (paymentDate ?? DateTime.now()) : null,
+      notes: notes,
+      existingId: existingDues?.id,
+    );
+  }
+
+  // Get payment statistics for a user
+  Future<Map<String, int>> getPaymentStatistics(String userId) async {
+    try {
+      final dues = await getMonthlyDuesForUser(userId);
+      final now = DateTime.now();
+      final currentYear = now.year;
+
+      int paid = 0;
+      int unpaid = 0;
+      int advance = 0;
+
+      for (final due in dues) {
+        if (due.dueForMonth != null) {
+          final dueYear = due.dueForMonth!.year;
+          final dueMonth = due.dueForMonth!.month;
+
+          if (dueYear == currentYear) {
+            if (dueMonth <= now.month) {
+              // Current or past months
+              if (due.isPaid) {
+                paid++;
+              } else {
+                unpaid++;
+              }
+            } else {
+              // Future months (advance payments)
+              if (due.isPaid) {
+                advance++;
+              }
+            }
+          }
+        }
+      }
+
+      return {
+        'paid': paid,
+        'unpaid': unpaid,
+        'advance': advance,
+      };
+    } catch (e) {
+      print('Error getting payment statistics: $e');
+      return {'paid': 0, 'unpaid': 0, 'advance': 0};
+    }
+  }
+
+  // Get all monthly dues (admin only)
+  Future<List<MonthlyDues>> getAllMonthlyDues() async {
+    try {
+      final result = await pb.collection('monthly_dues').getFullList(
+            sort: '-due_for_month',
+          );
+      return result.map((record) => MonthlyDues.fromRecord(record)).toList();
+    } catch (e) {
+      print('Error getting all monthly dues: $e');
+      return [];
+    }
+  }
+
+  // Debug method to see all monthly dues records
+  Future<void> debugAllMonthlyDues() async {
+    try {
+      print('=== DEBUG: All Monthly Dues Records ===');
+
+      // Ensure authentication first
+      await _ensureAuthenticated();
+
+      // First, let's check the authenticated user
+      print('Authenticated user: ${pb.authStore.model?.id}');
+      print('Auth store is valid: ${pb.authStore.isValid}');
+      print('Auth token: ${pb.authStore.token}');
+
+      final allResult = await pb.collection('monthly_dues').getFullList(
+            sort: '-due_for_month',
+          );
+
+      print('Total records: ${allResult.length}');
+
+      for (int i = 0; i < allResult.length; i++) {
+        final record = allResult[i];
+        print('Record ${i + 1}:');
+        print('  - ID: ${record.id}');
+        print('  - User field: "${record.data['user']}"');
+        print('  - Amount: ${record.data['amount']}');
+        print('  - Status: ${record.data['status']}');
+        print('  - Due for month: ${record.data['due_for_month']}');
+        print('  - Payment date: ${record.data['payment_date']}');
+        print('  - Notes: ${record.data['notes']}');
+        print('  - Created: ${record.created}');
+        print('  - Updated: ${record.updated}');
+        print('');
+      }
+      print('=== END DEBUG ===');
+    } catch (e) {
+      print('Error debugging monthly dues: $e');
+    }
+  }
+
+  // Create a test monthly dues record
+  Future<void> createTestMonthlyDues(String userId) async {
+    try {
+      print('=== Creating Test Monthly Dues Record ===');
+
+      // Ensure authentication first
+      await _ensureAuthenticated();
+
+      // Use the authenticated user's ID instead of the passed userId
+      final authenticatedUserId = pb.authStore.model?.id;
+      print('Using authenticated user ID: $authenticatedUserId (instead of passed userId: $userId)');
+
+      if (authenticatedUserId == null) {
+        print('ERROR: No authenticated user found!');
+        return;
+      }
+
+      final now = DateTime.now();
+      final currentMonth = DateTime(now.year, now.month, 1);
+      final lastMonth = DateTime(now.year, now.month - 1, 1);
+
+      // Create a record for last month (paid)
+      final record1 = await pb.collection('monthly_dues').create(body: {
+        'user': authenticatedUserId, // Use authenticated user ID
+        'amount': 100.0,
+        'due_for_month': lastMonth.toIso8601String().split('T')[0],
+        'status': 'Paid',
+        'payment_date': lastMonth.toIso8601String().split('T')[0],
+        'notes': 'Test payment for debugging',
+      });
+
+      print('Created test record 1: ${record1.id}');
+
+      // Create a record for current month (unpaid)
+      final record2 = await pb.collection('monthly_dues').create(body: {
+        'user': authenticatedUserId, // Use authenticated user ID
+        'amount': 100.0,
+        'due_for_month': currentMonth.toIso8601String().split('T')[0],
+        'status': 'Unpaid',
+        'notes': 'Current month dues',
+      });
+
+      print('Created test record 2: ${record2.id}');
+      print('=== Test Records Created Successfully ===');
+    } catch (e) {
+      print('Error creating test monthly dues: $e');
+    }
+  }
+
+  // Delete monthly dues
+  Future<void> deleteMonthlyDues(String duesId) async {
+    try {
+      await pb.collection('monthly_dues').delete(duesId);
+    } catch (e) {
+      print('Error deleting monthly dues: $e');
+      rethrow;
+    }
+  }
+
+  // Subscribe to monthly dues updates
+  Future<UnsubscribeFunc> subscribeToMonthlyDues(void Function(RecordModel) onUpdate) async {
+    return await pb.collection('monthly_dues').subscribe('*', (e) {
+      if ((e.action == 'create' || e.action == 'update' || e.action == 'delete') && e.record != null) {
         onUpdate(e.record!);
       }
     });

@@ -72,6 +72,58 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await pocketBaseAuth.signOut();
       // Auth state will be updated via the stream listener
     });
+
+    on<CheckExistingAuthEvent>((event, emit) async {
+      try {
+        log('Checking existing authentication...');
+        // Check if PocketBase has a valid session
+        final isAuthenticated = pocketBaseAuth.isAuthenticated;
+        log('PocketBase isAuthenticated: $isAuthenticated');
+
+        if (isAuthenticated) {
+          final user = pocketBaseAuth.currentUser;
+          log('Current user: ${user?.id}');
+          if (user != null) {
+            log('User found, setting authenticated state');
+            emit(
+              state.copyWith(
+                authStatus: AuthStatus.authenticated,
+                user: user,
+              ),
+            );
+          } else {
+            log('No user found despite being authenticated, setting unauthenticated');
+            emit(
+              state.copyWith(
+                authStatus: AuthStatus.unauthenticated,
+              ),
+            );
+          }
+        } else {
+          log('Not authenticated, setting unauthenticated state');
+          emit(
+            state.copyWith(
+              authStatus: AuthStatus.unauthenticated,
+            ),
+          );
+        }
+      } catch (e) {
+        log('Error checking existing auth: $e');
+        emit(
+          state.copyWith(
+            authStatus: AuthStatus.unauthenticated,
+          ),
+        );
+      }
+    });
+
+    // Check for existing authentication on startup (after all handlers are registered)
+    _checkExistingAuth();
+  }
+
+  /// Check for existing authentication on startup
+  void _checkExistingAuth() {
+    add(CheckExistingAuthEvent());
   }
 
   // ignore: cancel_subscriptions

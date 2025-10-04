@@ -11,6 +11,7 @@ import 'dart:async';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 
 class CreateUserSection extends StatefulWidget {
   const CreateUserSection({Key? key}) : super(key: key);
@@ -1147,20 +1148,23 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     try {
       final now = DateTime.now();
       final random = Random();
+      final pocketBaseService = PocketBaseService();
 
       // Create payment records for the last 6 months
       for (int i = 0; i < 6; i++) {
         final date = DateTime(now.year, now.month - i, 1);
-        final monthKey = '${date.year}_${date.month.toString().padLeft(2, '0')}';
 
         // 70% chance of being paid, 30% chance of being unpaid
         final isPaid = random.nextDouble() < 0.7;
+        final status = isPaid ? 'Paid' : 'Unpaid';
 
-        await FirebaseFirestore.instance.collection('users').doc(userId).collection('monthly_dues').doc(monthKey).set({
-          'amount': 100,
-          'status': isPaid,
-          'updated_at': FieldValue.serverTimestamp(),
-        });
+        await pocketBaseService.createOrUpdateMonthlyDues(
+          userId: userId,
+          dueForMonth: date,
+          amount: 100.0,
+          status: status,
+          paymentDate: isPaid ? DateTime.now() : null,
+        );
       }
     } catch (e) {
       print('Error creating payment records: $e');
@@ -1545,20 +1549,22 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 if (shouldProceed != true) return;
 
                 try {
+                  final pocketBaseService = PocketBaseService();
+
                   // Get all users with membership_type = 3
-                  final usersSnapshot =
-                      await FirebaseFirestore.instance.collection('users').where('membership_type', isEqualTo: 3).get();
+                  final pocketBaseUsers = await pocketBaseService.getAllUsers();
+                  final testUsers = pocketBaseUsers.where((user) => user.data['membership_type'] == 3).toList();
 
                   int deletedCount = 0;
-                  for (final doc in usersSnapshot.docs) {
-                    // Delete the user document
-                    await doc.reference.delete();
-
-                    // Delete associated payment records
-                    final paymentSnapshot = await doc.reference.collection('monthly_dues').get();
-                    for (final paymentDoc in paymentSnapshot.docs) {
-                      await paymentDoc.reference.delete();
+                  for (final user in testUsers) {
+                    // Get and delete associated monthly dues records
+                    final monthlyDues = await pocketBaseService.getMonthlyDuesForUser(user.id);
+                    for (final dues in monthlyDues) {
+                      await pocketBaseService.deleteMonthlyDues(dues.id);
                     }
+
+                    // Delete the user document
+                    await pocketBaseService.pb.collection('users').delete(user.id);
 
                     deletedCount++;
                   }

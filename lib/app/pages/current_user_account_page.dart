@@ -4,8 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:pocketbase/pocketbase.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:otogapo/app/modules/auth/auth_bloc.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 
 class CurrentUserAccountPage extends StatefulWidget {
   const CurrentUserAccountPage({Key? key}) : super(key: key);
@@ -27,93 +29,145 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
 
   Future<void> _loadCurrentUserData() async {
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        // Use PocketBase instead of Firestore
-        final pb = PocketBase(FlavorConfig.instance.variables['pocketbaseUrl'] as String);
-        final result = await pb.collection('users').getList(
-              filter: 'firebaseUid = "${currentUser.uid}"',
-              perPage: 1,
-            );
+      // Get the current authenticated user from AuthBloc
+      final authState = context.read<AuthBloc>().state;
 
-        if (result.items.isNotEmpty) {
-          final userData = result.items.first.data;
+      if (authState.user != null) {
+        // User is authenticated with PocketBase, get their data
+        final pocketBaseService = PocketBaseService();
+        final userRecord = await pocketBaseService.getUser(authState.user!.id);
+        final userData = userRecord.data;
 
-          // Get profile image URL if it exists
-          String? profileImageUrl;
-          if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
-            if (userData['profile_image'].toString().startsWith('gs://')) {
-              try {
-                final ref = FirebaseStorage.instance.refFromURL(userData['profile_image'].toString());
-                profileImageUrl = await ref.getDownloadURL();
-              } catch (e) {
-                profileImageUrl = 'assets/images/alex.png';
-              }
-            } else {
-              profileImageUrl = userData['profile_image'].toString();
+        // Get profile image URL if it exists
+        String? profileImageUrl;
+        if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
+          if (userData['profile_image'].toString().startsWith('gs://')) {
+            try {
+              final ref = FirebaseStorage.instance.refFromURL(userData['profile_image'].toString());
+              profileImageUrl = await ref.getDownloadURL();
+            } catch (e) {
+              profileImageUrl = 'assets/images/alex.png';
             }
+          } else if (userData['profile_image'].toString().startsWith('http')) {
+            // It's already a full URL
+            profileImageUrl = userData['profile_image'].toString();
           } else {
-            profileImageUrl = 'assets/images/alex.png';
+            // It's a filename, construct the PocketBase file URL
+            final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+            profileImageUrl = '$pocketbaseUrl/api/files/users/${authState.user!.id}/${userData['profile_image']}';
           }
-
-          setState(() {
-            _userData = userData;
-            _profileImageUrl = profileImageUrl;
-            _isLoading = false;
-          });
         } else {
-          // User doesn't exist in PocketBase, create a basic one
-          final basicUserData = {
-            'firebaseUid': currentUser.uid,
-            'firstName': 'User',
-            'lastName': '',
-            'email': currentUser.email ?? '',
-            'gender': '',
-            'memberNumber': '',
-            'civilStatus': '',
-            'dateOfBirth': DateTime.now().toIso8601String(),
-            'birthplace': '',
-            'nationality': '',
-            'vehicle': [],
-            'contactNumber': '',
-            'driversLicenseExpirationDate': DateTime.now().toIso8601String(),
-            'membership_type': 3,
-            'isActive': true,
-            'isAdmin': false,
-          };
+          profileImageUrl = 'assets/images/alex.png';
+        }
 
-          final createdRecord = await pb.collection('users').create(body: basicUserData);
-          print('Basic user created in PocketBase');
+        setState(() {
+          _userData = userData;
+          _profileImageUrl = profileImageUrl;
+          _isLoading = false;
+        });
+      } else {
+        // No authenticated user, check if there's a Firebase user as fallback
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser != null) {
+          // Try to find user by Firebase UID in PocketBase
+          final pocketBaseService = PocketBaseService();
+          final userRecord = await pocketBaseService.getUserByFirebaseUid(currentUser.uid);
 
-          final userData = createdRecord.data;
+          if (userRecord != null) {
+            final userData = userRecord.data;
 
-          // Get profile image URL if it exists
-          String? profileImageUrl;
-          if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
-            if (userData['profile_image'].toString().startsWith('gs://')) {
-              try {
-                final ref = FirebaseStorage.instance.refFromURL(userData['profile_image'].toString());
-                profileImageUrl = await ref.getDownloadURL();
-              } catch (e) {
-                profileImageUrl = 'assets/images/alex.png';
+            // Get profile image URL if it exists
+            String? profileImageUrl;
+            if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
+              if (userData['profile_image'].toString().startsWith('gs://')) {
+                try {
+                  final ref = FirebaseStorage.instance.refFromURL(userData['profile_image'].toString());
+                  profileImageUrl = await ref.getDownloadURL();
+                } catch (e) {
+                  profileImageUrl = 'assets/images/alex.png';
+                }
+              } else if (userData['profile_image'].toString().startsWith('http')) {
+                // It's already a full URL
+                profileImageUrl = userData['profile_image'].toString();
+              } else {
+                // It's a filename, construct the PocketBase file URL
+                final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+                profileImageUrl = '$pocketbaseUrl/api/files/users/${userRecord.id}/${userData['profile_image']}';
               }
             } else {
-              profileImageUrl = userData['profile_image'].toString();
+              profileImageUrl = 'assets/images/alex.png';
             }
-          } else {
-            profileImageUrl = 'assets/images/alex.png';
-          }
 
+            setState(() {
+              _userData = userData;
+              _profileImageUrl = profileImageUrl;
+              _isLoading = false;
+            });
+          } else {
+            // User doesn't exist in PocketBase, create a basic one
+            final basicUserData = {
+              'firebaseUid': currentUser.uid,
+              'firstName': 'User',
+              'lastName': '',
+              'email': currentUser.email ?? '',
+              'gender': '',
+              'memberNumber': '',
+              'civilStatus': '',
+              'dateOfBirth': DateTime.now().toIso8601String(),
+              'birthplace': '',
+              'nationality': '',
+              'vehicle': <String>[],
+              'contactNumber': '',
+              'driversLicenseExpirationDate': DateTime.now().toIso8601String(),
+              'membership_type': 3,
+              'isActive': true,
+              'isAdmin': false,
+            };
+
+            final createdRecord = await pocketBaseService.createUserWithFirebaseUid(
+              firebaseUid: currentUser.uid,
+              email: currentUser.email ?? '',
+              firstName: currentUser.displayName?.split(' ').first ?? 'User',
+              lastName: currentUser.displayName?.split(' ').last ?? '',
+              additionalData: basicUserData,
+            );
+            print('Basic user created in PocketBase');
+
+            final userData = createdRecord.data;
+
+            // Get profile image URL if it exists
+            String? profileImageUrl;
+            if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
+              if (userData['profile_image'].toString().startsWith('gs://')) {
+                try {
+                  final ref = FirebaseStorage.instance.refFromURL(userData['profile_image'].toString());
+                  profileImageUrl = await ref.getDownloadURL();
+                } catch (e) {
+                  profileImageUrl = 'assets/images/alex.png';
+                }
+              } else if (userData['profile_image'].toString().startsWith('http')) {
+                // It's already a full URL
+                profileImageUrl = userData['profile_image'].toString();
+              } else {
+                // It's a filename, construct the PocketBase file URL
+                final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+                profileImageUrl = '$pocketbaseUrl/api/files/users/${createdRecord.id}/${userData['profile_image']}';
+              }
+            } else {
+              profileImageUrl = 'assets/images/alex.png';
+            }
+
+            setState(() {
+              _userData = userData;
+              _profileImageUrl = profileImageUrl;
+              _isLoading = false;
+            });
+          }
+        } else {
           setState(() {
-            _userData = userData;
-            _profileImageUrl = profileImageUrl;
             _isLoading = false;
           });
         }
-      } else {
-        setState(() {
-          _isLoading = false;
-        });
       }
     } catch (e) {
       print('Error loading user data: $e');

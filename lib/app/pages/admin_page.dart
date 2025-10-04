@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:otogapo/app/pages/user_management_page.dart';
 import 'package:otogapo/app/pages/payment_management_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:otogapo/app/modules/auth/auth_bloc.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({Key? key}) : super(key: key);
@@ -24,27 +27,58 @@ class _AdminPageState extends State<AdminPage> {
 
   Future<void> _loadCurrentUserData() async {
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        final userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
+      // First try to get user from PocketBase authentication
+      final authState = context.read<AuthBloc>().state;
 
-        if (userDoc.exists) {
-          final userData = userDoc.data()!;
-          setState(() {
-            _currentUserData = userData;
-            // Check if user is Super Admin (1) or Admin (2)
-            _isAdmin = userData['membership_type'] == 1 || userData['membership_type'] == 2;
-            _isLoading = false;
-          });
+      if (authState.user != null) {
+        // User is authenticated with PocketBase
+        final pocketBaseService = PocketBaseService();
+        final userRecord = await pocketBaseService.getUser(authState.user!.id);
+        final userData = userRecord.data;
+
+        setState(() {
+          _currentUserData = userData;
+          // Check if user is Super Admin (1) or Admin (2)
+          _isAdmin = userData['membership_type'] == 1 || userData['membership_type'] == 2;
+          _isLoading = false;
+        });
+      } else {
+        // Fallback to Firebase authentication
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser != null) {
+          // Try to find user in PocketBase by Firebase UID
+          final pocketBaseService = PocketBaseService();
+          final userRecord = await pocketBaseService.getUserByFirebaseUid(currentUser.uid);
+
+          if (userRecord != null) {
+            final userData = userRecord.data;
+            setState(() {
+              _currentUserData = userData;
+              _isAdmin = userData['membership_type'] == 1 || userData['membership_type'] == 2;
+              _isLoading = false;
+            });
+          } else {
+            // User not found in PocketBase, check Firestore as fallback
+            final userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
+
+            if (userDoc.exists) {
+              final userData = userDoc.data()!;
+              setState(() {
+                _currentUserData = userData;
+                _isAdmin = userData['membership_type'] == 1 || userData['membership_type'] == 2;
+                _isLoading = false;
+              });
+            } else {
+              setState(() {
+                _isLoading = false;
+              });
+            }
+          }
         } else {
           setState(() {
             _isLoading = false;
           });
         }
-      } else {
-        setState(() {
-          _isLoading = false;
-        });
       }
     } catch (e) {
       print('Error loading user data: $e');
@@ -146,7 +180,7 @@ class _AdminPageState extends State<AdminPage> {
                     onTap: () {
                       // Navigate to user management
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => const UserManagementPage()),
+                        MaterialPageRoute<void>(builder: (context) => const UserManagementPage()),
                       );
                     },
                   ),
@@ -157,7 +191,7 @@ class _AdminPageState extends State<AdminPage> {
                     onTap: () {
                       // Navigate to payment management
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => const PaymentManagementPage()),
+                        MaterialPageRoute<void>(builder: (context) => const PaymentManagementPage()),
                       );
                     },
                   ),

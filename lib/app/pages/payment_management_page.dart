@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 
 class PaymentManagementPage extends StatefulWidget {
   const PaymentManagementPage({Key? key}) : super(key: key);
@@ -40,12 +40,13 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   Future<void> _loadUsers() async {
     try {
-      final usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
+      final pocketBaseService = PocketBaseService();
+      final pocketBaseUsers = await pocketBaseService.getAllUsers();
 
       final users = <Map<String, dynamic>>[];
-      for (final doc in usersSnapshot.docs) {
-        final userData = doc.data();
-        userData['id'] = doc.id;
+      for (final user in pocketBaseUsers) {
+        final userData = user.data;
+        userData['id'] = user.id;
         users.add(userData);
       }
 
@@ -82,11 +83,14 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   Future<void> _markPaymentStatus(String userId, String month, bool status) async {
     try {
-      await FirebaseFirestore.instance.collection('users').doc(userId).collection('monthly_dues').doc(month).set({
-        'amount': 100,
-        'status': status,
-        'updated_at': FieldValue.serverTimestamp(),
-      });
+      final pocketBaseService = PocketBaseService();
+      final monthDate = DateFormat('yyyy_MM').parse(month);
+
+      await pocketBaseService.markPaymentStatus(
+        userId: userId,
+        month: monthDate,
+        isPaid: status,
+      );
 
       // Refresh the data
       await _loadUsers();
@@ -107,11 +111,17 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   Future<Map<String, dynamic>?> _getPaymentStatus(String userId, String month) async {
     try {
-      final doc =
-          await FirebaseFirestore.instance.collection('users').doc(userId).collection('monthly_dues').doc(month).get();
+      final pocketBaseService = PocketBaseService();
+      final monthDate = DateFormat('yyyy_MM').parse(month);
+      final monthlyDues = await pocketBaseService.getMonthlyDuesForUserAndMonth(userId, monthDate);
 
-      if (doc.exists) {
-        return doc.data();
+      if (monthlyDues != null) {
+        return {
+          'status': monthlyDues.isPaid,
+          'amount': monthlyDues.amount,
+          'payment_date': monthlyDues.paymentDate?.toIso8601String(),
+          'updated_at': monthlyDues.updated,
+        };
       }
       // Return null if payment record doesn't exist (treated as unpaid)
       return null;
@@ -119,27 +129,6 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       print('Error getting payment status: $e');
       return null;
     }
-  }
-
-  // New method to get user's unpaid months
-  Future<List<String>> _getUserUnpaidMonths(String userId) async {
-    final unpaidMonths = <String>[];
-    final now = DateTime.now();
-
-    for (final month in _availableMonths) {
-      final date = DateFormat('yyyy_MM').parse(month);
-
-      // Only consider months from past to current month (not future months)
-      if (date.isBefore(DateTime(now.year, now.month + 1, 1))) {
-        final paymentData = await _getPaymentStatus(userId, month);
-        // If payment record doesn't exist or status is not true, consider it unpaid
-        if (paymentData == null || (paymentData['status'] as bool?) != true) {
-          unpaidMonths.add(month);
-        }
-      }
-    }
-
-    return unpaidMonths;
   }
 
   // New method to get all months with payment status for a user
@@ -158,19 +147,16 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   // New method to bulk update payments for a user
   Future<void> _bulkUpdatePayments(String userId, List<String> months, bool status) async {
     try {
-      final batch = FirebaseFirestore.instance.batch();
+      final pocketBaseService = PocketBaseService();
 
       for (final month in months) {
-        final docRef = FirebaseFirestore.instance.collection('users').doc(userId).collection('monthly_dues').doc(month);
-
-        batch.set(docRef, {
-          'amount': 100,
-          'status': status,
-          'updated_at': FieldValue.serverTimestamp(),
-        });
+        final monthDate = DateFormat('yyyy_MM').parse(month);
+        await pocketBaseService.markPaymentStatus(
+          userId: userId,
+          month: monthDate,
+          isPaid: status,
+        );
       }
-
-      await batch.commit();
 
       // Refresh the data
       await _loadUsers();
@@ -783,7 +769,6 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   Future<int> _getPaidCount() async {
     int count = 0;
-    final now = DateTime.now();
 
     for (final user in _users) {
       final paymentData = await _getPaymentStatus(user['id'] as String, _selectedMonth);
@@ -797,7 +782,6 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   Future<int> _getUnpaidCount() async {
     int count = 0;
-    final now = DateTime.now();
 
     for (final user in _users) {
       final paymentData = await _getPaymentStatus(user['id'] as String, _selectedMonth);
