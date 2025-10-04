@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "967485709855",
+    "project_id": "otogapo-dev",
+    "storage_bucket": "otogapo-dev.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:967485709855:android:925f808556411796037f2a",
+        "android_client_info": {
+          "package_name": "com.digitappstudio.otogapo.stg"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "967485709855-qful4joj2db7puk4gnvio1n06romenlo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.digitappstudio.otogapo.stg",
+            "certificate_hash": "67bc108763a7dc3e3aa71f6b2716eb3435465edd"
+          }
+        },
+        {
+          "client_id": "967485709855-s6lj2khfsfr110phllphdvqagb639le7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.digitappstudio.otogapo.stg",
+            "certificate_hash": "fee3e65059bdbf9bf6abaeafa591499d01710abc"
+          }
+        },
+        {
+          "client_id": "967485709855-h84pon4vrhdm0uaktcdiljifve9slaa4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPGqZocPXf0VjWAMp1oAgO7ytS4rpVwAM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "967485709855-h84pon4vrhdm0uaktcdiljifve9slaa4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "967485709855-0ph61vj07r0o96oad9bmh265rttuldjg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.digitappstudio.otogapo.stg"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

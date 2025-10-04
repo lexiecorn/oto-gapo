@@ -1,0 +1,233 @@
+[
+  {
+    "id": "users123456789",
+    "name": "users",
+    "type": "auth",
+    "system": false,
+    "schema": [
+      {
+        "id": "fld_firstName",
+        "name": "firstName",
+        "type": "text",
+        "required": true,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_lastName",
+        "name": "lastName",
+        "type": "text",
+        "required": true,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_middleName",
+        "name": "middleName",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_contactNumber",
+        "name": "contactNumber",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_age",
+        "name": "age",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_dateOfBirth",
+        "name": "dateOfBirth",
+        "type": "date",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_birthplace",
+        "name": "birthplace",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_bloodType",
+        "name": "bloodType",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_civilStatus",
+        "name": "civilStatus",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_gender",
+        "name": "gender",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_nationality",
+        "name": "nationality",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_religion",
+        "name": "religion",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_driversLicenseNumber",
+        "name": "driversLicenseNumber",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_driversLicenseExpirationDate",
+        "name": "driversLicenseExpirationDate",
+        "type": "date",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_driversLicenseRestrictionCode",
+        "name": "driversLicenseRestrictionCode",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_emergencyContactName",
+        "name": "emergencyContactName",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_emergencyContactNumber",
+        "name": "emergencyContactNumber",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_spouseName",
+        "name": "spouseName",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_spouseContactNumber",
+        "name": "spouseContactNumber",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_memberNumber",
+        "name": "memberNumber",
+        "type": "text",
+        "required": false,
+        "unique": true,
+        "options": {}
+      },
+      {
+        "id": "fld_membership_type",
+        "name": "membership_type",
+        "type": "number",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_isActive",
+        "name": "isActive",
+        "type": "bool",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_isAdmin",
+        "name": "isAdmin",
+        "type": "bool",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_profile_image",
+        "name": "profile_image",
+        "type": "file",
+        "required": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "maxSize": 5242880,
+          "mimeTypes": ["image/png", "image/jpeg", "image/gif"]
+        }
+      },
+      {
+        "id": "fld_vehicle",
+        "name": "vehicle",
+        "type": "json",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_photos",
+        "name": "photos",
+        "type": "file",
+        "required": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 10,
+          "maxSize": 10485760,
+          "mimeTypes": ["image/png", "image/jpeg", "image/gif"]
+        }
+      }
+    ],
+    "indexes": [],
+    "listRule": null,
+    "viewRule": null,
+    "createRule": null,
+    "updateRule": null,
+    "deleteRule": null,
+    "options": {}
+  }
+]

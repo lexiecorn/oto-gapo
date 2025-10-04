@@ -1,0 +1,59 @@
+[
+  {
+    "id": "app_data123456789",
+    "name": "app_data",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "id": "fld_key",
+        "name": "key",
+        "type": "text",
+        "required": true,
+        "unique": true,
+        "options": {}
+      },
+      {
+        "id": "fld_value",
+        "name": "value",
+        "type": "json",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_description",
+        "name": "description",
+        "type": "text",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_category",
+        "name": "category",
+        "type": "select",
+        "required": false,
+        "unique": false,
+        "options": {
+          "values": ["config", "feature_flags", "content", "settings"]
+        }
+      },
+      {
+        "id": "fld_isActive",
+        "name": "isActive",
+        "type": "bool",
+        "required": false,
+        "unique": false,
+        "options": {}
+      }
+    ],
+    "indexes": [],
+    "listRule": null,
+    "viewRule": null,
+    "createRule": null,
+    "updateRule": null,
+    "deleteRule": null,
+    "options": {}
+  }
+]

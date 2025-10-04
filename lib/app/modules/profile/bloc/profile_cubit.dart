@@ -12,22 +12,27 @@ class ProfileCubit extends Cubit<ProfileState> {
   }) : super(ProfileState.initial());
   final ProfileRepository profileRepository;
 
-  Future<void> getProfile({required String uid}) async {
-    print('ProfileCubit.getProfile - Starting with UID: $uid');
+  Future<void> getProfile() async {
+    print('ProfileCubit.getProfile - Starting profile retrieval');
     emit(state.copyWith(profileStatus: ProfileStatus.loading));
 
     try {
-      // await profileRepository.duplicateDocument('6xxdHcIhaPxhv5r094Br', 'TS4E73z29qdpfsyBiBsxnBN10I43');
       print('ProfileCubit.getProfile - Calling profileRepository.getProfile');
-      final user = await profileRepository.getProfile(uid: uid);
+      final user = await profileRepository.getProfile();
       print('ProfileCubit.getProfile - User loaded successfully');
       print('ProfileCubit.getProfile - User memberNumber: ${user.memberNumber}');
       print('ProfileCubit.getProfile - User membership_type: ${user.membership_type}');
+
+      // Fetch vehicles for this user
+      print('ProfileCubit.getProfile - Fetching vehicles for user: ${user.uid}');
+      final vehicles = await profileRepository.getUserVehicles(user.uid);
+      print('ProfileCubit.getProfile - Found ${vehicles.length} vehicles');
 
       emit(
         state.copyWith(
           profileStatus: ProfileStatus.loaded,
           user: user,
+          vehicles: vehicles,
         ),
       );
       print('ProfileCubit.getProfile - State updated to loaded');

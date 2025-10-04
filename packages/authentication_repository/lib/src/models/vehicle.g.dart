@@ -10,13 +10,14 @@ _$VehicleImpl _$$VehicleImplFromJson(Map<String, dynamic> json) =>
     _$VehicleImpl(
       make: json['make'] as String,
       model: json['model'] as String,
-      year: (json['year'] as num).toInt(),
+      year: json['year'] as String,
       type: json['type'] as String,
       color: json['color'] as String,
       plateNumber: json['plateNumber'] as String,
       primaryPhoto: json['primaryPhoto'] as String?,
       photos:
           (json['photos'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      user: json['user'] as String?,
     );
 
 Map<String, dynamic> _$$VehicleImplToJson(_$VehicleImpl instance) =>
@@ -29,4 +30,5 @@ Map<String, dynamic> _$$VehicleImplToJson(_$VehicleImpl instance) =>
       'plateNumber': instance.plateNumber,
       'primaryPhoto': instance.primaryPhoto,
       'photos': instance.photos,
+      'user': instance.user,
     };

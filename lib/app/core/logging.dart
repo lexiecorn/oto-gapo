@@ -6,7 +6,7 @@ class AppLogging {
     if (kDebugMode) {
       // Filter out EGL emulation logs
       developer.log(
-        'Initializing logging configuration',
+        'sd',
         name: 'AppLogging',
       );
     }

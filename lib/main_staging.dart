@@ -19,6 +19,7 @@ Future<void> main() async {
     await bootstrap(
       (
         authRepository,
+        pocketBaseAuthRepository,
         dio,
         packageInfo,
         storage,
@@ -41,6 +42,7 @@ Future<void> main() async {
 
         return App(
           authRepository: authRepository,
+          pocketBaseAuthRepository: pocketBaseAuthRepository,
         );
       },
     );

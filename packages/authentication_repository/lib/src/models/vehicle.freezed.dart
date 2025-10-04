@@ -22,15 +22,21 @@ Vehicle _$VehicleFromJson(Map<String, dynamic> json) {
 mixin _$Vehicle {
   String get make => throw _privateConstructorUsedError;
   String get model => throw _privateConstructorUsedError;
-  int get year => throw _privateConstructorUsedError;
+  String get year =>
+      throw _privateConstructorUsedError; // Changed from int to String to match schema
   String get type => throw _privateConstructorUsedError;
   String get color => throw _privateConstructorUsedError;
   String get plateNumber => throw _privateConstructorUsedError;
   String? get primaryPhoto => throw _privateConstructorUsedError;
   List<String>? get photos => throw _privateConstructorUsedError;
+  String? get user => throw _privateConstructorUsedError;
 
+  /// Serializes this Vehicle to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Vehicle
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $VehicleCopyWith<Vehicle> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -42,12 +48,13 @@ abstract class $VehicleCopyWith<$Res> {
   $Res call(
       {String make,
       String model,
-      int year,
+      String year,
       String type,
       String color,
       String plateNumber,
       String? primaryPhoto,
-      List<String>? photos});
+      List<String>? photos,
+      String? user});
 }
 
 /// @nodoc
@@ -60,6 +67,8 @@ class _$VehicleCopyWithImpl<$Res, $Val extends Vehicle>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Vehicle
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -71,6 +80,7 @@ class _$VehicleCopyWithImpl<$Res, $Val extends Vehicle>
     Object? plateNumber = null,
     Object? primaryPhoto = freezed,
     Object? photos = freezed,
+    Object? user = freezed,
   }) {
     return _then(_value.copyWith(
       make: null == make
@@ -84,7 +94,7 @@ class _$VehicleCopyWithImpl<$Res, $Val extends Vehicle>
       year: null == year
           ? _value.year
           : year // ignore: cast_nullable_to_non_nullable
-              as int,
+              as String,
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
@@ -105,6 +115,10 @@ class _$VehicleCopyWithImpl<$Res, $Val extends Vehicle>
           ? _value.photos
           : photos // ignore: cast_nullable_to_non_nullable
               as List<String>?,
+      user: freezed == user
+          ? _value.user
+          : user // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -119,12 +133,13 @@ abstract class _$$VehicleImplCopyWith<$Res> implements $VehicleCopyWith<$Res> {
   $Res call(
       {String make,
       String model,
-      int year,
+      String year,
       String type,
       String color,
       String plateNumber,
       String? primaryPhoto,
-      List<String>? photos});
+      List<String>? photos,
+      String? user});
 }
 
 /// @nodoc
@@ -135,6 +150,8 @@ class __$$VehicleImplCopyWithImpl<$Res>
       _$VehicleImpl _value, $Res Function(_$VehicleImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Vehicle
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -146,6 +163,7 @@ class __$$VehicleImplCopyWithImpl<$Res>
     Object? plateNumber = null,
     Object? primaryPhoto = freezed,
     Object? photos = freezed,
+    Object? user = freezed,
   }) {
     return _then(_$VehicleImpl(
       make: null == make
@@ -159,7 +177,7 @@ class __$$VehicleImplCopyWithImpl<$Res>
       year: null == year
           ? _value.year
           : year // ignore: cast_nullable_to_non_nullable
-              as int,
+              as String,
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
@@ -180,6 +198,10 @@ class __$$VehicleImplCopyWithImpl<$Res>
           ? _value._photos
           : photos // ignore: cast_nullable_to_non_nullable
               as List<String>?,
+      user: freezed == user
+          ? _value.user
+          : user // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -195,7 +217,8 @@ class _$VehicleImpl implements _Vehicle {
       required this.color,
       required this.plateNumber,
       this.primaryPhoto,
-      final List<String>? photos})
+      final List<String>? photos,
+      this.user})
       : _photos = photos;
 
   factory _$VehicleImpl.fromJson(Map<String, dynamic> json) =>
@@ -206,7 +229,8 @@ class _$VehicleImpl implements _Vehicle {
   @override
   final String model;
   @override
-  final int year;
+  final String year;
+// Changed from int to String to match schema
   @override
   final String type;
   @override
@@ -226,8 +250,11 @@ class _$VehicleImpl implements _Vehicle {
   }
 
   @override
+  final String? user;
+
+  @override
   String toString() {
-    return 'Vehicle(make: $make, model: $model, year: $year, type: $type, color: $color, plateNumber: $plateNumber, primaryPhoto: $primaryPhoto, photos: $photos)';
+    return 'Vehicle(make: $make, model: $model, year: $year, type: $type, color: $color, plateNumber: $plateNumber, primaryPhoto: $primaryPhoto, photos: $photos, user: $user)';
   }
 
   @override
@@ -244,15 +271,27 @@ class _$VehicleImpl implements _Vehicle {
                 other.plateNumber == plateNumber) &&
             (identical(other.primaryPhoto, primaryPhoto) ||
                 other.primaryPhoto == primaryPhoto) &&
-            const DeepCollectionEquality().equals(other._photos, _photos));
+            const DeepCollectionEquality().equals(other._photos, _photos) &&
+            (identical(other.user, user) || other.user == user));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, make, model, year, type, color,
-      plateNumber, primaryPhoto, const DeepCollectionEquality().hash(_photos));
+  int get hashCode => Object.hash(
+      runtimeType,
+      make,
+      model,
+      year,
+      type,
+      color,
+      plateNumber,
+      primaryPhoto,
+      const DeepCollectionEquality().hash(_photos),
+      user);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Vehicle
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$VehicleImplCopyWith<_$VehicleImpl> get copyWith =>
@@ -270,12 +309,13 @@ abstract class _Vehicle implements Vehicle {
   const factory _Vehicle(
       {required final String make,
       required final String model,
-      required final int year,
+      required final String year,
       required final String type,
       required final String color,
       required final String plateNumber,
       final String? primaryPhoto,
-      final List<String>? photos}) = _$VehicleImpl;
+      final List<String>? photos,
+      final String? user}) = _$VehicleImpl;
 
   factory _Vehicle.fromJson(Map<String, dynamic> json) = _$VehicleImpl.fromJson;
 
@@ -284,7 +324,7 @@ abstract class _Vehicle implements Vehicle {
   @override
   String get model;
   @override
-  int get year;
+  String get year; // Changed from int to String to match schema
   @override
   String get type;
   @override
@@ -296,7 +336,12 @@ abstract class _Vehicle implements Vehicle {
   @override
   List<String>? get photos;
   @override
-  @JsonKey(ignore: true)
+  String? get user;
+
+  /// Create a copy of Vehicle
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$VehicleImplCopyWith<_$VehicleImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

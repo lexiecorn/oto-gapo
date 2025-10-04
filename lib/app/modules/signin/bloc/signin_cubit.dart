@@ -1,13 +1,19 @@
 import 'dart:developer';
 import 'package:authentication_repository/authentication_repository.dart';
+import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 part 'signin_cubit.freezed.dart';
 part 'signin_state.dart';
 
 class SigninCubit extends Cubit<SigninState> {
-  SigninCubit({required this.authRepository}) : super(const SigninState());
+  SigninCubit({
+    required this.authRepository,
+    required this.pocketBaseAuth,
+  }) : super(const SigninState());
+
   final AuthRepository authRepository;
+  final PocketBaseAuthRepository pocketBaseAuth;
 
   Future<void> signinWithGoogle({required String idToken, String? displayName}) async {
     emit(state.copyWith(signinStatus: SigninStatus.submitting));
@@ -26,32 +32,27 @@ class SigninCubit extends Cubit<SigninState> {
     emit(state.copyWith(signinStatus: SigninStatus.submitting));
 
     try {
-      await authRepository.signin(email: email, password: password);
+      // Use PocketBase authentication instead of Firebase
+      await pocketBaseAuth.signIn(email: email, password: password);
 
       emit(state.copyWith(signinStatus: SigninStatus.success));
-    } on FirebaseAuthApiFailure catch (e) {
-      log('signin cubit- ${3}');
-      emit(
-        state.copyWith(
-          signinStatus: SigninStatus.error,
-          error: e,
-        ),
-      );
     } on AuthFailure catch (e) {
+      log('signin cubit error: ${e.message}');
       emit(
         state.copyWith(
           signinStatus: SigninStatus.error,
-          error: FirebaseAuthApiFailure(e.message.toString(), e.code, ''),
+          error: FirebaseAuthApiFailure(e.message.toString(), e.code, e.plugin),
         ),
       );
     } catch (e) {
+      log('signin cubit unknown error: $e');
       emit(
         state.copyWith(
           signinStatus: SigninStatus.error,
           error: const FirebaseAuthApiFailure(
             'Unknown Authentication error',
             'Authentication error',
-            '',
+            'pocketbase_auth',
           ),
         ),
       );

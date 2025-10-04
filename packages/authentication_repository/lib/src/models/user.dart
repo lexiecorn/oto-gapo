@@ -1,5 +1,4 @@
 import 'package:authentication_repository/src/models/time_stamp_converter.dart';
-import 'package:authentication_repository/src/models/vehicle.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -18,21 +17,13 @@ abstract class User with _$User {
     required String gender,
     required String memberNumber,
     required String civilStatus,
-    @JsonKey(
-      fromJson: TimestampConverter.fromJson,
-      toJson: TimestampConverter.toJson,
-    )
-    required Timestamp dateOfBirth,
+    @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson) required Timestamp dateOfBirth,
     required String birthplace,
     required String nationality,
     String? emergencyContactNumber,
-    required List<Vehicle> vehicle,
     // Driver's License information
     String? driversLicenseNumber,
-    @JsonKey(
-      fromJson: TimestampConverter.fromJson,
-      toJson: TimestampConverter.toJson,
-    )
+    @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
     required Timestamp driversLicenseExpirationDate,
     String? driversLicenseRestrictionCode,
     // Contact information
@@ -98,7 +89,6 @@ abstract class User with _$User {
         dateOfBirth: Timestamp.now(),
         birthplace: '',
         nationality: '',
-        vehicle: [],
         contactNumber: '',
         driversLicenseExpirationDate: Timestamp.now(),
       );

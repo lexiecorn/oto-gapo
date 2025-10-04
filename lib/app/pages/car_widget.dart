@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
@@ -189,8 +188,9 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${widget.state.user.vehicle.isNotEmpty ? widget.state.user.vehicle.first.make : 'No Vehicle'} '
-                                '${widget.state.user.vehicle.isNotEmpty ? widget.state.user.vehicle.first.model : ''}',
+                                widget.state.vehicles.isNotEmpty
+                                    ? '${widget.state.vehicles.first.make} ${widget.state.vehicles.first.model}'
+                                    : 'No Vehicle',
                                 style: OpstechTextTheme.heading2.copyWith(
                                   color: Colors.black87,
                                   fontSize: 22.sp,
@@ -198,9 +198,9 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                                 ),
                               ).animate().fadeIn(delay: 400.ms, duration: 600.ms).slideX(begin: -0.3, duration: 600.ms),
                               const SizedBox(height: 5),
-                              if (widget.state.user.vehicle.isNotEmpty) ...[
+                              if (widget.state.vehicles.isNotEmpty) ...[
                                 Text(
-                                  'Plate Number: ${widget.state.user.vehicle.first.plateNumber}',
+                                  'Plate Number: ${widget.state.vehicles.first.plateNumber}',
                                   style: OpstechTextTheme.regular.copyWith(
                                     color: Colors.black54,
                                     fontSize: 14.sp,
@@ -210,7 +210,7 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                                     .fadeIn(delay: 500.ms, duration: 600.ms)
                                     .slideX(begin: -0.3, duration: 600.ms),
                                 Text(
-                                  'Color: ${widget.state.user.vehicle.first.color}',
+                                  'Color: ${widget.state.vehicles.first.color}',
                                   style: OpstechTextTheme.regular.copyWith(
                                     color: Colors.black54,
                                     fontSize: 14.sp,
@@ -220,7 +220,7 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                                     .fadeIn(delay: 600.ms, duration: 600.ms)
                                     .slideX(begin: -0.3, duration: 600.ms),
                                 Text(
-                                  'Year: ${widget.state.user.vehicle.first.year}',
+                                  'Year: ${widget.state.vehicles.first.year}',
                                   style: OpstechTextTheme.regular.copyWith(
                                     color: Colors.black54,
                                     fontSize: 14.sp,

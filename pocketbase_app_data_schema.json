@@ -1,0 +1,38 @@
+{
+  "name": "app_data",
+  "type": "base",
+  "schema": [
+    {
+      "name": "key",
+      "type": "text",
+      "required": true,
+      "unique": true
+    },
+    {
+      "name": "value",
+      "type": "json"
+    },
+    {
+      "name": "description",
+      "type": "text"
+    },
+    {
+      "name": "category",
+      "type": "select",
+      "options": {
+        "values": ["config", "feature_flags", "content", "settings"]
+      },
+      "default": "config"
+    },
+    {
+      "name": "isActive",
+      "type": "bool",
+      "default": true
+    }
+  ],
+  "indexes": [
+    "CREATE INDEX idx_app_data_key ON app_data (key)",
+    "CREATE INDEX idx_app_data_category ON app_data (category)",
+    "CREATE INDEX idx_app_data_isActive ON app_data (isActive)"
+  ]
+}

@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/car_widget.dart';
@@ -55,6 +56,19 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 
     // Start animation
     _pageAnimationController.forward();
+
+    // Initialize profile data when page loads
+    _initializeProfile();
+  }
+
+  void _initializeProfile() {
+    final currentAuthUser = context.read<AuthBloc>().state.user;
+    if (currentAuthUser != null) {
+      print('Profile Page - Initializing profile for authenticated user: ${currentAuthUser.id}');
+      context.read<ProfileCubit>().getProfile();
+    } else {
+      print('Profile Page - No authenticated user found');
+    }
   }
 
   @override
@@ -79,19 +93,20 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 
           // Check if the current authenticated user is different from the profile user
           final currentAuthUser = context.read<AuthBloc>().state.user;
-          if (currentAuthUser != null && state.user.uid.isNotEmpty && state.user.uid != currentAuthUser.uid) {
+          if (currentAuthUser != null && state.user.uid.isNotEmpty && state.user.uid != currentAuthUser.id) {
             print('Profile Page - User mismatch detected!');
-            print('Profile Page - Auth user UID: ${currentAuthUser.uid}');
+            print('Profile Page - Auth user UID: ${currentAuthUser.id}');
             print('Profile Page - Profile user UID: ${state.user.uid}');
             print('Profile Page - Force clearing profile for new user');
             context.read<ProfileCubit>().forceClear();
             Future.delayed(const Duration(milliseconds: 100), () {
-              context.read<ProfileCubit>().getProfile(uid: currentAuthUser.uid);
+              context.read<ProfileCubit>().getProfile();
             });
           }
 
           if (state.profileStatus == ProfileStatus.initial) {
-            return Container();
+            // Show loading screen while initializing
+            return _buildLoadingScreen();
           } else if (state.profileStatus == ProfileStatus.loading) {
             return _buildLoadingScreen();
           } else if (state.profileStatus == ProfileStatus.error) {
@@ -110,8 +125,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
               _pageAnimationController.forward();
 
               // Refresh the profile data
-              final uid = context.read<AuthBloc>().state.user!.uid;
-              context.read<ProfileCubit>().getProfile(uid: uid);
+              context.read<ProfileCubit>().getProfile();
             },
             child: FadeTransition(
               opacity: _fadeAnimation,
@@ -135,7 +149,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                         return InkWell(
                           onTap: () {
                             Navigator.of(context).push(
-                              MaterialPageRoute(
+                              MaterialPageRoute<void>(
                                 builder: (context) => const CurrentUserAccountPage(),
                               ),
                             );
@@ -266,8 +280,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
           SizedBox(height: 16.sp),
           ElevatedButton(
             onPressed: () {
-              final uid = context.read<AuthBloc>().state.user!.uid;
-              context.read<ProfileCubit>().getProfile(uid: uid);
+              context.read<ProfileCubit>().getProfile();
             },
             child: const Text('Reload Profile'),
           ).animate().fadeIn(delay: 800.ms, duration: 600.ms).scale(delay: 900.ms, duration: 300.ms),
@@ -358,19 +371,18 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
   Future<Widget> _userProfileCard(ProfileState state) async {
     String imagePath;
 
-    // Check if user has a profile image URL stored and it's a gs:// link
-    if (state.user.profile_image != null && state.user.profile_image!.startsWith('gs://')) {
-      try {
-        // Get the download URL from the gs:// URI
-        final ref = FirebaseStorage.instance.refFromURL(state.user.profile_image!);
-        imagePath = await ref.getDownloadURL();
-      } catch (e) {
-        // If it fails, use a default placeholder image
-        imagePath = 'assets/images/alex.png'; // Using a local asset as fallback
+    // Check if user has a profile image URL stored
+    if (state.user.profile_image != null && state.user.profile_image!.isNotEmpty) {
+      // For PocketBase, profile images are typically file names that need to be converted to URLs
+      // Format: https://your-pocketbase-url/api/files/collection_id/record_id/filename
+      if (state.user.profile_image!.startsWith('http')) {
+        // It's already a full URL
+        imagePath = state.user.profile_image!;
+      } else {
+        // It's a filename, construct the PocketBase file URL
+        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        imagePath = '$pocketbaseUrl/api/files/users/${state.user.uid}/${state.user.profile_image}';
       }
-    } else if (state.user.profile_image != null && state.user.profile_image!.isNotEmpty) {
-      // It might be a pre-fetched HTTPS URL or a local asset path
-      imagePath = state.user.profile_image!;
     } else {
       // No profile_image field, or it's empty. Use a default placeholder.
       imagePath = 'assets/images/alex.png';
@@ -382,7 +394,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
       dob: DateFormat('MMM dd, yyyy').format(state.user.dateOfBirth.toDate()),
       idNumber: state.user.memberNumber,
       membersNum: state.user.memberNumber,
-      car: state.user.vehicle.isNotEmpty ? state.user.vehicle.first.make : 'No Vehicle',
+      car: state.vehicles.isNotEmpty ? state.vehicles.first.make : 'No Vehicle',
       licenseNum: state.user.driversLicenseNumber ?? '',
       licenseNumExpr: state.user.driversLicenseExpirationDate,
       restrictionCode: state.user.driversLicenseRestrictionCode,

@@ -35,8 +35,11 @@ class HomeBodyState extends State<HomeBody> {
     // Add debugging for authenticated user
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authBloc = context.read<AuthBloc>();
-      print('Home Body - AuthBloc state: ${authBloc.state}');
-      print('Home Body - AuthBloc user UID: ${authBloc.state.user?.uid}');
+      print('Home Body - AuthBloc status: ${authBloc.state.authStatus}');
+      print('Home Body - AuthBloc user UID: ${authBloc.state.user?.id}');
+      if (authBloc.state.user != null) {
+        print('Home Body - AuthBloc user email: ${authBloc.state.user!.data['email']}');
+      }
     });
   }
 
@@ -56,14 +59,14 @@ class HomeBodyState extends State<HomeBody> {
 
           // Check if the current authenticated user is different from the profile user
           final currentAuthUser = context.read<AuthBloc>().state.user;
-          if (currentAuthUser != null && state.user.uid.isNotEmpty && state.user.uid != currentAuthUser.uid) {
+          if (currentAuthUser != null && state.user.uid.isNotEmpty && state.user.uid != currentAuthUser.id) {
             print('Home Body - User mismatch detected!');
-            print('Home Body - Auth user UID: ${currentAuthUser.uid}');
+            print('Home Body - Auth user UID: ${currentAuthUser.id}');
             print('Home Body - Profile user UID: ${state.user.uid}');
             print('Home Body - Force clearing profile for new user');
             context.read<ProfileCubit>().forceClear();
             Future.delayed(const Duration(milliseconds: 100), () {
-              context.read<ProfileCubit>().getProfile(uid: currentAuthUser.uid);
+              context.read<ProfileCubit>().getProfile();
             });
           }
 
@@ -119,8 +122,7 @@ class HomeBodyState extends State<HomeBody> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      final uid = context.read<AuthBloc>().state.user!.uid;
-                      context.read<ProfileCubit>().getProfile(uid: uid);
+                      context.read<ProfileCubit>().getProfile();
                     },
                     child: const Text('Reload Profile'),
                   ),

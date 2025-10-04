@@ -1,0 +1,142 @@
+{
+  "name": "users",
+  "type": "base",
+  "schema": [
+    {
+      "name": "id",
+      "type": "text",
+      "required": true,
+      "unique": true
+    },
+    {
+      "name": "firstName",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "lastName", 
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "middleName",
+      "type": "text"
+    },
+    {
+      "name": "email",
+      "type": "email",
+      "required": true,
+      "unique": true
+    },
+    {
+      "name": "contactNumber",
+      "type": "text"
+    },
+    {
+      "name": "age",
+      "type": "text"
+    },
+    {
+      "name": "dateOfBirth",
+      "type": "date"
+    },
+    {
+      "name": "birthplace",
+      "type": "text"
+    },
+    {
+      "name": "bloodType",
+      "type": "text"
+    },
+    {
+      "name": "civilStatus",
+      "type": "text"
+    },
+    {
+      "name": "gender",
+      "type": "text"
+    },
+    {
+      "name": "nationality",
+      "type": "text"
+    },
+    {
+      "name": "religion",
+      "type": "text"
+    },
+    {
+      "name": "driversLicenseNumber",
+      "type": "text"
+    },
+    {
+      "name": "driversLicenseExpirationDate",
+      "type": "date"
+    },
+    {
+      "name": "driversLicenseRestrictionCode",
+      "type": "text"
+    },
+    {
+      "name": "emergencyContactName",
+      "type": "text"
+    },
+    {
+      "name": "emergencyContactNumber",
+      "type": "text"
+    },
+    {
+      "name": "spouseName",
+      "type": "text"
+    },
+    {
+      "name": "spouseContactNumber",
+      "type": "text"
+    },
+    {
+      "name": "memberNumber",
+      "type": "text",
+      "unique": true
+    },
+    {
+      "name": "membership_type",
+      "type": "number"
+    },
+    {
+      "name": "isActive",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "name": "isAdmin",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "name": "profile_image",
+      "type": "file",
+      "options": {
+        "maxSelect": 1,
+        "maxSize": 5242880,
+        "mimeTypes": ["image/png", "image/jpeg", "image/gif"]
+      }
+    },
+    {
+      "name": "vehicle",
+      "type": "json"
+    },
+    {
+      "name": "photos",
+      "type": "file",
+      "options": {
+        "maxSelect": 10,
+        "maxSize": 10485760,
+        "mimeTypes": ["image/png", "image/jpeg", "image/gif"]
+      }
+    }
+  ],
+  "indexes": [
+    "CREATE INDEX idx_users_email ON users (email)",
+    "CREATE INDEX idx_users_memberNumber ON users (memberNumber)",
+    "CREATE INDEX idx_users_isActive ON users (isActive)"
+  ]
+}

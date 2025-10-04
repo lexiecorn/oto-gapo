@@ -1,0 +1,58 @@
+{
+  "announcements": [
+    {
+      "title": "Welcome to Otogapo!",
+      "content": "Welcome to our car enthusiast community. Please read the community guidelines and enjoy your stay!",
+      "author": "5ubhAuZuKxeUdIGEcaoPVwHC8ro2",
+      "isActive": true,
+      "priority": "high",
+      "expiryDate": "2025-12-31"
+    },
+    {
+      "title": "Monthly Meetup - January 2025",
+      "content": "Join us for our monthly car meetup on January 25th at the Mall of Asia parking lot. Bring your cars and let's have a great time!",
+      "author": "5ubhAuZuKxeUdIGEcaoPVwHC8ro2",
+      "isActive": true,
+      "priority": "medium",
+      "expiryDate": "2025-01-31"
+    },
+    {
+      "title": "System Maintenance",
+      "content": "The app will be under maintenance on Sunday, January 12th from 2:00 AM to 4:00 AM. We apologize for any inconvenience.",
+      "author": "5ubhAuZuKxeUdIGEcaoPVwHC8ro2",
+      "isActive": true,
+      "priority": "urgent",
+      "expiryDate": "2025-01-15"
+    }
+  ],
+  "app_data": [
+    {
+      "key": "app_version",
+      "value": "1.2.0",
+      "description": "Current app version",
+      "category": "config",
+      "isActive": true
+    },
+    {
+      "key": "maintenance_mode",
+      "value": false,
+      "description": "Enable maintenance mode",
+      "category": "feature_flags",
+      "isActive": true
+    },
+    {
+      "key": "max_photos_per_car",
+      "value": 10,
+      "description": "Maximum number of photos allowed per car",
+      "category": "settings",
+      "isActive": true
+    },
+    {
+      "key": "welcome_message",
+      "value": "Welcome to Otogapo - Your Car Community!",
+      "description": "Welcome message shown to new users",
+      "category": "content",
+      "isActive": true
+    }
+  ]
+}

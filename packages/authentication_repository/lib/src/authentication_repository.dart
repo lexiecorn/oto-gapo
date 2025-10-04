@@ -6,6 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fresh_dio/fresh_dio.dart';
 import 'package:local_storage/local_storage.dart';
+import 'package:pocketbase/pocketbase.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 
 /// Firaebause API Eception
 class FirebaseAuthApiFailure implements Exception {
@@ -58,9 +60,33 @@ class AuthRepository {
 
   late final Fresh<String> _fresh;
   final LocalStorage _storage;
+  PocketBase? _pocketBase;
+  bool _isPocketBaseInitialized = false;
 
   ///
   final fb_auth.FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+
+  /// Get PocketBase instance (lazy initialization)
+  PocketBase get pocketBase {
+    if (!_isPocketBaseInitialized) {
+      _pocketBase = PocketBase(
+        FlavorConfig.instance.variables['pocketbaseUrl'] as String,
+      );
+      _isPocketBaseInitialized = true;
+    }
+    return _pocketBase!;
+  }
+
+  /// Initialize PocketBase (lazy initialization)
+  void initPocketBase() {
+    // Lazy initialization - will be called when first accessed
+    if (!_isPocketBaseInitialized) {
+      _pocketBase = PocketBase(
+        FlavorConfig.instance.variables['pocketbaseUrl'] as String,
+      );
+      _isPocketBaseInitialized = true;
+    }
+  }
 
   ///
   Stream<fb_auth.User?> get user => firebaseAuth.authStateChanges().asyncMap((user) async {
@@ -96,6 +122,11 @@ class AuthRepository {
         await userCredential.user?.updateDisplayName(displayName);
       }
 
+      // Sync with PocketBase
+      if (userCredential.user != null) {
+        await _syncUserWithPocketBase(userCredential.user!);
+      }
+
       return userCredential;
     } on fb_auth.FirebaseAuthException catch (e) {
       throw AuthFailure(
@@ -122,6 +153,12 @@ class AuthRepository {
         email: email,
         password: password,
       );
+
+      // Sync with PocketBase
+      if (userCredential.user != null) {
+        await _syncUserWithPocketBase(userCredential.user!);
+      }
+
       return userCredential;
     } on fb_auth.FirebaseAuthException catch (e) {
       // throw FirebaseAuthApiFailure(e.message.toString());
@@ -143,5 +180,102 @@ class AuthRepository {
   /// Sign out
   Future<void> signout() async {
     await firebaseAuth.signOut();
+  }
+
+  /// Sync Firebase user with PocketBase
+  Future<void> _syncUserWithPocketBase(User firebaseUser) async {
+    try {
+      // Check if user exists in PocketBase
+      final existingUser = await _getUserByFirebaseUid(firebaseUser.uid);
+
+      if (existingUser == null) {
+        // Create new user in PocketBase
+        await _createUserWithFirebaseUid(
+          firebaseUid: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          firstName: firebaseUser.displayName?.split(' ').first ?? '',
+          lastName: firebaseUser.displayName?.split(' ').last ?? '',
+        );
+      }
+    } catch (e) {
+      print('Error syncing user with PocketBase: $e');
+    }
+  }
+
+  /// Get user by Firebase UID from PocketBase
+  Future<RecordModel?> _getUserByFirebaseUid(String firebaseUid) async {
+    try {
+      final result = await pocketBase.collection('users').getList(
+            filter: 'firebaseUid = "$firebaseUid"',
+            perPage: 1,
+          );
+      return result.items.isNotEmpty ? result.items.first : null;
+    } catch (e) {
+      print('Error getting user from PocketBase: $e');
+      return null;
+    }
+  }
+
+  /// Create user with Firebase UID in PocketBase
+  Future<RecordModel> _createUserWithFirebaseUid({
+    required String firebaseUid,
+    required String email,
+    required String firstName,
+    required String lastName,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    final data = {
+      'firebaseUid': firebaseUid,
+      'email': email,
+      'firstName': firstName,
+      'lastName': lastName,
+      'isActive': true,
+      'isAdmin': false,
+      ...?additionalData,
+    };
+
+    return await pocketBase.collection('users').create(body: data);
+  }
+
+  /// Get current user data from PocketBase
+  Future<RecordModel?> getCurrentUserData() async {
+    final user = firebaseAuth.currentUser;
+    if (user == null) return null;
+
+    return await _getUserByFirebaseUid(user.uid);
+  }
+
+  /// Update user data in PocketBase
+  Future<RecordModel> updateUserData(Map<String, dynamic> data) async {
+    final user = firebaseAuth.currentUser;
+    if (user == null) throw Exception('No authenticated user');
+
+    final pocketBaseUser = await _getUserByFirebaseUid(user.uid);
+    if (pocketBaseUser == null) throw Exception('User not found in PocketBase');
+
+    return await pocketBase.collection('users').update(pocketBaseUser.id, body: data);
+  }
+
+  /// Get announcements from PocketBase
+  Future<List<RecordModel>> getAnnouncements() async {
+    final result = await pocketBase.collection('Announcements').getList(
+          sort: '-created',
+          filter: 'isActive = true',
+        );
+    return result.items;
+  }
+
+  /// Get app data from PocketBase
+  Future<RecordModel?> getAppData(String key) async {
+    try {
+      final result = await pocketBase.collection('app_data').getList(
+            filter: 'key = "$key"',
+            perPage: 1,
+          );
+      return result.items.isNotEmpty ? result.items.first : null;
+    } catch (e) {
+      print('Error getting app data: $e');
+      return null;
+    }
   }
 }

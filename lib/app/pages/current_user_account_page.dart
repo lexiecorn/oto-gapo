@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pocketbase/pocketbase.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 
 class CurrentUserAccountPage extends StatefulWidget {
   const CurrentUserAccountPage({Key? key}) : super(key: key);
@@ -27,10 +29,15 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
-        final userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
+        // Use PocketBase instead of Firestore
+        final pb = PocketBase(FlavorConfig.instance.variables['pocketbaseUrl'] as String);
+        final result = await pb.collection('users').getList(
+              filter: 'firebaseUid = "${currentUser.uid}"',
+              perPage: 1,
+            );
 
-        if (userDoc.exists) {
-          final userData = userDoc.data()!;
+        if (result.items.isNotEmpty) {
+          final userData = result.items.first.data;
 
           // Get profile image URL if it exists
           String? profileImageUrl;
@@ -55,7 +62,51 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
             _isLoading = false;
           });
         } else {
+          // User doesn't exist in PocketBase, create a basic one
+          final basicUserData = {
+            'firebaseUid': currentUser.uid,
+            'firstName': 'User',
+            'lastName': '',
+            'email': currentUser.email ?? '',
+            'gender': '',
+            'memberNumber': '',
+            'civilStatus': '',
+            'dateOfBirth': DateTime.now().toIso8601String(),
+            'birthplace': '',
+            'nationality': '',
+            'vehicle': [],
+            'contactNumber': '',
+            'driversLicenseExpirationDate': DateTime.now().toIso8601String(),
+            'membership_type': 3,
+            'isActive': true,
+            'isAdmin': false,
+          };
+
+          final createdRecord = await pb.collection('users').create(body: basicUserData);
+          print('Basic user created in PocketBase');
+
+          final userData = createdRecord.data;
+
+          // Get profile image URL if it exists
+          String? profileImageUrl;
+          if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
+            if (userData['profile_image'].toString().startsWith('gs://')) {
+              try {
+                final ref = FirebaseStorage.instance.refFromURL(userData['profile_image'].toString());
+                profileImageUrl = await ref.getDownloadURL();
+              } catch (e) {
+                profileImageUrl = 'assets/images/alex.png';
+              }
+            } else {
+              profileImageUrl = userData['profile_image'].toString();
+            }
+          } else {
+            profileImageUrl = 'assets/images/alex.png';
+          }
+
           setState(() {
+            _userData = userData;
+            _profileImageUrl = profileImageUrl;
             _isLoading = false;
           });
         }
