@@ -4,6 +4,9 @@ import 'package:otogapo/app/pages/user_list_page.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:otogapo/app/modules/auth/auth_bloc.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 import 'dart:io';
 
 class UserDetailPage extends StatefulWidget {
@@ -412,8 +415,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState.user == null) {
       return Scaffold(
         appBar: AppBar(title: const Text("Authentication Error")),
         body: const Center(
@@ -1007,21 +1010,24 @@ class _UserDetailPageState extends State<UserDetailPage> {
           }
         }
 
-        // Update the document in Firestore
+        // Update the user in PocketBase
         final userId = _editedData['id']?.toString();
         if (userId != null) {
           // Remove the id field before updating (it's not a document field)
           final updateData = Map<String, dynamic>.from(_editedData);
           updateData.remove('id');
 
-          // Convert DateTime to Timestamp for Firestore
+          // Convert DateTime to ISO string for PocketBase
           if (updateData['dateOfBirth'] is DateTime) {
-            updateData['dateOfBirth'] = Timestamp.fromDate(updateData['dateOfBirth'] as DateTime);
+            updateData['dateOfBirth'] = (updateData['dateOfBirth'] as DateTime).toIso8601String();
           }
           if (updateData['driversLicenseExpirationDate'] is DateTime) {
             updateData['driversLicenseExpirationDate'] =
-                Timestamp.fromDate(updateData['driversLicenseExpirationDate'] as DateTime);
+                (updateData['driversLicenseExpirationDate'] as DateTime).toIso8601String();
           }
+
+          // Convert any remaining Timestamp objects to ISO strings
+          _convertTimestampsToIso(updateData);
 
           // Update vehicle data with new car images if uploaded
           if (updateData['vehicle'] != null &&
@@ -1030,14 +1036,6 @@ class _UserDetailPageState extends State<UserDetailPage> {
             final vehicleList = updateData['vehicle'] as List;
             final vehicle = Map<String, dynamic>.from(vehicleList[0] as Map<String, dynamic>);
             final existingPhotos = List<String>.from((vehicle['photos'] as List<dynamic>?) ?? []);
-
-            // Debug logging
-            // print('Original vehicle data: $vehicle');
-            // print('Main car image URL: $mainCarImageUrl');
-            // print('Car image 1 URL: $carImage1Url');
-            // print('Car image 2 URL: $carImage2Url');
-            // print('Car image 3 URL: $carImage3Url');
-            // print('Car image 4 URL: $carImage4Url');
 
             // Add new car images to photos array
             if (carImage1Url != null) existingPhotos.add(carImage1Url);
@@ -1048,20 +1046,15 @@ class _UserDetailPageState extends State<UserDetailPage> {
             // Update primary photo if main car image was uploaded
             if (mainCarImageUrl != null) {
               vehicle['primaryPhoto'] = mainCarImageUrl;
-              // Debug logging
-              // print('Updated primary photo to: $mainCarImageUrl');
             }
 
             vehicle['photos'] = existingPhotos;
             updateData['vehicle'] = [vehicle];
-
-            // Debug logging
-            // print('Final vehicle data: ${updateData['vehicle']}');
           }
 
-          updateData['updatedAt'] = FieldValue.serverTimestamp();
-
-          await FirebaseFirestore.instance.collection('users').doc(userId).update(updateData);
+          // Update user in PocketBase
+          final pocketBaseService = PocketBaseService();
+          await pocketBaseService.updateUser(userId, updateData);
 
           // Close loading dialog
           Navigator.of(context).pop();
@@ -1161,8 +1154,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
 
       // Check if trying to delete current user's account
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null && currentUser.uid == userId) {
+      final authState = context.read<AuthBloc>().state;
+      if (authState.user != null && authState.user!.id == userId) {
         // Remove loading overlay
         if (overlayEntry != null) {
           overlayEntry!.remove();
@@ -1189,20 +1182,21 @@ class _UserDetailPageState extends State<UserDetailPage> {
       await _deleteUserStorageData(userId);
       // print('User data deleted from Firebase Storage successfully'); // Debug log
 
-      // Delete the user document from Firestore
-      // print('Deleting user from Firestore...'); // Debug log
+      // Delete the user from PocketBase
+      // print('Deleting user from PocketBase...'); // Debug log
       try {
-        await FirebaseFirestore.instance.collection('users').doc(userId).delete();
-        // print('User deleted from Firestore successfully'); // Debug log
-      } catch (firestoreError) {
-        print('Firestore deletion error: $firestoreError'); // Debug log
+        final pocketBaseService = PocketBaseService();
+        await pocketBaseService.deleteUser(userId);
+        // print('User deleted from PocketBase successfully'); // Debug log
+      } catch (pocketBaseError) {
+        print('PocketBase deletion error: $pocketBaseError'); // Debug log
         // Check if it's a permission error
-        if (firestoreError.toString().contains('permission-denied') ||
-            firestoreError.toString().contains('permission') ||
-            firestoreError.toString().contains('PERMISSION_DENIED')) {
+        if (pocketBaseError.toString().contains('permission-denied') ||
+            pocketBaseError.toString().contains('permission') ||
+            pocketBaseError.toString().contains('PERMISSION_DENIED')) {
           throw Exception('Permission denied: Unable to delete user. Please check your permissions or try again.');
         }
-        throw firestoreError; // Re-throw other errors
+        throw pocketBaseError; // Re-throw other errors
       }
 
       // Add a small delay to ensure the deletion is processed
@@ -2446,5 +2440,23 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
     }
     print('=== End Debug ===');
+  }
+
+  void _convertTimestampsToIso(Map<String, dynamic> data) {
+    data.forEach((key, value) {
+      if (value is Timestamp) {
+        data[key] = value.toDate().toIso8601String();
+      } else if (value is Map<String, dynamic>) {
+        _convertTimestampsToIso(value);
+      } else if (value is List) {
+        for (int i = 0; i < value.length; i++) {
+          if (value[i] is Timestamp) {
+            value[i] = (value[i] as Timestamp).toDate().toIso8601String();
+          } else if (value[i] is Map<String, dynamic>) {
+            _convertTimestampsToIso(value[i] as Map<String, dynamic>);
+          }
+        }
+      }
+    });
   }
 }

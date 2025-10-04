@@ -86,6 +86,11 @@ class PocketBaseService {
     return await pb.collection('users').update(userId, body: data);
   }
 
+  // Delete user
+  Future<void> deleteUser(String userId) async {
+    await pb.collection('users').delete(userId);
+  }
+
   // Get user data
   Future<RecordModel> getUser(String userId) async {
     return await pb.collection('users').getOne(userId);
