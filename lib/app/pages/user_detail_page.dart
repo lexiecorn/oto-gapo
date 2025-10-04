@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:otogapo/app/pages/user_list_page.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -54,8 +53,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
       final dateValue = _editedData['dateOfBirth'];
       if (dateValue is DateTime) {
         _selectedDateOfBirth = dateValue;
-      } else if (dateValue is Timestamp) {
-        _selectedDateOfBirth = dateValue.toDate();
+      } else if (dateValue is String) {
+        _selectedDateOfBirth = DateTime.parse(dateValue);
       }
     }
 
@@ -64,8 +63,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
       final dateValue = _editedData['driversLicenseExpirationDate'];
       if (dateValue is DateTime) {
         _selectedLicenseExpirationDate = dateValue;
-      } else if (dateValue is Timestamp) {
-        _selectedLicenseExpirationDate = dateValue.toDate();
+      } else if (dateValue is String) {
+        _selectedLicenseExpirationDate = DateTime.parse(dateValue);
       }
     }
 
@@ -80,7 +79,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   void _ensureTimestampFields() {
     // If createdAt doesn't exist, set it to a default timestamp
     if (_editedData['createdAt'] == null) {
-      _editedData['createdAt'] = Timestamp.fromDate(DateTime.now());
+      _editedData['createdAt'] = DateTime.now().toIso8601String();
     }
 
     // If updatedAt doesn't exist, set it to the same as createdAt
@@ -198,10 +197,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
         _profileImageUrlFuture = Future.value(downloadUrl);
       });
 
-      // Update Firestore
-      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+      // Update PocketBase
+      final pocketBaseService = PocketBaseService();
+      await pocketBaseService.updateUser(userId, {
         'profile_image': gsUri,
-        'updatedAt': FieldValue.serverTimestamp(),
+        'updatedAt': DateTime.now().toIso8601String(),
       });
 
       if (mounted) {
@@ -1361,8 +1361,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
           displayValue =
               '${value.day}/${value.month}/${value.year} ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
         }
-      } else if (value is Timestamp) {
-        final date = value.toDate();
+      } else if (value is String && value.contains('T')) {
+        final date = DateTime.parse(value);
         // Format for createdAt and updatedAt fields
         if (label == 'Created At' || label == 'Updated At') {
           final months = [
@@ -2444,14 +2444,14 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
   void _convertTimestampsToIso(Map<String, dynamic> data) {
     data.forEach((key, value) {
-      if (value is Timestamp) {
-        data[key] = value.toDate().toIso8601String();
+      if (value is DateTime) {
+        data[key] = value.toIso8601String();
       } else if (value is Map<String, dynamic>) {
         _convertTimestampsToIso(value);
       } else if (value is List) {
         for (int i = 0; i < value.length; i++) {
-          if (value[i] is Timestamp) {
-            value[i] = (value[i] as Timestamp).toDate().toIso8601String();
+          if (value[i] is DateTime) {
+            value[i] = (value[i] as DateTime).toIso8601String();
           } else if (value[i] is Map<String, dynamic>) {
             _convertTimestampsToIso(value[i] as Map<String, dynamic>);
           }

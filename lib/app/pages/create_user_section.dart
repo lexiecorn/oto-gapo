@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
@@ -12,6 +10,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 
 class CreateUserSection extends StatefulWidget {
   const CreateUserSection({Key? key}) : super(key: key);
@@ -719,15 +719,24 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     });
 
     try {
-      // First, create Firebase Authentication user
-      print('Creating Firebase Authentication user with email: $email');
-      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      // Create user in PocketBase
+      print('Creating PocketBase user with email: $email');
+      final pocketBaseService = PocketBaseService();
+
+      // Create user in PocketBase
+      final userRecord = await pocketBaseService.createUserWithFirebaseUid(
+        firebaseUid: '', // We'll generate a unique ID
         email: email,
-        password: password,
+        firstName: firstName,
+        lastName: lastName,
+        additionalData: {
+          'password': password,
+          'passwordConfirm': password,
+        },
       );
 
-      final uid = userCredential.user!.uid;
-      print('Firebase Authentication user created successfully with UID: $uid');
+      final uid = userRecord.id;
+      print('PocketBase user created successfully with ID: $uid');
 
       // Upload profile image if selected
       String? profileImageUrl;
@@ -787,19 +796,17 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         }
       }
 
-      // Create user document in Firestore using the Firebase Auth UID
-      print('Creating Firestore document with UID: $uid');
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      // Update user data in PocketBase
+      print('Updating PocketBase user data with ID: $uid');
+      final userData = {
         "age": age,
         "birthplace": birthplace,
         "bloodType": bloodType,
         "civilStatus": civilStatus,
         "contactNumber": contactNumber,
-        "createdAt": FieldValue.serverTimestamp(), // Timestamp when user was created
-        "updatedAt": FieldValue.serverTimestamp(), // Timestamp when user was last updated
-        "dateOfBirth": dateOfBirth != null ? Timestamp.fromDate(dateOfBirth) : null,
+        "dateOfBirth": dateOfBirth != null ? dateOfBirth.toIso8601String() : null,
         "driversLicenseExpirationDate":
-            driversLicenseExpirationDate != null ? Timestamp.fromDate(driversLicenseExpirationDate) : null,
+            driversLicenseExpirationDate != null ? driversLicenseExpirationDate.toIso8601String() : null,
         "driversLicenseNumber": driversLicenseNumber,
         "driversLicenseRestrictionCode": driversLicenseRestrictionCode,
         "email": email,
@@ -837,14 +844,15 @@ class _CreateUserSectionState extends State<CreateUserSection> {
             "year": vehicleYear
           }
         ]
-      });
+      };
 
-      print('Firestore document created successfully');
+      // Update user in PocketBase
+      await pocketBaseService.updateUser(uid, userData);
+      print('PocketBase user updated successfully');
 
       setState(() {
         _isCreatingUser = false;
-        _createUserMessage =
-            'User created successfully! Firebase Auth user and Firestore document created with UID: $uid';
+        _createUserMessage = 'User created successfully! PocketBase user created with ID: $uid';
         _newEmailController.clear();
         _newPasswordController.clear();
         _newFirstNameController.clear();
@@ -894,36 +902,24 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         _uploadedCarImage3Url = null;
         _uploadedCarImage4Url = null;
       });
-    } on FirebaseAuthException catch (e) {
-      // Handle Firebase Authentication errors
-      String errorMessage = 'Authentication error: ';
-      switch (e.code) {
-        case 'weak-password':
-          errorMessage += 'The password provided is too weak.';
-          break;
-        case 'email-already-in-use':
-          errorMessage += 'An account already exists for that email.';
-          break;
-        case 'invalid-email':
-          errorMessage += 'The email address is invalid.';
-          break;
-        case 'operation-not-allowed':
-          errorMessage += 'Email/password accounts are not enabled.';
-          break;
-        default:
-          errorMessage += e.message ?? 'Unknown authentication error.';
+    } catch (e) {
+      // Handle PocketBase errors
+      String errorMessage = 'Error creating user: ';
+      if (e.toString().contains('email') && e.toString().contains('already')) {
+        errorMessage += 'An account already exists for that email.';
+      } else if (e.toString().contains('password')) {
+        errorMessage += 'The password provided is too weak.';
+      } else if (e.toString().contains('email')) {
+        errorMessage += 'The email address is invalid.';
+      } else {
+        errorMessage += e.toString();
       }
 
       setState(() {
         _isCreatingUser = false;
         _createUserMessage = errorMessage;
       });
-      print('Firebase Authentication error: ${e.code} - ${e.message}');
-    } catch (e) {
-      setState(() {
-        _isCreatingUser = false;
-        _createUserMessage = 'Error: $e';
-      });
+      print('PocketBase error: $e');
       print('General error during user creation: $e');
     }
   }
@@ -1053,28 +1049,34 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       final randomEmail =
           '${randomFirstName.toLowerCase()}.${randomLastName.toLowerCase()}${_generateRandomString(3)}@gmail.com';
 
-      // First, create Firebase Authentication user with default password
-      print('Creating Firebase Authentication user for test user with email: $randomEmail');
-      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      // Create test user in PocketBase
+      print('Creating PocketBase test user with email: $randomEmail');
+      final pocketBaseService = PocketBaseService();
+
+      final userRecord = await pocketBaseService.createUserWithFirebaseUid(
+        firebaseUid: '', // Generate unique ID
         email: randomEmail,
-        password: '123456', // Default password for test users
+        firstName: randomFirstName,
+        lastName: randomLastName,
+        additionalData: {
+          'password': '123456',
+          'passwordConfirm': '123456',
+        },
       );
 
-      final uid = userCredential.user!.uid;
-      print('Firebase Authentication test user created successfully with UID: $uid');
+      final uid = userRecord.id;
+      print('PocketBase test user created successfully with ID: $uid');
 
-      // Create user document in Firestore using the Firebase Auth UID
-      print('Creating Firestore document for test user with UID: $uid');
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      // Update user data in PocketBase
+      print('Updating PocketBase test user data with ID: $uid');
+      final userData = {
         "age": randomAge.toString(),
         "birthplace": randomBirthplace,
         "bloodType": randomBloodType,
         "civilStatus": randomCivilStatus,
         "contactNumber": randomPhoneNumber,
-        "createdAt": FieldValue.serverTimestamp(),
-        "updatedAt": FieldValue.serverTimestamp(),
-        "dateOfBirth": Timestamp.fromDate(randomDateOfBirth),
-        "driversLicenseExpirationDate": Timestamp.fromDate(randomLicenseExpiration),
+        "dateOfBirth": randomDateOfBirth.toIso8601String(),
+        "driversLicenseExpirationDate": randomLicenseExpiration.toIso8601String(),
         "driversLicenseNumber": _generateRandomString(12),
         "driversLicenseRestrictionCode": (Random().nextInt(9) + 1).toString(),
         "email": randomEmail,
@@ -1108,38 +1110,31 @@ class _CreateUserSectionState extends State<CreateUserSection> {
             "year": randomVehicleYear
           }
         ]
-      });
+      };
 
-      print('Firestore document for test user created successfully');
+      // Update test user in PocketBase
+      await pocketBaseService.updateUser(uid, userData);
+      print('PocketBase test user updated successfully');
 
       // Create random payment records for the last 6 months
       await _createRandomPaymentRecords(uid);
 
-      print('Test user creation completed successfully for UID: $uid');
-    } on FirebaseAuthException catch (e) {
-      // Handle Firebase Authentication errors for test users
-      String errorMessage = 'Test user authentication error: ';
-      switch (e.code) {
-        case 'weak-password':
-          errorMessage += 'The password provided is too weak.';
-          break;
-        case 'email-already-in-use':
-          errorMessage += 'An account already exists for that email.';
-          break;
-        case 'invalid-email':
-          errorMessage += 'The email address is invalid.';
-          break;
-        case 'operation-not-allowed':
-          errorMessage += 'Email/password accounts are not enabled.';
-          break;
-        default:
-          errorMessage += e.message ?? 'Unknown authentication error.';
+      print('Test user creation completed successfully for ID: $uid');
+    } catch (e) {
+      // Handle PocketBase errors for test users
+      String errorMessage = 'Error creating test user: ';
+      if (e.toString().contains('email') && e.toString().contains('already')) {
+        errorMessage += 'An account already exists for that email.';
+      } else if (e.toString().contains('password')) {
+        errorMessage += 'The password provided is too weak.';
+      } else if (e.toString().contains('email')) {
+        errorMessage += 'The email address is invalid.';
+      } else {
+        errorMessage += e.toString();
       }
 
-      print('Firebase Authentication error for test user: ${e.code} - ${e.message}');
+      print('PocketBase error for test user: $e');
       // For test users, we might want to continue with a different email or handle differently
-    } catch (e) {
-      print('Error creating random test user: $e');
     }
   }
 

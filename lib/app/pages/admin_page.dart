@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:otogapo/app/pages/user_management_page.dart';
 import 'package:otogapo/app/pages/payment_management_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -43,42 +41,10 @@ class _AdminPageState extends State<AdminPage> {
           _isLoading = false;
         });
       } else {
-        // Fallback to Firebase authentication
-        final currentUser = FirebaseAuth.instance.currentUser;
-        if (currentUser != null) {
-          // Try to find user in PocketBase by Firebase UID
-          final pocketBaseService = PocketBaseService();
-          final userRecord = await pocketBaseService.getUserByFirebaseUid(currentUser.uid);
-
-          if (userRecord != null) {
-            final userData = userRecord.data;
-            setState(() {
-              _currentUserData = userData;
-              _isAdmin = userData['membership_type'] == 1 || userData['membership_type'] == 2;
-              _isLoading = false;
-            });
-          } else {
-            // User not found in PocketBase, check Firestore as fallback
-            final userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
-
-            if (userDoc.exists) {
-              final userData = userDoc.data()!;
-              setState(() {
-                _currentUserData = userData;
-                _isAdmin = userData['membership_type'] == 1 || userData['membership_type'] == 2;
-                _isLoading = false;
-              });
-            } else {
-              setState(() {
-                _isLoading = false;
-              });
-            }
-          }
-        } else {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+        // No authenticated user
+        setState(() {
+          _isLoading = false;
+        });
       }
     } catch (e) {
       print('Error loading user data: $e');

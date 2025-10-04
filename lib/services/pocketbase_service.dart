@@ -108,7 +108,6 @@ class PocketBaseService {
   Future<List<RecordModel>> getAnnouncements() async {
     final result = await pb.collection('Announcements').getList(
           sort: '-created',
-          filter: 'isActive = true',
         );
     return result.items;
   }
@@ -117,15 +116,12 @@ class PocketBaseService {
   Future<RecordModel> createAnnouncement({
     required String title,
     required String content,
-    required String authorId,
     String? type,
   }) async {
     final data = {
       'title': title,
       'content': content,
-      'author': authorId,
       'type': type ?? 'general',
-      'isActive': true,
     };
 
     return await pb.collection('Announcements').create(body: data);

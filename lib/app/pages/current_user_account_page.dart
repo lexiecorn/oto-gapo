@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
@@ -67,107 +66,10 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
         });
       } else {
         // No authenticated user, check if there's a Firebase user as fallback
-        final currentUser = FirebaseAuth.instance.currentUser;
-        if (currentUser != null) {
-          // Try to find user by Firebase UID in PocketBase
-          final pocketBaseService = PocketBaseService();
-          final userRecord = await pocketBaseService.getUserByFirebaseUid(currentUser.uid);
-
-          if (userRecord != null) {
-            final userData = userRecord.data;
-
-            // Get profile image URL if it exists
-            String? profileImageUrl;
-            if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
-              if (userData['profile_image'].toString().startsWith('gs://')) {
-                try {
-                  final ref = FirebaseStorage.instance.refFromURL(userData['profile_image'].toString());
-                  profileImageUrl = await ref.getDownloadURL();
-                } catch (e) {
-                  profileImageUrl = 'assets/images/alex.png';
-                }
-              } else if (userData['profile_image'].toString().startsWith('http')) {
-                // It's already a full URL
-                profileImageUrl = userData['profile_image'].toString();
-              } else {
-                // It's a filename, construct the PocketBase file URL
-                final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-                profileImageUrl = '$pocketbaseUrl/api/files/users/${userRecord.id}/${userData['profile_image']}';
-              }
-            } else {
-              profileImageUrl = 'assets/images/alex.png';
-            }
-
-            setState(() {
-              _userData = userData;
-              _profileImageUrl = profileImageUrl;
-              _isLoading = false;
-            });
-          } else {
-            // User doesn't exist in PocketBase, create a basic one
-            final basicUserData = {
-              'firebaseUid': currentUser.uid,
-              'firstName': 'User',
-              'lastName': '',
-              'email': currentUser.email ?? '',
-              'gender': '',
-              'memberNumber': '',
-              'civilStatus': '',
-              'dateOfBirth': DateTime.now().toIso8601String(),
-              'birthplace': '',
-              'nationality': '',
-              'vehicle': <String>[],
-              'contactNumber': '',
-              'driversLicenseExpirationDate': DateTime.now().toIso8601String(),
-              'membership_type': 3,
-              'isActive': true,
-              'isAdmin': false,
-            };
-
-            final createdRecord = await pocketBaseService.createUserWithFirebaseUid(
-              firebaseUid: currentUser.uid,
-              email: currentUser.email ?? '',
-              firstName: currentUser.displayName?.split(' ').first ?? 'User',
-              lastName: currentUser.displayName?.split(' ').last ?? '',
-              additionalData: basicUserData,
-            );
-            print('Basic user created in PocketBase');
-
-            final userData = createdRecord.data;
-
-            // Get profile image URL if it exists
-            String? profileImageUrl;
-            if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
-              if (userData['profile_image'].toString().startsWith('gs://')) {
-                try {
-                  final ref = FirebaseStorage.instance.refFromURL(userData['profile_image'].toString());
-                  profileImageUrl = await ref.getDownloadURL();
-                } catch (e) {
-                  profileImageUrl = 'assets/images/alex.png';
-                }
-              } else if (userData['profile_image'].toString().startsWith('http')) {
-                // It's already a full URL
-                profileImageUrl = userData['profile_image'].toString();
-              } else {
-                // It's a filename, construct the PocketBase file URL
-                final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-                profileImageUrl = '$pocketbaseUrl/api/files/users/${createdRecord.id}/${userData['profile_image']}';
-              }
-            } else {
-              profileImageUrl = 'assets/images/alex.png';
-            }
-
-            setState(() {
-              _userData = userData;
-              _profileImageUrl = profileImageUrl;
-              _isLoading = false;
-            });
-          }
-        } else {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+        // No authenticated user
+        setState(() {
+          _isLoading = false;
+        });
       }
     } catch (e) {
       print('Error loading user data: $e');
@@ -195,13 +97,9 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
     }
 
     if (_userData == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Account Information'),
-          centerTitle: true,
-        ),
-        body: const Center(
-          child: Text('Unable to load account information'),
+      return const Scaffold(
+        body: Center(
+          child: Text('No user data available'),
         ),
       );
     }
