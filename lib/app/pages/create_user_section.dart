@@ -697,7 +697,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
     if (email.isEmpty || password.isEmpty || firstName.isEmpty || lastName.isEmpty) {
       setState(
-          () => _createUserMessage = 'Please fill in all required fields (email, password, first name, last name).',);
+        () => _createUserMessage = 'Please fill in all required fields (email, password, first name, last name).',
+      );
       return;
     }
 
@@ -793,8 +794,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         'civilStatus': civilStatus,
         'contactNumber': contactNumber,
         'dateOfBirth': dateOfBirth?.toIso8601String(),
-        'driversLicenseExpirationDate':
-            driversLicenseExpirationDate?.toIso8601String(),
+        'driversLicenseExpirationDate': driversLicenseExpirationDate?.toIso8601String(),
         'driversLicenseNumber': driversLicenseNumber,
         'driversLicenseRestrictionCode': driversLicenseRestrictionCode,
         'email': email,
@@ -1139,13 +1139,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
         // 70% chance of being paid, 30% chance of being unpaid
         final isPaid = random.nextDouble() < 0.7;
-        final status = isPaid ? 'Paid' : 'Unpaid';
 
         await pocketBaseService.createOrUpdateMonthlyDues(
           userId: userId,
           dueForMonth: date,
           amount: 100,
-          status: status,
           paymentDate: isPaid ? DateTime.now() : null,
         );
       }
@@ -1585,12 +1583,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Personal Information',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface.withOpacity(0.87),
-                  ),),
+              Text(
+                'Personal Information',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface.withOpacity(0.87),
+                ),
+              ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -1729,7 +1729,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         DropdownMenuItem(value: 'Married', child: Text('Married', style: TextStyle(fontSize: 14.sp))),
                         DropdownMenuItem(value: 'Widowed', child: Text('Widowed', style: TextStyle(fontSize: 14.sp))),
                         DropdownMenuItem(
-                            value: 'Separated', child: Text('Separated', style: TextStyle(fontSize: 14.sp)),),
+                          value: 'Separated',
+                          child: Text('Separated', style: TextStyle(fontSize: 14.sp)),
+                        ),
                         DropdownMenuItem(value: 'Divorced', child: Text('Divorced', style: TextStyle(fontSize: 14.sp))),
                         DropdownMenuItem(value: 'Annulled', child: Text('Annulled', style: TextStyle(fontSize: 14.sp))),
                       ],
@@ -1754,8 +1756,12 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 ),
                 keyboardType: TextInputType.phone,
                 maxLength: 10,
-                buildCounter: (BuildContext context,
-                    {required int currentLength, required bool isFocused, required int? maxLength,}) {
+                buildCounter: (
+                  BuildContext context, {
+                  required int currentLength,
+                  required bool isFocused,
+                  required int? maxLength,
+                }) {
                   return Text(
                     '$currentLength/$maxLength',
                     style: Theme.of(context).textTheme.bodySmall,
@@ -1886,15 +1892,17 @@ class _CreateUserSectionState extends State<CreateUserSection> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Profile Image',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                        shadows: isDark
-                            ? [Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 2, offset: const Offset(0, 1))]
-                            : [],
-                      ),),
+                  Text(
+                    'Profile Image',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                      shadows: isDark
+                          ? [Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 2, offset: const Offset(0, 1))]
+                          : [],
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -1978,12 +1986,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Driver's License",
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface.withOpacity(0.87),
-                  ),),
+              Text(
+                "Driver's License",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface.withOpacity(0.87),
+                ),
+              ),
               const SizedBox(height: 20),
               TextField(
                 controller: _driversLicenseNumberController,
@@ -2054,12 +2064,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Account & Membership',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface.withOpacity(0.87),
-                  ),),
+              Text(
+                'Account & Membership',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface.withOpacity(0.87),
+                ),
+              ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -2115,12 +2127,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Vehicle Details',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface.withOpacity(0.87),
-                  ),),
+              Text(
+                'Vehicle Details',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface.withOpacity(0.87),
+                ),
+              ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -2357,24 +2371,28 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Car Images',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface.withOpacity(0.87),
-                  ),),
+              Text(
+                'Car Images',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface.withOpacity(0.87),
+                ),
+              ),
               const SizedBox(height: 20),
 
               // Main Car Image
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Primary Car Image',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface.withOpacity(0.87),
-                      ),),
+                  Text(
+                    'Primary Car Image',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface.withOpacity(0.87),
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -2447,12 +2465,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
               const SizedBox(height: 20),
 
               // Additional Car Images Grid
-              Text('Additional Car Images (1-4)',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface.withOpacity(0.87),
-                  ),),
+              Text(
+                'Additional Car Images (1-4)',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface.withOpacity(0.87),
+                ),
+              ),
               const SizedBox(height: 8),
 
               // Grid of car images

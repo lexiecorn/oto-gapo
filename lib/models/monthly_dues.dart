@@ -1,11 +1,13 @@
 import 'package:pocketbase/pocketbase.dart';
 
 class MonthlyDues {
-
   const MonthlyDues({
     required this.id,
     required this.amount,
-    required this.status, required this.userId, required this.created, required this.updated, this.dueForMonth,
+    required this.userId,
+    required this.created,
+    required this.updated,
+    this.dueForMonth,
     this.paymentDate,
     this.notes,
   });
@@ -15,7 +17,6 @@ class MonthlyDues {
       id: record.id,
       amount: (record.data['amount'] as num?)?.toDouble() ?? 0.0,
       dueForMonth: record.data['due_for_month'] != null ? _parseDate(record.data['due_for_month'] as String) : null,
-      status: (record.data['status'] as String?) ?? 'Unpaid',
       paymentDate: record.data['payment_date'] != null ? _parseDate(record.data['payment_date'] as String) : null,
       notes: record.data['notes'] as String?,
       userId: record.data['user'] as String,
@@ -26,7 +27,6 @@ class MonthlyDues {
   final String id;
   final double amount;
   final DateTime? dueForMonth;
-  final String status;
   final DateTime? paymentDate;
   final String? notes;
   final String userId;
@@ -61,7 +61,6 @@ class MonthlyDues {
       'id': id,
       'amount': amount,
       'due_for_month': dueForMonth?.toIso8601String().split('T')[0],
-      'status': status,
       'payment_date': paymentDate?.toIso8601String().split('T')[0],
       'notes': notes,
       'user': userId,
@@ -74,7 +73,6 @@ class MonthlyDues {
     String? id,
     double? amount,
     DateTime? dueForMonth,
-    String? status,
     DateTime? paymentDate,
     String? notes,
     String? userId,
@@ -85,7 +83,6 @@ class MonthlyDues {
       id: id ?? this.id,
       amount: amount ?? this.amount,
       dueForMonth: dueForMonth ?? this.dueForMonth,
-      status: status ?? this.status,
       paymentDate: paymentDate ?? this.paymentDate,
       notes: notes ?? this.notes,
       userId: userId ?? this.userId,
@@ -94,7 +91,18 @@ class MonthlyDues {
     );
   }
 
-  bool get isPaid => status == 'Paid';
-  bool get isUnpaid => status == 'Unpaid';
-  bool get isOverdue => status == 'Overdue';
+  bool get isPaid => paymentDate != null;
+  bool get isUnpaid => paymentDate == null;
+
+  // Calculate overdue based on due date vs current date
+  bool get isOverdue {
+    if (paymentDate != null) return false; // Already paid
+    if (dueForMonth == null) return false; // No due date set
+
+    final now = DateTime.now();
+    final currentMonth = DateTime(now.year, now.month);
+    final dueMonth = DateTime(dueForMonth!.year, dueForMonth!.month);
+
+    return currentMonth.isAfter(dueMonth);
+  }
 }

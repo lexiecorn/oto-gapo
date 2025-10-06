@@ -49,10 +49,12 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     _fadeAnimation = Tween<double>(
       begin: 0,
       end: 1,
-    ).animate(CurvedAnimation(
-      parent: _pageAnimationController,
-      curve: Curves.easeOut,
-    ),);
+    ).animate(
+      CurvedAnimation(
+        parent: _pageAnimationController,
+        curve: Curves.easeOut,
+      ),
+    );
 
     // Start animation
     _pageAnimationController.forward();
@@ -415,7 +417,6 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 }
 
 class PaymentStatusCard extends StatefulWidget {
-
   const PaymentStatusCard({required this.userId, super.key});
   final String userId;
 
@@ -484,7 +485,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
       final monthlyDues = await pocketBaseService.getMonthlyDuesForUser(widget.userId);
       print('PaymentStatusCard - Monthly dues count: ${monthlyDues.length}');
       for (final due in monthlyDues) {
-        print('PaymentStatusCard - Due: ${due.id}, Status: ${due.status}, Amount: ${due.amount}, User: ${due.userId}');
+        print('PaymentStatusCard - Due: ${due.id}, Paid: ${due.isPaid}, Amount: ${due.amount}, User: ${due.userId}');
       }
 
       // Also check all monthly dues records to see what user identifiers exist
@@ -492,7 +493,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
         final allMonthlyDues = await pocketBaseService.getAllMonthlyDues();
         print('PaymentStatusCard - Total monthly dues records in database: ${allMonthlyDues.length}');
         for (final due in allMonthlyDues) {
-          print('PaymentStatusCard - All dues - ID: ${due.id}, User: ${due.userId}, Status: ${due.status}');
+          print('PaymentStatusCard - All dues - ID: ${due.id}, User: ${due.userId}, Paid: ${due.isPaid}');
         }
       } catch (e) {
         print('PaymentStatusCard - Error getting all monthly dues: $e');
@@ -512,7 +513,6 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
             'amount': due.amount,
             'updatedAt': due.paymentDate,
             'isAdvance': isAdvance,
-            'status': due.status,
           });
         }
       }

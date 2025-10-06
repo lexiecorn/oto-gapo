@@ -272,7 +272,8 @@ class PocketBaseService {
         }).toList();
 
         print(
-            'PocketBaseService.getMonthlyDuesForUser - Found ${filteredRecords.length} monthly dues records for user "$userId" after filtering',);
+          'PocketBaseService.getMonthlyDuesForUser - Found ${filteredRecords.length} monthly dues records for user "$userId" after filtering',
+        );
 
         return filteredRecords.map(MonthlyDues.fromRecord).toList();
       } catch (e) {
@@ -308,7 +309,6 @@ class PocketBaseService {
     required String userId,
     required DateTime dueForMonth,
     required double amount,
-    required String status,
     DateTime? paymentDate,
     String? notes,
     String? existingId,
@@ -320,7 +320,6 @@ class PocketBaseService {
       'user': userId, // Use the PocketBase record ID directly since it's a relation field
       'due_for_month': dueForMonth.toIso8601String().split('T')[0],
       'amount': amount,
-      'status': status,
       'payment_date': paymentDate?.toIso8601String().split('T')[0],
       'notes': notes ?? '',
     };
@@ -344,13 +343,11 @@ class PocketBaseService {
     String? notes,
   }) async {
     final existingDues = await getMonthlyDuesForUserAndMonth(userId, month);
-    final status = isPaid ? 'Paid' : 'Unpaid';
 
     return createOrUpdateMonthlyDues(
       userId: userId,
       dueForMonth: month,
       amount: 100, // Fixed amount per month
-      status: status,
       paymentDate: isPaid ? (paymentDate ?? DateTime.now()) : null,
       notes: notes,
       existingId: existingDues?.id,
@@ -476,25 +473,27 @@ class PocketBaseService {
       final lastMonth = DateTime(now.year, now.month - 1);
 
       // Create a record for last month (paid)
-      final record1 = await pb.collection('monthly_dues').create(body: {
-        'user': authenticatedUserId, // Use authenticated user ID
-        'amount': 100.0,
-        'due_for_month': lastMonth.toIso8601String().split('T')[0],
-        'status': 'Paid',
-        'payment_date': lastMonth.toIso8601String().split('T')[0],
-        'notes': 'Test payment for debugging',
-      },);
+      final record1 = await pb.collection('monthly_dues').create(
+        body: {
+          'user': authenticatedUserId, // Use authenticated user ID
+          'amount': 100.0,
+          'due_for_month': lastMonth.toIso8601String().split('T')[0],
+          'payment_date': lastMonth.toIso8601String().split('T')[0],
+          'notes': 'Test payment for debugging',
+        },
+      );
 
       print('Created test record 1: ${record1.id}');
 
-      // Create a record for current month (unpaid)
-      final record2 = await pb.collection('monthly_dues').create(body: {
-        'user': authenticatedUserId, // Use authenticated user ID
-        'amount': 100.0,
-        'due_for_month': currentMonth.toIso8601String().split('T')[0],
-        'status': 'Unpaid',
-        'notes': 'Current month dues',
-      },);
+      // Create a record for current month (unpaid - no payment_date)
+      final record2 = await pb.collection('monthly_dues').create(
+        body: {
+          'user': authenticatedUserId, // Use authenticated user ID
+          'amount': 100.0,
+          'due_for_month': currentMonth.toIso8601String().split('T')[0],
+          'notes': 'Current month dues',
+        },
+      );
 
       print('Created test record 2: ${record2.id}');
       print('=== Test Records Created Successfully ===');
