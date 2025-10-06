@@ -22,7 +22,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   List<String> _selectedMonthsForBulkUpdate = [];
   bool _showUserSelectionDialog = false;
   bool _showBulkUpdateDialog = false;
-  Map<String, bool> _cachedMonthStatus = {}; // Cache for month status data
+  Map<String, bool?> _cachedMonthStatus = {}; // Cache for month status data
 
   @override
   void initState() {
@@ -113,18 +113,32 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
     try {
       final pocketBaseService = PocketBaseService();
       final monthDate = DateFormat('yyyy_MM').parse(month);
-      final monthlyDues = await pocketBaseService.getMonthlyDuesForUserAndMonth(userId, monthDate);
 
-      if (monthlyDues != null) {
+      // Use the new utility method to get payment status
+      final status = await pocketBaseService.getPaymentStatusForMonth(
+        userId: userId,
+        monthDate: monthDate,
+      );
+
+      if (status == null) {
+        // Not applicable - before joined date
         return {
-          'status': monthlyDues.isPaid,
-          'amount': monthlyDues.amount,
-          'payment_date': monthlyDues.paymentDate?.toIso8601String(),
-          'updated_at': monthlyDues.updated,
+          'status': null,
+          'amount': 0,
+          'payment_date': null,
+          'updated_at': null,
         };
       }
-      // Return null if payment record doesn't exist (treated as unpaid)
-      return null;
+
+      // Get the actual dues record for additional details
+      final monthlyDues = await pocketBaseService.getMonthlyDuesForUserAndMonth(userId, monthDate);
+
+      return {
+        'status': status,
+        'amount': monthlyDues?.amount ?? 100.0,
+        'payment_date': monthlyDues?.paymentDate?.toIso8601String(),
+        'updated_at': monthlyDues?.updated,
+      };
     } catch (e) {
       print('Error getting payment status: $e');
       return null;
@@ -132,13 +146,13 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   }
 
   // New method to get all months with payment status for a user
-  Future<Map<String, bool>> _getUserAllMonthsWithStatus(String userId) async {
-    final monthStatus = <String, bool>{};
+  Future<Map<String, bool?>> _getUserAllMonthsWithStatus(String userId) async {
+    final monthStatus = <String, bool?>{};
 
     for (final month in _availableMonths) {
       final paymentData = await _getPaymentStatus(userId, month);
-      // If payment record doesn't exist, consider it as unpaid
-      monthStatus[month] = (paymentData?['status'] as bool?) ?? false;
+      // Store the actual status (null, true, or false)
+      monthStatus[month] = paymentData?['status'] as bool?;
     }
 
     return monthStatus;
@@ -528,20 +542,52 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                     future: _getPaymentStatus(user['id'] as String, month),
                     builder: (context, snapshot) {
                       final paymentData = snapshot.data;
-                      final isPaid = (paymentData?['status'] as bool?) ?? false;
+                      final status = paymentData?['status'] as bool?;
 
-                      return Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: isPaid ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Icon(
-                          isPaid ? Icons.check : Icons.close,
-                          size: 16,
-                          color: isPaid ? Colors.green : Colors.red,
-                        ),
-                      );
+                      // Handle three states: paid, unpaid, not applicable (before joined)
+                      if (status == null) {
+                        // Not applicable - before joined date
+                        return Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Icon(
+                            Icons.remove,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                        );
+                      } else if (status == true) {
+                        // Paid
+                        return Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            size: 16,
+                            color: Colors.green,
+                          ),
+                        );
+                      } else {
+                        // Unpaid
+                        return Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            size: 16,
+                            color: Colors.red,
+                          ),
+                        );
+                      }
                     },
                   ),
                 );
@@ -693,18 +739,18 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                   future: _getPaymentStatus(user['id'] as String, _selectedMonth),
                   builder: (context, snapshot) {
                     final paymentData = snapshot.data;
-                    final isPaid = (paymentData?['status'] as bool?) ?? false;
+                    final status = paymentData?['status'] as bool?;
 
                     return Column(
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: isPaid ? Colors.green : Colors.red,
+                            color: status == null ? Colors.grey : (status == true ? Colors.green : Colors.red),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            isPaid ? 'PAID' : 'UNPAID',
+                            status == null ? 'N/A' : (status == true ? 'PAID' : 'UNPAID'),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 9,
@@ -721,15 +767,17 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: isPaid ? Colors.green : Colors.red,
+                                color: status == null ? Colors.grey : (status == true ? Colors.green : Colors.red),
                               ),
                             ),
                             const SizedBox(width: 4),
                             Switch(
-                              value: isPaid,
-                              onChanged: (value) {
-                                _markPaymentStatus(user['id'] as String, _selectedMonth, value);
-                              },
+                              value: status == true,
+                              onChanged: status == null
+                                  ? null
+                                  : (value) {
+                                      _markPaymentStatus(user['id'] as String, _selectedMonth, value);
+                                    },
                               activeColor: Colors.green,
                             ),
                           ],
@@ -785,8 +833,9 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
     for (final user in _users) {
       final paymentData = await _getPaymentStatus(user['id'] as String, _selectedMonth);
-      // Count as unpaid if payment record doesn't exist or status is not true
-      if ((paymentData?['status'] as bool?) != true) {
+      // Count as unpaid if status is explicitly false (member but no payment)
+      // Don't count if status is null (not a member during this month)
+      if ((paymentData?['status'] as bool?) == false) {
         count++;
       }
     }
@@ -993,7 +1042,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                   final month = allMonths[index];
                                   final date = DateFormat('yyyy_MM').parse(month);
                                   final displayText = DateFormat('MMMM yyyy').format(date);
-                                  final isPaid = _cachedMonthStatus[month] ?? false;
+                                  final status = _cachedMonthStatus[month];
                                   final isSelected = _selectedMonthsForBulkUpdate.contains(month);
 
                                   return Theme(
@@ -1015,31 +1064,42 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                         ),
                                       ),
                                       subtitle: Text(
-                                        isPaid ? 'Paid' : (_isFutureMonth(month) ? 'Future' : 'Unpaid'),
+                                        status == null
+                                            ? 'Not Applicable'
+                                            : (status == true ? 'Paid' : (_isFutureMonth(month) ? 'Future' : 'Unpaid')),
                                         style: TextStyle(
                                           fontSize: 11,
-                                          color: isPaid
-                                              ? Colors.green
-                                              : (_isFutureMonth(month) ? Colors.blue : Colors.red),
+                                          color: status == null
+                                              ? Colors.grey
+                                              : (status == true
+                                                  ? Colors.green
+                                                  : (_isFutureMonth(month) ? Colors.blue : Colors.red)),
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      value: isSelected,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          if (value == true) {
-                                            _selectedMonthsForBulkUpdate.add(month);
-                                          } else {
-                                            _selectedMonthsForBulkUpdate.remove(month);
-                                          }
-                                        });
-                                      },
+                                      value: status == null ? false : isSelected,
+                                      onChanged: status == null
+                                          ? null
+                                          : (value) {
+                                              setState(() {
+                                                if (value == true) {
+                                                  _selectedMonthsForBulkUpdate.add(month);
+                                                } else {
+                                                  _selectedMonthsForBulkUpdate.remove(month);
+                                                }
+                                              });
+                                            },
                                       secondary: Icon(
-                                        isPaid
-                                            ? Icons.check_circle
-                                            : (_isFutureMonth(month) ? Icons.schedule : Icons.cancel),
-                                        color:
-                                            isPaid ? Colors.green : (_isFutureMonth(month) ? Colors.blue : Colors.red),
+                                        status == null
+                                            ? Icons.remove
+                                            : (status == true
+                                                ? Icons.check_circle
+                                                : (_isFutureMonth(month) ? Icons.schedule : Icons.cancel)),
+                                        color: status == null
+                                            ? Colors.grey
+                                            : (status == true
+                                                ? Colors.green
+                                                : (_isFutureMonth(month) ? Colors.blue : Colors.red)),
                                         size: 18,
                                       ),
                                     ),
@@ -1056,7 +1116,9 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                   child: ElevatedButton(
                                     onPressed: () {
                                       setState(() {
-                                        _selectedMonthsForBulkUpdate = List.from(allMonths);
+                                        // Only select months that are applicable (not null status)
+                                        _selectedMonthsForBulkUpdate =
+                                            allMonths.where((month) => _cachedMonthStatus[month] != null).toList();
                                       });
                                     },
                                     style: ElevatedButton.styleFrom(

@@ -121,6 +121,10 @@ Future<RecordModel> createUserWithFirebaseUid({
 })
 ```
 
+Notes:
+
+- The service automatically sets `joinedDate` to the current timestamp on user creation unless explicitly provided in `additionalData`.
+
 ## User Management
 
 ### User CRUD Operations
@@ -180,7 +184,8 @@ Future<RecordModel> updateUserProfile({
   int? membershipType,
   bool? isActive,
   bool? isAdmin,
-  Map<String, dynamic>? vehicle
+  Map<String, dynamic>? vehicle,
+  String? joinedDate
 })
 ```
 
@@ -226,10 +231,13 @@ The user profile supports the following fields:
 - `membershipType` - Membership level (1=Super Admin, 2=Admin, 3=Member)
 - `isActive` - Account status
 - `isAdmin` - Admin privileges
+- `joinedDate` - Date the user joined (ISO 8601 string)
 
 #### Vehicle Information
 
 - `vehicle` - Vehicle details (Map<String, dynamic>)
+
+Note: Each user has exactly one vehicle. The `vehicle` field is a single object. For backward compatibility, older records may store `vehicle` as a single-element array; the app reads the first item and always writes back a single object.
 
 ## Payment Management
 
@@ -247,13 +255,23 @@ class MonthlyDues {
   final String userId;
   final DateTime? dueForMonth;
   final double amount;
-  final String status;
   final DateTime? paymentDate;
-  final String notes;
+  final String? notes;
   final DateTime created;
   final DateTime updated;
 
-  bool get isPaid => status == 'Paid';
+  bool get isPaid => paymentDate != null;
+  bool get isUnpaid => paymentDate == null;
+  bool get isOverdue {
+    if (paymentDate != null) return false; // Already paid
+    if (dueForMonth == null) return false; // No due date set
+
+    final now = DateTime.now();
+    final currentMonth = DateTime(now.year, now.month);
+    final dueMonth = DateTime(dueForMonth!.year, dueForMonth!.month);
+
+    return currentMonth.isAfter(dueMonth);
+  }
 }
 ```
 
@@ -271,7 +289,6 @@ Future<MonthlyDues> createOrUpdateMonthlyDues({
   required String userId,
   required DateTime dueForMonth,
   required double amount,
-  required String status,
   DateTime? paymentDate,
   String? notes,
   String? existingId
@@ -289,6 +306,12 @@ Future<MonthlyDues> markPaymentStatus({
 // Get payment statistics
 Future<Map<String, int>> getPaymentStatistics(String userId)
 
+// Get payment status for a specific month
+Future<bool?> getPaymentStatusForMonth({
+  required String userId,
+  required DateTime monthDate,
+})
+
 // Get all monthly dues (admin only)
 Future<List<MonthlyDues>> getAllMonthlyDues()
 
@@ -302,17 +325,87 @@ The `getPaymentStatistics` method returns:
 
 ```dart
 {
-  'paid': int,      // Number of paid months
-  'unpaid': int,    // Number of unpaid months
-  'advance': int    // Number of advance payments
+  'paid': int,      // Number of paid months (from joinedDate to current)
+  'unpaid': int,    // Number of unpaid months (from joinedDate to current)
+  'advance': int,   // Number of advance payments (future months)
+  'total': int      // Total months user should have paid (joinedDate to current)
 }
 ```
 
 #### Payment Status Values
 
-- `'Paid'` - Payment completed
-- `'Unpaid'` - Payment pending
-- `'Overdue'` - Payment past due (can be implemented)
+- `true` - Payment completed (paymentDate exists)
+- `false` - Payment pending (no paymentDate)
+- `null` - Not applicable (month is before user's joinedDate)
+
+#### Payment Statistics Utility
+
+Located in `lib/utils/payment_statistics_utils.dart`
+
+A reusable utility class for computing payment statistics based on user's joined date and monthly dues records.
+
+```dart
+class PaymentStatisticsUtils {
+  // Compute payment statistics for a user
+  static Map<String, int> computePaymentStatistics({
+    required DateTime joinedDate,
+    required List<MonthlyDues> monthlyDues,
+    DateTime? currentDate,
+  })
+
+  // Compute statistics for a specific date range
+  static Map<String, int> computePaymentStatisticsForRange({
+    required DateTime joinedDate,
+    required List<MonthlyDues> monthlyDues,
+    required DateTime startDate,
+    required DateTime endDate,
+  })
+
+  // Get payment status for a specific month
+  static bool? getPaymentStatusForMonth({
+    required DateTime monthDate,
+    required DateTime joinedDate,
+    required List<MonthlyDues> monthlyDues,
+  })
+
+  // Get all months from joinedDate to current date
+  static List<DateTime> getAllPaymentMonths({
+    required DateTime joinedDate,
+    DateTime? currentDate,
+  })
+
+  // Calculate payment percentage
+  static double calculatePaymentPercentage(Map<String, int> stats)
+
+  // Get human-readable summary
+  static String getPaymentSummary(Map<String, int> stats)
+}
+```
+
+**Example Usage:**
+
+```dart
+// Get user's joined date and dues
+final joinedDate = DateTime.parse(userRecord.data['joinedDate']);
+final dues = await pocketBaseService.getMonthlyDuesForUser(userId);
+
+// Compute statistics
+final stats = PaymentStatisticsUtils.computePaymentStatistics(
+  joinedDate: joinedDate,
+  monthlyDues: dues,
+);
+
+// Get summary
+final summary = PaymentStatisticsUtils.getPaymentSummary(stats);
+print(summary); // "Payment Summary: 8 paid, 2 unpaid, 1 advance (10 total months, 80.0% paid)"
+
+// Get payment status for specific month
+final status = PaymentStatisticsUtils.getPaymentStatusForMonth(
+  monthDate: DateTime(2024, 6),
+  joinedDate: joinedDate,
+  monthlyDues: dues,
+);
+```
 
 ## Admin Services
 
@@ -542,6 +635,7 @@ FlavorConfig(
   "membership_type": "number",
   "isActive": "boolean",
   "isAdmin": "boolean",
+  "joinedDate": "date",
   "vehicle": "object",
   "created": "datetime",
   "updated": "datetime"

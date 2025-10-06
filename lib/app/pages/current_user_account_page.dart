@@ -162,7 +162,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                       Text(
                         '${_userData!['firstName'] ?? ''} ${_userData!['lastName'] ?? ''}',
                         style: TextStyle(
-                          fontSize: 32.sp,
+                          fontSize: 24.sp,
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
@@ -171,7 +171,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                       Text(
                         'Member #${_userData!['memberNumber'] ?? ''}',
                         style: TextStyle(
-                          fontSize: 22.sp,
+                          fontSize: 14.sp,
                           color: Colors.grey[600],
                           fontWeight: FontWeight.w500,
                         ),
@@ -313,13 +313,13 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 24.sp,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 16.sp),
+            SizedBox(height: 12.sp),
             ...children,
           ],
         ),
@@ -329,16 +329,16 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.sp),
+      padding: EdgeInsets.only(bottom: 8.sp),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 180.sp,
+            width: 130.sp,
             child: Text(
               '$label:',
               style: TextStyle(
-                fontSize: 20.sp,
+                fontSize: 14.sp,
                 fontWeight: FontWeight.w500,
                 color: Colors.grey[700],
               ),
@@ -348,7 +348,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
             child: Text(
               value,
               style: TextStyle(
-                fontSize: 20.sp,
+                fontSize: 14.sp,
                 color: Colors.black87,
               ),
             ),

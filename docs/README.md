@@ -98,6 +98,11 @@ flutter test --coverage
 # Analyze code
 flutter analyze
 
+# Auto-fix lints and format (recommended before every commit)
+./scripts/fix_lints.sh   # macOS/Linux
+# or
+powershell -ExecutionPolicy Bypass -File ./scripts/fix_lints.ps1  # Windows
+
 # Build for different platforms
 flutter build apk --flavor production
 flutter build ios --flavor production

@@ -721,6 +721,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         additionalData: {
           'password': password,
           'passwordConfirm': password,
+          'joinedDate': DateTime.now().toIso8601String(),
         },
       );
 
@@ -814,24 +815,22 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         'religion': religion,
         'spouseContactNumber': spouseContactNumber,
         'spouseName': spouseName,
-        'vehicle': [
-          {
-            'color': vehicleColor,
-            'make': vehicleMake,
-            'model': vehicleModel,
-            'photos': [
-              ...vehiclePhotos,
-              if (carImage1Url != null) carImage1Url,
-              if (carImage2Url != null) carImage2Url,
-              if (carImage3Url != null) carImage3Url,
-              if (carImage4Url != null) carImage4Url,
-            ].where((url) => url.isNotEmpty).toList(),
-            'plateNumber': vehiclePlateNumber,
-            'primaryPhoto': mainCarImageUrl ?? vehiclePrimaryPhoto,
-            'type': vehicleType,
-            'year': vehicleYear,
-          }
-        ],
+        'vehicle': {
+          'color': vehicleColor,
+          'make': vehicleMake,
+          'model': vehicleModel,
+          'photos': [
+            ...vehiclePhotos,
+            if (carImage1Url != null) carImage1Url,
+            if (carImage2Url != null) carImage2Url,
+            if (carImage3Url != null) carImage3Url,
+            if (carImage4Url != null) carImage4Url,
+          ].where((url) => url.isNotEmpty).toList(),
+          'plateNumber': vehiclePlateNumber,
+          'primaryPhoto': mainCarImageUrl ?? vehiclePrimaryPhoto,
+          'type': vehicleType,
+          'year': vehicleYear,
+        },
       };
 
       // Update user in PocketBase
@@ -1086,18 +1085,16 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         'spouseName': randomCivilStatus == 'Married'
             ? '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}'
             : '',
-        'vehicle': [
-          {
-            'color': randomVehicleColor,
-            'make': selectedMake,
-            'model': _vehicleModels.isNotEmpty ? _vehicleModels.first : 'yaris',
-            'photos': [],
-            'plateNumber': randomPlateNumber,
-            'primaryPhoto': '',
-            'type': randomVehicleType,
-            'year': randomVehicleYear,
-          }
-        ],
+        'vehicle': {
+          'color': randomVehicleColor,
+          'make': selectedMake,
+          'model': _vehicleModels.isNotEmpty ? _vehicleModels.first : 'yaris',
+          'photos': [],
+          'plateNumber': randomPlateNumber,
+          'primaryPhoto': '',
+          'type': randomVehicleType,
+          'year': randomVehicleYear,
+        },
       };
 
       // Update test user in PocketBase

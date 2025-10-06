@@ -24,9 +24,11 @@ class ProfileRepository {
       if (!pocketBaseAuth.isAuthenticated) {
         print('ProfileRepository.getProfile - User not authenticated with PocketBase');
         print(
-            'ProfileRepository.getProfile - PocketBase auth store valid: ${pocketBaseAuth.pocketBase.authStore.isValid}',);
+          'ProfileRepository.getProfile - PocketBase auth store valid: ${pocketBaseAuth.pocketBase.authStore.isValid}',
+        );
         print(
-            'ProfileRepository.getProfile - PocketBase auth store model: ${pocketBaseAuth.pocketBase.authStore.model}',);
+          'ProfileRepository.getProfile - PocketBase auth store model: ${pocketBaseAuth.pocketBase.authStore.model}',
+        );
 
         throw ProfileFailure(
           code: 'Not Authenticated',
@@ -119,9 +121,31 @@ class ProfileRepository {
       final vehicleRecords = await pocketBaseAuth.getVehiclesByOwner(userId);
       print('ProfileRepository.getUserVehicles - Found ${vehicleRecords.length} vehicles');
 
-      // Convert RecordModel vehicles to Vehicle objects
+      // Convert RecordModel vehicles to Vehicle objects, normalizing file URLs
+      final baseUrl = pocketBaseAuth.pocketBase.baseUrl;
+      final authToken = pocketBaseAuth.pocketBase.authStore.token;
       final vehicles = vehicleRecords.map((record) {
-        final vehicleData = record.data;
+        final vehicleData = Map<String, dynamic>.from(record.data);
+
+        // Normalize primaryPhoto if it's a filename (not a full URL)
+        final primary = vehicleData['primaryPhoto'];
+        if (primary is String && primary.isNotEmpty) {
+          final isAbsolute = primary.startsWith('http');
+          final url = isAbsolute ? primary : '$baseUrl/api/files/${record.collectionId}/${record.id}/$primary';
+          vehicleData['primaryPhoto'] = authToken.isNotEmpty ? '$url?token=$authToken' : url;
+        }
+
+        // Normalize photos list entries if they are filenames
+        final photos = vehicleData['photos'];
+        if (photos is List) {
+          vehicleData['photos'] = photos.map((p) {
+            if (p is! String || p.isEmpty) return p;
+            final isAbsolute = p.startsWith('http');
+            final url = isAbsolute ? p : '$baseUrl/api/files/${record.collectionId}/${record.id}/$p';
+            return authToken.isNotEmpty ? '$url?token=$authToken' : url;
+          }).toList();
+        }
+
         return my_auth_repo.Vehicle.fromJson(vehicleData);
       }).toList();
 
@@ -134,6 +158,13 @@ class ProfileRepository {
         plugin: 'flutter_error/server_error',
       );
     }
+  }
+
+  /// Get a single user's vehicle (system guarantees exactly one vehicle)
+  Future<my_auth_repo.Vehicle?> getUserVehicle(String userId) async {
+    final vehicles = await getUserVehicles(userId);
+    if (vehicles.isEmpty) return null;
+    return vehicles.first;
   }
 
   /// Update user profile

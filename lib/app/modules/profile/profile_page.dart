@@ -42,7 +42,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 
     // Simplified animation controller
     _pageAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
 
@@ -101,9 +101,8 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
             print('Profile Page - Profile user UID: ${state.user.uid}');
             print('Profile Page - Force clearing profile for new user');
             context.read<ProfileCubit>().forceClear();
-            Future.delayed(const Duration(milliseconds: 100), () {
-              context.read<ProfileCubit>().getProfile();
-            });
+            // Immediately fetch profile without artificial delay
+            context.read<ProfileCubit>().getProfile();
           }
 
           if (state.profileStatus == ProfileStatus.initial) {
@@ -404,13 +403,13 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     )
         .animate()
         .fadeIn(
-          delay: const Duration(milliseconds: 100),
-          duration: const Duration(milliseconds: 600),
+          delay: const Duration(milliseconds: 0),
+          duration: const Duration(milliseconds: 250),
         )
         .slideY(
-          begin: 0.2,
-          delay: const Duration(milliseconds: 200),
-          duration: const Duration(milliseconds: 500),
+          begin: 0.12,
+          delay: const Duration(milliseconds: 50),
+          duration: const Duration(milliseconds: 250),
           curve: Curves.easeOutCubic,
         );
   }
@@ -818,12 +817,12 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
     )
         .animate()
         .slideY(
-          delay: const Duration(milliseconds: 200),
-          duration: const Duration(milliseconds: 500),
+          delay: const Duration(milliseconds: 50),
+          duration: const Duration(milliseconds: 250),
         )
         .fadeIn(
-          delay: const Duration(milliseconds: 200),
-          duration: const Duration(milliseconds: 500),
+          delay: const Duration(milliseconds: 50),
+          duration: const Duration(milliseconds: 250),
         );
   }
 

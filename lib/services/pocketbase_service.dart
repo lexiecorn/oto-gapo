@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:otogapo/models/monthly_dues.dart';
+import 'package:otogapo/utils/payment_statistics_utils.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 class PocketBaseService {
@@ -76,6 +77,7 @@ class PocketBaseService {
       'lastName': lastName,
       'isActive': true,
       'isAdmin': false,
+      'joinedDate': DateTime.now().toIso8601String(),
       ...?additionalData,
     };
 
@@ -187,6 +189,7 @@ class PocketBaseService {
     bool? isActive,
     bool? isAdmin,
     Map<String, dynamic>? vehicle,
+    String? joinedDate,
   }) async {
     final data = <String, dynamic>{};
 
@@ -214,6 +217,7 @@ class PocketBaseService {
     if (isActive != null) data['isActive'] = isActive;
     if (isAdmin != null) data['isAdmin'] = isAdmin;
     if (vehicle != null) data['vehicle'] = vehicle;
+    if (joinedDate != null) data['joinedDate'] = joinedDate;
 
     return pb.collection('users').update(userId, body: data);
   }
@@ -357,45 +361,56 @@ class PocketBaseService {
   // Get payment statistics for a user
   Future<Map<String, int>> getPaymentStatistics(String userId) async {
     try {
-      final dues = await getMonthlyDuesForUser(userId);
-      final now = DateTime.now();
-      final currentYear = now.year;
+      // Get user details to find joinedDate
+      final userRecord = await getUser(userId);
+      final joinedDateString = userRecord.data['joinedDate'] as String?;
 
-      var paid = 0;
-      var unpaid = 0;
-      var advance = 0;
-
-      for (final due in dues) {
-        if (due.dueForMonth != null) {
-          final dueYear = due.dueForMonth!.year;
-          final dueMonth = due.dueForMonth!.month;
-
-          if (dueYear == currentYear) {
-            if (dueMonth <= now.month) {
-              // Current or past months
-              if (due.isPaid) {
-                paid++;
-              } else {
-                unpaid++;
-              }
-            } else {
-              // Future months (advance payments)
-              if (due.isPaid) {
-                advance++;
-              }
-            }
-          }
-        }
+      if (joinedDateString == null) {
+        print('Warning: User $userId has no joinedDate, using current date');
+        return {'paid': 0, 'unpaid': 0, 'advance': 0, 'total': 0};
       }
 
-      return {
-        'paid': paid,
-        'unpaid': unpaid,
-        'advance': advance,
-      };
+      final joinedDate = DateTime.parse(joinedDateString);
+      final dues = await getMonthlyDuesForUser(userId);
+
+      // Use the utility class to compute statistics
+      return PaymentStatisticsUtils.computePaymentStatistics(
+        joinedDate: joinedDate,
+        monthlyDues: dues,
+      );
     } catch (e) {
       print('Error getting payment statistics: $e');
-      return {'paid': 0, 'unpaid': 0, 'advance': 0};
+      return {'paid': 0, 'unpaid': 0, 'advance': 0, 'total': 0};
+    }
+  }
+
+  // Get payment status for a specific month
+  Future<bool?> getPaymentStatusForMonth({
+    required String userId,
+    required DateTime monthDate,
+  }) async {
+    try {
+      // Get user details to find joinedDate
+      final userRecord = await getUser(userId);
+      final joinedDateString = userRecord.data['joinedDate'] as String?;
+
+      if (joinedDateString == null) {
+        print('Warning: User $userId has no joinedDate');
+        return null;
+      }
+
+      final joinedDate = DateTime.parse(joinedDateString);
+      final dues = await getMonthlyDuesForUser(userId);
+
+      // Use the utility class to get payment status
+      return PaymentStatisticsUtils.getPaymentStatusForMonth(
+        monthDate: monthDate,
+        joinedDate: joinedDate,
+        monthlyDues: dues,
+      );
+    } catch (e) {
+      print('Error getting payment status for month: $e');
+      return null;
     }
   }
 

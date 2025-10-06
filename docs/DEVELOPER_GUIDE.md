@@ -16,6 +16,7 @@ This guide provides comprehensive information for developers working on the OtoG
 - [Performance Optimization](#performance-optimization)
 - [Contributing](#contributing)
 - [Troubleshooting](#troubleshooting)
+- [Cursor Rules](#cursor-rules)
 
 ## Development Setup
 
@@ -820,3 +821,25 @@ refactor(bloc): simplify auth state management
 - [Auto Route](https://pub.dev/packages/auto_route)
 
 This developer guide provides comprehensive information for contributing to the OtoGapo project effectively and efficiently.
+
+## Cursor Rules
+
+These rules apply to all contributions made via Cursor or locally:
+
+1. Documentation updates required
+
+   - When you change public APIs, workflows, routes, models, or behaviors, update the relevant docs in `docs/` within the same change.
+   - Update `docs/API_DOCUMENTATION.md` for service endpoints and models; `docs/ARCHITECTURE.md` for structural changes; `docs/DEVELOPER_GUIDE.md` for process changes.
+   - If a page is intentionally unchanged, add a short note to its changelog section explaining why.
+
+2. Auto-fix lints and format before commit
+
+   - Run the maintenance scripts before pushing:
+     - Unix/macOS: `./scripts/fix_lints.sh`
+     - Windows (PowerShell): `./scripts/fix_lints.ps1`
+   - These scripts run: `flutter pub get`, `dart fix --apply`, `dart format .`, and `flutter analyze`.
+   - Ensure there are no analyzer errors before submitting a PR.
+
+3. Optional pre-commit hook
+   - Copy `.githooks/pre-commit` to `.git/hooks/pre-commit` to enforce auto-fix and docs check locally.
+   - You can set `core.hooksPath=.githooks` to use the template path directly.

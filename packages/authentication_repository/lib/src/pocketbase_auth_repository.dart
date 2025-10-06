@@ -46,6 +46,7 @@ class PocketBaseAuthRepository {
         'lastName': lastName,
         'isActive': true,
         'isAdmin': false,
+        'joinedDate': DateTime.now().toIso8601String(),
         ...?additionalData,
       };
 

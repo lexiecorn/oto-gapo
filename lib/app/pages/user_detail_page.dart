@@ -8,9 +8,9 @@ import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 
 class UserDetailPage extends StatefulWidget {
-
   const UserDetailPage({
-    required this.userData, super.key,
+    required this.userData,
+    super.key,
   });
   final Map<String, dynamic> userData;
 
@@ -24,6 +24,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   final _formKey = GlobalKey<FormState>();
   DateTime? _selectedDateOfBirth;
   DateTime? _selectedLicenseExpirationDate;
+  DateTime? _selectedJoinedDate;
   Future<String?>? _profileImageUrlFuture;
   final ImagePicker _imagePicker = ImagePicker();
   bool _isUploadingImage = false;
@@ -56,6 +57,15 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
     }
 
+    // Initialize the joined date from the user data
+    if (_editedData['joinedDate'] != null) {
+      final dateValue = _editedData['joinedDate'];
+      if (dateValue is DateTime) {
+        _selectedJoinedDate = dateValue;
+      } else if (dateValue is String && dateValue.isNotEmpty) {
+        _selectedJoinedDate = DateTime.tryParse(dateValue);
+      }
+    }
     // Initialize the license expiration date from the user data
     if (_editedData['driversLicenseExpirationDate'] != null) {
       final dateValue = _editedData['driversLicenseExpirationDate'];
@@ -420,9 +430,15 @@ class _UserDetailPageState extends State<UserDetailPage> {
     }
 
     try {
-      // Extract vehicle data (it's stored as an array)
-      final vehicles = _editedData['vehicle'] as List<dynamic>? ?? [];
-      final firstVehicle = vehicles.isNotEmpty ? vehicles.first as Map<String, dynamic>? : null;
+      // Extract vehicle data (now a single object; keep backward-compat for arrays)
+      final rawVehicle = _editedData['vehicle'];
+      Map<String, dynamic>? firstVehicle;
+      if (rawVehicle is Map<String, dynamic>) {
+        firstVehicle = rawVehicle;
+      } else if (rawVehicle is List && rawVehicle.isNotEmpty) {
+        final v = rawVehicle.first;
+        if (v is Map<String, dynamic>) firstVehicle = v;
+      }
 
       return Scaffold(
         appBar: AppBar(
@@ -554,8 +570,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     _buildEditableField('Nationality', 'nationality'),
                     _buildEditableField('Religion', 'religion'),
                     _buildEditableField('Civil Status', 'civilStatus'),
-                    _buildEditableField('Gender', 'gender',
-                        isDropdown: true, dropdownOptions: ['Male', 'Female', 'Other'],),
+                    _buildEditableField(
+                      'Gender',
+                      'gender',
+                      isDropdown: true,
+                      dropdownOptions: ['Male', 'Female', 'Other'],
+                    ),
                   ],
                 ),
 
@@ -580,6 +600,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     _buildEditableField('Membership Type', 'membership_type'),
                     _buildEditableField('Is Active', 'isActive', isBoolean: true),
                     _buildEditableField('Is Admin', 'isAdmin', isBoolean: true),
+                    _buildEditableField('Joined Date', 'joinedDate', isDate: true),
                   ],
                 ),
 
@@ -635,8 +656,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 _buildSection(
                   'Medical Information',
                   [
-                    _buildEditableField('Blood Type', 'bloodType',
-                        isDropdown: true, dropdownOptions: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'],),
+                    _buildEditableField(
+                      'Blood Type',
+                      'bloodType',
+                      isDropdown: true,
+                      dropdownOptions: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'],
+                    ),
                   ],
                 ),
 
@@ -646,6 +671,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 _buildSection(
                   'System Information',
                   [
+                    _buildDetailRow('Joined Date', _editedData['joinedDate']),
                     _buildDetailRow('Created At', _editedData['createdAt']),
                     _buildDetailRow('Updated At', _editedData['updatedAt']),
                   ],
@@ -692,12 +718,15 @@ class _UserDetailPageState extends State<UserDetailPage> {
     }
   }
 
-  Widget _buildEditableField(String label, String field,
-      {bool isNumber = false,
-      bool isBoolean = false,
-      bool isDate = false,
-      bool isDropdown = false,
-      List<String>? dropdownOptions,}) {
+  Widget _buildEditableField(
+    String label,
+    String field, {
+    bool isNumber = false,
+    bool isBoolean = false,
+    bool isDate = false,
+    bool isDropdown = false,
+    List<String>? dropdownOptions,
+  }) {
     try {
       if (_isEditing) {
         if (isDate) {
@@ -707,6 +736,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
             selectedDate = _selectedDateOfBirth;
           } else if (field == 'driversLicenseExpirationDate') {
             selectedDate = _selectedLicenseExpirationDate;
+          } else if (field == 'joinedDate') {
+            selectedDate = _selectedJoinedDate;
+          } else if (_editedData[field] is String && (_editedData[field] as String).isNotEmpty) {
+            selectedDate = DateTime.tryParse(_editedData[field] as String);
+          } else if (_editedData[field] is DateTime) {
+            selectedDate = _editedData[field] as DateTime;
           }
 
           return Padding(
@@ -749,6 +784,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             initialDate = _selectedLicenseExpirationDate ?? DateTime(now.year + 1);
                             firstDate = DateTime(now.year);
                             lastDate = DateTime(now.year + 10);
+                          } else if (field == 'joinedDate') {
+                            initialDate = _selectedJoinedDate ?? now;
+                            firstDate = DateTime(1900);
+                            lastDate = DateTime(now.year + 10);
                           } else {
                             initialDate = DateTime(now.year);
                             firstDate = DateTime(1900);
@@ -770,6 +809,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                 _selectedDateOfBirth = picked;
                               } else if (field == 'driversLicenseExpirationDate') {
                                 _selectedLicenseExpirationDate = picked;
+                              } else if (field == 'joinedDate') {
+                                _selectedJoinedDate = picked;
                               }
                               _editedData[field] = picked;
                             });
@@ -813,10 +854,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   child: DropdownButtonFormField<String>(
                     value: validValue,
                     items: dropdownOptions
-                        .map((option) => DropdownMenuItem(
-                              value: option,
-                              child: Text(option),
-                            ),)
+                        .map(
+                          (option) => DropdownMenuItem(
+                            value: option,
+                            child: Text(option),
+                          ),
+                        )
                         .toList(),
                     onChanged: (value) {
                       if (value != null) {
@@ -1016,27 +1059,34 @@ class _UserDetailPageState extends State<UserDetailPage> {
           // Convert any remaining Timestamp objects to ISO strings
           _convertTimestampsToIso(updateData);
 
-          // Update vehicle data with new car images if uploaded
-          if (updateData['vehicle'] != null &&
-              updateData['vehicle'] is List &&
-              (updateData['vehicle'] as List).isNotEmpty) {
-            final vehicleList = updateData['vehicle'] as List;
-            final vehicle = Map<String, dynamic>.from(vehicleList[0] as Map<String, dynamic>);
-            final existingPhotos = List<String>.from((vehicle['photos'] as List<dynamic>?) ?? []);
-
-            // Add new car images to photos array
-            if (carImage1Url != null) existingPhotos.add(carImage1Url);
-            if (carImage2Url != null) existingPhotos.add(carImage2Url);
-            if (carImage3Url != null) existingPhotos.add(carImage3Url);
-            if (carImage4Url != null) existingPhotos.add(carImage4Url);
-
-            // Update primary photo if main car image was uploaded
-            if (mainCarImageUrl != null) {
-              vehicle['primaryPhoto'] = mainCarImageUrl;
+          // Update vehicle data with new car images if uploaded (single object; supports legacy list)
+          if (updateData['vehicle'] != null) {
+            Map<String, dynamic>? vehicle;
+            if (updateData['vehicle'] is Map<String, dynamic>) {
+              vehicle = Map<String, dynamic>.from(updateData['vehicle'] as Map<String, dynamic>);
+            } else if (updateData['vehicle'] is List && (updateData['vehicle'] as List).isNotEmpty) {
+              final vehicleList = updateData['vehicle'] as List;
+              vehicle = Map<String, dynamic>.from(vehicleList[0] as Map<String, dynamic>);
             }
 
-            vehicle['photos'] = existingPhotos;
-            updateData['vehicle'] = [vehicle];
+            if (vehicle != null) {
+              final existingPhotos = List<String>.from((vehicle['photos'] as List<dynamic>?) ?? []);
+
+              // Add new car images to photos array
+              if (carImage1Url != null) existingPhotos.add(carImage1Url);
+              if (carImage2Url != null) existingPhotos.add(carImage2Url);
+              if (carImage3Url != null) existingPhotos.add(carImage3Url);
+              if (carImage4Url != null) existingPhotos.add(carImage4Url);
+
+              // Update primary photo if main car image was uploaded
+              if (mainCarImageUrl != null) {
+                vehicle['primaryPhoto'] = mainCarImageUrl;
+              }
+
+              vehicle['photos'] = existingPhotos;
+              // Store as single object
+              updateData['vehicle'] = vehicle;
+            }
           }
 
           // Update user in PocketBase
@@ -1184,7 +1234,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       // Remove loading overlay
       overlayEntry.remove();
       overlayEntry = null;
-          print('Loading overlay removed'); // Debug log
+      print('Loading overlay removed'); // Debug log
 
       // Navigate back immediately after successful deletion
       print('Returning result to previous page...'); // Debug log
@@ -1487,8 +1537,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Primary Car Image',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),),
+            Text(
+              'Primary Car Image',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -1603,8 +1655,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
         const SizedBox(height: 20),
 
         // Additional Car Images Grid
-        Text('Additional Car Images (1-4)',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),),
+        Text(
+          'Additional Car Images (1-4)',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
 
         // Grid of car images for editing
@@ -1967,8 +2021,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Car Primary Image',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),),
+        Text(
+          'Car Primary Image',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 16),
 
         // Main car image display

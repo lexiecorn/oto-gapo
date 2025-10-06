@@ -1,4 +1,3 @@
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -84,77 +83,31 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
 
   Future<List<String>> _getCarImageUrls() async {
     try {
-      final userId = widget.state.user.uid;
-      if (userId.isEmpty) {
-        print('CarWidget: User ID is empty');
-        return [];
-      }
-
-      print('CarWidget: Fetching car images for user: $userId');
-      final imageUrls = <String>[];
-
-      // Try to get 4 car images from Firebase Storage
-      for (var i = 1; i <= 4; i++) {
-        try {
-          final imagePath = 'users/$userId/images/cars/$i.png';
-          print('CarWidget: Trying to fetch image: $imagePath');
-          final storageRef = FirebaseStorage.instance.ref().child(imagePath);
-          final url = await storageRef.getDownloadURL();
-          print('CarWidget: Successfully fetched image $i: $url');
-          imageUrls.add(url);
-        } catch (e) {
-          print('CarWidget: Failed to fetch image $i: $e');
-          // If this specific image doesn't exist, skip it
-          continue;
-        }
-      }
-
-      print('CarWidget: Total images found: ${imageUrls.length}');
-      return imageUrls;
+      if (widget.state.vehicles.isEmpty) return [];
+      final photos = widget.state.vehicles.first.photos ?? <String>[];
+      return photos.where((p) => p.isNotEmpty).toList();
     } catch (e) {
-      print('CarWidget: Error in _getCarImageUrls: $e');
-      // If there's an error, return empty list
-      return [];
-    }
-  }
-
-  // Method to list all files in the cars directory (for debugging)
-  Future<List<String>> _listCarImages() async {
-    try {
-      final userId = widget.state.user.uid;
-      if (userId.isEmpty) {
-        return [];
-      }
-
-      print('CarWidget: Listing files in cars directory for user: $userId');
-      final carsRef = FirebaseStorage.instance.ref().child('users/$userId/images/cars/');
-
-      final result = await carsRef.listAll();
-      final fileNames = <String>[];
-
-      for (final item in result.items) {
-        fileNames.add(item.name);
-        print('CarWidget: Found file: ${item.name}');
-      }
-
-      return fileNames;
-    } catch (e) {
-      print('CarWidget: Error listing car images: $e');
       return [];
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Debug: List available car images when widget builds
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _listCarImages();
-    });
+    // No Firebase listing; images come from PocketBase vehicle.photos
 
-    final userId = widget.state.user.uid;
-    final mainImageFuture = userId.isNotEmpty
-        ? FirebaseStorage.instance.ref().child('users/$userId/images/cars/main.png').getDownloadURL() as Future<String?>
-        : Future.value(null);
+    Future<String?> _resolvePrimaryPhotoUrl() async {
+      try {
+        if (widget.state.vehicles.isEmpty) return null;
+        final primary = widget.state.vehicles.first.primaryPhoto;
+        if (primary == null || primary.isEmpty) return null;
+        // Use PocketBase-provided URL as-is
+        return primary;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    final mainImageFuture = _resolvePrimaryPhotoUrl();
 
     return FadeTransition(
       opacity: _fadeAnimation,
