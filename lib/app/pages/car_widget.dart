@@ -40,26 +40,32 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
     _fadeAnimation = Tween<double>(
       begin: 0,
       end: 1,
-    ).animate(CurvedAnimation(
-      parent: _carAnimationController,
-      curve: const Interval(0, 0.6, curve: Curves.easeOut),
-    ),);
+    ).animate(
+      CurvedAnimation(
+        parent: _carAnimationController,
+        curve: const Interval(0, 0.6, curve: Curves.easeOut),
+      ),
+    );
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.2),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _carAnimationController,
-      curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
-    ),);
+    ).animate(
+      CurvedAnimation(
+        parent: _carAnimationController,
+        curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
+      ),
+    );
 
     _scaleAnimation = Tween<double>(
       begin: 0.9,
       end: 1,
-    ).animate(CurvedAnimation(
-      parent: _carAnimationController,
-      curve: const Interval(0.3, 1, curve: Curves.easeOutBack),
-    ),);
+    ).animate(
+      CurvedAnimation(
+        parent: _carAnimationController,
+        curve: const Interval(0.3, 1, curve: Curves.easeOutBack),
+      ),
+    );
 
     // Start animations with delay
     Future.delayed(const Duration(milliseconds: 300), () {
@@ -147,8 +153,8 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
 
     final userId = widget.state.user.uid;
     final mainImageFuture = userId.isNotEmpty
-        ? FirebaseStorage.instance.ref().child('users/$userId/images/cars/main.png').getDownloadURL()
-        : Future.value();
+        ? FirebaseStorage.instance.ref().child('users/$userId/images/cars/main.png').getDownloadURL() as Future<String?>
+        : Future.value(null);
 
     return FadeTransition(
       opacity: _fadeAnimation,
