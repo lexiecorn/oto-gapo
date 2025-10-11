@@ -1,0 +1,137 @@
+name: CI
+
+on:
+    push:
+        branches:
+            - main
+            - develop
+            - feature/**
+    pull_request:
+        branches:
+            - main
+            - develop
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    build:
+        name: Build & Test
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Java
+              uses: actions/setup-java@v4
+              with:
+                  distribution: "temurin"
+                  java-version: "17"
+                  cache: "gradle"
+
+            - name: Setup Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                  flutter-version: "3.24.0"
+                  channel: "stable"
+                  cache: true
+
+            - name: Cache pub dependencies
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ${{ env.PUB_CACHE }}
+                      ~/.pub-cache
+                  key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pub-
+
+            - name: Install dependencies
+              run: flutter pub get
+
+            - name: Verify formatting
+              run: dart format --set-exit-if-changed .
+
+            - name: Analyze code
+              run: flutter analyze
+
+            - name: Generate code
+              run: dart run build_runner build --delete-conflicting-outputs
+
+            - name: Run tests
+              run: flutter test --coverage --test-randomize-ordering-seed random
+
+            - name: Upload coverage to Codecov
+              uses: codecov/codecov-action@v4
+              with:
+                  files: ./coverage/lcov.info
+                  flags: unittests
+                  name: codecov-umbrella
+                  fail_ci_if_error: false
+
+            - name: Build Development APK
+              run: |
+                  flutter build apk \
+                    --debug \
+                    --target lib/main_development.dart \
+                    --flavor development
+
+            - name: Build Staging APK
+              run: |
+                  flutter build apk \
+                    --debug \
+                    --target lib/main_staging.dart \
+                    --flavor staging
+
+    build-matrix:
+        name: Build Production (${{ matrix.platform }})
+        runs-on: ${{ matrix.os }}
+        timeout-minutes: 45
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - platform: Android
+                      os: ubuntu-latest
+                      build-command: flutter build apk --release --target lib/main_production.dart --flavor production
+                    - platform: Web
+                      os: ubuntu-latest
+                      build-command: flutter build web --release --target lib/main_production.dart
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Java (Android only)
+              if: matrix.platform == 'Android'
+              uses: actions/setup-java@v4
+              with:
+                  distribution: "temurin"
+                  java-version: "17"
+
+            - name: Setup Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                  flutter-version: "3.24.0"
+                  channel: "stable"
+                  cache: true
+
+            - name: Install dependencies
+              run: flutter pub get
+
+            - name: Generate code
+              run: dart run build_runner build --delete-conflicting-outputs
+
+            - name: Build ${{ matrix.platform }}
+              run: ${{ matrix.build-command }}
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v4
+              if: matrix.platform == 'Android'
+              with:
+                  name: production-apk-${{ github.sha }}
+                  path: build/app/outputs/flutter-apk/app-production-release.apk
+                  retention-days: 7

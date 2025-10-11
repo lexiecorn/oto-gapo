@@ -621,3 +621,460 @@ flutter test --coverage
 - Emergency contact information
 
 This deployment guide provides comprehensive instructions for deploying the OtoGapo application across all supported platforms while maintaining security, performance, and reliability standards.
+
+---
+
+## Automated CI/CD Pipeline
+
+### Overview
+
+The Otogapo project uses GitHub Actions for continuous integration and automated deployments to the Google Play Store via Fastlane.
+
+### GitHub Actions Workflows
+
+#### 1. CI Workflow (`.github/workflows/ci.yml`)
+
+**Triggers:** Push to main/develop/feature branches, pull requests
+
+**Jobs:**
+
+- Code formatting verification
+- Static analysis with Flutter Analyzer
+- Code generation
+- Unit and widget tests with coverage
+- Build verification for all flavors
+- Production build matrix (Android & Web)
+
+**Artifacts:** Production APK files (7-day retention)
+
+#### 2. Release Workflow (`.github/workflows/release.yml`)
+
+**Triggers:** Git tags matching `v*.*.*` (e.g., `v1.0.0`)
+
+**Jobs:**
+
+- Run full test suite
+- Decode signing keystore from GitHub Secrets
+- Build signed AAB and APK
+- Generate changelog from commits
+- Create GitHub Release with artifacts
+- Upload to Play Store (internal track)
+
+**Usage:**
+
+```bash
+# Create and push a release tag
+git tag v1.0.0
+git push origin v1.0.0
+
+# GitHub Actions will automatically:
+# 1. Build the release
+# 2. Create GitHub Release
+# 3. Upload to Play Store internal track
+```
+
+#### 3. Manual Deploy Workflow (`.github/workflows/deploy.yml`)
+
+**Triggers:** Manual trigger via GitHub Actions UI
+
+**Parameters:**
+
+- `track`: internal, alpha, beta, or production
+- `version_bump`: major, minor, patch, or none
+
+**Jobs:**
+
+- Optional version bump
+- Run tests
+- Build signed AAB
+- Deploy to specified Play Store track
+- Commit version changes
+
+**Usage:**
+
+1. Go to GitHub Actions tab
+2. Select "Manual Deploy" workflow
+3. Click "Run workflow"
+4. Choose track and version bump type
+5. Click "Run workflow"
+
+#### 4. Manual Build Workflow (`.github/workflows/manual_build.yml`)
+
+**Triggers:** Manual trigger via GitHub Actions UI
+
+**Parameters:**
+
+- `flavor`: development, staging, or production
+- `build_type`: apk, appbundle, or both
+
+**Jobs:**
+
+- Build specified flavor and type
+- Upload artifacts (14-day retention)
+
+**Usage:** On-demand builds for testing or distribution
+
+### Fastlane Integration
+
+#### Installation
+
+```bash
+cd android
+bundle install
+```
+
+#### Available Lanes
+
+**Deploy to Internal Track:**
+
+```bash
+bundle exec fastlane internal
+```
+
+**Deploy to Alpha Track:**
+
+```bash
+bundle exec fastlane alpha
+```
+
+**Deploy to Beta Track:**
+
+```bash
+bundle exec fastlane beta
+```
+
+**Deploy to Production:**
+
+```bash
+bundle exec fastlane production
+```
+
+**Deploy to Specific Track:**
+
+```bash
+bundle exec fastlane deploy track:beta
+```
+
+**Promote Between Tracks:**
+
+```bash
+bundle exec fastlane promote from:beta to:production
+```
+
+**Upload Metadata Only:**
+
+```bash
+bundle exec fastlane metadata
+```
+
+#### Metadata Management
+
+Store listing metadata is version-controlled in:
+
+```
+android/fastlane/metadata/android/
+├── en-US/
+│   ├── title.txt
+│   ├── short_description.txt
+│   ├── full_description.txt
+│   ├── changelogs/
+│   │   └── 1.txt
+│   ├── images/
+│   │   ├── featureGraphic.png
+│   │   ├── icon.png
+│   │   └── phoneScreenshots/
+│   └── video.txt
+```
+
+### GitHub Secrets Configuration
+
+Required secrets for CI/CD:
+
+1. **ANDROID_KEYSTORE_BASE64**
+
+   - Base64-encoded keystore file
+   - Generate with: `base64 -w 0 android/keystore/otogapo-release.jks`
+
+2. **ANDROID_KEYSTORE_PASSWORD**
+
+   - Store password from `key.properties`
+
+3. **ANDROID_KEY_ALIAS**
+
+   - Key alias from `key.properties`
+
+4. **ANDROID_KEY_PASSWORD**
+
+   - Key password from `key.properties`
+
+5. **GOOGLE_PLAY_SERVICE_ACCOUNT_JSON**
+   - Service account JSON key from Google Cloud Console
+   - See [Play Store Setup Guide](./PLAY_STORE_SETUP.md) for details
+
+**Setup Helper Script:**
+
+```bash
+./scripts/setup_github_secrets.sh
+```
+
+This script will display the values needed for GitHub Secrets.
+
+### Version Management
+
+#### Automated Version Bumping
+
+**Script:** `scripts/bump_version.sh`
+
+**Usage:**
+
+```bash
+# Bump patch version (1.0.0 -> 1.0.1)
+./scripts/bump_version.sh patch
+
+# Bump minor version (1.0.1 -> 1.1.0)
+./scripts/bump_version.sh minor
+
+# Bump major version (1.1.0 -> 2.0.0)
+./scripts/bump_version.sh major
+```
+
+**What it does:**
+
+- Updates version in `pubspec.yaml`
+- Increments build number automatically
+- Validates the change
+- Colorized output
+
+#### Manual Version Update
+
+Edit `pubspec.yaml`:
+
+```yaml
+version: 1.0.0+1
+#        │ │ │  └─ Build number (increment each build)
+#        │ │ └──── Patch version
+#        │ └────── Minor version
+#        └──────── Major version
+```
+
+### Production Build Script
+
+**Script:** `scripts/build_production.sh`
+
+**Usage:**
+
+```bash
+# Build both AAB and APK
+./scripts/build_production.sh both
+
+# Build only AAB
+./scripts/build_production.sh appbundle
+
+# Build only APK
+./scripts/build_production.sh apk
+```
+
+**Features:**
+
+- Verifies keystore and configuration
+- Cleans previous builds
+- Installs dependencies
+- Generates code
+- Runs tests before building
+- Colorized output with progress
+- Build artifact locations displayed
+
+### Deployment Workflow
+
+#### Standard Release Process
+
+1. **Development & Testing**
+
+   ```bash
+   # Make changes, commit to feature branch
+   git checkout -b feature/new-feature
+   git commit -am "feat: add new feature"
+   git push origin feature/new-feature
+
+   # CI runs automatically on push
+   # Create PR, CI runs on PR
+   ```
+
+2. **Merge to Main**
+
+   ```bash
+   # After PR approval and CI passes
+   git checkout main
+   git merge feature/new-feature
+   git push origin main
+   ```
+
+3. **Create Release**
+
+   ```bash
+   # Bump version
+   ./scripts/bump_version.sh minor
+
+   # Update CHANGELOG.md
+   # Commit version bump
+   git commit -am "chore: bump version to 1.1.0"
+   git push origin main
+
+   # Create and push tag
+   git tag v1.1.0
+   git push origin v1.1.0
+
+   # Release workflow triggers automatically
+   # - Builds AAB/APK
+   # - Creates GitHub Release
+   # - Uploads to Play Store internal track
+   ```
+
+4. **Testing & Promotion**
+
+   ```bash
+   # Test on internal track
+   # When ready, promote to beta:
+   cd android
+   bundle exec fastlane promote from:internal to:beta
+
+   # Test on beta track
+   # When ready, promote to production:
+   bundle exec fastlane promote from:beta to:production
+   ```
+
+#### Hotfix Process
+
+1. **Create Hotfix Branch**
+
+   ```bash
+   git checkout -b hotfix/critical-fix main
+   # Make minimal fix
+   git commit -am "fix: critical bug"
+   ```
+
+2. **Test & Deploy**
+
+   ```bash
+   # Bump patch version
+   ./scripts/bump_version.sh patch
+
+   # Push and tag
+   git push origin hotfix/critical-fix
+   git tag v1.0.1
+   git push origin v1.0.1
+
+   # Release workflow deploys automatically
+   ```
+
+3. **Merge Back**
+   ```bash
+   git checkout main
+   git merge hotfix/critical-fix
+   git push origin main
+   ```
+
+### Monitoring and Rollback
+
+#### Monitoring
+
+**GitHub Actions:**
+
+- Monitor workflow runs in Actions tab
+- Check build logs for errors
+- Review test results
+
+**Play Store Console:**
+
+- Monitor crash rates
+- Check user reviews
+- Review performance metrics
+- Track rollout percentage
+
+**Firebase (if configured):**
+
+- Crashlytics for crash reports
+- Analytics for user metrics
+- Performance monitoring
+
+#### Rollback Procedure
+
+**Option 1: Play Store Console (Immediate)**
+
+1. Open Play Console
+2. Navigate to Release → Production
+3. Click "Halt rollout" to pause
+4. Promote previous version if needed
+
+**Option 2: New Release**
+
+```bash
+# Revert to previous version
+git revert <bad-commit>
+./scripts/bump_version.sh patch
+git tag v1.0.2
+git push origin v1.0.2
+```
+
+### Best Practices
+
+1. **Always test on internal track first**
+2. **Use staged rollouts for production** (5% → 20% → 50% → 100%)
+3. **Monitor crash rates after each rollout increase**
+4. **Keep CHANGELOG.md updated**
+5. **Tag releases consistently** (v1.0.0 format)
+6. **Never commit keystore or passwords** (use GitHub Secrets)
+7. **Review generated changelog before releases**
+8. **Test rollback procedures periodically**
+
+### Troubleshooting CI/CD
+
+#### Build Fails with Keystore Error
+
+**Cause:** GitHub Secrets not configured or incorrect
+
+**Solution:**
+
+1. Run `./scripts/setup_github_secrets.sh`
+2. Update GitHub Secrets with correct values
+3. Verify secret names match workflow files
+
+#### Fastlane Upload Fails
+
+**Cause:** Service account permissions issue
+
+**Solution:**
+
+1. Verify Google Play Console API is enabled
+2. Check service account has correct permissions
+3. Regenerate JSON key if needed
+4. Update `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` secret
+
+#### Version Conflict on Upload
+
+**Cause:** Version code already exists on Play Store
+
+**Solution:**
+
+1. Increment version in `pubspec.yaml`
+2. Build number must be higher than any previous upload
+3. Commit and re-deploy
+
+#### Workflow Doesn't Trigger
+
+**Cause:** Tag format incorrect or workflow file error
+
+**Solution:**
+
+1. Verify tag matches pattern `v*.*.*`
+2. Check workflow YAML syntax
+3. Ensure workflows are enabled in repository settings
+
+### Additional Resources
+
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [Fastlane Documentation](https://docs.fastlane.tools/)
+- [Play Console API Guide](https://developers.google.com/android-publisher)
+- [Flutter CI/CD Guide](https://docs.flutter.dev/deployment/cd)
+- [Release Checklist](./RELEASE_CHECKLIST.md)
+- [Play Store Setup Guide](./PLAY_STORE_SETUP.md)
