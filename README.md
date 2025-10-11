@@ -3,6 +3,8 @@
 ![coverage][coverage_badge]
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![License: MIT][license_badge]][license_link]
+[![CI](https://github.com/yourusername/oto-gapo/workflows/CI/badge.svg)](https://github.com/yourusername/oto-gapo/actions/workflows/ci.yml)
+[![Release](https://github.com/yourusername/oto-gapo/workflows/Release/badge.svg)](https://github.com/yourusername/oto-gapo/actions/workflows/release.yml)
 
 A comprehensive Flutter application for managing vehicle associations, built with modern architecture patterns and best practices.
 
@@ -292,38 +294,102 @@ The app supports internationalization using `flutter_localizations`:
 
 ## 🚀 Deployment
 
-### Android
+The project features automated CI/CD pipelines for streamlined deployment.
 
-1. Configure signing in `android/key.properties`
-2. Build release APK/AAB
-3. Upload to Google Play Store
+### Automated Deployment (Recommended)
 
-### iOS
-
-1. Configure signing in Xcode
-2. Build release archive
-3. Upload to App Store Connect
-
-### Web
+**Quick Release:**
 
 ```bash
-flutter build web --release
+# Bump version
+./scripts/bump_version.sh minor
+
+# Commit and tag
+git add pubspec.yaml
+git commit -m "chore: bump version to 1.1.0"
+git tag v1.1.0
+git push origin main --tags
+
+# GitHub Actions automatically:
+# - Builds AAB/APK
+# - Runs tests
+# - Creates GitHub Release
+# - Uploads to Play Store (internal track)
 ```
 
-### Windows
+**Manual Deployment via GitHub Actions:**
+
+1. Go to GitHub Actions tab
+2. Select "Manual Deploy" workflow
+3. Choose track (internal/alpha/beta/production)
+4. Click "Run workflow"
+
+### Local Build
+
+**Production Build:**
 
 ```bash
-flutter build windows --release
+./scripts/build_production.sh both
 ```
+
+**Manual Deployment with Fastlane:**
+
+```bash
+cd android
+bundle install
+bundle exec fastlane internal  # or alpha, beta, production
+```
+
+### Platform-Specific Builds
+
+**Android APK:**
+
+```bash
+flutter build apk --release --target lib/main_production.dart --flavor production
+```
+
+**Android App Bundle:**
+
+```bash
+flutter build appbundle --release --target lib/main_production.dart --flavor production
+```
+
+**iOS:**
+
+```bash
+flutter build ios --release --target lib/main_production.dart --flavor production
+```
+
+**Web:**
+
+```bash
+flutter build web --release --target lib/main_production.dart
+```
+
+**Windows:**
+
+```bash
+flutter build windows --release --target lib/main_production.dart
+```
+
+For detailed deployment instructions, see:
+
+- [Deployment Guide](./docs/DEPLOYMENT.md)
+- [Release Checklist](./docs/RELEASE_CHECKLIST.md)
+- [Play Store Setup](./docs/PLAY_STORE_SETUP.md)
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
 4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+5. Ensure all tests pass (`flutter test`)
+6. Ensure code is formatted (`dart format .`)
+7. Ensure no linter errors (`flutter analyze`)
+8. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+9. Push to the branch (`git push origin feature/amazing-feature`)
+10. Open a Pull Request
 
 ### Code Style
 
@@ -331,6 +397,14 @@ flutter build windows --release
 - Use `very_good_analysis` for linting
 - Write comprehensive tests
 - Document public APIs
+- Use conventional commits (feat:, fix:, docs:, etc.)
+
+### CI/CD Pipeline
+
+- All PRs automatically run tests and linting
+- Merges to main trigger build verification
+- Tags trigger automated releases
+- See [Deployment Guide](./docs/DEPLOYMENT.md) for details
 
 ## 📄 License
 

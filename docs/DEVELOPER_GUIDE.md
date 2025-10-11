@@ -822,6 +822,280 @@ refactor(bloc): simplify auth state management
 
 This developer guide provides comprehensive information for contributing to the OtoGapo project effectively and efficiently.
 
+## Release Procedures
+
+### Release Workflow
+
+The project uses automated CI/CD for releases. Here's the complete workflow:
+
+#### 1. Pre-Release Preparation
+
+```bash
+# Create feature branch
+git checkout -b feature/new-feature
+
+# Make changes, commit
+git add .
+git commit -m "feat: add new feature"
+
+# Push and create PR
+git push origin feature/new-feature
+```
+
+#### 2. Code Review and Merge
+
+- Create Pull Request
+- CI automatically runs tests and builds
+- Get code review approval
+- Merge to main branch
+
+#### 3. Version Bump
+
+```bash
+# Bump version (major.minor.patch)
+./scripts/bump_version.sh patch  # 1.0.0 -> 1.0.1
+./scripts/bump_version.sh minor  # 1.0.1 -> 1.1.0
+./scripts/bump_version.sh major  # 1.1.0 -> 2.0.0
+
+# Update CHANGELOG.md
+# Add release notes for this version
+
+# Commit version bump
+git add pubspec.yaml CHANGELOG.md
+git commit -m "chore: bump version to 1.1.0"
+git push origin main
+```
+
+#### 4. Create Release Tag
+
+```bash
+# Create and push tag
+git tag v1.1.0
+git push origin v1.1.0
+
+# GitHub Actions will automatically:
+# - Build release AAB/APK
+# - Run tests
+# - Create GitHub Release
+# - Upload to Play Store internal track
+```
+
+#### 5. Monitor Release
+
+1. Check GitHub Actions tab for workflow status
+2. Verify GitHub Release created
+3. Check Play Store Console for upload
+4. Test on internal track
+
+#### 6. Promote to Production
+
+```bash
+# Option 1: Via Fastlane
+cd android
+bundle exec fastlane promote from:internal to:production
+
+# Option 2: Via GitHub Actions
+# Go to Actions → Manual Deploy → Run workflow
+# Select "production" track
+```
+
+### Release Checklist
+
+Before creating a release tag:
+
+- [ ] All tests passing
+- [ ] Code reviewed and merged
+- [ ] Version bumped in `pubspec.yaml`
+- [ ] `CHANGELOG.md` updated
+- [ ] Documentation updated
+- [ ] Build tested locally (see [Local Build Testing](./LOCAL_BUILD_TESTING.md))
+- [ ] No lint errors (`flutter analyze`)
+- [ ] Code formatted (`dart format .`)
+
+### Hotfix Procedure
+
+For critical bugs in production:
+
+```bash
+# Create hotfix branch from main
+git checkout -b hotfix/critical-fix main
+
+# Make minimal fix
+git commit -am "fix: critical bug"
+
+# Bump patch version
+./scripts/bump_version.sh patch
+
+# Update CHANGELOG
+# Commit and push
+git push origin hotfix/critical-fix
+
+# Create tag
+git tag v1.0.1
+git push origin v1.0.1
+
+# Merge back to main
+git checkout main
+git merge hotfix/critical-fix
+git push origin main
+```
+
+### Version Numbering
+
+Follow Semantic Versioning (SemVer):
+
+- **Major** (X.0.0): Breaking changes, major features
+- **Minor** (0.X.0): New features, backward compatible
+- **Patch** (0.0.X): Bug fixes, minor improvements
+- **Build** (+X): Auto-incremented build number
+
+Example: `1.2.3+45`
+
+- Major: 1
+- Minor: 2
+- Patch: 3
+- Build: 45
+
+### CI/CD Workflows
+
+#### CI Workflow (`.github/workflows/ci.yml`)
+
+**Triggers:**
+
+- Push to main, develop, feature branches
+- Pull requests to main, develop
+
+**Actions:**
+
+- Run tests with coverage
+- Analyze code
+- Build development and staging flavors
+- Upload coverage reports
+
+#### Release Workflow (`.github/workflows/release.yml`)
+
+**Triggers:**
+
+- Git tags matching `v*.*.*`
+
+**Actions:**
+
+- Run full test suite
+- Build signed AAB and APK
+- Generate changelog
+- Create GitHub Release
+- Upload to Play Store (internal track)
+
+#### Manual Deploy Workflow (`.github/workflows/deploy.yml`)
+
+**Triggers:**
+
+- Manual trigger via GitHub UI
+
+**Parameters:**
+
+- Track: internal, alpha, beta, production
+- Version bump: major, minor, patch, none
+
+**Actions:**
+
+- Optional version bump
+- Build signed AAB
+- Deploy to specified track
+
+#### Manual Build Workflow (`.github/workflows/manual_build.yml`)
+
+**Triggers:**
+
+- Manual trigger via GitHub UI
+
+**Parameters:**
+
+- Flavor: development, staging, production
+- Build type: apk, appbundle, both
+
+**Actions:**
+
+- Build specified flavor and type
+- Upload artifacts
+
+### Local Build and Test
+
+See [Local Build Testing Guide](./LOCAL_BUILD_TESTING.md) for comprehensive instructions on:
+
+- Building production releases locally
+- Testing signed builds
+- Verifying signing configuration
+- Performance profiling
+
+### Deployment Tracks
+
+The project uses Google Play's testing tracks:
+
+1. **Internal** (up to 100 testers, no review)
+
+   - Automated upload on release tag
+   - Quick testing with team
+
+2. **Alpha/Beta** (unlimited testers)
+
+   - Promote from internal after initial testing
+   - Gather broader feedback
+
+3. **Production** (all users)
+   - Promote after alpha/beta testing
+   - Use staged rollout (5% → 20% → 50% → 100%)
+
+### Rollback Procedure
+
+If issues are found in production:
+
+**Option 1: Halt in Play Console**
+
+1. Go to Play Console → Production
+2. Click "Halt rollout"
+3. Fix issues and redeploy
+
+**Option 2: Revert and Hotfix**
+
+```bash
+git revert <problematic-commit>
+./scripts/bump_version.sh patch
+git tag v1.0.2
+git push origin v1.0.2
+```
+
+### Post-Release Monitoring
+
+After each release:
+
+1. **Monitor Crashes**
+
+   - Check Firebase Crashlytics (if configured)
+   - Review Play Console crash reports
+
+2. **Check Reviews**
+
+   - Monitor user reviews in Play Store
+   - Respond to user feedback
+
+3. **Track Metrics**
+
+   - Installation rates
+   - Uninstall rates
+   - User engagement
+
+4. **Update Documentation**
+   - Document any issues found
+   - Update runbooks if needed
+
+### Additional Resources
+
+- [Deployment Guide](./DEPLOYMENT.md) - Full CI/CD documentation
+- [Release Checklist](./RELEASE_CHECKLIST.md) - Detailed pre-release checklist
+- [Play Store Setup](./PLAY_STORE_SETUP.md) - Play Console configuration
+- [Local Build Testing](./LOCAL_BUILD_TESTING.md) - Build verification guide
+
 ## Cursor Rules
 
 These rules apply to all contributions made via Cursor or locally:

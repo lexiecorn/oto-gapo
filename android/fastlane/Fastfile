@@ -1,0 +1,112 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+default_platform(:android)
+
+platform :android do
+  desc "Deploy to internal track on Google Play"
+  lane :internal do
+    upload_to_play_store(
+      track: 'internal',
+      aab: '../build/app/outputs/bundle/productionRelease/app-production-release.aab',
+      skip_upload_apk: true,
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+      json_key_data: ENV['GOOGLE_PLAY_SERVICE_ACCOUNT_JSON']
+    )
+  end
+
+  desc "Deploy to alpha track on Google Play"
+  lane :alpha do
+    upload_to_play_store(
+      track: 'alpha',
+      aab: '../build/app/outputs/bundle/productionRelease/app-production-release.aab',
+      skip_upload_apk: true,
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+      json_key_data: ENV['GOOGLE_PLAY_SERVICE_ACCOUNT_JSON']
+    )
+  end
+
+  desc "Deploy to beta track on Google Play"
+  lane :beta do
+    upload_to_play_store(
+      track: 'beta',
+      aab: '../build/app/outputs/bundle/productionRelease/app-production-release.aab',
+      skip_upload_apk: true,
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+      json_key_data: ENV['GOOGLE_PLAY_SERVICE_ACCOUNT_JSON']
+    )
+  end
+
+  desc "Deploy to production track on Google Play"
+  lane :production do
+    upload_to_play_store(
+      track: 'production',
+      aab: '../build/app/outputs/bundle/productionRelease/app-production-release.aab',
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      json_key_data: ENV['GOOGLE_PLAY_SERVICE_ACCOUNT_JSON']
+    )
+  end
+
+  desc "Generic deploy lane with track parameter"
+  lane :deploy do |options|
+    track = options[:track] || 'internal'
+    
+    upload_to_play_store(
+      track: track,
+      aab: '../build/app/outputs/bundle/productionRelease/app-production-release.aab',
+      skip_upload_apk: true,
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+      json_key_data: ENV['GOOGLE_PLAY_SERVICE_ACCOUNT_JSON']
+    )
+  end
+
+  desc "Promote a build from one track to another"
+  lane :promote do |options|
+    from_track = options[:from] || 'internal'
+    to_track = options[:to] || 'production'
+    
+    upload_to_play_store(
+      track: from_track,
+      track_promote_to: to_track,
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      json_key_data: ENV['GOOGLE_PLAY_SERVICE_ACCOUNT_JSON']
+    )
+  end
+
+  desc "Upload metadata only"
+  lane :metadata do
+    upload_to_play_store(
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+      json_key_data: ENV['GOOGLE_PLAY_SERVICE_ACCOUNT_JSON']
+    )
+  end
+end
+

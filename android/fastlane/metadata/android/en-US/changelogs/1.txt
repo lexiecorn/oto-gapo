@@ -1,0 +1,13 @@
+Initial release of Otogapo!
+
+Features:
+• User authentication with Firebase and Google Sign-In
+• Complete member profile management
+• Payment tracking system
+• Admin dashboard for user management
+• Association announcements
+• Vehicle registration and details
+• Secure and modern interface
+
+Thank you for using Otogapo!
+

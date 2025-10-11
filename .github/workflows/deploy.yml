@@ -1,0 +1,123 @@
+name: Manual Deploy
+
+on:
+    workflow_dispatch:
+        inputs:
+            track:
+                description: "Deployment track"
+                required: true
+                default: "internal"
+                type: choice
+                options:
+                    - internal
+                    - alpha
+                    - beta
+                    - production
+            version_bump:
+                description: "Version bump type"
+                required: true
+                default: "patch"
+                type: choice
+                options:
+                    - major
+                    - minor
+                    - patch
+                    - none
+
+jobs:
+    deploy:
+        name: Deploy to ${{ inputs.track }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Setup Java
+              uses: actions/setup-java@v4
+              with:
+                  distribution: "temurin"
+                  java-version: "17"
+                  cache: "gradle"
+
+            - name: Setup Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                  flutter-version: "3.24.0"
+                  channel: "stable"
+                  cache: true
+
+            - name: Setup Ruby for Fastlane
+              uses: ruby/setup-ruby@v1
+              with:
+                  ruby-version: "3.2"
+                  bundler-cache: true
+                  working-directory: android
+
+            - name: Install dependencies
+              run: flutter pub get
+
+            - name: Bump version
+              if: inputs.version_bump != 'none'
+              run: |
+                  chmod +x scripts/bump_version.sh
+                  ./scripts/bump_version.sh ${{ inputs.version_bump }}
+
+            - name: Generate code
+              run: dart run build_runner build --delete-conflicting-outputs
+
+            - name: Run tests
+              run: flutter test
+
+            - name: Decode keystore
+              env:
+                  ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+              run: |
+                  echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/keystore/otogapo-release.jks
+
+            - name: Create key.properties
+              env:
+                  KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+                  KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+                  KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+              run: |
+                  cat > android/key.properties << EOF
+                  storeFile=keystore/otogapo-release.jks
+                  storePassword=$KEYSTORE_PASSWORD
+                  keyAlias=$KEY_ALIAS
+                  keyPassword=$KEY_PASSWORD
+                  EOF
+
+            - name: Build Android App Bundle
+              run: |
+                  flutter build appbundle \
+                    --release \
+                    --target lib/main_production.dart \
+                    --flavor production
+
+            - name: Deploy to Play Store
+              env:
+                  GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+              run: |
+                  cd android
+                  bundle exec fastlane deploy track:${{ inputs.track }}
+
+            - name: Commit version bump
+              if: inputs.version_bump != 'none'
+              run: |
+                  git config user.name "GitHub Actions Bot"
+                  git config user.email "actions@github.com"
+                  VERSION=$(grep '^version:' pubspec.yaml | cut -d ' ' -f 2)
+                  git add pubspec.yaml
+                  git commit -m "chore: bump version to $VERSION"
+                  git push
+
+            - name: Cleanup keystore
+              if: always()
+              run: |
+                  rm -f android/keystore/otogapo-release.jks
+                  rm -f android/key.properties

@@ -3,24 +3,274 @@ globs: lib/**/*.dart,packages/**/*.dart
 description: Dart style, naming, and lint rules for this workspace
 ---
 
-## Dart Style
+## Dart Style & very_good_analysis
 
-- **Analysis**: Uses `very_good_analysis` and `flutter_lints`.
-- **Naming**:
-  - Prefer descriptive names (avoid 1–2 letter identifiers).
-  - Functions as verbs; classes and variables as nouns.
-- **Types**:
-  - Annotate public APIs and exports explicitly; avoid `dynamic`/`any`-like patterns.
-- **Control flow**:
-  - Use guard clauses and early returns; avoid deep nesting.
-  - Handle errors meaningfully; do not swallow exceptions.
-- **Formatting**:
-  - Match existing style; keep lines readable and avoid dense one-liners.
-- **Comments**:
-  - Explain "why" for complex code; avoid trivial comments.
+This project follows the official Dart style guide via `very_good_analysis` (v5.1.0+).
 
-Project specifics:
+### Naming Conventions
 
-- Keep bloc logic side-effect free; put IO in repositories.
-- Use `context.read<T>()`/`context.watch<T>()` appropriately in widgets.
-- Keep theming via `ThemeProvider` and avoid instantiating `ThemeData` inline.
+- **Classes, enums, typedefs, extensions**: `UpperCamelCase`
+
+  - ✅ `class UserRepository`, `enum AuthStatus`, `extension StringX on String`
+  - ❌ `class user_repository`, `enum authStatus`
+
+- **Libraries, packages, directories, files**: `lowercase_with_underscores`
+
+  - ✅ `authentication_repository`, `car_widget.dart`, `app_router.dart`
+  - ❌ `authenticationRepository`, `CarWidget.dart`
+
+- **Variables, constants, parameters, named arguments**: `lowerCamelCase`
+
+  - ✅ `final userName`, `const maxRetries`, `void fetchUser({required String userId})`
+  - ❌ `final user_name`, `const MAX_RETRIES`
+
+- **Private members**: prefix with underscore
+
+  - ✅ `String _privateField`, `void _helperMethod()`
+  - Use judiciously; prefer public APIs where appropriate
+
+- **Booleans**: use positive, descriptive names
+
+  - ✅ `bool isLoading`, `bool hasError`, `bool canSubmit`
+  - ❌ `bool notLoading`, `bool disabled`
+
+- **Functions/Methods**: use verb phrases
+  - ✅ `fetchUser()`, `validateEmail()`, `onPressed()`
+  - ❌ `user()`, `email()`, `pressed()`
+
+### Type Annotations
+
+- **Always** specify types for public APIs, class fields, and top-level declarations
+
+  - ✅ `String get userName => _userName;`
+  - ❌ `get userName => _userName;`
+
+- **Avoid** `dynamic` unless absolutely necessary; prefer `Object?` or generics
+
+  - ✅ `Map<String, Object?>`, `List<T>`
+  - ❌ `Map<String, dynamic>` (unless JSON or truly dynamic)
+
+- **Prefer** type inference for local variables when the type is obvious
+
+  - ✅ `final user = User(...)`, `var count = 0`
+  - ❌ `final User user = User(...)` (redundant)
+
+- **Use** `void` for functions with no return value (not `null`)
+
+### Code Organization
+
+- **Imports**: organize in groups (dart, flutter, package, relative), alphabetically
+
+  ```dart
+  import 'dart:async';
+
+  import 'package:flutter/material.dart';
+
+  import 'package:bloc/bloc.dart';
+  import 'package:equatable/equatable.dart';
+
+  import '../../models/user.dart';
+  import '../widgets/button.dart';
+  ```
+
+- **Class member order**:
+
+  1. Static constants
+  2. Static fields
+  3. Instance fields
+  4. Constructors
+  5. Getters/setters
+  6. Methods (public then private)
+  7. Override methods last
+
+- **One class per file** (except for small private helper classes)
+
+### Control Flow
+
+- **Prefer** early returns and guard clauses over deep nesting
+
+  ```dart
+  ✅
+  if (user == null) return;
+  if (!user.isActive) return;
+  processUser(user);
+
+  ❌
+  if (user != null) {
+    if (user.isActive) {
+      processUser(user);
+    }
+  }
+  ```
+
+- **Use** expression syntax for simple functions
+
+  ```dart
+  ✅ String get fullName => '$firstName $lastName';
+  ❌ String get fullName { return '$firstName $lastName'; }
+  ```
+
+- **Avoid** using `==` with `null`; prefer `??`, `?.`, and `if (x != null)`
+
+### Error Handling
+
+- **Never** swallow exceptions silently
+
+  ```dart
+  ❌ try { ... } catch (e) {}
+  ✅ try { ... } catch (e, st) { logger.error('...', e, st); rethrow; }
+  ```
+
+- **Use** specific exception types; avoid catching `Object` or generic `Exception`
+
+- **Prefer** returning `Result` types or using `Either` for expected failures
+
+### Null Safety
+
+- **Prefer** non-nullable types by default; use `?` only when necessary
+
+- **Use** `late` for fields initialized after construction but before use
+
+- **Avoid** `!` (bang operator); prefer safe access or guards
+  ```dart
+  ❌ final name = user!.name;
+  ✅ final name = user?.name ?? 'Unknown';
+  ```
+
+### Collections & Iterables
+
+- **Use** collection literals over constructors
+
+  - ✅ `final items = <String>[]`, `final map = <String, int>{}`
+  - ❌ `final items = List<String>()`, `final map = Map<String, int>()`
+
+- **Use** collection-if and collection-for for conditional elements
+
+  ```dart
+  ✅ [
+    'always',
+    if (condition) 'conditional',
+    for (final item in items) item.name,
+  ]
+  ```
+
+- **Prefer** `isEmpty`/`isNotEmpty` over `.length == 0`
+
+### Strings
+
+- **Use** string interpolation instead of concatenation
+
+  - ✅ `'Hello $name'`, `'Count: ${items.length}'`
+  - ❌ `'Hello ' + name`, `'Count: ' + items.length.toString()`
+
+- **Use** adjacent string literals for long strings
+  ```dart
+  final message = 'This is a very long string '
+      'that spans multiple lines.';
+  ```
+
+### Comments & Documentation
+
+- **Use** `///` for public API documentation (not `//` or `/** */`)
+
+  ```dart
+  /// Fetches the user with the given [id].
+  ///
+  /// Returns `null` if the user is not found.
+  Future<User?> fetchUser(String id) async { ... }
+  ```
+
+- **DO** document the "why", not the "what"
+
+  - ✅ `// Skip validation for admin users to support legacy accounts`
+  - ❌ `// Check if user is admin`
+
+- **DON'T** comment obvious code
+
+- **DO** use `TODO` comments with owner for future work
+  - ✅ `// TODO(username): Implement caching for this endpoint`
+
+### Formatting
+
+- **Line length**: max 80 characters (enforced by `very_good_analysis`)
+
+- **Use** trailing commas for function calls and literals with multiple items
+
+  ```dart
+  ✅ Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text('Hello'),
+        Button(),
+      ],  // trailing comma
+    );
+  }
+  ```
+
+- **Avoid** unnecessary braces, parentheses, and `new` keyword
+
+- **Use** `const` constructors whenever possible for performance
+
+### Flutter-Specific
+
+- **Prefer** `const` constructors for immutable widgets
+
+  ```dart
+  ✅ const Text('Hello')
+  ❌ Text('Hello')
+  ```
+
+- **Use** `context.read<T>()` for one-time access, `context.watch<T>()` for rebuilds
+
+  - In event handlers: `context.read<MyBloc>().add(...)`
+  - In build methods: `final state = context.watch<MyBloc>().state`
+
+- **Prefer** `Key` parameters for stateful widgets in lists
+
+- **Avoid** logic in `build` methods; keep them pure
+
+### Testing
+
+- **Name** tests with `test('description')` or `testWidgets('description')`
+
+- **Use** descriptive test names that describe the expected behavior
+
+  - ✅ `test('emits authenticated state when login succeeds')`
+  - ❌ `test('login test')`
+
+- **Follow** Arrange-Act-Assert pattern
+
+- **Use** `setUp` and `tearDown` for common initialization/cleanup
+
+### Project-Specific Rules
+
+- **Blocs/Cubits**: Keep logic side-effect free; put IO in repositories
+
+  - Business logic in blocs, networking/persistence in repositories
+
+- **Theming**: Use `ThemeProvider`; avoid inline `ThemeData` instantiation
+
+- **Routing**: Use `auto_route` conventions; define routes in `app_router.dart`
+
+- **Assets**: Use `ScreenUtil` for responsive sizing (`.sp`, `.w`, `.h`, `.r`)
+
+- **State management**:
+  - Blocs for complex state with multiple events
+  - Cubits for simpler state transformations
+  - Provider for dependency injection and theming
+
+### Linting
+
+- Run `flutter analyze` before committing to catch lint issues
+
+- All `very_good_analysis` rules are enabled except:
+
+  - `public_member_api_docs: false` (opt-in as needed)
+
+- Fix lints; don't disable them without good reason and team discussion
+
+### Resources
+
+- [Effective Dart](https://dart.dev/guides/language/effective-dart)
+- [Flutter Style Guide](https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo)
+- [very_good_analysis](https://pub.dev/packages/very_good_analysis)
