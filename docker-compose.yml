@@ -24,7 +24,7 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
-      - "8088:80"
+      - "8089:80"
       - "443:443"
     volumes:
       - ./nginx/proxy.conf:/etc/nginx/conf.d/proxy.conf:ro
