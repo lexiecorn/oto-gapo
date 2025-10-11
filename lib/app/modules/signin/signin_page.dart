@@ -69,7 +69,7 @@ class SigninPageState extends State<SigninPage> {
             await errorDialog(
               context,
               'Sign-in Failed',
-              'We couldn\'t verify your Google account. Please try again. If the problem continues, check your internet connection or try a different account.',
+              "We couldn't verify your Google account. Please try again. If the problem continues, check your internet connection or try a different account.",
               'Missing ID Token',
             );
           }

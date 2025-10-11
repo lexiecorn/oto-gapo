@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Use repo root
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+if [ -x scripts/fix_lints.sh ]; then
+  echo "Running scripts/fix_lints.sh before commit..."
+  scripts/fix_lints.sh
+else
+  echo "scripts/fix_lints.sh not found or not executable; skipping."
+fi
+
+# Basic docs presence check when Dart files under lib/ or packages/ change
+if git diff --cached --name-only | grep -E "^(lib/|packages/)" | grep -E "\.dart$" >/dev/null; then
+  if [ ! -d docs ]; then
+    echo "docs/ directory missing; please add/update documentation." >&2
+    exit 1
+  fi
+fi
+
+exit 0
+
+
+
+

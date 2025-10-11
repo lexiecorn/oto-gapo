@@ -28,7 +28,7 @@ class _IntroPageState extends State<IntroPage> {
   }
 
   void _getProfile() {
-    final uid = context.read<AuthBloc>().state.user!.uid;
+    final uid = context.read<AuthBloc>().state.user!.id;
     print('Intro Widget - Getting profile for UID: $uid');
     print('Intro Widget - AuthBloc state user: ${context.read<AuthBloc>().state.user}');
     print('Intro Widget - Current ProfileCubit state: ${context.read<ProfileCubit>().state}');
@@ -40,7 +40,7 @@ class _IntroPageState extends State<IntroPage> {
     // Add a small delay to ensure state is cleared
     Future.delayed(const Duration(milliseconds: 100), () {
       print('Intro Widget - Profile state cleared, calling getProfile');
-      context.read<ProfileCubit>().getProfile(uid: uid);
+      context.read<ProfileCubit>().getProfile();
       print('Intro Widget - getProfile called');
     });
   }
@@ -82,9 +82,7 @@ class _IntroPageState extends State<IntroPage> {
             context.read<ProfileCubit>().forceClear();
 
             // Add a small delay to ensure state is cleared
-            Future.delayed(const Duration(milliseconds: 100), () {
-              _getProfile();
-            });
+            Future.delayed(const Duration(milliseconds: 100), _getProfile);
           }
         },
         child: BlocConsumer<ProfileCubit, ProfileState>(
@@ -103,15 +101,13 @@ class _IntroPageState extends State<IntroPage> {
 
             // Check if the current authenticated user is different from the profile user
             final currentAuthUser = context.read<AuthBloc>().state.user;
-            if (currentAuthUser != null && state.user.uid.isNotEmpty && state.user.uid != currentAuthUser.uid) {
+            if (currentAuthUser != null && state.user.uid.isNotEmpty && state.user.uid != currentAuthUser.id) {
               print('Intro Widget - User mismatch detected!');
-              print('Intro Widget - Auth user UID: ${currentAuthUser.uid}');
+              print('Intro Widget - Auth user UID: ${currentAuthUser.id}');
               print('Intro Widget - Profile user UID: ${state.user.uid}');
               print('Intro Widget - Force clearing profile for new user');
               context.read<ProfileCubit>().forceClear();
-              Future.delayed(const Duration(milliseconds: 100), () {
-                _getProfile();
-              });
+              Future.delayed(const Duration(milliseconds: 100), _getProfile);
             }
 
             // Handle different profile states
@@ -129,7 +125,7 @@ class _IntroPageState extends State<IntroPage> {
                     Text('Error loading profile: ${state.error.message}'),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => _getProfile(),
+                      onPressed: _getProfile,
                       child: const Text('Retry'),
                     ),
                   ],
@@ -157,7 +153,7 @@ class _IntroPageState extends State<IntroPage> {
                     Text('Last Name: "${state.user.lastName}"'),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => _getProfile(),
+                      onPressed: _getProfile,
                       child: const Text('Reload Profile'),
                     ),
                   ],

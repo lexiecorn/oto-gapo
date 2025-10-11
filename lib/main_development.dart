@@ -24,6 +24,7 @@ Future<void> main() async {
     await bootstrap(
       (
         authRepository,
+        pocketBaseAuthRepository,
         dio,
         packageInfo,
         storage,
@@ -41,11 +42,13 @@ Future<void> main() async {
           name: 'DEV',
           variables: {
             'pkgInfoVersion': 'Ver:${packageInfo.version} Build:${packageInfo.buildNumber}',
+            'pocketbaseUrl': 'https://pb.lexserver.org',
           },
         );
 
         return App(
           authRepository: authRepository,
+          pocketBaseAuthRepository: pocketBaseAuthRepository,
         );
       },
     );

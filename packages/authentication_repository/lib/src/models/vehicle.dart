@@ -15,12 +15,13 @@ abstract class Vehicle with _$Vehicle {
   const factory Vehicle({
     required String make,
     required String model,
-    required int year,
+    required String year, // Changed from int to String to match schema
     required String type,
     required String color,
     required String plateNumber,
     String? primaryPhoto,
     List<String>? photos,
+    String? user, // User relation field - references user ID
   }) = _Vehicle;
 
   factory Vehicle.fromJson(Map<String, Object?> json) => _$VehicleFromJson(json);

@@ -19,59 +19,80 @@ User _$UserFromJson(Map<String, dynamic> json) {
 }
 
 /// @nodoc
-/// @nodoc
 mixin _$User {
-  String get uid; // Add this line
+  String get uid => throw _privateConstructorUsedError;
   String get firstName => throw _privateConstructorUsedError;
-  String? get middleName => throw _privateConstructorUsedError; // Optional middle name
+  String? get middleName =>
+      throw _privateConstructorUsedError; // Optional middle name
   String get lastName => throw _privateConstructorUsedError;
   String get gender => throw _privateConstructorUsedError;
   String get memberNumber => throw _privateConstructorUsedError;
   String get civilStatus => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
+  @JsonKey(
+      fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
   Timestamp get dateOfBirth => throw _privateConstructorUsedError;
   String get birthplace => throw _privateConstructorUsedError;
   String get nationality => throw _privateConstructorUsedError;
-  String? get emergencyContactNumber => throw _privateConstructorUsedError;
-  List<Vehicle> get vehicle => throw _privateConstructorUsedError; // Driver's License information
+  String? get emergencyContactNumber =>
+      throw _privateConstructorUsedError; // Driver's License information
   String? get driversLicenseNumber => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
-  Timestamp get driversLicenseExpirationDate => throw _privateConstructorUsedError;
-  String? get driversLicenseRestrictionCode => throw _privateConstructorUsedError; // Contact information
-  String get contactNumber => throw _privateConstructorUsedError;
+  @JsonKey(
+      fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
+  Timestamp get driversLicenseExpirationDate =>
+      throw _privateConstructorUsedError;
+  String? get driversLicenseRestrictionCode =>
+      throw _privateConstructorUsedError; // Contact information
+  String get contactNumber =>
+      throw _privateConstructorUsedError; // Medical information
   String? get bloodType => throw _privateConstructorUsedError;
-  String? get religion => throw _privateConstructorUsedError;
-  // Spouse information
+  String? get religion =>
+      throw _privateConstructorUsedError; // Spouse information
   String? get spouseName => throw _privateConstructorUsedError;
-  String? get spouseContactNumber => throw _privateConstructorUsedError;
-  // Emergency Contact
+  String? get spouseContactNumber =>
+      throw _privateConstructorUsedError; // Emergency Contact
   String? get emergencyContactName => throw _privateConstructorUsedError;
-  String? get profile_image => throw _privateConstructorUsedError;
+  String? get profile_image =>
+      throw _privateConstructorUsedError; /* 
+    Membership Type
+      1 - Super Admin
+      2 - Admin
+      3 - Member
+   */
   num? get membership_type => throw _privateConstructorUsedError;
 
+  /// Serializes this User to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of User
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $UserCopyWith<User> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $UserCopyWith<$Res> {
-  factory $UserCopyWith(User value, $Res Function(User) then) = _$UserCopyWithImpl<$Res, User>;
+  factory $UserCopyWith(User value, $Res Function(User) then) =
+      _$UserCopyWithImpl<$Res, User>;
   @useResult
   $Res call(
-      {String firstName,
+      {String uid,
+      String firstName,
       String? middleName,
       String lastName,
       String gender,
       String memberNumber,
       String civilStatus,
-      @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson) Timestamp dateOfBirth,
+      @JsonKey(
+          fromJson: TimestampConverter.fromJson,
+          toJson: TimestampConverter.toJson)
+      Timestamp dateOfBirth,
       String birthplace,
       String nationality,
       String? emergencyContactNumber,
-      List<Vehicle> vehicle,
       String? driversLicenseNumber,
-      @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
+      @JsonKey(
+          fromJson: TimestampConverter.fromJson,
+          toJson: TimestampConverter.toJson)
       Timestamp driversLicenseExpirationDate,
       String? driversLicenseRestrictionCode,
       String contactNumber,
@@ -85,7 +106,8 @@ abstract class $UserCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$UserCopyWithImpl<$Res, $Val extends User> implements $UserCopyWith<$Res> {
+class _$UserCopyWithImpl<$Res, $Val extends User>
+    implements $UserCopyWith<$Res> {
   _$UserCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
@@ -93,9 +115,12 @@ class _$UserCopyWithImpl<$Res, $Val extends User> implements $UserCopyWith<$Res>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of User
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? uid = null,
     Object? firstName = null,
     Object? middleName = freezed,
     Object? lastName = null,
@@ -106,7 +131,6 @@ class _$UserCopyWithImpl<$Res, $Val extends User> implements $UserCopyWith<$Res>
     Object? birthplace = null,
     Object? nationality = null,
     Object? emergencyContactNumber = freezed,
-    Object? vehicle = null,
     Object? driversLicenseNumber = freezed,
     Object? driversLicenseExpirationDate = null,
     Object? driversLicenseRestrictionCode = freezed,
@@ -120,6 +144,10 @@ class _$UserCopyWithImpl<$Res, $Val extends User> implements $UserCopyWith<$Res>
     Object? membership_type = freezed,
   }) {
     return _then(_value.copyWith(
+      uid: null == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String,
       firstName: null == firstName
           ? _value.firstName
           : firstName // ignore: cast_nullable_to_non_nullable
@@ -160,10 +188,6 @@ class _$UserCopyWithImpl<$Res, $Val extends User> implements $UserCopyWith<$Res>
           ? _value.emergencyContactNumber
           : emergencyContactNumber // ignore: cast_nullable_to_non_nullable
               as String?,
-      vehicle: null == vehicle
-          ? _value.vehicle
-          : vehicle // ignore: cast_nullable_to_non_nullable
-              as List<Vehicle>,
       driversLicenseNumber: freezed == driversLicenseNumber
           ? _value.driversLicenseNumber
           : driversLicenseNumber // ignore: cast_nullable_to_non_nullable
@@ -214,23 +238,30 @@ class _$UserCopyWithImpl<$Res, $Val extends User> implements $UserCopyWith<$Res>
 
 /// @nodoc
 abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
-  factory _$$UserImplCopyWith(_$UserImpl value, $Res Function(_$UserImpl) then) = __$$UserImplCopyWithImpl<$Res>;
+  factory _$$UserImplCopyWith(
+          _$UserImpl value, $Res Function(_$UserImpl) then) =
+      __$$UserImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
-      {String firstName,
+      {String uid,
+      String firstName,
       String? middleName,
       String lastName,
       String gender,
       String memberNumber,
       String civilStatus,
-      @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson) Timestamp dateOfBirth,
+      @JsonKey(
+          fromJson: TimestampConverter.fromJson,
+          toJson: TimestampConverter.toJson)
+      Timestamp dateOfBirth,
       String birthplace,
       String nationality,
       String? emergencyContactNumber,
-      List<Vehicle> vehicle,
       String? driversLicenseNumber,
-      @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
+      @JsonKey(
+          fromJson: TimestampConverter.fromJson,
+          toJson: TimestampConverter.toJson)
       Timestamp driversLicenseExpirationDate,
       String? driversLicenseRestrictionCode,
       String contactNumber,
@@ -244,13 +275,18 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$UserImplCopyWithImpl<$Res> extends _$UserCopyWithImpl<$Res, _$UserImpl> implements _$$UserImplCopyWith<$Res> {
-  __$$UserImplCopyWithImpl(_$UserImpl _value, $Res Function(_$UserImpl) _then) : super(_value, _then);
+class __$$UserImplCopyWithImpl<$Res>
+    extends _$UserCopyWithImpl<$Res, _$UserImpl>
+    implements _$$UserImplCopyWith<$Res> {
+  __$$UserImplCopyWithImpl(_$UserImpl _value, $Res Function(_$UserImpl) _then)
+      : super(_value, _then);
 
+  /// Create a copy of User
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? uid = freezed,
+    Object? uid = null,
     Object? firstName = null,
     Object? middleName = freezed,
     Object? lastName = null,
@@ -261,7 +297,6 @@ class __$$UserImplCopyWithImpl<$Res> extends _$UserCopyWithImpl<$Res, _$UserImpl
     Object? birthplace = null,
     Object? nationality = null,
     Object? emergencyContactNumber = freezed,
-    Object? vehicle = null,
     Object? driversLicenseNumber = freezed,
     Object? driversLicenseExpirationDate = null,
     Object? driversLicenseRestrictionCode = freezed,
@@ -278,7 +313,7 @@ class __$$UserImplCopyWithImpl<$Res> extends _$UserCopyWithImpl<$Res, _$UserImpl
       uid: null == uid
           ? _value.uid
           : uid // ignore: cast_nullable_to_non_nullable
-              as String, // Add this line
+              as String,
       firstName: null == firstName
           ? _value.firstName
           : firstName // ignore: cast_nullable_to_non_nullable
@@ -319,10 +354,6 @@ class __$$UserImplCopyWithImpl<$Res> extends _$UserCopyWithImpl<$Res, _$UserImpl
           ? _value.emergencyContactNumber
           : emergencyContactNumber // ignore: cast_nullable_to_non_nullable
               as String?,
-      vehicle: null == vehicle
-          ? _value._vehicle
-          : vehicle // ignore: cast_nullable_to_non_nullable
-              as List<Vehicle>,
       driversLicenseNumber: freezed == driversLicenseNumber
           ? _value.driversLicenseNumber
           : driversLicenseNumber // ignore: cast_nullable_to_non_nullable
@@ -375,20 +406,24 @@ class __$$UserImplCopyWithImpl<$Res> extends _$UserCopyWithImpl<$Res, _$UserImpl
 @JsonSerializable()
 class _$UserImpl implements _User {
   const _$UserImpl(
-      {required this.uid, // Add this line
+      {required this.uid,
       required this.firstName,
       this.middleName,
       required this.lastName,
       required this.gender,
       required this.memberNumber,
       required this.civilStatus,
-      @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson) required this.dateOfBirth,
+      @JsonKey(
+          fromJson: TimestampConverter.fromJson,
+          toJson: TimestampConverter.toJson)
+      required this.dateOfBirth,
       required this.birthplace,
       required this.nationality,
       this.emergencyContactNumber,
-      required final List<Vehicle> vehicle,
       this.driversLicenseNumber,
-      @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
+      @JsonKey(
+          fromJson: TimestampConverter.fromJson,
+          toJson: TimestampConverter.toJson)
       required this.driversLicenseExpirationDate,
       this.driversLicenseRestrictionCode,
       required this.contactNumber,
@@ -398,12 +433,13 @@ class _$UserImpl implements _User {
       this.spouseContactNumber,
       this.emergencyContactName,
       this.profile_image,
-      this.membership_type})
-      : _vehicle = vehicle;
+      this.membership_type});
 
-  factory _$UserImpl.fromJson(Map<String, dynamic> json) => _$$UserImplFromJson(json);
+  factory _$UserImpl.fromJson(Map<String, dynamic> json) =>
+      _$$UserImplFromJson(json);
+
   @override
-  final String uid; // Add this line
+  final String uid;
   @override
   final String firstName;
   @override
@@ -418,7 +454,8 @@ class _$UserImpl implements _User {
   @override
   final String civilStatus;
   @override
-  @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
+  @JsonKey(
+      fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
   final Timestamp dateOfBirth;
   @override
   final String birthplace;
@@ -426,19 +463,12 @@ class _$UserImpl implements _User {
   final String nationality;
   @override
   final String? emergencyContactNumber;
-  final List<Vehicle> _vehicle;
-  @override
-  List<Vehicle> get vehicle {
-    if (_vehicle is EqualUnmodifiableListView) return _vehicle;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_vehicle);
-  }
-
 // Driver's License information
   @override
   final String? driversLicenseNumber;
   @override
-  @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
+  @JsonKey(
+      fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
   final Timestamp driversLicenseExpirationDate;
   @override
   final String? driversLicenseRestrictionCode;
@@ -460,12 +490,18 @@ class _$UserImpl implements _User {
   final String? emergencyContactName;
   @override
   final String? profile_image;
+/* 
+    Membership Type
+      1 - Super Admin
+      2 - Admin
+      3 - Member
+   */
   @override
   final num? membership_type;
 
   @override
   String toString() {
-    return 'User(firstName: $firstName, middleName: $middleName, lastName: $lastName, gender: $gender, memberNumber: $memberNumber, civilStatus: $civilStatus, dateOfBirth: $dateOfBirth, birthplace: $birthplace, nationality: $nationality, emergencyContactNumber: $emergencyContactNumber, vehicle: $vehicle, driversLicenseNumber: $driversLicenseNumber, driversLicenseExpirationDate: $driversLicenseExpirationDate, driversLicenseRestrictionCode: $driversLicenseRestrictionCode, contactNumber: $contactNumber, bloodType: $bloodType, religion: $religion, spouseName: $spouseName, spouseContactNumber: $spouseContactNumber, emergencyContactName: $emergencyContactName, profile_image: $profile_image, membership_type: $membership_type)';
+    return 'User(uid: $uid, firstName: $firstName, middleName: $middleName, lastName: $lastName, gender: $gender, memberNumber: $memberNumber, civilStatus: $civilStatus, dateOfBirth: $dateOfBirth, birthplace: $birthplace, nationality: $nationality, emergencyContactNumber: $emergencyContactNumber, driversLicenseNumber: $driversLicenseNumber, driversLicenseExpirationDate: $driversLicenseExpirationDate, driversLicenseRestrictionCode: $driversLicenseRestrictionCode, contactNumber: $contactNumber, bloodType: $bloodType, religion: $religion, spouseName: $spouseName, spouseContactNumber: $spouseContactNumber, emergencyContactName: $emergencyContactName, profile_image: $profile_image, membership_type: $membership_type)';
   }
 
   @override
@@ -473,40 +509,59 @@ class _$UserImpl implements _User {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$UserImpl &&
-            (identical(other.firstName, firstName) || other.firstName == firstName) &&
-            (identical(other.middleName, middleName) || other.middleName == middleName) &&
-            (identical(other.lastName, lastName) || other.lastName == lastName) &&
+            (identical(other.uid, uid) || other.uid == uid) &&
+            (identical(other.firstName, firstName) ||
+                other.firstName == firstName) &&
+            (identical(other.middleName, middleName) ||
+                other.middleName == middleName) &&
+            (identical(other.lastName, lastName) ||
+                other.lastName == lastName) &&
             (identical(other.gender, gender) || other.gender == gender) &&
-            (identical(other.memberNumber, memberNumber) || other.memberNumber == memberNumber) &&
-            (identical(other.civilStatus, civilStatus) || other.civilStatus == civilStatus) &&
-            (identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth) &&
-            (identical(other.birthplace, birthplace) || other.birthplace == birthplace) &&
-            (identical(other.nationality, nationality) || other.nationality == nationality) &&
+            (identical(other.memberNumber, memberNumber) ||
+                other.memberNumber == memberNumber) &&
+            (identical(other.civilStatus, civilStatus) ||
+                other.civilStatus == civilStatus) &&
+            (identical(other.dateOfBirth, dateOfBirth) ||
+                other.dateOfBirth == dateOfBirth) &&
+            (identical(other.birthplace, birthplace) ||
+                other.birthplace == birthplace) &&
+            (identical(other.nationality, nationality) ||
+                other.nationality == nationality) &&
             (identical(other.emergencyContactNumber, emergencyContactNumber) ||
                 other.emergencyContactNumber == emergencyContactNumber) &&
-            const DeepCollectionEquality().equals(other._vehicle, _vehicle) &&
             (identical(other.driversLicenseNumber, driversLicenseNumber) ||
                 other.driversLicenseNumber == driversLicenseNumber) &&
-            (identical(other.driversLicenseExpirationDate, driversLicenseExpirationDate) ||
-                other.driversLicenseExpirationDate == driversLicenseExpirationDate) &&
-            (identical(other.driversLicenseRestrictionCode, driversLicenseRestrictionCode) ||
-                other.driversLicenseRestrictionCode == driversLicenseRestrictionCode) &&
-            (identical(other.contactNumber, contactNumber) || other.contactNumber == contactNumber) &&
-            (identical(other.bloodType, bloodType) || other.bloodType == bloodType) &&
-            (identical(other.religion, religion) || other.religion == religion) &&
-            (identical(other.spouseName, spouseName) || other.spouseName == spouseName) &&
+            (identical(other.driversLicenseExpirationDate,
+                    driversLicenseExpirationDate) ||
+                other.driversLicenseExpirationDate ==
+                    driversLicenseExpirationDate) &&
+            (identical(other.driversLicenseRestrictionCode,
+                    driversLicenseRestrictionCode) ||
+                other.driversLicenseRestrictionCode ==
+                    driversLicenseRestrictionCode) &&
+            (identical(other.contactNumber, contactNumber) ||
+                other.contactNumber == contactNumber) &&
+            (identical(other.bloodType, bloodType) ||
+                other.bloodType == bloodType) &&
+            (identical(other.religion, religion) ||
+                other.religion == religion) &&
+            (identical(other.spouseName, spouseName) ||
+                other.spouseName == spouseName) &&
             (identical(other.spouseContactNumber, spouseContactNumber) ||
                 other.spouseContactNumber == spouseContactNumber) &&
             (identical(other.emergencyContactName, emergencyContactName) ||
                 other.emergencyContactName == emergencyContactName) &&
-            (identical(other.profile_image, profile_image) || other.profile_image == profile_image) &&
-            (identical(other.membership_type, membership_type) || other.membership_type == membership_type));
+            (identical(other.profile_image, profile_image) ||
+                other.profile_image == profile_image) &&
+            (identical(other.membership_type, membership_type) ||
+                other.membership_type == membership_type));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
+        uid,
         firstName,
         middleName,
         lastName,
@@ -517,7 +572,6 @@ class _$UserImpl implements _User {
         birthplace,
         nationality,
         emergencyContactNumber,
-        const DeepCollectionEquality().hash(_vehicle),
         driversLicenseNumber,
         driversLicenseExpirationDate,
         driversLicenseRestrictionCode,
@@ -531,10 +585,13 @@ class _$UserImpl implements _User {
         membership_type
       ]);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of User
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$UserImplCopyWith<_$UserImpl> get copyWith => __$$UserImplCopyWithImpl<_$UserImpl>(this, _$identity);
+  _$$UserImplCopyWith<_$UserImpl> get copyWith =>
+      __$$UserImplCopyWithImpl<_$UserImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -553,14 +610,17 @@ abstract class _User implements User {
       required final String gender,
       required final String memberNumber,
       required final String civilStatus,
-      @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
+      @JsonKey(
+          fromJson: TimestampConverter.fromJson,
+          toJson: TimestampConverter.toJson)
       required final Timestamp dateOfBirth,
       required final String birthplace,
       required final String nationality,
       final String? emergencyContactNumber,
-      required final List<Vehicle> vehicle,
       final String? driversLicenseNumber,
-      @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
+      @JsonKey(
+          fromJson: TimestampConverter.fromJson,
+          toJson: TimestampConverter.toJson)
       required final Timestamp driversLicenseExpirationDate,
       final String? driversLicenseRestrictionCode,
       required final String contactNumber,
@@ -575,10 +635,12 @@ abstract class _User implements User {
   factory _User.fromJson(Map<String, dynamic> json) = _$UserImpl.fromJson;
 
   @override
+  String get uid;
+  @override
   String get firstName;
   @override
-  String? get middleName;
-  @override // Optional middle name
+  String? get middleName; // Optional middle name
+  @override
   String get lastName;
   @override
   String get gender;
@@ -587,40 +649,50 @@ abstract class _User implements User {
   @override
   String get civilStatus;
   @override
-  @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
+  @JsonKey(
+      fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
   Timestamp get dateOfBirth;
   @override
   String get birthplace;
   @override
   String get nationality;
   @override
-  String? get emergencyContactNumber;
+  String? get emergencyContactNumber; // Driver's License information
   @override
-  List<Vehicle> get vehicle;
-  @override // Driver's License information
   String? get driversLicenseNumber;
   @override
-  @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
+  @JsonKey(
+      fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
   Timestamp get driversLicenseExpirationDate;
   @override
-  String? get driversLicenseRestrictionCode;
-  @override // Contact information
-  String get contactNumber;
-  @override // Medical information
+  String? get driversLicenseRestrictionCode; // Contact information
+  @override
+  String get contactNumber; // Medical information
+  @override
   String? get bloodType;
   @override
-  String? get religion;
-  @override // Spouse information
+  String? get religion; // Spouse information
+  @override
   String? get spouseName;
   @override
-  String? get spouseContactNumber;
-  @override // Emergency Contact
+  String? get spouseContactNumber; // Emergency Contact
+  @override
   String? get emergencyContactName;
   @override
-  String? get profile_image;
+  String?
+      get profile_image; /* 
+    Membership Type
+      1 - Super Admin
+      2 - Admin
+      3 - Member
+   */
   @override
   num? get membership_type;
+
+  /// Create a copy of User
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
-  _$$UserImplCopyWith<_$UserImpl> get copyWith => throw _privateConstructorUsedError;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$UserImplCopyWith<_$UserImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

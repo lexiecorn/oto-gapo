@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:provider/provider.dart';
-import 'package:otogapo/providers/theme_provider.dart';
-import 'package:otogapo/app/pages/user_list_page.dart';
 import 'package:otogapo/app/pages/create_user_page.dart';
+import 'package:otogapo/app/pages/user_list_page.dart';
+import 'package:otogapo/providers/theme_provider.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:provider/provider.dart';
 
 class UserManagementPage extends StatefulWidget {
-  const UserManagementPage({Key? key}) : super(key: key);
+  const UserManagementPage({super.key});
 
   @override
   State<UserManagementPage> createState() => _UserManagementPageState();
@@ -41,28 +41,28 @@ class _UserManagementPageState extends State<UserManagementPage> {
         _isLoading = true;
       });
 
-      // Get total users count
-      final totalUsersSnapshot = await FirebaseFirestore.instance.collection('users').get();
-      final totalUsers = totalUsersSnapshot.docs.length;
+      // Use PocketBase to get user statistics
+      final pocketBaseService = PocketBaseService();
+      final pocketBaseUsers = await pocketBaseService.getAllUsers();
+
+      final totalUsers = pocketBaseUsers.length;
 
       // Get current month and year
       final now = DateTime.now();
       final currentMonth = now.month;
       final currentYear = now.year;
 
-      // Get new users this month
-      int newThisMonth = 0;
-      int activeUsers = 0;
+      // Get new users this month and active users
+      var newThisMonth = 0;
+      var activeUsers = 0;
 
-      for (final doc in totalUsersSnapshot.docs) {
-        final data = doc.data();
+      for (final user in pocketBaseUsers) {
+        final data = user.data;
 
         // Check if user was created this month
-        if (data['createdAt'] != null) {
-          final createdAt = data['createdAt'] as Timestamp;
-          final createdDate = createdAt.toDate();
-
-          if (createdDate.month == currentMonth && createdDate.year == currentYear) {
+        if (data['created'] != null) {
+          final createdAt = DateTime.parse(data['created'].toString());
+          if (createdAt.month == currentMonth && createdAt.year == currentYear) {
             newThisMonth++;
           }
         }
@@ -156,7 +156,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 .animate()
                 .fadeIn(delay: const Duration(milliseconds: 200), duration: const Duration(milliseconds: 600))
                 .slideY(
-                    begin: -0.2, delay: const Duration(milliseconds: 200), duration: const Duration(milliseconds: 600)),
+                    begin: -0.2, delay: const Duration(milliseconds: 200), duration: const Duration(milliseconds: 600),),
 
             SizedBox(height: 24.sp),
 
@@ -165,7 +165,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 .animate()
                 .fadeIn(delay: const Duration(milliseconds: 400), duration: const Duration(milliseconds: 600))
                 .slideY(
-                    begin: -0.2, delay: const Duration(milliseconds: 400), duration: const Duration(milliseconds: 600)),
+                    begin: -0.2, delay: const Duration(milliseconds: 400), duration: const Duration(milliseconds: 600),),
 
             SizedBox(height: 24.sp),
 
@@ -174,7 +174,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 .animate()
                 .fadeIn(delay: const Duration(milliseconds: 600), duration: const Duration(milliseconds: 600))
                 .slideY(
-                    begin: -0.2, delay: const Duration(milliseconds: 600), duration: const Duration(milliseconds: 600)),
+                    begin: -0.2, delay: const Duration(milliseconds: 600), duration: const Duration(milliseconds: 600),),
 
             SizedBox(height: 24.sp),
 
@@ -183,7 +183,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 .animate()
                 .fadeIn(delay: const Duration(milliseconds: 800), duration: const Duration(milliseconds: 600))
                 .slideY(
-                    begin: -0.2, delay: const Duration(milliseconds: 800), duration: const Duration(milliseconds: 600)),
+                    begin: -0.2, delay: const Duration(milliseconds: 800), duration: const Duration(milliseconds: 600),),
           ],
         ),
       ),
@@ -333,16 +333,14 @@ class _UserManagementPageState extends State<UserManagementPage> {
             ),
           ),
           SizedBox(height: 12.sp),
-          _isLoading
-              ? SizedBox(
+          if (_isLoading) SizedBox(
                   width: 20.sp,
                   height: 20.sp,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(color),
                   ),
-                )
-              : Text(
+                ) else Text(
                   value,
                   style: TextStyle(
                     fontSize: 24.sp,
@@ -390,7 +388,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 color: Colors.blue,
                 onTap: () async {
                   await Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const UserListPage()),
+                    MaterialPageRoute<void>(builder: (context) => const UserListPage()),
                   );
                   // Refresh statistics when returning
                   _loadUserStatistics();
@@ -408,7 +406,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 color: Colors.green,
                 onTap: () async {
                   await Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const CreateUserPage()),
+                    MaterialPageRoute<void>(builder: (context) => const CreateUserPage()),
                   );
                   // Refresh statistics when returning
                   _loadUserStatistics();
@@ -640,7 +638,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: isDark ? colorScheme.surface : Colors.white,

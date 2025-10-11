@@ -12,10 +12,40 @@ class AuthStateChangedEvent extends AuthEvent {
   const AuthStateChangedEvent({
     this.user,
   });
-  final fb_auth.User? user;
+  final RecordModel? user;
 
   @override
   List<Object?> get props => [user];
+}
+
+class SignInRequestedEvent extends AuthEvent {
+  const SignInRequestedEvent({
+    required this.email,
+    required this.password,
+  });
+  final String email;
+  final String password;
+
+  @override
+  List<Object?> get props => [email, password];
+}
+
+class SignUpRequestedEvent extends AuthEvent {
+  const SignUpRequestedEvent({
+    required this.email,
+    required this.password,
+    required this.firstName,
+    required this.lastName,
+    this.additionalData,
+  });
+  final String email;
+  final String password;
+  final String firstName;
+  final String lastName;
+  final Map<String, dynamic>? additionalData;
+
+  @override
+  List<Object?> get props => [email, password, firstName, lastName, additionalData];
 }
 
 class UpdatePhotoUrlEvent extends AuthEvent {
@@ -28,3 +58,5 @@ class UpdatePhotoUrlEvent extends AuthEvent {
 }
 
 class SignoutRequestedEvent extends AuthEvent {}
+
+class CheckExistingAuthEvent extends AuthEvent {}

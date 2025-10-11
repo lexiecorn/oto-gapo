@@ -80,7 +80,7 @@ class OpstechTheme {
         labelStyle: const TextStyle(color: OpstechColors.onSecondary),
         hintStyle: const TextStyle(color: OpstechColors.onSecondary),
       ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: OpstechColors.primaryBlack,
         selectedItemColor: OpstechColors.accentRed,
         unselectedItemColor: OpstechColors.onSecondary,
@@ -101,7 +101,6 @@ class OpstechTheme {
         surface: Color(0xFFF5F5F5), // Light grey
         onPrimary: Color(0xFF2C2C2C), // Dark grey
         onSecondary: Colors.white,
-        onError: Colors.white,
         error: Colors.redAccent,
       ),
       scaffoldBackgroundColor: Colors.white,
@@ -163,10 +162,10 @@ class OpstechTheme {
         labelStyle: const TextStyle(color: Color(0xFF2C2C2C)),
         hintStyle: const TextStyle(color: Color(0xFF2C2C2C)),
       ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: Colors.white,
         selectedItemColor: OpstechColors.accentRed,
-        unselectedItemColor: const Color(0xFF2C2C2C),
+        unselectedItemColor: Color(0xFF2C2C2C),
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),

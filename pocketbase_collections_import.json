@@ -1,0 +1,285 @@
+{
+  "collections": [
+    {
+      "id": "users",
+      "name": "users",
+      "type": "base",
+      "system": false,
+      "schema": [
+        {
+          "id": "id_field",
+          "name": "id",
+          "type": "text",
+          "required": true,
+          "unique": true
+        },
+        {
+          "id": "firstName_field",
+          "name": "firstName",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "lastName_field",
+          "name": "lastName",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "middleName_field",
+          "name": "middleName",
+          "type": "text"
+        },
+        {
+          "id": "email_field",
+          "name": "email",
+          "type": "email",
+          "required": true,
+          "unique": true
+        },
+        {
+          "id": "contactNumber_field",
+          "name": "contactNumber",
+          "type": "text"
+        },
+        {
+          "id": "age_field",
+          "name": "age",
+          "type": "text"
+        },
+        {
+          "id": "dateOfBirth_field",
+          "name": "dateOfBirth",
+          "type": "date"
+        },
+        {
+          "id": "birthplace_field",
+          "name": "birthplace",
+          "type": "text"
+        },
+        {
+          "id": "bloodType_field",
+          "name": "bloodType",
+          "type": "text"
+        },
+        {
+          "id": "civilStatus_field",
+          "name": "civilStatus",
+          "type": "text"
+        },
+        {
+          "id": "gender_field",
+          "name": "gender",
+          "type": "text"
+        },
+        {
+          "id": "nationality_field",
+          "name": "nationality",
+          "type": "text"
+        },
+        {
+          "id": "religion_field",
+          "name": "religion",
+          "type": "text"
+        },
+        {
+          "id": "driversLicenseNumber_field",
+          "name": "driversLicenseNumber",
+          "type": "text"
+        },
+        {
+          "id": "driversLicenseExpirationDate_field",
+          "name": "driversLicenseExpirationDate",
+          "type": "date"
+        },
+        {
+          "id": "driversLicenseRestrictionCode_field",
+          "name": "driversLicenseRestrictionCode",
+          "type": "text"
+        },
+        {
+          "id": "emergencyContactName_field",
+          "name": "emergencyContactName",
+          "type": "text"
+        },
+        {
+          "id": "emergencyContactNumber_field",
+          "name": "emergencyContactNumber",
+          "type": "text"
+        },
+        {
+          "id": "spouseName_field",
+          "name": "spouseName",
+          "type": "text"
+        },
+        {
+          "id": "spouseContactNumber_field",
+          "name": "spouseContactNumber",
+          "type": "text"
+        },
+        {
+          "id": "memberNumber_field",
+          "name": "memberNumber",
+          "type": "text",
+          "unique": true
+        },
+        {
+          "id": "membership_type_field",
+          "name": "membership_type",
+          "type": "number"
+        },
+        {
+          "id": "isActive_field",
+          "name": "isActive",
+          "type": "bool",
+          "default": true
+        },
+        {
+          "id": "isAdmin_field",
+          "name": "isAdmin",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "id": "profile_image_field",
+          "name": "profile_image",
+          "type": "file",
+          "options": {
+            "maxSelect": 1,
+            "maxSize": 5242880,
+            "mimeTypes": ["image/png", "image/jpeg", "image/gif"]
+          }
+        },
+        {
+          "id": "vehicle_field",
+          "name": "vehicle",
+          "type": "json"
+        },
+        {
+          "id": "photos_field",
+          "name": "photos",
+          "type": "file",
+          "options": {
+            "maxSelect": 10,
+            "maxSize": 10485760,
+            "mimeTypes": ["image/png", "image/jpeg", "image/gif"]
+          }
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_users_email ON users (email)",
+        "CREATE INDEX idx_users_memberNumber ON users (memberNumber)",
+        "CREATE INDEX idx_users_isActive ON users (isActive)"
+      ]
+    },
+    {
+      "id": "announcements",
+      "name": "announcements",
+      "type": "base",
+      "system": false,
+      "schema": [
+        {
+          "id": "title_field",
+          "name": "title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "content_field",
+          "name": "content",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "author_field",
+          "name": "author",
+          "type": "relation",
+          "options": {
+            "collectionId": "users",
+            "cascadeDelete": false
+          }
+        },
+        {
+          "id": "isActive_field",
+          "name": "isActive",
+          "type": "bool",
+          "default": true
+        },
+        {
+          "id": "priority_field",
+          "name": "priority",
+          "type": "select",
+          "options": {
+            "values": ["low", "medium", "high", "urgent"]
+          },
+          "default": "medium"
+        },
+        {
+          "id": "attachments_field",
+          "name": "attachments",
+          "type": "file",
+          "options": {
+            "maxSelect": 5,
+            "maxSize": 10485760,
+            "mimeTypes": ["image/png", "image/jpeg", "application/pdf", "text/plain"]
+          }
+        },
+        {
+          "id": "expiryDate_field",
+          "name": "expiryDate",
+          "type": "date"
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_announcements_isActive ON announcements (isActive)",
+        "CREATE INDEX idx_announcements_priority ON announcements (priority)",
+        "CREATE INDEX idx_announcements_author ON announcements (author)"
+      ]
+    },
+    {
+      "id": "app_data",
+      "name": "app_data",
+      "type": "base",
+      "system": false,
+      "schema": [
+        {
+          "id": "key_field",
+          "name": "key",
+          "type": "text",
+          "required": true,
+          "unique": true
+        },
+        {
+          "id": "value_field",
+          "name": "value",
+          "type": "json"
+        },
+        {
+          "id": "description_field",
+          "name": "description",
+          "type": "text"
+        },
+        {
+          "id": "category_field",
+          "name": "category",
+          "type": "select",
+          "options": {
+            "values": ["config", "feature_flags", "content", "settings"]
+          },
+          "default": "config"
+        },
+        {
+          "id": "isActive_field",
+          "name": "isActive",
+          "type": "bool",
+          "default": true
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_app_data_key ON app_data (key)",
+        "CREATE INDEX idx_app_data_category ON app_data (category)",
+        "CREATE INDEX idx_app_data_isActive ON app_data (isActive)"
+      ]
+    }
+  ]
+}

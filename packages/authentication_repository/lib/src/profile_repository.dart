@@ -1,5 +1,5 @@
 import 'package:authentication_repository/authentication_repository.dart' as my_auth_repo;
-import 'package:authentication_repository/constants/db_constants.dart';
+import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:authentication_repository/src/profile_failure.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -8,65 +8,235 @@ class ProfileRepository {
   ///
   ProfileRepository({
     required this.firebaseFirestore,
+    required this.pocketBaseAuth,
   });
 
   ///
   final FirebaseFirestore firebaseFirestore;
+  final PocketBaseAuthRepository pocketBaseAuth;
 
-  /// Get User Profile from firestore
-  Future<my_auth_repo.User> getProfile({required String uid}) async {
+  /// Get User Profile from PocketBase (authenticated user)
+  Future<my_auth_repo.User> getProfile() async {
     try {
-      print('ProfileRepository.getProfile - UID: $uid');
-      final DocumentSnapshot userDoc = await usersRef.doc(uid).get();
+      print('ProfileRepository.getProfile - Getting current user profile');
 
-      print('ProfileRepository.getProfile - Document exists: ${userDoc.exists}');
+      // Check if user is authenticated
+      if (!pocketBaseAuth.isAuthenticated) {
+        print('ProfileRepository.getProfile - User not authenticated with PocketBase');
+        print(
+          'ProfileRepository.getProfile - PocketBase auth store valid: ${pocketBaseAuth.pocketBase.authStore.isValid}',
+        );
+        print(
+          'ProfileRepository.getProfile - PocketBase auth store model: ${pocketBaseAuth.pocketBase.authStore.model}',
+        );
 
-      if (userDoc.exists) {
-        print('ProfileRepository.getProfile - Document data: ${userDoc.data()}');
-        // final currentUser = my_auth_repo.User.fromDoc(userDoc);
-        final currentUser = my_auth_repo.User.fromDoc(userDoc, uid);
-        print('ProfileRepository.getProfile - User created successfully');
-        return currentUser;
+        throw ProfileFailure(
+          code: 'Not Authenticated',
+          message: 'User is not authenticated with PocketBase',
+          plugin: 'pocketbase_auth',
+        );
       }
 
-      print('ProfileRepository.getProfile - User document not found, creating basic user document');
+      // Get current authenticated user's profile
+      final userRecord = await pocketBaseAuth.getProfile();
+      print('ProfileRepository.getProfile - User found with ID: ${userRecord.id}');
+      print('ProfileRepository.getProfile - User email: ${userRecord.data['email']}');
+      print('ProfileRepository.getProfile - User firstName: ${userRecord.data['firstName']}');
+      print('ProfileRepository.getProfile - All user data keys: ${userRecord.data.keys.toList()}');
+      print('ProfileRepository.getProfile - Sample data: ${userRecord.data}');
 
-      // Create a basic user document if it doesn't exist
-      final basicUserData = {
-        'firstName': 'User',
-        'lastName': '',
-        'gender': '',
-        'memberNumber': '',
-        'civilStatus': '',
-        'dateOfBirth': Timestamp.now(),
-        'birthplace': '',
-        'nationality': '',
-        'vehicle': [],
-        'contactNumber': '',
-        'driversLicenseExpirationDate': Timestamp.now(),
-        'membership_type': 3, // Default to regular member
-        'isActive': true,
-        'createdAt': Timestamp.now(),
-        'updatedAt': Timestamp.now(),
-      };
+      // Convert PocketBase record to User model
+      final userData = userRecord.data;
+      userData['uid'] = userRecord.id;
 
-      await usersRef.doc(uid).set(basicUserData);
-      print('ProfileRepository.getProfile - Basic user document created');
+      // Handle type conversions for fields that might come as different types
+      // Convert memberNumber from int to String (schema shows it's number type)
+      if (userData['memberNumber'] != null) {
+        userData['memberNumber'] = userData['memberNumber'].toString();
+      }
 
-      // Now get the created document
-      final createdDoc = await usersRef.doc(uid).get();
-      final currentUser = my_auth_repo.User.fromDoc(createdDoc, uid);
-      print('ProfileRepository.getProfile - Basic user created successfully');
+      // membership_type should remain as num (User model expects num?)
+      // No conversion needed since schema provides it as number type
+
+      // contactNumber, emergencyContactNumber, spouseContactNumber are now text type in schema
+      // so they should come as String, but we'll handle conversion just in case
+      if (userData['contactNumber'] != null && userData['contactNumber'] is! String) {
+        userData['contactNumber'] = userData['contactNumber'].toString();
+      }
+
+      if (userData['emergencyContactNumber'] != null && userData['emergencyContactNumber'] is! String) {
+        userData['emergencyContactNumber'] = userData['emergencyContactNumber'].toString();
+      }
+
+      if (userData['spouseContactNumber'] != null && userData['spouseContactNumber'] is! String) {
+        userData['spouseContactNumber'] = userData['spouseContactNumber'].toString();
+      }
+
+      // Note: Vehicle relation has been moved to the vehicle collection
+      // Vehicles now have an 'owner' field that references the user ID
+      // No need to handle vehicle field in user data anymore
+
+      // Handle profile image field mapping
+      // New schema uses 'profileImage' instead of 'profile_image'
+      if (userData['profileImage'] != null && userData['profile_image'] == null) {
+        userData['profile_image'] = userData['profileImage'];
+      }
+
+      // Handle date field conversion - only convert if it's a string
+      if (userData['birthplace'] != null) {
+        // birthplace is actually a date field in the schema
+        if (userData['birthplace'] is String) {
+          userData['dateOfBirth'] = Timestamp.fromDate(DateTime.parse(userData['birthplace'] as String));
+        }
+        // If it's already a Timestamp, leave it as is
+      }
+      if (userData['driversLicenseExpirationDate'] != null) {
+        // Only convert if it's a string, otherwise leave the Timestamp as is
+        if (userData['driversLicenseExpirationDate'] is String) {
+          userData['driversLicenseExpirationDate'] =
+              Timestamp.fromDate(DateTime.parse(userData['driversLicenseExpirationDate'] as String));
+        }
+        // If it's already a Timestamp, leave it as is
+      }
+
+      final currentUser = my_auth_repo.User.fromJson(userData);
+      print('ProfileRepository.getProfile - User created successfully');
       return currentUser;
-    } on FirebaseException catch (e) {
-      print('ProfileRepository.getProfile - FirebaseException: $e');
-      throw ProfileFailure(
-        code: e.code,
-        message: e.message!,
-        plugin: e.plugin,
-      );
     } catch (e) {
       print('ProfileRepository.getProfile - Exception: $e');
+      throw ProfileFailure(
+        code: 'Exception',
+        message: e.toString(),
+        plugin: 'flutter_error/server_error',
+      );
+    }
+  }
+
+  /// Get user's vehicles from PocketBase
+  Future<List<my_auth_repo.Vehicle>> getUserVehicles(String userId) async {
+    try {
+      print('ProfileRepository.getUserVehicles - Getting vehicles for user: $userId');
+
+      // Query vehicles where owner field matches the user ID
+      final vehicleRecords = await pocketBaseAuth.getVehiclesByOwner(userId);
+      print('ProfileRepository.getUserVehicles - Found ${vehicleRecords.length} vehicles');
+
+      // Convert RecordModel vehicles to Vehicle objects, normalizing file URLs
+      final baseUrl = pocketBaseAuth.pocketBase.baseUrl;
+      final authToken = pocketBaseAuth.pocketBase.authStore.token;
+      final vehicles = vehicleRecords.map((record) {
+        final vehicleData = Map<String, dynamic>.from(record.data);
+
+        // Normalize primaryPhoto if it's a filename (not a full URL)
+        final primary = vehicleData['primaryPhoto'];
+        if (primary is String && primary.isNotEmpty) {
+          final isAbsolute = primary.startsWith('http');
+          final url = isAbsolute ? primary : '$baseUrl/api/files/${record.collectionId}/${record.id}/$primary';
+          vehicleData['primaryPhoto'] = authToken.isNotEmpty ? '$url?token=$authToken' : url;
+        }
+
+        // Normalize photos list entries if they are filenames
+        final photos = vehicleData['photos'];
+        if (photos is List) {
+          vehicleData['photos'] = photos.map((p) {
+            if (p is! String || p.isEmpty) return p;
+            final isAbsolute = p.startsWith('http');
+            final url = isAbsolute ? p : '$baseUrl/api/files/${record.collectionId}/${record.id}/$p';
+            return authToken.isNotEmpty ? '$url?token=$authToken' : url;
+          }).toList();
+        }
+
+        return my_auth_repo.Vehicle.fromJson(vehicleData);
+      }).toList();
+
+      return vehicles;
+    } catch (e) {
+      print('ProfileRepository.getUserVehicles - Exception: $e');
+      throw ProfileFailure(
+        code: 'Exception',
+        message: e.toString(),
+        plugin: 'flutter_error/server_error',
+      );
+    }
+  }
+
+  /// Get a single user's vehicle (system guarantees exactly one vehicle)
+  Future<my_auth_repo.Vehicle?> getUserVehicle(String userId) async {
+    final vehicles = await getUserVehicles(userId);
+    if (vehicles.isEmpty) return null;
+    return vehicles.first;
+  }
+
+  /// Update user profile
+  Future<my_auth_repo.User> updateProfile(Map<String, dynamic> data) async {
+    try {
+      print('ProfileRepository.updateProfile - Updating user profile');
+
+      // Update profile in PocketBase
+      final updatedRecord = await pocketBaseAuth.updateProfile(data);
+      print('ProfileRepository.updateProfile - Profile updated with ID: ${updatedRecord.id}');
+      print('ProfileRepository.updateProfile - User email: ${updatedRecord.data['email']}');
+      print('ProfileRepository.updateProfile - User firstName: ${updatedRecord.data['firstName']}');
+
+      // Convert to User model
+      final userData = updatedRecord.data;
+      userData['uid'] = updatedRecord.id;
+
+      // Handle type conversions for fields that might come as different types
+      // Convert memberNumber from int to String (schema shows it's number type)
+      if (userData['memberNumber'] != null) {
+        userData['memberNumber'] = userData['memberNumber'].toString();
+      }
+
+      // membership_type should remain as num (User model expects num?)
+      // No conversion needed since schema provides it as number type
+
+      // contactNumber, emergencyContactNumber, spouseContactNumber are now text type in schema
+      // so they should come as String, but we'll handle conversion just in case
+      if (userData['contactNumber'] != null && userData['contactNumber'] is! String) {
+        userData['contactNumber'] = userData['contactNumber'].toString();
+      }
+
+      if (userData['emergencyContactNumber'] != null && userData['emergencyContactNumber'] is! String) {
+        userData['emergencyContactNumber'] = userData['emergencyContactNumber'].toString();
+      }
+
+      if (userData['spouseContactNumber'] != null && userData['spouseContactNumber'] is! String) {
+        userData['spouseContactNumber'] = userData['spouseContactNumber'].toString();
+      }
+
+      // Note: Vehicle relation has been moved to the vehicle collection
+      // Vehicles now have an 'owner' field that references the user ID
+      // No need to handle vehicle field in user data anymore
+
+      // Handle profile image field mapping
+      // New schema uses 'profileImage' instead of 'profile_image'
+      if (userData['profileImage'] != null && userData['profile_image'] == null) {
+        userData['profile_image'] = userData['profileImage'];
+      }
+
+      // Handle date field conversion - only convert if it's a string
+      if (userData['birthplace'] != null) {
+        // birthplace is actually a date field in the schema
+        if (userData['birthplace'] is String) {
+          userData['dateOfBirth'] = Timestamp.fromDate(DateTime.parse(userData['birthplace'] as String));
+        }
+        // If it's already a Timestamp, leave it as is
+      }
+      if (userData['driversLicenseExpirationDate'] != null) {
+        // Only convert if it's a string, otherwise leave the Timestamp as is
+        if (userData['driversLicenseExpirationDate'] is String) {
+          userData['driversLicenseExpirationDate'] =
+              Timestamp.fromDate(DateTime.parse(userData['driversLicenseExpirationDate'] as String));
+        }
+        // If it's already a Timestamp, leave it as is
+      }
+
+      final currentUser = my_auth_repo.User.fromJson(userData);
+      print('ProfileRepository.updateProfile - Profile updated successfully');
+      return currentUser;
+    } catch (e) {
+      print('ProfileRepository.updateProfile - Exception: $e');
       throw ProfileFailure(
         code: 'Exception',
         message: e.toString(),

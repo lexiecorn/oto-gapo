@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 
 class PaymentManagementPage extends StatefulWidget {
-  const PaymentManagementPage({Key? key}) : super(key: key);
+  const PaymentManagementPage({super.key});
 
   @override
   State<PaymentManagementPage> createState() => _PaymentManagementPageState();
@@ -22,7 +22,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   List<String> _selectedMonthsForBulkUpdate = [];
   bool _showUserSelectionDialog = false;
   bool _showBulkUpdateDialog = false;
-  Map<String, bool> _cachedMonthStatus = {}; // Cache for month status data
+  Map<String, bool?> _cachedMonthStatus = {}; // Cache for month status data
 
   @override
   void initState() {
@@ -40,12 +40,13 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   Future<void> _loadUsers() async {
     try {
-      final usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
+      final pocketBaseService = PocketBaseService();
+      final pocketBaseUsers = await pocketBaseService.getAllUsers();
 
       final users = <Map<String, dynamic>>[];
-      for (final doc in usersSnapshot.docs) {
-        final userData = doc.data();
-        userData['id'] = doc.id;
+      for (final user in pocketBaseUsers) {
+        final userData = user.data;
+        userData['id'] = user.id;
         users.add(userData);
       }
 
@@ -66,9 +67,9 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
     // Generate months from January of current year to December of next year
     // This covers current year + next year (24 months total)
-    for (int year = now.year; year <= now.year + 1; year++) {
-      for (int month = 1; month <= 12; month++) {
-        final date = DateTime(year, month, 1);
+    for (var year = now.year; year <= now.year + 1; year++) {
+      for (var month = 1; month <= 12; month++) {
+        final date = DateTime(year, month);
         final monthKey = DateFormat('yyyy_MM').format(date);
         months.add(monthKey);
       }
@@ -82,11 +83,14 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   Future<void> _markPaymentStatus(String userId, String month, bool status) async {
     try {
-      await FirebaseFirestore.instance.collection('users').doc(userId).collection('monthly_dues').doc(month).set({
-        'amount': 100,
-        'status': status,
-        'updated_at': FieldValue.serverTimestamp(),
-      });
+      final pocketBaseService = PocketBaseService();
+      final monthDate = DateFormat('yyyy_MM').parse(month);
+
+      await pocketBaseService.markPaymentStatus(
+        userId: userId,
+        month: monthDate,
+        isPaid: status,
+      );
 
       // Refresh the data
       await _loadUsers();
@@ -107,49 +111,48 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   Future<Map<String, dynamic>?> _getPaymentStatus(String userId, String month) async {
     try {
-      final doc =
-          await FirebaseFirestore.instance.collection('users').doc(userId).collection('monthly_dues').doc(month).get();
+      final pocketBaseService = PocketBaseService();
+      final monthDate = DateFormat('yyyy_MM').parse(month);
 
-      if (doc.exists) {
-        return doc.data();
+      // Use the new utility method to get payment status
+      final status = await pocketBaseService.getPaymentStatusForMonth(
+        userId: userId,
+        monthDate: monthDate,
+      );
+
+      if (status == null) {
+        // Not applicable - before joined date
+        return {
+          'status': null,
+          'amount': 0,
+          'payment_date': null,
+          'updated_at': null,
+        };
       }
-      // Return null if payment record doesn't exist (treated as unpaid)
-      return null;
+
+      // Get the actual dues record for additional details
+      final monthlyDues = await pocketBaseService.getMonthlyDuesForUserAndMonth(userId, monthDate);
+
+      return {
+        'status': status,
+        'amount': monthlyDues?.amount ?? 100.0,
+        'payment_date': monthlyDues?.paymentDate?.toIso8601String(),
+        'updated_at': monthlyDues?.updated,
+      };
     } catch (e) {
       print('Error getting payment status: $e');
       return null;
     }
   }
 
-  // New method to get user's unpaid months
-  Future<List<String>> _getUserUnpaidMonths(String userId) async {
-    final unpaidMonths = <String>[];
-    final now = DateTime.now();
-
-    for (final month in _availableMonths) {
-      final date = DateFormat('yyyy_MM').parse(month);
-
-      // Only consider months from past to current month (not future months)
-      if (date.isBefore(DateTime(now.year, now.month + 1, 1))) {
-        final paymentData = await _getPaymentStatus(userId, month);
-        // If payment record doesn't exist or status is not true, consider it unpaid
-        if (paymentData == null || (paymentData['status'] as bool?) != true) {
-          unpaidMonths.add(month);
-        }
-      }
-    }
-
-    return unpaidMonths;
-  }
-
   // New method to get all months with payment status for a user
-  Future<Map<String, bool>> _getUserAllMonthsWithStatus(String userId) async {
-    final monthStatus = <String, bool>{};
+  Future<Map<String, bool?>> _getUserAllMonthsWithStatus(String userId) async {
+    final monthStatus = <String, bool?>{};
 
     for (final month in _availableMonths) {
       final paymentData = await _getPaymentStatus(userId, month);
-      // If payment record doesn't exist, consider it as unpaid
-      monthStatus[month] = (paymentData?['status'] as bool?) ?? false;
+      // Store the actual status (null, true, or false)
+      monthStatus[month] = paymentData?['status'] as bool?;
     }
 
     return monthStatus;
@@ -158,19 +161,16 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   // New method to bulk update payments for a user
   Future<void> _bulkUpdatePayments(String userId, List<String> months, bool status) async {
     try {
-      final batch = FirebaseFirestore.instance.batch();
+      final pocketBaseService = PocketBaseService();
 
       for (final month in months) {
-        final docRef = FirebaseFirestore.instance.collection('users').doc(userId).collection('monthly_dues').doc(month);
-
-        batch.set(docRef, {
-          'amount': 100,
-          'status': status,
-          'updated_at': FieldValue.serverTimestamp(),
-        });
+        final monthDate = DateFormat('yyyy_MM').parse(month);
+        await pocketBaseService.markPaymentStatus(
+          userId: userId,
+          month: monthDate,
+          isPaid: status,
+        );
       }
-
-      await batch.commit();
 
       // Refresh the data
       await _loadUsers();
@@ -196,7 +196,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   bool _isFutureMonth(String month) {
     final date = DateFormat('yyyy_MM').parse(month);
     final now = DateTime.now();
-    return date.isAfter(DateTime(now.year, now.month, 1));
+    return date.isAfter(DateTime(now.year, now.month));
   }
 
   // New method to show user selection dialog
@@ -277,7 +277,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       ),
       body: Stack(
         children: [
-          _showOverview ? _buildOverviewView() : _buildSingleMonthView(),
+          if (_showOverview) _buildOverviewView() else _buildSingleMonthView(),
           // User selection dialog
           if (_showUserSelectionDialog) _buildUserSelectionDialog(),
           // Bulk update dialog
@@ -514,7 +514,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
             final date = DateFormat('yyyy_MM').parse(month);
             final displayText = DateFormat('MMM yy').format(date);
             return DataColumn(label: Text(displayText));
-          }).toList(),
+          }),
           const DataColumn(label: Text('Total')),
         ],
         rows: _users.map((user) {
@@ -542,24 +542,56 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                     future: _getPaymentStatus(user['id'] as String, month),
                     builder: (context, snapshot) {
                       final paymentData = snapshot.data;
-                      final isPaid = (paymentData?['status'] as bool?) ?? false;
+                      final status = paymentData?['status'] as bool?;
 
-                      return Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: isPaid ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Icon(
-                          isPaid ? Icons.check : Icons.close,
-                          size: 16,
-                          color: isPaid ? Colors.green : Colors.red,
-                        ),
-                      );
+                      // Handle three states: paid, unpaid, not applicable (before joined)
+                      if (status == null) {
+                        // Not applicable - before joined date
+                        return Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Icon(
+                            Icons.remove,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                        );
+                      } else if (status == true) {
+                        // Paid
+                        return Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            size: 16,
+                            color: Colors.green,
+                          ),
+                        );
+                      } else {
+                        // Unpaid
+                        return Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            size: 16,
+                            color: Colors.red,
+                          ),
+                        );
+                      }
                     },
                   ),
                 );
-              }).toList(),
+              }),
               DataCell(
                 FutureBuilder<int>(
                   future: _getUserTotalPaid(user['id'] as String),
@@ -568,7 +600,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                     final now = DateTime.now();
                     final monthsUpToCurrent = _availableMonths.where((month) {
                       final date = DateFormat('yyyy_MM').parse(month);
-                      return date.isBefore(DateTime(now.year, now.month + 1, 1));
+                      return date.isBefore(DateTime(now.year, now.month + 1));
                     }).length;
                     return Text(
                       '$totalPaid/$monthsUpToCurrent',
@@ -585,8 +617,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   }
 
   Future<Map<String, int>> _getOverviewStats() async {
-    int totalPaid = 0;
-    int totalUnpaid = 0;
+    var totalPaid = 0;
+    var totalUnpaid = 0;
     final now = DateTime.now();
 
     for (final user in _users) {
@@ -594,7 +626,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         final date = DateFormat('yyyy_MM').parse(month);
 
         // Only count months up to current month (not future months)
-        if (date.isBefore(DateTime(now.year, now.month + 1, 1))) {
+        if (date.isBefore(DateTime(now.year, now.month + 1))) {
           final paymentData = await _getPaymentStatus(user['id'] as String, month);
           if ((paymentData?['status'] as bool?) == true) {
             totalPaid++;
@@ -609,14 +641,14 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   }
 
   Future<int> _getUserTotalPaid(String userId) async {
-    int count = 0;
+    var count = 0;
     final now = DateTime.now();
 
     for (final month in _availableMonths) {
       final date = DateFormat('yyyy_MM').parse(month);
 
       // Only count months up to current month (not future months)
-      if (date.isBefore(DateTime(now.year, now.month + 1, 1))) {
+      if (date.isBefore(DateTime(now.year, now.month + 1))) {
         final paymentData = await _getPaymentStatus(userId, month);
         if ((paymentData?['status'] as bool?) == true) {
           count++;
@@ -707,18 +739,18 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                   future: _getPaymentStatus(user['id'] as String, _selectedMonth),
                   builder: (context, snapshot) {
                     final paymentData = snapshot.data;
-                    final isPaid = (paymentData?['status'] as bool?) ?? false;
+                    final status = paymentData?['status'] as bool?;
 
                     return Column(
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: isPaid ? Colors.green : Colors.red,
+                            color: status == null ? Colors.grey : (status == true ? Colors.green : Colors.red),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            isPaid ? 'PAID' : 'UNPAID',
+                            status == null ? 'N/A' : (status == true ? 'PAID' : 'UNPAID'),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 9,
@@ -735,15 +767,17 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: isPaid ? Colors.green : Colors.red,
+                                color: status == null ? Colors.grey : (status == true ? Colors.green : Colors.red),
                               ),
                             ),
                             const SizedBox(width: 4),
                             Switch(
-                              value: isPaid,
-                              onChanged: (value) {
-                                _markPaymentStatus(user['id'] as String, _selectedMonth, value);
-                              },
+                              value: status == true,
+                              onChanged: status == null
+                                  ? null
+                                  : (value) {
+                                      _markPaymentStatus(user['id'] as String, _selectedMonth, value);
+                                    },
                               activeColor: Colors.green,
                             ),
                           ],
@@ -782,8 +816,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   }
 
   Future<int> _getPaidCount() async {
-    int count = 0;
-    final now = DateTime.now();
+    var count = 0;
 
     for (final user in _users) {
       final paymentData = await _getPaymentStatus(user['id'] as String, _selectedMonth);
@@ -796,13 +829,13 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   }
 
   Future<int> _getUnpaidCount() async {
-    int count = 0;
-    final now = DateTime.now();
+    var count = 0;
 
     for (final user in _users) {
       final paymentData = await _getPaymentStatus(user['id'] as String, _selectedMonth);
-      // Count as unpaid if payment record doesn't exist or status is not true
-      if ((paymentData?['status'] as bool?) != true) {
+      // Count as unpaid if status is explicitly false (member but no payment)
+      // Don't count if status is null (not a member during this month)
+      if ((paymentData?['status'] as bool?) == false) {
         count++;
       }
     }
@@ -811,7 +844,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   // User selection dialog
   Widget _buildUserSelectionDialog() {
-    return Container(
+    return ColoredBox(
       color: Colors.black54,
       child: Center(
         child: Card(
@@ -859,7 +892,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
                       return ListTile(
                         visualDensity: VisualDensity.compact,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                         leading: CircleAvatar(
                           radius: 16,
                           backgroundColor: Theme.of(context).primaryColor,
@@ -916,7 +949,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   // Bulk update dialog
   Widget _buildBulkUpdateDialog() {
-    return Container(
+    return ColoredBox(
       color: Colors.black54,
       child: Center(
         child: Card(
@@ -1009,7 +1042,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                   final month = allMonths[index];
                                   final date = DateFormat('yyyy_MM').parse(month);
                                   final displayText = DateFormat('MMMM yyyy').format(date);
-                                  final isPaid = _cachedMonthStatus[month] ?? false;
+                                  final status = _cachedMonthStatus[month];
                                   final isSelected = _selectedMonthsForBulkUpdate.contains(month);
 
                                   return Theme(
@@ -1017,12 +1050,12 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                       listTileTheme: const ListTileThemeData(
                                         dense: true,
                                         minVerticalPadding: 0,
-                                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
                                       ),
                                     ),
                                     child: CheckboxListTile(
                                       visualDensity: VisualDensity.compact,
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                                       title: Text(
                                         displayText,
                                         style: const TextStyle(
@@ -1031,31 +1064,42 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                         ),
                                       ),
                                       subtitle: Text(
-                                        isPaid ? 'Paid' : (_isFutureMonth(month) ? 'Future' : 'Unpaid'),
+                                        status == null
+                                            ? 'Not Applicable'
+                                            : (status == true ? 'Paid' : (_isFutureMonth(month) ? 'Future' : 'Unpaid')),
                                         style: TextStyle(
                                           fontSize: 11,
-                                          color: isPaid
-                                              ? Colors.green
-                                              : (_isFutureMonth(month) ? Colors.blue : Colors.red),
+                                          color: status == null
+                                              ? Colors.grey
+                                              : (status == true
+                                                  ? Colors.green
+                                                  : (_isFutureMonth(month) ? Colors.blue : Colors.red)),
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      value: isSelected,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          if (value == true) {
-                                            _selectedMonthsForBulkUpdate.add(month);
-                                          } else {
-                                            _selectedMonthsForBulkUpdate.remove(month);
-                                          }
-                                        });
-                                      },
+                                      value: status == null ? false : isSelected,
+                                      onChanged: status == null
+                                          ? null
+                                          : (value) {
+                                              setState(() {
+                                                if (value == true) {
+                                                  _selectedMonthsForBulkUpdate.add(month);
+                                                } else {
+                                                  _selectedMonthsForBulkUpdate.remove(month);
+                                                }
+                                              });
+                                            },
                                       secondary: Icon(
-                                        isPaid
-                                            ? Icons.check_circle
-                                            : (_isFutureMonth(month) ? Icons.schedule : Icons.cancel),
-                                        color:
-                                            isPaid ? Colors.green : (_isFutureMonth(month) ? Colors.blue : Colors.red),
+                                        status == null
+                                            ? Icons.remove
+                                            : (status == true
+                                                ? Icons.check_circle
+                                                : (_isFutureMonth(month) ? Icons.schedule : Icons.cancel)),
+                                        color: status == null
+                                            ? Colors.grey
+                                            : (status == true
+                                                ? Colors.green
+                                                : (_isFutureMonth(month) ? Colors.blue : Colors.red)),
                                         size: 18,
                                       ),
                                     ),
@@ -1072,7 +1116,9 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                   child: ElevatedButton(
                                     onPressed: () {
                                       setState(() {
-                                        _selectedMonthsForBulkUpdate = List.from(allMonths);
+                                        // Only select months that are applicable (not null status)
+                                        _selectedMonthsForBulkUpdate =
+                                            allMonths.where((month) => _cachedMonthStatus[month] != null).toList();
                                       });
                                     },
                                     style: ElevatedButton.styleFrom(
@@ -1188,7 +1234,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   }
 
   Future<int> _getAdvancePaymentCount() async {
-    int count = 0;
+    var count = 0;
     final now = DateTime.now();
 
     for (final user in _users) {
@@ -1196,7 +1242,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         final date = DateFormat('yyyy_MM').parse(month);
 
         // Only count future months that have been paid
-        if (date.isAfter(DateTime(now.year, now.month, 1))) {
+        if (date.isAfter(DateTime(now.year, now.month))) {
           final paymentData = await _getPaymentStatus(user['id'] as String, month);
           if ((paymentData?['status'] as bool?) == true) {
             count++;

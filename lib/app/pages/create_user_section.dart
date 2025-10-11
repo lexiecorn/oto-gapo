@@ -1,19 +1,18 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:flutter/services.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'dart:math';
 import 'dart:async';
-import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
+
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 
 class CreateUserSection extends StatefulWidget {
-  const CreateUserSection({Key? key}) : super(key: key);
+  const CreateUserSection({super.key});
 
   @override
   State<CreateUserSection> createState() => _CreateUserSectionState();
@@ -254,7 +253,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           'Rolls-Royce',
           'Aston Martin',
           'Lotus',
-          'Tesla'
+          'Tesla',
         ];
         setState(() {
           _vehicleMakes = fallbackMakes;
@@ -304,7 +303,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         'Rolls-Royce',
         'Aston Martin',
         'Lotus',
-        'Tesla'
+        'Tesla',
       ];
       setState(() {
         _vehicleMakes = fallbackMakes;
@@ -426,7 +425,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       });
 
       // Show image source selection dialog
-      final ImageSource? source = await showDialog<ImageSource>(
+      final source = await showDialog<ImageSource>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -458,7 +457,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       }
 
       // Pick the image
-      final XFile? pickedFile = await _imagePicker.pickImage(
+      final pickedFile = await _imagePicker.pickImage(
         source: source,
         maxWidth: 1024,
         maxHeight: 1024,
@@ -526,7 +525,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   Future<File?> _pickCarImage() async {
     try {
       // Show image source selection dialog
-      final ImageSource? source = await showDialog<ImageSource>(
+      final source = await showDialog<ImageSource>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -565,7 +564,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       if (source == null) return null;
 
       // Pick the image
-      final XFile? pickedFile = await _imagePicker.pickImage(
+      final pickedFile = await _imagePicker.pickImage(
         source: source,
         maxWidth: 1024,
         maxHeight: 1024,
@@ -595,19 +594,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     switch (imageName) {
       case 'main':
         selectedImage = _selectedMainCarImage;
-        break;
       case '1':
         selectedImage = _selectedCarImage1;
-        break;
       case '2':
         selectedImage = _selectedCarImage2;
-        break;
       case '3':
         selectedImage = _selectedCarImage3;
-        break;
       case '4':
         selectedImage = _selectedCarImage4;
-        break;
     }
 
     if (selectedImage == null) return null;
@@ -631,27 +625,22 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           setState(() {
             _uploadedMainCarImageUrl = gsUri;
           });
-          break;
         case '1':
           setState(() {
             _uploadedCarImage1Url = gsUri;
           });
-          break;
         case '2':
           setState(() {
             _uploadedCarImage2Url = gsUri;
           });
-          break;
         case '3':
           setState(() {
             _uploadedCarImage3Url = gsUri;
           });
-          break;
         case '4':
           setState(() {
             _uploadedCarImage4Url = gsUri;
           });
-          break;
       }
 
       setState(() {
@@ -708,7 +697,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
     if (email.isEmpty || password.isEmpty || firstName.isEmpty || lastName.isEmpty) {
       setState(
-          () => _createUserMessage = 'Please fill in all required fields (email, password, first name, last name).');
+        () => _createUserMessage = 'Please fill in all required fields (email, password, first name, last name).',
+      );
       return;
     }
 
@@ -718,15 +708,25 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     });
 
     try {
-      // First, create Firebase Authentication user
-      print('Creating Firebase Authentication user with email: $email');
-      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      // Create user in PocketBase
+      print('Creating PocketBase user with email: $email');
+      final pocketBaseService = PocketBaseService();
+
+      // Create user in PocketBase
+      final userRecord = await pocketBaseService.createUserWithFirebaseUid(
+        firebaseUid: '', // We'll generate a unique ID
         email: email,
-        password: password,
+        firstName: firstName,
+        lastName: lastName,
+        additionalData: {
+          'password': password,
+          'passwordConfirm': password,
+          'joinedDate': DateTime.now().toIso8601String(),
+        },
       );
 
-      final uid = userCredential.user!.uid;
-      print('Firebase Authentication user created successfully with UID: $uid');
+      final uid = userRecord.id;
+      print('PocketBase user created successfully with ID: $uid');
 
       // Upload profile image if selected
       String? profileImageUrl;
@@ -786,64 +786,60 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         }
       }
 
-      // Create user document in Firestore using the Firebase Auth UID
-      print('Creating Firestore document with UID: $uid');
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
-        "age": age,
-        "birthplace": birthplace,
-        "bloodType": bloodType,
-        "civilStatus": civilStatus,
-        "contactNumber": contactNumber,
-        "createdAt": FieldValue.serverTimestamp(), // Timestamp when user was created
-        "updatedAt": FieldValue.serverTimestamp(), // Timestamp when user was last updated
-        "dateOfBirth": dateOfBirth != null ? Timestamp.fromDate(dateOfBirth) : null,
-        "driversLicenseExpirationDate":
-            driversLicenseExpirationDate != null ? Timestamp.fromDate(driversLicenseExpirationDate) : null,
-        "driversLicenseNumber": driversLicenseNumber,
-        "driversLicenseRestrictionCode": driversLicenseRestrictionCode,
-        "email": email,
-        "emergencyContactName": emergencyContactName,
-        "emergencyContactNumber": emergencyContactNumber,
-        "firstName": firstName,
-        "gender": '', // Add gender field if needed
-        "id": uid, // Add the Firebase Auth UID to the document
-        "isActive": isActive,
-        "isAdmin": isAdmin,
-        "lastName": lastName,
-        "memberNumber": memberNumber,
-        "membership_type": membershipType,
-        "middleName": middleName,
-        "nationality": nationality,
-        "profile_image": profileImageUrl ?? profileImage, // Use uploaded image URL or fallback to text input
-        "religion": religion,
-        "spouseContactNumber": spouseContactNumber,
-        "spouseName": spouseName,
-        "vehicle": [
-          {
-            "color": vehicleColor,
-            "make": vehicleMake,
-            "model": vehicleModel,
-            "photos": [
-              ...vehiclePhotos,
-              if (carImage1Url != null) carImage1Url,
-              if (carImage2Url != null) carImage2Url,
-              if (carImage3Url != null) carImage3Url,
-              if (carImage4Url != null) carImage4Url,
-            ].where((url) => url.isNotEmpty).toList(),
-            "plateNumber": vehiclePlateNumber,
-            "primaryPhoto": mainCarImageUrl ?? vehiclePrimaryPhoto,
-            "type": vehicleType,
-            "year": vehicleYear
-          }
-        ]
-      });
+      // Update user data in PocketBase
+      print('Updating PocketBase user data with ID: $uid');
+      final userData = {
+        'age': age,
+        'birthplace': birthplace,
+        'bloodType': bloodType,
+        'civilStatus': civilStatus,
+        'contactNumber': contactNumber,
+        'dateOfBirth': dateOfBirth?.toIso8601String(),
+        'driversLicenseExpirationDate': driversLicenseExpirationDate?.toIso8601String(),
+        'driversLicenseNumber': driversLicenseNumber,
+        'driversLicenseRestrictionCode': driversLicenseRestrictionCode,
+        'email': email,
+        'emergencyContactName': emergencyContactName,
+        'emergencyContactNumber': emergencyContactNumber,
+        'firstName': firstName,
+        'gender': '', // Add gender field if needed
+        'id': uid, // Add the Firebase Auth UID to the document
+        'isActive': isActive,
+        'isAdmin': isAdmin,
+        'lastName': lastName,
+        'memberNumber': memberNumber,
+        'membership_type': membershipType,
+        'middleName': middleName,
+        'nationality': nationality,
+        'profile_image': profileImageUrl ?? profileImage, // Use uploaded image URL or fallback to text input
+        'religion': religion,
+        'spouseContactNumber': spouseContactNumber,
+        'spouseName': spouseName,
+        'vehicle': {
+          'color': vehicleColor,
+          'make': vehicleMake,
+          'model': vehicleModel,
+          'photos': [
+            ...vehiclePhotos,
+            if (carImage1Url != null) carImage1Url,
+            if (carImage2Url != null) carImage2Url,
+            if (carImage3Url != null) carImage3Url,
+            if (carImage4Url != null) carImage4Url,
+          ].where((url) => url.isNotEmpty).toList(),
+          'plateNumber': vehiclePlateNumber,
+          'primaryPhoto': mainCarImageUrl ?? vehiclePrimaryPhoto,
+          'type': vehicleType,
+          'year': vehicleYear,
+        },
+      };
 
-      print('Firestore document created successfully');
+      // Update user in PocketBase
+      await pocketBaseService.updateUser(uid, userData);
+      print('PocketBase user updated successfully');
 
       setState(() {
         _isCreatingUser = false;
-        _createUserMessage =
-            'User created successfully! Firebase Auth user and Firestore document created with UID: $uid';
+        _createUserMessage = 'User created successfully! PocketBase user created with ID: $uid';
         _newEmailController.clear();
         _newPasswordController.clear();
         _newFirstNameController.clear();
@@ -893,36 +889,24 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         _uploadedCarImage3Url = null;
         _uploadedCarImage4Url = null;
       });
-    } on FirebaseAuthException catch (e) {
-      // Handle Firebase Authentication errors
-      String errorMessage = 'Authentication error: ';
-      switch (e.code) {
-        case 'weak-password':
-          errorMessage += 'The password provided is too weak.';
-          break;
-        case 'email-already-in-use':
-          errorMessage += 'An account already exists for that email.';
-          break;
-        case 'invalid-email':
-          errorMessage += 'The email address is invalid.';
-          break;
-        case 'operation-not-allowed':
-          errorMessage += 'Email/password accounts are not enabled.';
-          break;
-        default:
-          errorMessage += e.message ?? 'Unknown authentication error.';
+    } catch (e) {
+      // Handle PocketBase errors
+      var errorMessage = 'Error creating user: ';
+      if (e.toString().contains('email') && e.toString().contains('already')) {
+        errorMessage += 'An account already exists for that email.';
+      } else if (e.toString().contains('password')) {
+        errorMessage += 'The password provided is too weak.';
+      } else if (e.toString().contains('email')) {
+        errorMessage += 'The email address is invalid.';
+      } else {
+        errorMessage += e.toString();
       }
 
       setState(() {
         _isCreatingUser = false;
         _createUserMessage = errorMessage;
       });
-      print('Firebase Authentication error: ${e.code} - ${e.message}');
-    } catch (e) {
-      setState(() {
-        _isCreatingUser = false;
-        _createUserMessage = 'Error: $e';
-      });
+      print('PocketBase error: $e');
       print('General error during user creation: $e');
     }
   }
@@ -949,17 +933,17 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
   // Helper method to get random plate number
   String _getRandomPlateNumber() {
-    final letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    final numbers = '0123456789';
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numbers = '0123456789';
     final random = Random();
 
-    String plate = '';
+    var plate = '';
     // Add 3 random letters
-    for (int i = 0; i < 3; i++) {
+    for (var i = 0; i < 3; i++) {
       plate += letters[random.nextInt(letters.length)];
     }
     // Add 3 random numbers
-    for (int i = 0; i < 3; i++) {
+    for (var i = 0; i < 3; i++) {
       plate += numbers[random.nextInt(numbers.length)];
     }
 
@@ -968,12 +952,12 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
   // Helper method to get random phone number
   String _getRandomPhoneNumber() {
-    final numbers = '0123456789';
+    const numbers = '0123456789';
     final random = Random();
 
-    String phone = '09';
+    var phone = '09';
     // Add 9 random numbers
-    for (int i = 0; i < 9; i++) {
+    for (var i = 0; i < 9; i++) {
       phone += numbers[random.nextInt(numbers.length)];
     }
 
@@ -1052,93 +1036,90 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       final randomEmail =
           '${randomFirstName.toLowerCase()}.${randomLastName.toLowerCase()}${_generateRandomString(3)}@gmail.com';
 
-      // First, create Firebase Authentication user with default password
-      print('Creating Firebase Authentication user for test user with email: $randomEmail');
-      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      // Create test user in PocketBase
+      print('Creating PocketBase test user with email: $randomEmail');
+      final pocketBaseService = PocketBaseService();
+
+      final userRecord = await pocketBaseService.createUserWithFirebaseUid(
+        firebaseUid: '', // Generate unique ID
         email: randomEmail,
-        password: '123456', // Default password for test users
+        firstName: randomFirstName,
+        lastName: randomLastName,
+        additionalData: {
+          'password': '123456',
+          'passwordConfirm': '123456',
+        },
       );
 
-      final uid = userCredential.user!.uid;
-      print('Firebase Authentication test user created successfully with UID: $uid');
+      final uid = userRecord.id;
+      print('PocketBase test user created successfully with ID: $uid');
 
-      // Create user document in Firestore using the Firebase Auth UID
-      print('Creating Firestore document for test user with UID: $uid');
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
-        "age": randomAge.toString(),
-        "birthplace": randomBirthplace,
-        "bloodType": randomBloodType,
-        "civilStatus": randomCivilStatus,
-        "contactNumber": randomPhoneNumber,
-        "createdAt": FieldValue.serverTimestamp(),
-        "updatedAt": FieldValue.serverTimestamp(),
-        "dateOfBirth": Timestamp.fromDate(randomDateOfBirth),
-        "driversLicenseExpirationDate": Timestamp.fromDate(randomLicenseExpiration),
-        "driversLicenseNumber": _generateRandomString(12),
-        "driversLicenseRestrictionCode": (Random().nextInt(9) + 1).toString(),
-        "email": randomEmail,
-        "emergencyContactName": '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}',
-        "emergencyContactNumber": _getRandomPhoneNumber(),
-        "firstName": randomFirstName,
-        "gender": Random().nextBool() ? 'Male' : 'Female',
-        "id": uid,
-        "isActive": true,
-        "isAdmin": false, // Regular members for payment testing
-        "lastName": randomLastName,
-        "memberNumber": randomMemberNumber,
-        "membership_type": 3, // Regular member
-        "middleName": randomMiddleName,
-        "nationality": 'Filipino',
-        "profile_image": '',
-        "religion": randomReligion,
-        "spouseContactNumber": randomCivilStatus == 'Married' ? _getRandomPhoneNumber() : '',
-        "spouseName": randomCivilStatus == 'Married'
+      // Update user data in PocketBase
+      print('Updating PocketBase test user data with ID: $uid');
+      final userData = {
+        'age': randomAge.toString(),
+        'birthplace': randomBirthplace,
+        'bloodType': randomBloodType,
+        'civilStatus': randomCivilStatus,
+        'contactNumber': randomPhoneNumber,
+        'dateOfBirth': randomDateOfBirth.toIso8601String(),
+        'driversLicenseExpirationDate': randomLicenseExpiration.toIso8601String(),
+        'driversLicenseNumber': _generateRandomString(12),
+        'driversLicenseRestrictionCode': (Random().nextInt(9) + 1).toString(),
+        'email': randomEmail,
+        'emergencyContactName': '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}',
+        'emergencyContactNumber': _getRandomPhoneNumber(),
+        'firstName': randomFirstName,
+        'gender': Random().nextBool() ? 'Male' : 'Female',
+        'id': uid,
+        'isActive': true,
+        'isAdmin': false, // Regular members for payment testing
+        'lastName': randomLastName,
+        'memberNumber': randomMemberNumber,
+        'membership_type': 3, // Regular member
+        'middleName': randomMiddleName,
+        'nationality': 'Filipino',
+        'profile_image': '',
+        'religion': randomReligion,
+        'spouseContactNumber': randomCivilStatus == 'Married' ? _getRandomPhoneNumber() : '',
+        'spouseName': randomCivilStatus == 'Married'
             ? '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}'
             : '',
-        "vehicle": [
-          {
-            "color": randomVehicleColor,
-            "make": selectedMake,
-            "model": _vehicleModels.isNotEmpty ? _vehicleModels.first : 'yaris',
-            "photos": [],
-            "plateNumber": randomPlateNumber,
-            "primaryPhoto": '',
-            "type": randomVehicleType,
-            "year": randomVehicleYear
-          }
-        ]
-      });
+        'vehicle': {
+          'color': randomVehicleColor,
+          'make': selectedMake,
+          'model': _vehicleModels.isNotEmpty ? _vehicleModels.first : 'yaris',
+          'photos': [],
+          'plateNumber': randomPlateNumber,
+          'primaryPhoto': '',
+          'type': randomVehicleType,
+          'year': randomVehicleYear,
+        },
+      };
 
-      print('Firestore document for test user created successfully');
+      // Update test user in PocketBase
+      await pocketBaseService.updateUser(uid, userData);
+      print('PocketBase test user updated successfully');
 
       // Create random payment records for the last 6 months
       await _createRandomPaymentRecords(uid);
 
-      print('Test user creation completed successfully for UID: $uid');
-    } on FirebaseAuthException catch (e) {
-      // Handle Firebase Authentication errors for test users
-      String errorMessage = 'Test user authentication error: ';
-      switch (e.code) {
-        case 'weak-password':
-          errorMessage += 'The password provided is too weak.';
-          break;
-        case 'email-already-in-use':
-          errorMessage += 'An account already exists for that email.';
-          break;
-        case 'invalid-email':
-          errorMessage += 'The email address is invalid.';
-          break;
-        case 'operation-not-allowed':
-          errorMessage += 'Email/password accounts are not enabled.';
-          break;
-        default:
-          errorMessage += e.message ?? 'Unknown authentication error.';
+      print('Test user creation completed successfully for ID: $uid');
+    } catch (e) {
+      // Handle PocketBase errors for test users
+      var errorMessage = 'Error creating test user: ';
+      if (e.toString().contains('email') && e.toString().contains('already')) {
+        errorMessage += 'An account already exists for that email.';
+      } else if (e.toString().contains('password')) {
+        errorMessage += 'The password provided is too weak.';
+      } else if (e.toString().contains('email')) {
+        errorMessage += 'The email address is invalid.';
+      } else {
+        errorMessage += e.toString();
       }
 
-      print('Firebase Authentication error for test user: ${e.code} - ${e.message}');
+      print('PocketBase error for test user: $e');
       // For test users, we might want to continue with a different email or handle differently
-    } catch (e) {
-      print('Error creating random test user: $e');
     }
   }
 
@@ -1147,20 +1128,21 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     try {
       final now = DateTime.now();
       final random = Random();
+      final pocketBaseService = PocketBaseService();
 
       // Create payment records for the last 6 months
-      for (int i = 0; i < 6; i++) {
-        final date = DateTime(now.year, now.month - i, 1);
-        final monthKey = '${date.year}_${date.month.toString().padLeft(2, '0')}';
+      for (var i = 0; i < 6; i++) {
+        final date = DateTime(now.year, now.month - i);
 
         // 70% chance of being paid, 30% chance of being unpaid
         final isPaid = random.nextDouble() < 0.7;
 
-        await FirebaseFirestore.instance.collection('users').doc(userId).collection('monthly_dues').doc(monthKey).set({
-          'amount': 100,
-          'status': isPaid,
-          'updated_at': FieldValue.serverTimestamp(),
-        });
+        await pocketBaseService.createOrUpdateMonthlyDues(
+          userId: userId,
+          dueForMonth: date,
+          amount: 100,
+          paymentDate: isPaid ? DateTime.now() : null,
+        );
       }
     } catch (e) {
       print('Error creating payment records: $e');
@@ -1198,7 +1180,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     'Matthew',
     'Grace',
     'Anthony',
-    'Chloe'
+    'Chloe',
   ];
 
   final List<String> _testLastNames = [
@@ -1231,7 +1213,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     'Silva',
     'Vargas',
     'Castro',
-    'Fernandez'
+    'Fernandez',
   ];
 
   final List<String> _testMiddleNames = [
@@ -1264,7 +1246,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     'Ricardo',
     'Patricia',
     'Eduardo',
-    'Monica'
+    'Monica',
   ];
 
   final List<String> _testBirthplaces = [
@@ -1297,7 +1279,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     'San Pedro',
     'Santa Rosa',
     'Taytay',
-    'Trece Martires'
+    'Trece Martires',
   ];
 
   final List<String> _testBloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -1310,7 +1292,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     'Hinduism',
     'Atheist',
     'Agnostic',
-    'Other'
+    'Other',
   ];
   final List<String> _testVehicleColors = [
     'White',
@@ -1322,7 +1304,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     'Green',
     'Yellow',
     'Orange',
-    'Purple'
+    'Purple',
   ];
   final List<String> _testVehicleTypes = [
     'Sedan',
@@ -1333,7 +1315,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     'Wagon',
     'Van',
     'Truck',
-    'Motorcycle'
+    'Motorcycle',
   ];
 
   @override
@@ -1353,7 +1335,6 @@ class _CreateUserSectionState extends State<CreateUserSection> {
               color: colorScheme.primary,
             ),
           ),
-          initiallyExpanded: false,
           children: [
             ElevatedButton(
               onPressed: () async {
@@ -1403,7 +1384,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   _selectedLicenseExpirationDate = randomLicenseExpiration;
                   _driversLicenseExpirationDateController.text =
                       '${randomLicenseExpiration.day}/${randomLicenseExpiration.month}/${randomLicenseExpiration.year}';
-                  _driversLicenseNumberController.text = '${_generateRandomString(12)}';
+                  _driversLicenseNumberController.text = _generateRandomString(12);
                   _driversLicenseRestrictionCodeController.text = '${Random().nextInt(9) + 1}';
                   _emergencyContactNameController.text =
                       '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}';
@@ -1485,7 +1466,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 await _onVehicleMakeChanged(selectedMake);
 
                 // Generate 10 test users
-                for (int i = 0; i < 10; i++) {
+                for (var i = 0; i < 10; i++) {
                   await _createRandomTestUser(selectedMake);
                   // Small delay between creations
                   await Future.delayed(const Duration(milliseconds: 500));
@@ -1545,20 +1526,22 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 if (shouldProceed != true) return;
 
                 try {
+                  final pocketBaseService = PocketBaseService();
+
                   // Get all users with membership_type = 3
-                  final usersSnapshot =
-                      await FirebaseFirestore.instance.collection('users').where('membership_type', isEqualTo: 3).get();
+                  final pocketBaseUsers = await pocketBaseService.getAllUsers();
+                  final testUsers = pocketBaseUsers.where((user) => user.data['membership_type'] == 3).toList();
 
-                  int deletedCount = 0;
-                  for (final doc in usersSnapshot.docs) {
-                    // Delete the user document
-                    await doc.reference.delete();
-
-                    // Delete associated payment records
-                    final paymentSnapshot = await doc.reference.collection('monthly_dues').get();
-                    for (final paymentDoc in paymentSnapshot.docs) {
-                      await paymentDoc.reference.delete();
+                  var deletedCount = 0;
+                  for (final user in testUsers) {
+                    // Get and delete associated monthly dues records
+                    final monthlyDues = await pocketBaseService.getMonthlyDuesForUser(user.id);
+                    for (final dues in monthlyDues) {
+                      await pocketBaseService.deleteMonthlyDues(dues.id);
                     }
+
+                    // Delete the user document
+                    await pocketBaseService.pb.collection('users').delete(user.id);
 
                     deletedCount++;
                   }
@@ -1590,19 +1573,21 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isDark ? colorScheme.surfaceVariant : Colors.white,
+            color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
             border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Personal Information',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface.withOpacity(0.87),
-                  )),
+              Text(
+                'Personal Information',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface.withOpacity(0.87),
+                ),
+              ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -1741,7 +1726,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         DropdownMenuItem(value: 'Married', child: Text('Married', style: TextStyle(fontSize: 14.sp))),
                         DropdownMenuItem(value: 'Widowed', child: Text('Widowed', style: TextStyle(fontSize: 14.sp))),
                         DropdownMenuItem(
-                            value: 'Separated', child: Text('Separated', style: TextStyle(fontSize: 14.sp))),
+                          value: 'Separated',
+                          child: Text('Separated', style: TextStyle(fontSize: 14.sp)),
+                        ),
                         DropdownMenuItem(value: 'Divorced', child: Text('Divorced', style: TextStyle(fontSize: 14.sp))),
                         DropdownMenuItem(value: 'Annulled', child: Text('Annulled', style: TextStyle(fontSize: 14.sp))),
                       ],
@@ -1766,8 +1753,12 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 ),
                 keyboardType: TextInputType.phone,
                 maxLength: 10,
-                buildCounter: (BuildContext context,
-                    {required int currentLength, required bool isFocused, required int? maxLength}) {
+                buildCounter: (
+                  BuildContext context, {
+                  required int currentLength,
+                  required bool isFocused,
+                  required int? maxLength,
+                }) {
                   return Text(
                     '$currentLength/$maxLength',
                     style: Theme.of(context).textTheme.bodySmall,
@@ -1800,7 +1791,6 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         helpText: 'Select Date of Birth',
                         fieldLabelText: 'Date of Birth',
                         fieldHintText: 'Date',
-                        initialEntryMode: DatePickerEntryMode.calendar,
                       );
                       if (picked != null) {
                         setState(() {
@@ -1899,15 +1889,17 @@ class _CreateUserSectionState extends State<CreateUserSection> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Profile Image',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                        shadows: isDark
-                            ? [Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 2, offset: Offset(0, 1))]
-                            : [],
-                      )),
+                  Text(
+                    'Profile Image',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                      shadows: isDark
+                          ? [Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 2, offset: const Offset(0, 1))]
+                          : [],
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -1984,19 +1976,21 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isDark ? colorScheme.surfaceVariant : Colors.white,
+            color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
             border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Driver\'s License',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface.withOpacity(0.87),
-                  )),
+              Text(
+                "Driver's License",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface.withOpacity(0.87),
+                ),
+              ),
               const SizedBox(height: 20),
               TextField(
                 controller: _driversLicenseNumberController,
@@ -2032,7 +2026,6 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         helpText: 'Select License Expiration Date',
                         fieldLabelText: 'License Expiration Date',
                         fieldHintText: 'Date',
-                        initialEntryMode: DatePickerEntryMode.calendar,
                       );
                       if (picked != null) {
                         setState(() {
@@ -2061,19 +2054,21 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isDark ? colorScheme.surfaceVariant : Colors.white,
+            color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
             border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Account & Membership',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface.withOpacity(0.87),
-                  )),
+              Text(
+                'Account & Membership',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface.withOpacity(0.87),
+                ),
+              ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -2122,19 +2117,21 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isDark ? colorScheme.surfaceVariant : Colors.white,
+            color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
             border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Vehicle Details',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface.withOpacity(0.87),
-                  )),
+              Text(
+                'Vehicle Details',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface.withOpacity(0.87),
+                ),
+              ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -2345,7 +2342,6 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         helpText: 'Select Vehicle Year',
                         fieldLabelText: 'Vehicle Year',
                         fieldHintText: 'Year',
-                        initialEntryMode: DatePickerEntryMode.calendar,
                       );
                       if (picked != null) {
                         setState(() {
@@ -2365,31 +2361,35 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isDark ? colorScheme.surfaceVariant : Colors.white,
+            color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
             border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Car Images',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface.withOpacity(0.87),
-                  )),
+              Text(
+                'Car Images',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface.withOpacity(0.87),
+                ),
+              ),
               const SizedBox(height: 20),
 
               // Main Car Image
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Primary Car Image',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface.withOpacity(0.87),
-                      )),
+                  Text(
+                    'Primary Car Image',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface.withOpacity(0.87),
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -2462,12 +2462,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
               const SizedBox(height: 20),
 
               // Additional Car Images Grid
-              Text('Additional Car Images (1-4)',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface.withOpacity(0.87),
-                  )),
+              Text(
+                'Additional Car Images (1-4)',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface.withOpacity(0.87),
+                ),
+              ),
               const SizedBox(height: 8),
 
               // Grid of car images
@@ -2489,16 +2491,12 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   switch (imageNumber) {
                     case 1:
                       selectedImage = _selectedCarImage1;
-                      break;
                     case 2:
                       selectedImage = _selectedCarImage2;
-                      break;
                     case 3:
                       selectedImage = _selectedCarImage3;
-                      break;
                     case 4:
                       selectedImage = _selectedCarImage4;
-                      break;
                   }
 
                   return Container(
@@ -2518,13 +2516,13 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                                   width: double.infinity,
                                   height: double.infinity,
                                 )
-                              : Container(
+                              : ColoredBox(
                                   color: Colors.grey.shade100,
                                   child: Center(
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                        const Icon(Icons.directions_car, size: 32, color: Colors.grey),
                                         const SizedBox(height: 4),
                                         Text(
                                           'Car $imageNumber',
@@ -2568,16 +2566,12 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                                   switch (imageNumber) {
                                     case 1:
                                       _selectedCarImage1 = pickedImage;
-                                      break;
                                     case 2:
                                       _selectedCarImage2 = pickedImage;
-                                      break;
                                     case 3:
                                       _selectedCarImage3 = pickedImage;
-                                      break;
                                     case 4:
                                       _selectedCarImage4 = pickedImage;
-                                      break;
                                   }
                                 });
                               }

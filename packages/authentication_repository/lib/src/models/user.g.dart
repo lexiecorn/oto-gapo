@@ -18,10 +18,11 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
       birthplace: json['birthplace'] as String,
       nationality: json['nationality'] as String,
       emergencyContactNumber: json['emergencyContactNumber'] as String?,
-      vehicle: (json['vehicle'] as List<dynamic>).map((e) => Vehicle.fromJson(e as Map<String, dynamic>)).toList(),
       driversLicenseNumber: json['driversLicenseNumber'] as String?,
-      driversLicenseExpirationDate: TimestampConverter.fromJson(json['driversLicenseExpirationDate']),
-      driversLicenseRestrictionCode: json['driversLicenseRestrictionCode'] as String?,
+      driversLicenseExpirationDate:
+          TimestampConverter.fromJson(json['driversLicenseExpirationDate']),
+      driversLicenseRestrictionCode:
+          json['driversLicenseRestrictionCode'] as String?,
       contactNumber: json['contactNumber'] as String,
       bloodType: json['bloodType'] as String?,
       religion: json['religion'] as String?,
@@ -32,7 +33,9 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
       membership_type: json['membership_type'] as num?,
     );
 
-Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) => <String, dynamic>{
+Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
+    <String, dynamic>{
+      'uid': instance.uid,
       'firstName': instance.firstName,
       'middleName': instance.middleName,
       'lastName': instance.lastName,
@@ -43,9 +46,9 @@ Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) => <String, dynamic>
       'birthplace': instance.birthplace,
       'nationality': instance.nationality,
       'emergencyContactNumber': instance.emergencyContactNumber,
-      'vehicle': instance.vehicle,
       'driversLicenseNumber': instance.driversLicenseNumber,
-      'driversLicenseExpirationDate': TimestampConverter.toJson(instance.driversLicenseExpirationDate),
+      'driversLicenseExpirationDate':
+          TimestampConverter.toJson(instance.driversLicenseExpirationDate),
       'driversLicenseRestrictionCode': instance.driversLicenseRestrictionCode,
       'contactNumber': instance.contactNumber,
       'bloodType': instance.bloodType,

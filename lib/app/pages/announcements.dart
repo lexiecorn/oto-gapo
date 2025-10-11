@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 
 class AnnouncementsWidget extends StatefulWidget {
   const AnnouncementsWidget({super.key});
@@ -11,7 +11,6 @@ class AnnouncementsWidget extends StatefulWidget {
 }
 
 class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerProviderStateMixin {
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final ScrollController _scrollController = ScrollController();
   List<Map<String, dynamic>> _announcements = [];
   bool _isLoading = true;
@@ -34,12 +33,12 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
     );
 
     _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
+      begin: 0,
+      end: 1,
     ).animate(CurvedAnimation(
       parent: _fadeController,
       curve: Curves.easeInOut,
-    ));
+    ),);
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
@@ -47,7 +46,7 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
     ).animate(CurvedAnimation(
       parent: _slideController,
       curve: Curves.easeOutCubic,
-    ));
+    ),);
 
     _fetchAnnouncements();
   }
@@ -62,24 +61,19 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
 
   Future<void> _fetchAnnouncements() async {
     try {
-      final docRef = firestore.collection('announcements').doc('general');
-      final docSnapshot = await docRef.get();
+      final pocketBaseService = PocketBaseService();
+      final announcements = await pocketBaseService.getAnnouncements();
 
-      if (docSnapshot.exists) {
-        final announcementsData = docSnapshot.data()!['announcements'] as List<dynamic>?;
-        if (announcementsData != null && announcementsData.isNotEmpty) {
-          _announcements = announcementsData.map((announcement) => announcement as Map<String, dynamic>).toList();
-          // Sort by date (newest first)
-          _announcements.sort((a, b) {
-            final dateA = (a['date'] as Timestamp).toDate();
-            final dateB = (b['date'] as Timestamp).toDate();
-            return dateB.compareTo(dateA);
-          });
-        } else {
-          _errorMessage = 'No announcements available';
-        }
+      if (announcements.isNotEmpty) {
+        _announcements = announcements.map((announcement) => announcement.data).toList();
+        // Sort by date (newest first)
+        _announcements.sort((a, b) {
+          final dateA = DateTime.parse(a['created'] as String);
+          final dateB = DateTime.parse(b['created'] as String);
+          return dateB.compareTo(dateA);
+        });
       } else {
-        _errorMessage = 'No announcements found';
+        _errorMessage = 'No announcements available';
       }
     } catch (e) {
       _errorMessage = 'Failed to load announcements';
@@ -374,7 +368,8 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
     final type = announcement['type'] as String? ?? 'info';
     final title = announcement['title'] as String? ?? 'No Title';
     final content = announcement['content'] as String? ?? 'No content';
-    final date = announcement['date'] as Timestamp?;
+    final dateString = announcement['created'] as String?;
+    final date = dateString != null ? DateTime.parse(dateString) : null;
 
     return Container(
       margin: EdgeInsets.only(
@@ -482,7 +477,7 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                           ),
                           SizedBox(width: 4.sp),
                           Text(
-                            date != null ? DateFormat('MMM dd, yyyy • h:mm a').format(date.toDate()) : 'No date',
+                            date != null ? DateFormat('MMM dd, yyyy • h:mm a').format(date) : 'No date',
                             style: TextStyle(
                               fontSize: 12.sp,
                               color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
@@ -511,7 +506,8 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
     final type = announcement['type'] as String? ?? 'info';
     final title = announcement['title'] as String? ?? 'No Title';
     final content = announcement['content'] as String? ?? 'No content';
-    final date = announcement['date'] as Timestamp?;
+    final dateString = announcement['created'] as String?;
+    final date = dateString != null ? DateTime.parse(dateString) : null;
 
     showDialog<void>(
       context: context,
@@ -607,9 +603,7 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                   ),
                   SizedBox(width: 8.sp),
                   Text(
-                    date != null
-                        ? DateFormat('EEEE, MMMM dd, yyyy • h:mm a').format(date.toDate())
-                        : 'No date available',
+                    date != null ? DateFormat('EEEE, MMMM dd, yyyy • h:mm a').format(date) : 'No date available',
                     style: TextStyle(
                       fontSize: 14.sp,
                       color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600],

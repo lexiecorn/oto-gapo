@@ -1,18 +1,18 @@
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:otogapo/app/pages/user_list_page.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-class UserDetailPage extends StatefulWidget {
-  final Map<String, dynamic> userData;
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:otogapo/app/modules/auth/auth_bloc.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 
+class UserDetailPage extends StatefulWidget {
   const UserDetailPage({
-    Key? key,
     required this.userData,
-  }) : super(key: key);
+    super.key,
+  });
+  final Map<String, dynamic> userData;
 
   @override
   State<UserDetailPage> createState() => _UserDetailPageState();
@@ -24,6 +24,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   final _formKey = GlobalKey<FormState>();
   DateTime? _selectedDateOfBirth;
   DateTime? _selectedLicenseExpirationDate;
+  DateTime? _selectedJoinedDate;
   Future<String?>? _profileImageUrlFuture;
   final ImagePicker _imagePicker = ImagePicker();
   bool _isUploadingImage = false;
@@ -51,18 +52,27 @@ class _UserDetailPageState extends State<UserDetailPage> {
       final dateValue = _editedData['dateOfBirth'];
       if (dateValue is DateTime) {
         _selectedDateOfBirth = dateValue;
-      } else if (dateValue is Timestamp) {
-        _selectedDateOfBirth = dateValue.toDate();
+      } else if (dateValue is String) {
+        _selectedDateOfBirth = DateTime.parse(dateValue);
       }
     }
 
+    // Initialize the joined date from the user data
+    if (_editedData['joinedDate'] != null) {
+      final dateValue = _editedData['joinedDate'];
+      if (dateValue is DateTime) {
+        _selectedJoinedDate = dateValue;
+      } else if (dateValue is String && dateValue.isNotEmpty) {
+        _selectedJoinedDate = DateTime.tryParse(dateValue);
+      }
+    }
     // Initialize the license expiration date from the user data
     if (_editedData['driversLicenseExpirationDate'] != null) {
       final dateValue = _editedData['driversLicenseExpirationDate'];
       if (dateValue is DateTime) {
         _selectedLicenseExpirationDate = dateValue;
-      } else if (dateValue is Timestamp) {
-        _selectedLicenseExpirationDate = dateValue.toDate();
+      } else if (dateValue is String) {
+        _selectedLicenseExpirationDate = DateTime.parse(dateValue);
       }
     }
 
@@ -77,7 +87,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   void _ensureTimestampFields() {
     // If createdAt doesn't exist, set it to a default timestamp
     if (_editedData['createdAt'] == null) {
-      _editedData['createdAt'] = Timestamp.fromDate(DateTime.now());
+      _editedData['createdAt'] = DateTime.now().toIso8601String();
     }
 
     // If updatedAt doesn't exist, set it to the same as createdAt
@@ -129,7 +139,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       });
 
       // Show image source selection dialog
-      final ImageSource? source = await showDialog<ImageSource>(
+      final source = await showDialog<ImageSource>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -161,7 +171,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
 
       // Pick the image
-      final XFile? pickedFile = await _imagePicker.pickImage(
+      final pickedFile = await _imagePicker.pickImage(
         source: source,
         maxWidth: 1024,
         maxHeight: 1024,
@@ -195,10 +205,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
         _profileImageUrlFuture = Future.value(downloadUrl);
       });
 
-      // Update Firestore
-      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+      // Update PocketBase
+      final pocketBaseService = PocketBaseService();
+      await pocketBaseService.updateUser(userId, {
         'profile_image': gsUri,
-        'updatedAt': FieldValue.serverTimestamp(),
+        'updatedAt': DateTime.now().toIso8601String(),
       });
 
       if (mounted) {
@@ -230,7 +241,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   Future<File?> _pickCarImage() async {
     try {
       // Show image source selection dialog
-      final ImageSource? source = await showDialog<ImageSource>(
+      final source = await showDialog<ImageSource>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -257,7 +268,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       if (source == null) return null;
 
       // Pick the image
-      final XFile? pickedFile = await _imagePicker.pickImage(
+      final pickedFile = await _imagePicker.pickImage(
         source: source,
         maxWidth: 1024,
         maxHeight: 1024,
@@ -287,19 +298,14 @@ class _UserDetailPageState extends State<UserDetailPage> {
     switch (imageName) {
       case 'main':
         selectedImage = _selectedMainCarImage;
-        break;
       case '1':
         selectedImage = _selectedCarImage1;
-        break;
       case '2':
         selectedImage = _selectedCarImage2;
-        break;
       case '3':
         selectedImage = _selectedCarImage3;
-        break;
       case '4':
         selectedImage = _selectedCarImage4;
-        break;
     }
 
     if (selectedImage == null) return null;
@@ -350,27 +356,22 @@ class _UserDetailPageState extends State<UserDetailPage> {
           setState(() {
             _uploadedMainCarImageUrl = gsUri;
           });
-          break;
         case '1':
           setState(() {
             _uploadedCarImage1Url = gsUri;
           });
-          break;
         case '2':
           setState(() {
             _uploadedCarImage2Url = gsUri;
           });
-          break;
         case '3':
           setState(() {
             _uploadedCarImage3Url = gsUri;
           });
-          break;
         case '4':
           setState(() {
             _uploadedCarImage4Url = gsUri;
           });
-          break;
       }
 
       setState(() {
@@ -412,15 +413,15 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState.user == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text("Authentication Error")),
+        appBar: AppBar(title: const Text('Authentication Error')),
         body: const Center(
           child: Padding(
-            padding: EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16),
             child: Text(
-              "You are not logged in. Please log in again to view user details.",
+              'You are not logged in. Please log in again to view user details.',
               textAlign: TextAlign.center,
             ),
           ),
@@ -429,9 +430,15 @@ class _UserDetailPageState extends State<UserDetailPage> {
     }
 
     try {
-      // Extract vehicle data (it's stored as an array)
-      final vehicles = _editedData['vehicle'] as List<dynamic>? ?? [];
-      final firstVehicle = vehicles.isNotEmpty ? vehicles.first as Map<String, dynamic>? : null;
+      // Extract vehicle data (now a single object; keep backward-compat for arrays)
+      final rawVehicle = _editedData['vehicle'];
+      Map<String, dynamic>? firstVehicle;
+      if (rawVehicle is Map<String, dynamic>) {
+        firstVehicle = rawVehicle;
+      } else if (rawVehicle is List && rawVehicle.isNotEmpty) {
+        final v = rawVehicle.first;
+        if (v is Map<String, dynamic>) firstVehicle = v;
+      }
 
       return Scaffold(
         appBar: AppBar(
@@ -522,7 +529,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             ),
                             child: _isUploadingImage
                                 ? const Padding(
-                                    padding: EdgeInsets.all(8.0),
+                                    padding: EdgeInsets.all(8),
                                     child: SizedBox(
                                       width: 16,
                                       height: 16,
@@ -563,8 +570,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     _buildEditableField('Nationality', 'nationality'),
                     _buildEditableField('Religion', 'religion'),
                     _buildEditableField('Civil Status', 'civilStatus'),
-                    _buildEditableField('Gender', 'gender',
-                        isDropdown: true, dropdownOptions: ['Male', 'Female', 'Other']),
+                    _buildEditableField(
+                      'Gender',
+                      'gender',
+                      isDropdown: true,
+                      dropdownOptions: ['Male', 'Female', 'Other'],
+                    ),
                   ],
                 ),
 
@@ -589,6 +600,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     _buildEditableField('Membership Type', 'membership_type'),
                     _buildEditableField('Is Active', 'isActive', isBoolean: true),
                     _buildEditableField('Is Admin', 'isAdmin', isBoolean: true),
+                    _buildEditableField('Joined Date', 'joinedDate', isDate: true),
                   ],
                 ),
 
@@ -596,7 +608,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
                 // Driver's License Information Section
                 _buildSection(
-                  'Driver\'s License Information',
+                  "Driver's License Information",
                   [
                     _buildEditableField('License Number', 'driversLicenseNumber'),
                     _buildEditableField('License Exp. Date', 'driversLicenseExpirationDate', isDate: true),
@@ -644,8 +656,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 _buildSection(
                   'Medical Information',
                   [
-                    _buildEditableField('Blood Type', 'bloodType',
-                        isDropdown: true, dropdownOptions: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']),
+                    _buildEditableField(
+                      'Blood Type',
+                      'bloodType',
+                      isDropdown: true,
+                      dropdownOptions: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'],
+                    ),
                   ],
                 ),
 
@@ -655,6 +671,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 _buildSection(
                   'System Information',
                   [
+                    _buildDetailRow('Joined Date', _editedData['joinedDate']),
                     _buildDetailRow('Created At', _editedData['createdAt']),
                     _buildDetailRow('Updated At', _editedData['updatedAt']),
                   ],
@@ -701,12 +718,15 @@ class _UserDetailPageState extends State<UserDetailPage> {
     }
   }
 
-  Widget _buildEditableField(String label, String field,
-      {bool isNumber = false,
-      bool isBoolean = false,
-      bool isDate = false,
-      bool isDropdown = false,
-      List<String>? dropdownOptions}) {
+  Widget _buildEditableField(
+    String label,
+    String field, {
+    bool isNumber = false,
+    bool isBoolean = false,
+    bool isDate = false,
+    bool isDropdown = false,
+    List<String>? dropdownOptions,
+  }) {
     try {
       if (_isEditing) {
         if (isDate) {
@@ -716,6 +736,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
             selectedDate = _selectedDateOfBirth;
           } else if (field == 'driversLicenseExpirationDate') {
             selectedDate = _selectedLicenseExpirationDate;
+          } else if (field == 'joinedDate') {
+            selectedDate = _selectedJoinedDate;
+          } else if (_editedData[field] is String && (_editedData[field] as String).isNotEmpty) {
+            selectedDate = DateTime.tryParse(_editedData[field] as String);
+          } else if (_editedData[field] is DateTime) {
+            selectedDate = _editedData[field] as DateTime;
           }
 
           return Padding(
@@ -758,6 +784,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             initialDate = _selectedLicenseExpirationDate ?? DateTime(now.year + 1);
                             firstDate = DateTime(now.year);
                             lastDate = DateTime(now.year + 10);
+                          } else if (field == 'joinedDate') {
+                            initialDate = _selectedJoinedDate ?? now;
+                            firstDate = DateTime(1900);
+                            lastDate = DateTime(now.year + 10);
                           } else {
                             initialDate = DateTime(now.year);
                             firstDate = DateTime(1900);
@@ -772,7 +802,6 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             helpText: 'Select $label',
                             fieldLabelText: label,
                             fieldHintText: 'Date',
-                            initialEntryMode: DatePickerEntryMode.calendar,
                           );
                           if (picked != null) {
                             setState(() {
@@ -780,6 +809,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                 _selectedDateOfBirth = picked;
                               } else if (field == 'driversLicenseExpirationDate') {
                                 _selectedLicenseExpirationDate = picked;
+                              } else if (field == 'joinedDate') {
+                                _selectedJoinedDate = picked;
                               }
                               _editedData[field] = picked;
                             });
@@ -797,7 +828,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
           final currentValue = _editedData[field]?.toString().trim();
           String? validValue;
           if (currentValue != null && currentValue.isNotEmpty) {
-            for (var option in dropdownOptions) {
+            for (final option in dropdownOptions) {
               if (option.toLowerCase() == currentValue.toLowerCase()) {
                 validValue = option;
                 break;
@@ -823,10 +854,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   child: DropdownButtonFormField<String>(
                     value: validValue,
                     items: dropdownOptions
-                        .map((option) => DropdownMenuItem(
-                              value: option,
-                              child: Text(option),
-                            ))
+                        .map(
+                          (option) => DropdownMenuItem(
+                            value: option,
+                            child: Text(option),
+                          ),
+                        )
                         .toList(),
                     onChanged: (value) {
                       if (value != null) {
@@ -938,10 +971,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 ),
               ),
             ),
-            Expanded(
+            const Expanded(
               child: Text(
                 'Error loading field',
-                style: const TextStyle(color: Colors.red),
+                style: TextStyle(color: Colors.red),
               ),
             ),
           ],
@@ -950,7 +983,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
     }
   }
 
-  void _saveChanges() async {
+  Future<void> _saveChanges() async {
     if (_formKey.currentState!.validate()) {
       try {
         // Show loading indicator
@@ -1007,61 +1040,58 @@ class _UserDetailPageState extends State<UserDetailPage> {
           }
         }
 
-        // Update the document in Firestore
+        // Update the user in PocketBase
         final userId = _editedData['id']?.toString();
         if (userId != null) {
           // Remove the id field before updating (it's not a document field)
           final updateData = Map<String, dynamic>.from(_editedData);
           updateData.remove('id');
 
-          // Convert DateTime to Timestamp for Firestore
+          // Convert DateTime to ISO string for PocketBase
           if (updateData['dateOfBirth'] is DateTime) {
-            updateData['dateOfBirth'] = Timestamp.fromDate(updateData['dateOfBirth'] as DateTime);
+            updateData['dateOfBirth'] = (updateData['dateOfBirth'] as DateTime).toIso8601String();
           }
           if (updateData['driversLicenseExpirationDate'] is DateTime) {
             updateData['driversLicenseExpirationDate'] =
-                Timestamp.fromDate(updateData['driversLicenseExpirationDate'] as DateTime);
+                (updateData['driversLicenseExpirationDate'] as DateTime).toIso8601String();
           }
 
-          // Update vehicle data with new car images if uploaded
-          if (updateData['vehicle'] != null &&
-              updateData['vehicle'] is List &&
-              (updateData['vehicle'] as List).isNotEmpty) {
-            final vehicleList = updateData['vehicle'] as List;
-            final vehicle = Map<String, dynamic>.from(vehicleList[0] as Map<String, dynamic>);
-            final existingPhotos = List<String>.from((vehicle['photos'] as List<dynamic>?) ?? []);
+          // Convert any remaining Timestamp objects to ISO strings
+          _convertTimestampsToIso(updateData);
 
-            // Debug logging
-            // print('Original vehicle data: $vehicle');
-            // print('Main car image URL: $mainCarImageUrl');
-            // print('Car image 1 URL: $carImage1Url');
-            // print('Car image 2 URL: $carImage2Url');
-            // print('Car image 3 URL: $carImage3Url');
-            // print('Car image 4 URL: $carImage4Url');
-
-            // Add new car images to photos array
-            if (carImage1Url != null) existingPhotos.add(carImage1Url);
-            if (carImage2Url != null) existingPhotos.add(carImage2Url);
-            if (carImage3Url != null) existingPhotos.add(carImage3Url);
-            if (carImage4Url != null) existingPhotos.add(carImage4Url);
-
-            // Update primary photo if main car image was uploaded
-            if (mainCarImageUrl != null) {
-              vehicle['primaryPhoto'] = mainCarImageUrl;
-              // Debug logging
-              // print('Updated primary photo to: $mainCarImageUrl');
+          // Update vehicle data with new car images if uploaded (single object; supports legacy list)
+          if (updateData['vehicle'] != null) {
+            Map<String, dynamic>? vehicle;
+            if (updateData['vehicle'] is Map<String, dynamic>) {
+              vehicle = Map<String, dynamic>.from(updateData['vehicle'] as Map<String, dynamic>);
+            } else if (updateData['vehicle'] is List && (updateData['vehicle'] as List).isNotEmpty) {
+              final vehicleList = updateData['vehicle'] as List;
+              vehicle = Map<String, dynamic>.from(vehicleList[0] as Map<String, dynamic>);
             }
 
-            vehicle['photos'] = existingPhotos;
-            updateData['vehicle'] = [vehicle];
+            if (vehicle != null) {
+              final existingPhotos = List<String>.from((vehicle['photos'] as List<dynamic>?) ?? []);
 
-            // Debug logging
-            // print('Final vehicle data: ${updateData['vehicle']}');
+              // Add new car images to photos array
+              if (carImage1Url != null) existingPhotos.add(carImage1Url);
+              if (carImage2Url != null) existingPhotos.add(carImage2Url);
+              if (carImage3Url != null) existingPhotos.add(carImage3Url);
+              if (carImage4Url != null) existingPhotos.add(carImage4Url);
+
+              // Update primary photo if main car image was uploaded
+              if (mainCarImageUrl != null) {
+                vehicle['primaryPhoto'] = mainCarImageUrl;
+              }
+
+              vehicle['photos'] = existingPhotos;
+              // Store as single object
+              updateData['vehicle'] = vehicle;
+            }
           }
 
-          updateData['updatedAt'] = FieldValue.serverTimestamp();
-
-          await FirebaseFirestore.instance.collection('users').doc(userId).update(updateData);
+          // Update user in PocketBase
+          final pocketBaseService = PocketBaseService();
+          await pocketBaseService.updateUser(userId, updateData);
 
           // Close loading dialog
           Navigator.of(context).pop();
@@ -1150,10 +1180,6 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
       if (userId == null || userId.isEmpty) {
         // Remove loading overlay
-        if (overlayEntry != null) {
-          overlayEntry!.remove();
-          overlayEntry = null;
-        }
         print('User ID not found, returning error result...'); // Debug log
         Navigator.of(context).pop('error: User ID not found');
         print('Error result returned successfully'); // Debug log
@@ -1161,13 +1187,9 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
 
       // Check if trying to delete current user's account
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null && currentUser.uid == userId) {
+      final authState = context.read<AuthBloc>().state;
+      if (authState.user != null && authState.user!.id == userId) {
         // Remove loading overlay
-        if (overlayEntry != null) {
-          overlayEntry!.remove();
-          overlayEntry = null;
-        }
         print('Attempting to delete own account, returning error result...'); // Debug log
         Navigator.of(context).pop('error: Cannot delete your own account');
         print('Error result returned successfully'); // Debug log
@@ -1177,9 +1199,9 @@ class _UserDetailPageState extends State<UserDetailPage> {
       // Show loading indicator using overlay
       final overlay = Overlay.of(context);
       overlayEntry = OverlayEntry(
-        builder: (context) => Container(
+        builder: (context) => const ColoredBox(
           color: Colors.black54,
-          child: const Center(child: CircularProgressIndicator()),
+          child: Center(child: CircularProgressIndicator()),
         ),
       );
       overlay.insert(overlayEntry);
@@ -1189,30 +1211,29 @@ class _UserDetailPageState extends State<UserDetailPage> {
       await _deleteUserStorageData(userId);
       // print('User data deleted from Firebase Storage successfully'); // Debug log
 
-      // Delete the user document from Firestore
-      // print('Deleting user from Firestore...'); // Debug log
+      // Delete the user from PocketBase
+      // print('Deleting user from PocketBase...'); // Debug log
       try {
-        await FirebaseFirestore.instance.collection('users').doc(userId).delete();
-        // print('User deleted from Firestore successfully'); // Debug log
-      } catch (firestoreError) {
-        print('Firestore deletion error: $firestoreError'); // Debug log
+        final pocketBaseService = PocketBaseService();
+        await pocketBaseService.deleteUser(userId);
+        // print('User deleted from PocketBase successfully'); // Debug log
+      } catch (pocketBaseError) {
+        print('PocketBase deletion error: $pocketBaseError'); // Debug log
         // Check if it's a permission error
-        if (firestoreError.toString().contains('permission-denied') ||
-            firestoreError.toString().contains('permission') ||
-            firestoreError.toString().contains('PERMISSION_DENIED')) {
+        if (pocketBaseError.toString().contains('permission-denied') ||
+            pocketBaseError.toString().contains('permission') ||
+            pocketBaseError.toString().contains('PERMISSION_DENIED')) {
           throw Exception('Permission denied: Unable to delete user. Please check your permissions or try again.');
         }
-        throw firestoreError; // Re-throw other errors
+        rethrow; // Re-throw other errors
       }
 
       // Add a small delay to ensure the deletion is processed
       await Future.delayed(const Duration(milliseconds: 500));
 
       // Remove loading overlay
-      if (overlayEntry != null) {
-        overlayEntry!.remove();
-        overlayEntry = null;
-      }
+      overlayEntry.remove();
+      overlayEntry = null;
       print('Loading overlay removed'); // Debug log
 
       // Navigate back immediately after successful deletion
@@ -1223,7 +1244,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       print('Error during delete: $e'); // Debug log
       // Remove loading overlay if it exists
       if (overlayEntry != null) {
-        overlayEntry!.remove();
+        overlayEntry.remove();
         overlayEntry = null;
       }
 
@@ -1271,7 +1292,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
 
       // Delete additional car images (1, 2, 3, 4)
-      for (int i = 1; i <= 4; i++) {
+      for (var i = 1; i <= 4; i++) {
         try {
           final carImageRef = storage.ref().child('users/$userId/images/cars/$i.png');
           await carImageRef.delete();
@@ -1333,7 +1354,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   }
 
   Widget _buildDetailRow(String label, dynamic value) {
-    String displayValue = 'Not provided';
+    var displayValue = 'Not provided';
 
     if (value != null) {
       if (value is DateTime) {
@@ -1351,7 +1372,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
             'September',
             'October',
             'November',
-            'December'
+            'December',
           ];
           final month = months[value.month - 1];
           final day = value.day;
@@ -1367,8 +1388,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
           displayValue =
               '${value.day}/${value.month}/${value.year} ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
         }
-      } else if (value is Timestamp) {
-        final date = value.toDate();
+      } else if (value is String && value.contains('T')) {
+        final date = DateTime.parse(value);
         // Format for createdAt and updatedAt fields
         if (label == 'Created At' || label == 'Updated At') {
           final months = [
@@ -1383,7 +1404,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
             'September',
             'October',
             'November',
-            'December'
+            'December',
           ];
           final month = months[date.month - 1];
           final day = date.day;
@@ -1407,11 +1428,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
     }
 
     // Check if this is an image field and has a valid URL
-    bool isImageField = label.toLowerCase().contains('photo') ||
+    final isImageField = label.toLowerCase().contains('photo') ||
         label.toLowerCase().contains('image') ||
         label.toLowerCase().contains('picture');
 
-    bool hasValidUrl = value is String && value.isNotEmpty;
+    final hasValidUrl = value is String && value.isNotEmpty;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -1516,8 +1537,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Primary Car Image',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+            Text(
+              'Primary Car Image',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -1632,8 +1655,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
         const SizedBox(height: 20),
 
         // Additional Car Images Grid
-        Text('Additional Car Images (1-4)',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+        Text(
+          'Additional Car Images (1-4)',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
 
         // Grid of car images for editing
@@ -1655,16 +1680,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
             switch (imageNumber) {
               case 1:
                 selectedImage = _selectedCarImage1;
-                break;
               case 2:
                 selectedImage = _selectedCarImage2;
-                break;
               case 3:
                 selectedImage = _selectedCarImage3;
-                break;
               case 4:
                 selectedImage = _selectedCarImage4; // 4th car image, separate from main
-                break;
             }
 
             // If no locally selected image, try to load from Firebase Storage
@@ -1703,17 +1724,17 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                 width: double.infinity,
                                 height: double.infinity,
                                 errorBuilder: (context, error, stackTrace) {
-                                  return Container(
+                                  return ColoredBox(
                                     color: Colors.grey.shade100,
                                     child: Center(
                                       child: Column(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                          const Icon(Icons.directions_car, size: 32, color: Colors.grey),
                                           const SizedBox(height: 4),
                                           Text(
                                             'Car $imageNumber',
-                                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                                            style: const TextStyle(color: Colors.grey, fontSize: 12),
                                           ),
                                         ],
                                       ),
@@ -1755,16 +1776,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                       switch (imageNumber) {
                                         case 1:
                                           _selectedCarImage1 = pickedImage;
-                                          break;
                                         case 2:
                                           _selectedCarImage2 = pickedImage;
-                                          break;
                                         case 3:
                                           _selectedCarImage3 = pickedImage;
-                                          break;
                                         case 4:
                                           _selectedCarImage4 = pickedImage;
-                                          break;
                                       }
                                     });
                                   }
@@ -1803,17 +1820,17 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               width: double.infinity,
                               height: double.infinity,
                               errorBuilder: (context, error, stackTrace) {
-                                return Container(
+                                return ColoredBox(
                                   color: Colors.grey.shade100,
                                   child: Center(
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                        const Icon(Icons.directions_car, size: 32, color: Colors.grey),
                                         const SizedBox(height: 4),
                                         Text(
                                           'Car $imageNumber',
-                                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                                          style: const TextStyle(color: Colors.grey, fontSize: 12),
                                         ),
                                       ],
                                     ),
@@ -1855,16 +1872,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                     switch (imageNumber) {
                                       case 1:
                                         _selectedCarImage1 = pickedImage;
-                                        break;
                                       case 2:
                                         _selectedCarImage2 = pickedImage;
-                                        break;
                                       case 3:
                                         _selectedCarImage3 = pickedImage;
-                                        break;
                                       case 4:
                                         _selectedCarImage4 = pickedImage;
-                                        break;
                                     }
                                   });
                                 }
@@ -1914,17 +1927,17 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             width: double.infinity,
                             height: double.infinity,
                             errorBuilder: (context, error, stackTrace) {
-                              return Container(
+                              return ColoredBox(
                                 color: Colors.grey.shade100,
                                 child: Center(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                      const Icon(Icons.directions_car, size: 32, color: Colors.grey),
                                       const SizedBox(height: 4),
                                       Text(
                                         'Car $imageNumber',
-                                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                                        style: const TextStyle(color: Colors.grey, fontSize: 12),
                                       ),
                                     ],
                                   ),
@@ -1966,16 +1979,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             switch (imageNumber) {
                               case 1:
                                 _selectedCarImage1 = pickedImage;
-                                break;
                               case 2:
                                 _selectedCarImage2 = pickedImage;
-                                break;
                               case 3:
                                 _selectedCarImage3 = pickedImage;
-                                break;
                               case 4:
                                 _selectedCarImage4 = pickedImage;
-                                break;
                             }
                           });
                         }
@@ -2012,8 +2021,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Car Primary Image',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+        Text(
+          'Car Primary Image',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 16),
 
         // Main car image display
@@ -2038,12 +2049,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   border: Border.all(color: Colors.red.shade300),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Center(
+                child: const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.error, color: Colors.red, size: 32),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
                         'Error loading main car image',
                         style: TextStyle(color: Colors.red, fontSize: 12),
@@ -2070,14 +2081,14 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     width: double.infinity,
                     height: double.infinity,
                     errorBuilder: (context, error, stackTrace) {
-                      return Container(
+                      return ColoredBox(
                         color: Colors.grey.shade100,
-                        child: Center(
+                        child: const Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.error, color: Colors.grey, size: 32),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Text(
                                 'Failed to load main car image',
                                 style: TextStyle(color: Colors.grey, fontSize: 12),
@@ -2107,14 +2118,14 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   width: double.infinity,
                   height: double.infinity,
                   errorBuilder: (context, error, stackTrace) {
-                    return Container(
+                    return ColoredBox(
                       color: Colors.grey.shade100,
-                      child: Center(
+                      child: const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.directions_car, size: 48, color: Colors.grey),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text(
                               'No main car image',
                               style: TextStyle(color: Colors.grey, fontSize: 14),
@@ -2403,7 +2414,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       throw Exception('User ID not found in user data');
     }
     final gsUri = 'gs://otogapo-dev.appspot.com/users/$userId/images/cars/main.png';
-    return await _getDownloadUrlFromGsUri(gsUri);
+    return _getDownloadUrlFromGsUri(gsUri);
   }
 
   Future<bool> _checkCarImageExists(String imageName) async {
@@ -2430,7 +2441,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
     print('User ID: $userId');
 
     if (userId != null) {
-      for (String imageName in ['main', '1', '2', '3', '4']) {
+      for (final imageName in ['main', '1', '2', '3', '4']) {
         final exists = await _checkCarImageExists(imageName);
         print('Car image $imageName exists: $exists');
 
@@ -2446,5 +2457,23 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
     }
     print('=== End Debug ===');
+  }
+
+  void _convertTimestampsToIso(Map<String, dynamic> data) {
+    data.forEach((key, value) {
+      if (value is DateTime) {
+        data[key] = value.toIso8601String();
+      } else if (value is Map<String, dynamic>) {
+        _convertTimestampsToIso(value);
+      } else if (value is List) {
+        for (var i = 0; i < value.length; i++) {
+          if (value[i] is DateTime) {
+            value[i] = (value[i] as DateTime).toIso8601String();
+          } else if (value[i] is Map<String, dynamic>) {
+            _convertTimestampsToIso(value[i] as Map<String, dynamic>);
+          }
+        }
+      }
+    });
   }
 }

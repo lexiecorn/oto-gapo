@@ -1,0 +1,82 @@
+[
+  {
+    "id": "announcements123456789",
+    "name": "announcements",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "id": "fld_title",
+        "name": "title",
+        "type": "text",
+        "required": true,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_content",
+        "name": "content",
+        "type": "text",
+        "required": true,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_author",
+        "name": "author",
+        "type": "relation",
+        "required": false,
+        "unique": false,
+        "options": {
+          "collectionId": "users",
+          "cascadeDelete": false
+        }
+      },
+      {
+        "id": "fld_isActive",
+        "name": "isActive",
+        "type": "bool",
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_priority",
+        "name": "priority",
+        "type": "select",
+        "required": false,
+        "unique": false,
+        "options": {
+          "values": ["low", "medium", "high", "urgent"]
+        }
+      },
+      {
+        "id": "fld_attachments",
+        "name": "attachments",
+        "type": "file",
+        "required": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 5,
+          "maxSize": 10485760,
+          "mimeTypes": ["image/png", "image/jpeg", "application/pdf", "text/plain"]
+        }
+      },
+      {
+        "id": "fld_expiryDate",
+        "name": "expiryDate",
+        "type": "date",
+        "required": false,
+        "unique": false,
+        "options": {}
+      }
+    ],
+    "indexes": [],
+    "listRule": null,
+    "viewRule": null,
+    "createRule": null,
+    "updateRule": null,
+    "deleteRule": null,
+    "options": {}
+  }
+]

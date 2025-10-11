@@ -39,6 +39,7 @@ dependencies:
   otogapo_core:
     path: packages/otogapo_core
   package_info_plus: ^8.0.0
+  pocketbase: ^0.21.0
   validators: ^3.0.0
   cupertino_icons: ^1.0.2
   provider: ^6.0.5

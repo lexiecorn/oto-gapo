@@ -3,14 +3,15 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/car_widget.dart';
-import 'package:otogapo/app/pages/id_card.dart';
 import 'package:otogapo/app/pages/current_user_account_page.dart';
+import 'package:otogapo/app/pages/id_card.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 
 @RoutePage(
   name: 'ProfilePageRouter',
@@ -41,20 +42,35 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 
     // Simplified animation controller
     _pageAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
 
     _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _pageAnimationController,
-      curve: Curves.easeOut,
-    ));
+      begin: 0,
+      end: 1,
+    ).animate(
+      CurvedAnimation(
+        parent: _pageAnimationController,
+        curve: Curves.easeOut,
+      ),
+    );
 
     // Start animation
     _pageAnimationController.forward();
+
+    // Initialize profile data when page loads
+    _initializeProfile();
+  }
+
+  void _initializeProfile() {
+    final currentAuthUser = context.read<AuthBloc>().state.user;
+    if (currentAuthUser != null) {
+      print('Profile Page - Initializing profile for authenticated user: ${currentAuthUser.id}');
+      context.read<ProfileCubit>().getProfile();
+    } else {
+      print('Profile Page - No authenticated user found');
+    }
   }
 
   @override
@@ -79,19 +95,19 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 
           // Check if the current authenticated user is different from the profile user
           final currentAuthUser = context.read<AuthBloc>().state.user;
-          if (currentAuthUser != null && state.user.uid.isNotEmpty && state.user.uid != currentAuthUser.uid) {
+          if (currentAuthUser != null && state.user.uid.isNotEmpty && state.user.uid != currentAuthUser.id) {
             print('Profile Page - User mismatch detected!');
-            print('Profile Page - Auth user UID: ${currentAuthUser.uid}');
+            print('Profile Page - Auth user UID: ${currentAuthUser.id}');
             print('Profile Page - Profile user UID: ${state.user.uid}');
             print('Profile Page - Force clearing profile for new user');
             context.read<ProfileCubit>().forceClear();
-            Future.delayed(const Duration(milliseconds: 100), () {
-              context.read<ProfileCubit>().getProfile(uid: currentAuthUser.uid);
-            });
+            // Immediately fetch profile without artificial delay
+            context.read<ProfileCubit>().getProfile();
           }
 
           if (state.profileStatus == ProfileStatus.initial) {
-            return Container();
+            // Show loading screen while initializing
+            return _buildLoadingScreen();
           } else if (state.profileStatus == ProfileStatus.loading) {
             return _buildLoadingScreen();
           } else if (state.profileStatus == ProfileStatus.error) {
@@ -110,8 +126,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
               _pageAnimationController.forward();
 
               // Refresh the profile data
-              final uid = context.read<AuthBloc>().state.user!.uid;
-              context.read<ProfileCubit>().getProfile(uid: uid);
+              context.read<ProfileCubit>().getProfile();
             },
             child: FadeTransition(
               opacity: _fadeAnimation,
@@ -135,7 +150,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                         return InkWell(
                           onTap: () {
                             Navigator.of(context).push(
-                              MaterialPageRoute(
+                              MaterialPageRoute<void>(
                                 builder: (context) => const CurrentUserAccountPage(),
                               ),
                             );
@@ -266,8 +281,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
           SizedBox(height: 16.sp),
           ElevatedButton(
             onPressed: () {
-              final uid = context.read<AuthBloc>().state.user!.uid;
-              context.read<ProfileCubit>().getProfile(uid: uid);
+              context.read<ProfileCubit>().getProfile();
             },
             child: const Text('Reload Profile'),
           ).animate().fadeIn(delay: 800.ms, duration: 600.ms).scale(delay: 900.ms, duration: 300.ms),
@@ -308,7 +322,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Container(
                     height: 16,
                     width: 150,
@@ -358,19 +372,18 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
   Future<Widget> _userProfileCard(ProfileState state) async {
     String imagePath;
 
-    // Check if user has a profile image URL stored and it's a gs:// link
-    if (state.user.profile_image != null && state.user.profile_image!.startsWith('gs://')) {
-      try {
-        // Get the download URL from the gs:// URI
-        final ref = FirebaseStorage.instance.refFromURL(state.user.profile_image!);
-        imagePath = await ref.getDownloadURL();
-      } catch (e) {
-        // If it fails, use a default placeholder image
-        imagePath = 'assets/images/alex.png'; // Using a local asset as fallback
+    // Check if user has a profile image URL stored
+    if (state.user.profile_image != null && state.user.profile_image!.isNotEmpty) {
+      // For PocketBase, profile images are typically file names that need to be converted to URLs
+      // Format: https://your-pocketbase-url/api/files/collection_id/record_id/filename
+      if (state.user.profile_image!.startsWith('http')) {
+        // It's already a full URL
+        imagePath = state.user.profile_image!;
+      } else {
+        // It's a filename, construct the PocketBase file URL
+        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        imagePath = '$pocketbaseUrl/api/files/users/${state.user.uid}/${state.user.profile_image}';
       }
-    } else if (state.user.profile_image != null && state.user.profile_image!.isNotEmpty) {
-      // It might be a pre-fetched HTTPS URL or a local asset path
-      imagePath = state.user.profile_image!;
     } else {
       // No profile_image field, or it's empty. Use a default placeholder.
       imagePath = 'assets/images/alex.png';
@@ -382,7 +395,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
       dob: DateFormat('MMM dd, yyyy').format(state.user.dateOfBirth.toDate()),
       idNumber: state.user.memberNumber,
       membersNum: state.user.memberNumber,
-      car: state.user.vehicle.isNotEmpty ? state.user.vehicle.first.make : 'No Vehicle',
+      car: state.vehicles.isNotEmpty ? state.vehicles.first.make : 'No Vehicle',
       licenseNum: state.user.driversLicenseNumber ?? '',
       licenseNumExpr: state.user.driversLicenseExpirationDate,
       restrictionCode: state.user.driversLicenseRestrictionCode,
@@ -390,22 +403,21 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     )
         .animate()
         .fadeIn(
-          delay: const Duration(milliseconds: 100),
-          duration: const Duration(milliseconds: 600),
+          delay: const Duration(milliseconds: 0),
+          duration: const Duration(milliseconds: 250),
         )
         .slideY(
-          begin: 0.2,
-          delay: const Duration(milliseconds: 200),
-          duration: const Duration(milliseconds: 500),
+          begin: 0.12,
+          delay: const Duration(milliseconds: 50),
+          duration: const Duration(milliseconds: 250),
           curve: Curves.easeOutCubic,
         );
   }
 }
 
 class PaymentStatusCard extends StatefulWidget {
+  const PaymentStatusCard({required this.userId, super.key});
   final String userId;
-
-  const PaymentStatusCard({Key? key, required this.userId}) : super(key: key);
 
   @override
   State<PaymentStatusCard> createState() => _PaymentStatusCardState();
@@ -416,7 +428,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
   int _paidCount = 0;
   int _unpaidCount = 0;
   int _advanceCount = 0;
-  double _totalAmount = 0.0;
+  double _totalAmount = 0;
   List<Map<String, dynamic>> _recentPayments = [];
 
   @override
@@ -431,119 +443,83 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
         _isLoading = true;
       });
 
-      final now = DateTime.now();
-      final currentYear = now.year;
-      final currentMonth = now.month;
+      print('PaymentStatusCard - Loading payment data for userId: "${widget.userId}"');
+      final pocketBaseService = PocketBaseService();
 
-      // Generate months from January of current year to current month only
-      final months = <String>[];
-      for (int month = 1; month <= currentMonth; month++) {
-        final monthKey = '${currentYear}_${month.toString().padLeft(2, '0')}';
-        months.add(monthKey);
+      // Debug: Let's see ALL monthly dues records first
+      await pocketBaseService.debugAllMonthlyDues();
+
+      // If no records exist, create test records
+      final allDues = await pocketBaseService.getAllMonthlyDues();
+      if (allDues.isEmpty) {
+        print('No monthly dues records found, creating test records...');
+        await pocketBaseService.createTestMonthlyDues(widget.userId);
       }
 
-      // Generate future months for advance payment calculation (current month + 1 to December)
-      final futureMonths = <String>[];
-      for (int month = currentMonth + 1; month <= 12; month++) {
-        final monthKey = '${currentYear}_${month.toString().padLeft(2, '0')}';
-        futureMonths.add(monthKey);
+      // First, let's check what user data we have
+      try {
+        final userRecord = await pocketBaseService.pb.collection('users').getOne(widget.userId);
+        print('PaymentStatusCard - User record data: ${userRecord.data}');
+        print('PaymentStatusCard - User record ID: ${userRecord.id}');
+
+        // Check all possible user identifiers
+        final userEmail = userRecord.data['email'] as String?;
+        final userFirstName = userRecord.data['firstName'] as String?;
+        final userMemberNumber = userRecord.data['memberNumber']?.toString();
+        final userEmailPrefix = userEmail?.split('@').first;
+
+        print('PaymentStatusCard - User email: $userEmail');
+        print('PaymentStatusCard - User firstName: $userFirstName');
+        print('PaymentStatusCard - User memberNumber: $userMemberNumber');
+        print('PaymentStatusCard - User emailPrefix: $userEmailPrefix');
+      } catch (e) {
+        print('PaymentStatusCard - Error getting user record: $e');
       }
 
-      int paid = 0;
-      int unpaid = 0;
-      int advance = 0;
+      // Get payment statistics
+      final stats = await pocketBaseService.getPaymentStatistics(widget.userId);
+      print('PaymentStatusCard - Payment statistics: $stats');
+
+      // Get all monthly dues for the user
+      final monthlyDues = await pocketBaseService.getMonthlyDuesForUser(widget.userId);
+      print('PaymentStatusCard - Monthly dues count: ${monthlyDues.length}');
+      for (final due in monthlyDues) {
+        print('PaymentStatusCard - Due: ${due.id}, Paid: ${due.isPaid}, Amount: ${due.amount}, User: ${due.userId}');
+      }
+
+      // Also check all monthly dues records to see what user identifiers exist
+      try {
+        final allMonthlyDues = await pocketBaseService.getAllMonthlyDues();
+        print('PaymentStatusCard - Total monthly dues records in database: ${allMonthlyDues.length}');
+        for (final due in allMonthlyDues) {
+          print('PaymentStatusCard - All dues - ID: ${due.id}, User: ${due.userId}, Paid: ${due.isPaid}');
+        }
+      } catch (e) {
+        print('PaymentStatusCard - Error getting all monthly dues: $e');
+      }
+
       final recentPayments = <Map<String, dynamic>>[];
 
-      // Check current year months (January to current month)
-      for (final month in months) {
-        try {
-          final doc = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(widget.userId)
-              .collection('monthly_dues')
-              .doc(month)
-              .get();
+      // Convert monthly dues to recent payments format
+      for (final due in monthlyDues) {
+        if (due.dueForMonth != null) {
+          final displayText = DateFormat('MMMM yyyy').format(due.dueForMonth!);
+          final isAdvance = due.dueForMonth!.isAfter(DateTime.now());
 
-          final date = DateFormat('yyyy_MM').parse(month);
-          final displayText = DateFormat('MMMM yyyy').format(date);
-          final amount = 100.0; // Fixed amount per month
-
-          if (doc.exists) {
-            final data = doc.data()!;
-            final status = data['status'];
-            final isPaid = status is bool ? status : false;
-
-            if (isPaid) {
-              paid++;
-            } else {
-              unpaid++;
-            }
-
-            final updatedAt = data['updated_at'];
-            recentPayments.add({
-              'month': displayText,
-              'isPaid': isPaid,
-              'amount': amount,
-              'updatedAt': updatedAt is Timestamp ? updatedAt : null,
-              'isAdvance': false,
-            });
-          } else {
-            // No payment record exists, consider as unpaid
-            unpaid++;
-            recentPayments.add({
-              'month': displayText,
-              'isPaid': false,
-              'amount': amount,
-              'updatedAt': null,
-              'isAdvance': false,
-            });
-          }
-        } catch (e) {
-          print('Error loading payment for month $month: $e');
-          unpaid++;
-        }
-      }
-
-      // Check future months for advance payments
-      for (final month in futureMonths) {
-        try {
-          final doc = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(widget.userId)
-              .collection('monthly_dues')
-              .doc(month)
-              .get();
-
-          final date = DateFormat('yyyy_MM').parse(month);
-          final displayText = DateFormat('MMMM yyyy').format(date);
-          final amount = 100.0; // Fixed amount per month
-
-          if (doc.exists) {
-            final data = doc.data()!;
-            final status = data['status'];
-            final isPaid = status is bool ? status : false;
-
-            if (isPaid) {
-              advance++;
-              final updatedAt = data['updated_at'];
-              recentPayments.add({
-                'month': displayText,
-                'isPaid': isPaid,
-                'amount': amount,
-                'updatedAt': updatedAt is Timestamp ? updatedAt : null,
-                'isAdvance': true,
-              });
-            }
-          }
-        } catch (e) {
-          print('Error loading advance payment for month $month: $e');
+          recentPayments.add({
+            'month': displayText,
+            'isPaid': due.isPaid,
+            'amount': due.amount,
+            'updatedAt': due.paymentDate,
+            'isAdvance': isAdvance,
+          });
         }
       }
 
       // Sort recent payments by date (newest first)
       recentPayments.sort((a, b) {
-        final aDate = a['updatedAt'] as Timestamp?;
-        final bDate = b['updatedAt'] as Timestamp?;
+        final aDate = a['updatedAt'] as DateTime?;
+        final bDate = b['updatedAt'] as DateTime?;
         if (aDate == null && bDate == null) return 0;
         if (aDate == null) return 1;
         if (bDate == null) return -1;
@@ -554,10 +530,10 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
       final displayPayments = recentPayments.take(6).toList();
 
       setState(() {
-        _paidCount = paid;
-        _unpaidCount = unpaid;
-        _advanceCount = advance;
-        _totalAmount = (paid + advance) * 100.0;
+        _paidCount = stats['paid'] ?? 0;
+        _unpaidCount = stats['unpaid'] ?? 0;
+        _advanceCount = stats['advance'] ?? 0;
+        _totalAmount = (stats['paid']! + stats['advance']!) * 100.0;
         _recentPayments = displayPayments;
         _isLoading = false;
       });
@@ -841,12 +817,12 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
     )
         .animate()
         .slideY(
-          delay: const Duration(milliseconds: 200),
-          duration: const Duration(milliseconds: 500),
+          delay: const Duration(milliseconds: 50),
+          duration: const Duration(milliseconds: 250),
         )
         .fadeIn(
-          delay: const Duration(milliseconds: 200),
-          duration: const Duration(milliseconds: 500),
+          delay: const Duration(milliseconds: 50),
+          duration: const Duration(milliseconds: 250),
         );
   }
 

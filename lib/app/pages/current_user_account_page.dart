@@ -1,12 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
+import 'package:otogapo/app/modules/auth/auth_bloc.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 
 class CurrentUserAccountPage extends StatefulWidget {
-  const CurrentUserAccountPage({Key? key}) : super(key: key);
+  const CurrentUserAccountPage({super.key});
 
   @override
   State<CurrentUserAccountPage> createState() => _CurrentUserAccountPageState();
@@ -25,41 +28,45 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
 
   Future<void> _loadCurrentUserData() async {
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        final userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
+      // Get the current authenticated user from AuthBloc
+      final authState = context.read<AuthBloc>().state;
 
-        if (userDoc.exists) {
-          final userData = userDoc.data()!;
+      if (authState.user != null) {
+        // User is authenticated with PocketBase, get their data
+        final pocketBaseService = PocketBaseService();
+        final userRecord = await pocketBaseService.getUser(authState.user!.id);
+        final userData = userRecord.data;
 
-          // Get profile image URL if it exists
-          String? profileImageUrl;
-          if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
-            if (userData['profile_image'].toString().startsWith('gs://')) {
-              try {
-                final ref = FirebaseStorage.instance.refFromURL(userData['profile_image'].toString());
-                profileImageUrl = await ref.getDownloadURL();
-              } catch (e) {
-                profileImageUrl = 'assets/images/alex.png';
-              }
-            } else {
-              profileImageUrl = userData['profile_image'].toString();
+        // Get profile image URL if it exists
+        String? profileImageUrl;
+        if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
+          if (userData['profile_image'].toString().startsWith('gs://')) {
+            try {
+              final ref = FirebaseStorage.instance.refFromURL(userData['profile_image'].toString());
+              profileImageUrl = await ref.getDownloadURL();
+            } catch (e) {
+              profileImageUrl = 'assets/images/alex.png';
             }
+          } else if (userData['profile_image'].toString().startsWith('http')) {
+            // It's already a full URL
+            profileImageUrl = userData['profile_image'].toString();
           } else {
-            profileImageUrl = 'assets/images/alex.png';
+            // It's a filename, construct the PocketBase file URL
+            final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+            profileImageUrl = '$pocketbaseUrl/api/files/users/${authState.user!.id}/${userData['profile_image']}';
           }
-
-          setState(() {
-            _userData = userData;
-            _profileImageUrl = profileImageUrl;
-            _isLoading = false;
-          });
         } else {
-          setState(() {
-            _isLoading = false;
-          });
+          profileImageUrl = 'assets/images/alex.png';
         }
+
+        setState(() {
+          _userData = userData;
+          _profileImageUrl = profileImageUrl;
+          _isLoading = false;
+        });
       } else {
+        // No authenticated user, check if there's a Firebase user as fallback
+        // No authenticated user
         setState(() {
           _isLoading = false;
         });
@@ -90,13 +97,9 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
     }
 
     if (_userData == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Account Information'),
-          centerTitle: true,
-        ),
-        body: const Center(
-          child: Text('Unable to load account information'),
+      return const Scaffold(
+        body: Center(
+          child: Text('No user data available'),
         ),
       );
     }
@@ -159,7 +162,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                       Text(
                         '${_userData!['firstName'] ?? ''} ${_userData!['lastName'] ?? ''}',
                         style: TextStyle(
-                          fontSize: 32.sp,
+                          fontSize: 24.sp,
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
@@ -168,7 +171,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                       Text(
                         'Member #${_userData!['memberNumber'] ?? ''}',
                         style: TextStyle(
-                          fontSize: 22.sp,
+                          fontSize: 14.sp,
                           color: Colors.grey[600],
                           fontWeight: FontWeight.w500,
                         ),
@@ -238,7 +241,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
 
               // Driver's License Information Section
               _buildInfoSection(
-                title: 'Driver\'s License Information',
+                title: "Driver's License Information",
                 icon: Icons.drive_eta,
                 color: Colors.orange,
                 children: [
@@ -310,13 +313,13 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 24.sp,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 16.sp),
+            SizedBox(height: 12.sp),
             ...children,
           ],
         ),
@@ -326,16 +329,16 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.sp),
+      padding: EdgeInsets.only(bottom: 8.sp),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 180.sp,
+            width: 130.sp,
             child: Text(
               '$label:',
               style: TextStyle(
-                fontSize: 20.sp,
+                fontSize: 14.sp,
                 fontWeight: FontWeight.w500,
                 color: Colors.grey[700],
               ),
@@ -345,7 +348,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
             child: Text(
               value,
               style: TextStyle(
-                fontSize: 20.sp,
+                fontSize: 14.sp,
                 color: Colors.black87,
               ),
             ),

@@ -16,17 +16,18 @@ class AuthState extends Equatable {
     return const AuthState(authStatus: AuthStatus.unknown);
   }
   final AuthStatus authStatus;
-  final fb_auth.User? user;
+  final RecordModel? user;
 
   @override
   List<Object?> get props => [authStatus, user];
 
   @override
-  String toString() => 'AuthState(authStatus: $authStatus, user: $user)';
+  String toString() =>
+      'AuthState(authStatus: $authStatus, user: ${user != null ? 'User(id: ${user!.id}, email: ${user!.data['email']})' : 'null'})';
 
   AuthState copyWith({
     AuthStatus? authStatus,
-    fb_auth.User? user,
+    RecordModel? user,
   }) {
     return AuthState(
       authStatus: authStatus ?? this.authStatus,

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/pages/create_user_section.dart';
 
 class CreateUserPage extends StatelessWidget {
-  const CreateUserPage({Key? key}) : super(key: key);
+  const CreateUserPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -110,13 +110,13 @@ class CreateUserPage extends StatelessWidget {
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.all(16.sp),
-              child: CreateUserSection()
+              child: const CreateUserSection()
                   .animate()
                   .fadeIn(delay: const Duration(milliseconds: 200), duration: const Duration(milliseconds: 600))
                   .slideY(
                       begin: -0.2,
                       delay: const Duration(milliseconds: 200),
-                      duration: const Duration(milliseconds: 600)),
+                      duration: const Duration(milliseconds: 600),),
             ),
           ),
         ],
@@ -152,7 +152,7 @@ class CreateUserPage extends StatelessWidget {
               context: context,
               icon: Icons.person,
               title: 'Personal Information',
-              description: 'Fill in the user\'s basic personal details like name, email, and contact information.',
+              description: "Fill in the user's basic personal details like name, email, and contact information.",
             ),
             SizedBox(height: 12.sp),
             _buildHelpItem(

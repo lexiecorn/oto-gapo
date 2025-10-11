@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:otogapo/app/pages/user_management_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/pages/payment_management_page.dart';
+import 'package:otogapo/app/pages/user_management_page.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 
 class AdminPage extends StatefulWidget {
-  const AdminPage({Key? key}) : super(key: key);
+  const AdminPage({super.key});
 
   @override
   State<AdminPage> createState() => _AdminPageState();
@@ -24,24 +25,23 @@ class _AdminPageState extends State<AdminPage> {
 
   Future<void> _loadCurrentUserData() async {
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        final userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
+      // First try to get user from PocketBase authentication
+      final authState = context.read<AuthBloc>().state;
 
-        if (userDoc.exists) {
-          final userData = userDoc.data()!;
-          setState(() {
-            _currentUserData = userData;
-            // Check if user is Super Admin (1) or Admin (2)
-            _isAdmin = userData['membership_type'] == 1 || userData['membership_type'] == 2;
-            _isLoading = false;
-          });
-        } else {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+      if (authState.user != null) {
+        // User is authenticated with PocketBase
+        final pocketBaseService = PocketBaseService();
+        final userRecord = await pocketBaseService.getUser(authState.user!.id);
+        final userData = userRecord.data;
+
+        setState(() {
+          _currentUserData = userData;
+          // Check if user is Super Admin (1) or Admin (2)
+          _isAdmin = userData['membership_type'] == 1 || userData['membership_type'] == 2;
+          _isLoading = false;
+        });
       } else {
+        // No authenticated user
         setState(() {
           _isLoading = false;
         });
@@ -96,13 +96,13 @@ class _AdminPageState extends State<AdminPage> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -146,7 +146,7 @@ class _AdminPageState extends State<AdminPage> {
                     onTap: () {
                       // Navigate to user management
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => const UserManagementPage()),
+                        MaterialPageRoute<void>(builder: (context) => const UserManagementPage()),
                       );
                     },
                   ),
@@ -157,7 +157,7 @@ class _AdminPageState extends State<AdminPage> {
                     onTap: () {
                       // Navigate to payment management
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => const PaymentManagementPage()),
+                        MaterialPageRoute<void>(builder: (context) => const PaymentManagementPage()),
                       );
                     },
                   ),
@@ -204,7 +204,7 @@ class _AdminPageState extends State<AdminPage> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

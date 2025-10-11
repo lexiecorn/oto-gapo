@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:otogapo_core/otogapo_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeProvider with ChangeNotifier {
   ThemeProvider(this._prefs) : _isDarkMode = _prefs.getBool(_themeKey) ?? true; // Default to dark mode

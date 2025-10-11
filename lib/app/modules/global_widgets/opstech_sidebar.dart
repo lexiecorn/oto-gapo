@@ -96,7 +96,7 @@ class _PickerSideBarState extends State<PickerSideBar> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            context.read<AuthBloc>().state.user?.email ?? '',
+                            (context.read<AuthBloc>().state.user?.data['email'] as String?) ?? '',
                             style: OpstechTextTheme.heading4,
                           ),
                           Text(
