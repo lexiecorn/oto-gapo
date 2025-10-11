@@ -102,5 +102,8 @@ flutter {
 }
 
 dependencies {
-    implementation("com.google.android.play:core:1.10.3")
+    // Play Core library removed - not needed and incompatible with SDK 34
+    // If in-app updates or reviews are needed in the future, use:
+    // implementation("com.google.android.play:app-update:2.1.0")
+    // implementation("com.google.android.play:review:2.0.1")
 }

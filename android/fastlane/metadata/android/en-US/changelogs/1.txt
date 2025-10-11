@@ -1,13 +1,13 @@
-Initial release of Otogapo!
+🎉 Initial Release of Otogapo!
 
-Features:
-• User authentication with Firebase and Google Sign-In
+Manage your vehicle association with ease:
+• Secure login with Google Sign-In
 • Complete member profile management
-• Payment tracking system
+• Monthly dues tracking & payment history
+• Real-time association announcements
 • Admin dashboard for user management
-• Association announcements
-• Vehicle registration and details
-• Secure and modern interface
+• Vehicle & driver's license tracking
+• Emergency contact information
+• Modern, intuitive interface
 
-Thank you for using Otogapo!
-
+Join Otogapo today and streamline your association management!
