@@ -55,6 +55,7 @@ dev_dependencies:
   mocktail: ^1.0.3
   very_good_analysis: ^5.1.0
   flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -64,3 +65,10 @@ flutter:
     - assets/images/
     - assets/icons/
     # - assets/fonts/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/app_icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icons/app_icon.png"  # Using same icon for foreground

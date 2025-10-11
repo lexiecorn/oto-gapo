@@ -49,9 +49,9 @@ jobs:
           ls -la
           ls -la android/
 
-      - name: Configure Flutter for Android only
+      - name: Configure Flutter platforms
         run: |
-          flutter config --no-enable-web
+          flutter config --enable-web
           flutter config --no-enable-windows-desktop
           flutter config --no-enable-macos-desktop
           flutter config --no-enable-linux-desktop
@@ -89,22 +89,27 @@ jobs:
           flutter build appbundle \
             --release \
             --target lib/main_production.dart \
-            --flavor production \
-            --no-web \
-            --no-windows-desktop \
-            --no-macos-desktop \
-            --no-linux-desktop
+            --flavor production
 
       - name: Build Android APK
         run: |
           flutter build apk \
             --release \
             --target lib/main_production.dart \
-            --flavor production \
-            --no-web \
-            --no-windows-desktop \
-            --no-macos-desktop \
-            --no-linux-desktop
+            --flavor production
+
+      - name: Build Web
+        run: |
+          flutter build web \
+            --release \
+            --target lib/main_production.dart \
+            --base-href /
+
+      - name: Create web archive
+        run: |
+          cd build/web
+          zip -r ../otogapo-web-${{ github.ref_name }}.zip .
+          cd ../..
 
       - name: Extract version from tag
         id: version
@@ -142,6 +147,7 @@ jobs:
           files: |
             build/app/outputs/bundle/productionRelease/app-production-release.aab
             build/app/outputs/flutter-apk/app-production-release.apk
+            build/otogapo-web-${{ github.ref_name }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

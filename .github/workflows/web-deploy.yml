@@ -1,0 +1,198 @@
+name: Deploy Web
+
+on:
+    workflow_dispatch:
+        inputs:
+            environment:
+                description: "Deployment environment"
+                required: true
+                default: "staging"
+                type: choice
+                options:
+                    - development
+                    - staging
+                    - production
+            hosting_provider:
+                description: "Hosting provider"
+                required: true
+                default: "firebase"
+                type: choice
+                options:
+                    - firebase
+                    - github-pages
+                    - artifacts-only
+    push:
+        branches:
+            - main
+        paths:
+            - "lib/**"
+            - "web/**"
+            - "pubspec.yaml"
+            - ".github/workflows/web-deploy.yml"
+
+jobs:
+    build-web:
+        name: Build Web (${{ inputs.environment || 'production' }})
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                  flutter-version: "3.24.0"
+                  channel: "stable"
+                  cache: true
+
+            - name: Enable web
+              run: flutter config --enable-web
+
+            - name: Install dependencies
+              run: flutter pub get
+
+            - name: Generate code
+              run: dart run build_runner build --delete-conflicting-outputs
+              continue-on-error: true
+
+            - name: Determine target file
+              id: target
+              run: |
+                  ENV="${{ inputs.environment }}"
+                  if [ -z "$ENV" ]; then
+                    ENV="production"
+                  fi
+                  echo "env=$ENV" >> $GITHUB_OUTPUT
+                  echo "target=lib/main_${ENV}.dart" >> $GITHUB_OUTPUT
+
+            - name: Run tests
+              run: flutter test --coverage
+              continue-on-error: true
+
+            - name: Build Web
+              run: |
+                  flutter build web \
+                    --release \
+                    --target ${{ steps.target.outputs.target }} \
+                    --base-href /
+
+            - name: Create deployment info
+              run: |
+                  cat > build/web/deployment-info.json << EOF
+                  {
+                    "version": "$(grep '^version:' pubspec.yaml | cut -d ' ' -f 2)",
+                    "environment": "${{ steps.target.outputs.env }}",
+                    "build_date": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+                    "commit": "${{ github.sha }}",
+                    "branch": "${{ github.ref_name }}"
+                  }
+                  EOF
+
+            - name: Upload web build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: web-build-${{ steps.target.outputs.env }}-${{ github.sha }}
+                  path: build/web/
+                  retention-days: 30
+
+    deploy-firebase:
+        name: Deploy to Firebase Hosting
+        needs: build-web
+        if: inputs.hosting_provider == 'firebase' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Download web build
+              uses: actions/download-artifact@v4
+              with:
+                  name: web-build-${{ needs.build-web.outputs.env || 'production' }}-${{ github.sha }}
+                  path: build/web
+
+            - name: Check Firebase config
+              id: check_firebase
+              run: |
+                  if [ -n "${{ secrets.FIREBASE_TOKEN }}" ] || [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+                    echo "has_firebase=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "has_firebase=false" >> $GITHUB_OUTPUT
+                    echo "::warning::Firebase credentials not found. Skipping Firebase deployment."
+                  fi
+
+            - name: Deploy to Firebase Hosting
+              if: steps.check_firebase.outputs.has_firebase == 'true'
+              uses: FirebaseExtended/action-hosting-deploy@v0
+              with:
+                  repoToken: ${{ secrets.GITHUB_TOKEN }}
+                  firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+                  channelId: live
+                  projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+              env:
+                  FIREBASE_CLI_EXPERIMENTS: webframeworks
+
+    deploy-github-pages:
+        name: Deploy to GitHub Pages
+        needs: build-web
+        if: inputs.hosting_provider == 'github-pages'
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+
+        permissions:
+            contents: read
+            pages: write
+            id-token: write
+
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+
+        steps:
+            - name: Download web build
+              uses: actions/download-artifact@v4
+              with:
+                  name: web-build-${{ needs.build-web.outputs.env || 'production' }}-${{ github.sha }}
+                  path: build/web
+
+            - name: Setup Pages
+              uses: actions/configure-pages@v4
+
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: "build/web"
+
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
+
+    notify-deployment:
+        name: Notify Deployment Status
+        needs: [build-web, deploy-firebase, deploy-github-pages]
+        if: always()
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Check deployment status
+              run: |
+                  if [ "${{ needs.build-web.result }}" = "success" ]; then
+                    echo "✅ Web build completed successfully"
+                  else
+                    echo "❌ Web build failed"
+                  fi
+
+                  if [ "${{ needs.deploy-firebase.result }}" = "success" ]; then
+                    echo "✅ Firebase deployment completed"
+                  elif [ "${{ needs.deploy-firebase.result }}" = "skipped" ]; then
+                    echo "⏭️ Firebase deployment skipped"
+                  fi
+
+                  if [ "${{ needs.deploy-github-pages.result }}" = "success" ]; then
+                    echo "✅ GitHub Pages deployment completed"
+                  elif [ "${{ needs.deploy-github-pages.result }}" = "skipped" ]; then
+                    echo "⏭️ GitHub Pages deployment skipped"
+                  fi

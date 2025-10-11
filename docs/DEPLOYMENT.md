@@ -279,50 +279,50 @@ flutter build ios --release --target lib/main_production.dart --flavor productio
 
 ## Web Deployment
 
-### 1. Build for Web
+For comprehensive web deployment instructions, including Firebase Hosting, GitHub Pages, and custom hosting options, see the **[Web Deployment Guide](./WEB_DEPLOYMENT.md)**.
+
+### Quick Start
+
+#### Local Development
 
 ```bash
-# Production
-flutter build web --release --target lib/main_production.dart --flavor production
+# Run web version locally
+flutter run -d web-server --target lib/main_development.dart --web-port 8080
+
+# Access at: http://localhost:8080
 ```
 
-### 2. Deploy to Web Server
+#### Production Build
 
 ```bash
-# Copy build files to web server
-cp -r build/web/* /var/www/html/
+# Build production web app
+flutter build web --release --target lib/main_production.dart --base-href /
 
-# Configure web server (Nginx example)
-server {
-    listen 443 ssl;
-    server_name your-domain.com;
-
-    root /var/www/html;
-    index index.html;
-
-    # SSL configuration
-    ssl_certificate /path/to/certificate.crt;
-    ssl_certificate_key /path/to/private.key;
-
-    # Flutter web configuration
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
+# Output: build/web/
 ```
 
-### 3. Configure Firebase Hosting (Alternative)
+#### Deploy to Firebase Hosting
 
 ```bash
 # Install Firebase CLI
 npm install -g firebase-tools
 
-# Initialize Firebase hosting
+# Initialize Firebase hosting (one-time)
 firebase init hosting
 
 # Deploy
 firebase deploy --only hosting
 ```
+
+#### Automated Deployment
+
+Web deployment is automated through GitHub Actions:
+
+1. **Automatic on push to main**: Deploys to Firebase Hosting
+2. **Manual trigger**: Choose environment and hosting provider
+3. **Release tags**: Web build included in GitHub releases
+
+See [Web Deployment Guide](./WEB_DEPLOYMENT.md) for detailed instructions.
 
 ## Windows Deployment
 
@@ -642,10 +642,12 @@ The Otogapo project uses GitHub Actions for continuous integration and automated
 - Static analysis with Flutter Analyzer
 - Code generation
 - Unit and widget tests with coverage
-- Build verification for all flavors
-- Production build matrix (Android & Web)
+- Build verification for all flavors (development, staging)
+- Production build matrix (Android APK & Web)
 
 **Artifacts:** Production APK files (7-day retention)
+
+**Platforms Tested:** Android and Web builds are verified on every push
 
 #### 2. Release Workflow (`.github/workflows/release.yml`)
 
@@ -655,10 +657,18 @@ The Otogapo project uses GitHub Actions for continuous integration and automated
 
 - Run full test suite
 - Decode signing keystore from GitHub Secrets
-- Build signed AAB and APK
+- Build signed Android AAB and APK
+- Build production web application
+- Create web archive (ZIP)
 - Generate changelog from commits
-- Create GitHub Release with artifacts
-- Upload to Play Store (internal track)
+- Create GitHub Release with all artifacts (AAB, APK, Web ZIP)
+- Upload Android AAB to Play Store (internal track)
+
+**Artifacts Included:**
+
+- `app-production-release.aab` - Android App Bundle
+- `app-production-release.apk` - Android APK
+- `otogapo-web-v*.*.*.zip` - Web application archive
 
 **Usage:**
 
@@ -668,9 +678,10 @@ git tag v1.0.0
 git push origin v1.0.0
 
 # GitHub Actions will automatically:
-# 1. Build the release
-# 2. Create GitHub Release
-# 3. Upload to Play Store internal track
+# 1. Build Android and Web releases
+# 2. Create GitHub Release with all artifacts
+# 3. Upload Android AAB to Play Store internal track
+# 4. Attach web build to GitHub release for manual deployment
 ```
 
 #### 3. Manual Deploy Workflow (`.github/workflows/deploy.yml`)
@@ -713,6 +724,43 @@ git push origin v1.0.0
 - Upload artifacts (14-day retention)
 
 **Usage:** On-demand builds for testing or distribution
+
+#### 5. Web Deploy Workflow (`.github/workflows/web-deploy.yml`)
+
+**Triggers:**
+
+- Manual trigger via GitHub Actions UI
+- Automatic on push to main (when web/lib files change)
+
+**Parameters:**
+
+- `environment`: development, staging, or production
+- `hosting_provider`: firebase, github-pages, or artifacts-only
+
+**Jobs:**
+
+- Build web application for specified environment
+- Create deployment info JSON
+- Upload build artifacts (30-day retention)
+- Deploy to Firebase Hosting (if selected)
+- Deploy to GitHub Pages (if selected)
+- Notify deployment status
+
+**Usage:**
+
+1. Manual deployment via GitHub Actions UI:
+   - Go to Actions → Deploy Web → Run workflow
+   - Choose environment and hosting provider
+2. Automatic deployment:
+   - Push changes to main branch
+   - Automatically deploys to Firebase (if configured)
+
+**Artifacts:**
+
+- `web-build-{environment}-{commit-sha}` - Web build files
+- `deployment-info.json` - Build metadata (version, date, commit)
+
+**See:** [Web Deployment Guide](./WEB_DEPLOYMENT.md) for detailed setup
 
 ### Fastlane Integration
 
@@ -924,10 +972,12 @@ version: 1.0.0+1
    git tag v1.1.0
    git push origin v1.1.0
 
-   # Release workflow triggers automatically
-   # - Builds AAB/APK
-   # - Creates GitHub Release
-   # - Uploads to Play Store internal track
+   # Release workflow triggers automatically:
+   # - Builds Android AAB/APK
+   # - Builds Web application
+   # - Creates GitHub Release with all artifacts
+   # - Uploads Android to Play Store internal track
+   # - Attaches Web ZIP for manual deployment
    ```
 
 4. **Testing & Promotion**
@@ -1018,14 +1068,31 @@ git push origin v1.0.2
 
 ### Best Practices
 
+#### Android Deployment
+
 1. **Always test on internal track first**
 2. **Use staged rollouts for production** (5% → 20% → 50% → 100%)
 3. **Monitor crash rates after each rollout increase**
-4. **Keep CHANGELOG.md updated**
-5. **Tag releases consistently** (v1.0.0 format)
-6. **Never commit keystore or passwords** (use GitHub Secrets)
-7. **Review generated changelog before releases**
-8. **Test rollback procedures periodically**
+4. **Test rollback procedures periodically**
+
+#### Web Deployment
+
+1. **Test on staging environment before production**
+2. **Use Firebase Hosting channels** for preview deployments
+3. **Test on multiple browsers** (Chrome, Firefox, Safari, Edge)
+4. **Monitor bundle size** with each release
+5. **Keep previous builds archived** for rollback
+
+#### General Best Practices
+
+1. **Keep CHANGELOG.md updated** with all changes
+2. **Tag releases consistently** using v1.0.0 format
+3. **Never commit keystore or passwords** (use GitHub Secrets)
+4. **Review generated changelog before releases**
+5. **Build and test both platforms** (Android and Web) before release
+6. **Document configuration changes** in deployment docs
+7. **Set up monitoring and analytics** for all platforms
+8. **Maintain separate environments** (dev, staging, production)
 
 ### Troubleshooting CI/CD
 
@@ -1076,5 +1143,6 @@ git push origin v1.0.2
 - [Fastlane Documentation](https://docs.fastlane.tools/)
 - [Play Console API Guide](https://developers.google.com/android-publisher)
 - [Flutter CI/CD Guide](https://docs.flutter.dev/deployment/cd)
+- [Web Deployment Guide](./WEB_DEPLOYMENT.md)
 - [Release Checklist](./RELEASE_CHECKLIST.md)
 - [Play Store Setup Guide](./PLAY_STORE_SETUP.md)
