@@ -13,6 +13,7 @@ This guide covers the deployment process for the OtoGapo Flutter application acr
 - [Android Deployment](#android-deployment)
 - [iOS Deployment](#ios-deployment)
 - [Web Deployment](#web-deployment)
+  - [Docker Deployment (Self-Hosted)](#docker-deployment-self-hosted)
 - [Windows Deployment](#windows-deployment)
 - [Environment Variables](#environment-variables)
 - [CI/CD Pipeline](#cicd-pipeline)
@@ -313,6 +314,35 @@ firebase init hosting
 # Deploy
 firebase deploy --only hosting
 ```
+
+#### Docker Deployment (Self-Hosted)
+
+Deploy to your own Ubuntu server using Docker:
+
+```bash
+# Configure environment
+cp env.template .env
+nano .env  # Update DOMAIN and EMAIL
+
+# Deploy
+./scripts/deploy_docker.sh
+```
+
+This will:
+
+- Build production Flutter web app
+- Create Docker container with Nginx
+- Set up SSL with Let's Encrypt
+- Deploy to your domain (e.g., https://otogapo.lexserver.org)
+
+**Features:**
+
+- Automatic SSL certificate management
+- Nginx reverse proxy with optimized configuration
+- Portainer compatible for easy management
+- Health checks and auto-restart
+
+For detailed instructions, see **[Docker Deployment Guide](../DOCKER_DEPLOYMENT.md)**.
 
 #### Automated Deployment
 

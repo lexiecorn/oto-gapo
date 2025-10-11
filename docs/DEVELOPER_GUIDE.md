@@ -15,6 +15,7 @@ This guide provides comprehensive information for developers working on the OtoG
 - [Debugging](#debugging)
 - [Performance Optimization](#performance-optimization)
 - [Contributing](#contributing)
+  - [Docker Deployment (Web)](#docker-deployment-web)
 - [Troubleshooting](#troubleshooting)
 - [Cursor Rules](#cursor-rules)
 
@@ -1089,9 +1090,86 @@ After each release:
    - Document any issues found
    - Update runbooks if needed
 
+### Docker Deployment (Web)
+
+For deploying the web application to a self-hosted server using Docker:
+
+#### Prerequisites
+
+- Ubuntu server (20.04+)
+- Docker and Docker Compose installed
+- Domain name pointed to server
+- Ports 80 and 443 accessible
+
+#### Quick Deployment
+
+```bash
+# On your server
+git clone <repository-url> /opt/otogapo
+cd /opt/otogapo
+
+# Configure environment
+cp env.template .env
+nano .env  # Update DOMAIN and EMAIL
+
+# Deploy
+chmod +x scripts/deploy_docker.sh
+./scripts/deploy_docker.sh
+```
+
+The deployment script will:
+
+1. Build Flutter production web app
+2. Create Docker containers
+3. Initialize SSL certificates (Let's Encrypt)
+4. Start all services
+5. Verify deployment
+
+#### Management Commands
+
+```bash
+# View logs
+docker-compose logs -f
+
+# Restart services
+docker-compose restart
+
+# Update application
+git pull origin main
+./scripts/deploy_docker.sh
+
+# Stop services
+docker-compose down
+```
+
+#### Portainer Integration
+
+If using Portainer for container management:
+
+1. Import stack from `docker-compose.yml`
+2. Set environment variables (DOMAIN, EMAIL)
+3. Deploy stack
+4. Monitor via Portainer dashboard
+
+#### Architecture
+
+The Docker setup includes:
+
+- **otogapo-web**: Flutter web app with Nginx
+- **nginx-proxy**: Reverse proxy with SSL
+- **certbot**: Automatic SSL renewal
+
+For detailed instructions, see:
+
+- [Docker Deployment Guide](../DOCKER_DEPLOYMENT.md)
+- [Web Deployment Guide](./WEB_DEPLOYMENT.md)
+- [Architecture - Docker Section](./ARCHITECTURE.md#docker-deployment-architecture)
+
 ### Additional Resources
 
 - [Deployment Guide](./DEPLOYMENT.md) - Full CI/CD documentation
+- [Web Deployment Guide](./WEB_DEPLOYMENT.md) - Web deployment options
+- [Docker Deployment Guide](../DOCKER_DEPLOYMENT.md) - Docker setup and management
 - [Release Checklist](./RELEASE_CHECKLIST.md) - Detailed pre-release checklist
 - [Play Store Setup](./PLAY_STORE_SETUP.md) - Play Console configuration
 - [Local Build Testing](./LOCAL_BUILD_TESTING.md) - Build verification guide

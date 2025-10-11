@@ -366,6 +366,22 @@ flutter build ios --release --target lib/main_production.dart --flavor productio
 flutter build web --release --target lib/main_production.dart
 ```
 
+**Docker (Web):**
+
+```bash
+# Quick deploy to Ubuntu server with Docker
+./scripts/deploy_docker.sh
+```
+
+This will:
+
+- Build production web app
+- Create Docker container with Nginx
+- Set up SSL with Let's Encrypt
+- Deploy to your domain (e.g., https://otogapo.lexserver.org)
+
+See [Docker Deployment Guide](./DOCKER_DEPLOYMENT.md) for detailed instructions.
+
 **Windows:**
 
 ```bash
@@ -375,6 +391,8 @@ flutter build windows --release --target lib/main_production.dart
 For detailed deployment instructions, see:
 
 - [Deployment Guide](./docs/DEPLOYMENT.md)
+- [Web Deployment Guide](./docs/WEB_DEPLOYMENT.md)
+- [Docker Deployment Guide](./DOCKER_DEPLOYMENT.md)
 - [Release Checklist](./docs/RELEASE_CHECKLIST.md)
 - [Play Store Setup](./docs/PLAY_STORE_SETUP.md)
 

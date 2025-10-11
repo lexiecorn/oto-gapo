@@ -91,6 +91,11 @@ packages/**/pubspec.lock
 
 # Web related
 
+# Docker related
+.env
+certbot/
+certbot-renew.log
+
 # Symbolication related
 app.*.symbols
 

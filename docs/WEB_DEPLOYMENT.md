@@ -304,6 +304,207 @@ flutter build web --release --target lib/main_production.dart
 vercel --prod
 ```
 
+## Docker Deployment
+
+Deploy using Docker containers with Nginx reverse proxy and Let's Encrypt SSL certificates.
+
+### Prerequisites
+
+- Ubuntu 20.04 or later server
+- Docker and Docker Compose installed
+- Domain name pointing to server IP
+- Ports 80 and 443 accessible
+
+### Quick Start
+
+1. **Clone repository on server:**
+
+   ```bash
+   git clone <repository-url> /opt/otogapo
+   cd /opt/otogapo
+   ```
+
+2. **Configure environment:**
+
+   Create `.env` file with your settings:
+
+   ```bash
+   DOMAIN=otogapo.lexserver.org
+   EMAIL=your-email@example.com
+   LETSENCRYPT_STAGING=0
+   ```
+
+3. **Make scripts executable:**
+
+   ```bash
+   chmod +x scripts/deploy_docker.sh scripts/renew_ssl.sh
+   ```
+
+4. **Deploy:**
+
+   ```bash
+   ./scripts/deploy_docker.sh
+   ```
+
+   This will:
+
+   - Build Flutter web app (production)
+   - Create Docker image
+   - Initialize SSL certificates via Let's Encrypt
+   - Start all services
+
+5. **Access application:**
+
+   ```
+   https://otogapo.lexserver.org
+   ```
+
+### Docker Architecture
+
+The deployment uses three containers:
+
+- **otogapo-web**: Flutter app served via Nginx
+- **nginx-proxy**: Reverse proxy with SSL termination
+- **certbot**: Automatic SSL certificate management
+
+### Managing the Deployment
+
+```bash
+# View status
+docker-compose ps
+
+# View logs
+docker-compose logs -f
+
+# Restart services
+docker-compose restart
+
+# Stop services
+docker-compose down
+
+# Update application
+git pull origin main
+./scripts/deploy_docker.sh
+```
+
+### SSL Certificate Management
+
+Certificates are automatically obtained on first deployment. Set up automatic renewal:
+
+```bash
+# Add to crontab
+crontab -e
+
+# Add this line (runs at 3 AM daily)
+0 3 * * * /opt/otogapo/scripts/renew_ssl.sh
+```
+
+### Portainer Integration
+
+If you have Portainer installed:
+
+1. Navigate to **Stacks** → **Add Stack**
+2. Upload `docker-compose.yml` or point to Git repository
+3. Set environment variables
+4. Deploy and manage via Portainer UI
+
+Benefits:
+
+- Visual container monitoring
+- One-click restarts
+- Real-time log viewing
+- Resource usage graphs
+- Webhook support for auto-deployment
+
+### Configuration Files
+
+Key files for Docker deployment:
+
+- `Dockerfile`: Multi-stage build (Flutter + Nginx)
+- `docker-compose.yml`: Service definitions
+- `nginx/app.conf`: Flutter app Nginx config
+- `nginx/proxy.conf`: Reverse proxy config with SSL
+- `nginx/ssl-params.conf`: SSL security settings
+- `scripts/deploy_docker.sh`: Automated deployment
+- `scripts/renew_ssl.sh`: SSL renewal script
+
+### Troubleshooting Docker Deployment
+
+**SSL certificate fails:**
+
+```bash
+# Check DNS
+nslookup otogapo.lexserver.org
+
+# Check port 80 accessibility
+curl -I http://otogapo.lexserver.org
+
+# Test with staging (no rate limits)
+# Edit .env: LETSENCRYPT_STAGING=1
+./scripts/deploy_docker.sh
+```
+
+**Container not starting:**
+
+```bash
+# Check logs
+docker-compose logs otogapo-web
+
+# Check nginx config
+docker-compose exec nginx-proxy nginx -t
+
+# Rebuild without cache
+docker-compose build --no-cache
+```
+
+**Port conflicts:**
+
+```bash
+# Check what's using ports
+sudo lsof -i :80
+sudo lsof -i :443
+
+# Stop conflicting services
+sudo systemctl stop apache2
+```
+
+### Performance Optimization
+
+The Docker deployment includes:
+
+- Gzip compression enabled
+- Static asset caching (1 year)
+- Multi-stage builds (smaller images)
+- Health checks
+- Resource limits (configurable)
+
+### Backup and Rollback
+
+**Backup:**
+
+```bash
+# Backup certificates
+tar -czf certbot-backup-$(date +%Y%m%d).tar.gz certbot/
+
+# Save Docker image
+docker save otogapo-web:latest | gzip > otogapo-backup.tar.gz
+```
+
+**Rollback:**
+
+```bash
+# Stop current deployment
+docker-compose down
+
+# Load previous image
+docker load < otogapo-backup.tar.gz
+
+# Start with previous version
+docker-compose up -d
+```
+
+For detailed Docker deployment instructions, see `DOCKER_DEPLOYMENT.md`.
+
 ## Environment-Specific Builds
 
 The app supports multiple environments:

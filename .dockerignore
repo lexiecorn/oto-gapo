@@ -1,0 +1,69 @@
+# Build outputs
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Platform-specific
+android/
+ios/
+windows/
+linux/
+macos/
+
+# Testing
+test/
+coverage/
+.test_coverage/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# CI/CD
+.github/
+.circleci/
+
+# Logs
+*.log
+flutter_*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Keys and secrets
+*.jks
+*.keystore
+key.properties
+keystore/
+keystore_base64.txt
+android/key.properties
+
+# Other
+.DS_Store
+Thumbs.db
+*.zip
+*.tar.gz
+pocketbase_*.json
+CHANGELOG.md
+RELEASE_NOTES.md
+scripts/*.sh
+!scripts/deploy_docker.sh
+

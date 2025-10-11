@@ -15,6 +15,7 @@ OtoGapo follows a clean architecture pattern with clear separation of concerns, 
 - [Presentation Layer](#presentation-layer)
 - [Domain Layer](#domain-layer)
 - [Package Architecture](#package-architecture)
+- [Docker Deployment Architecture](#docker-deployment-architecture)
 - [Design Patterns](#design-patterns)
 - [Best Practices](#best-practices)
 
@@ -612,6 +613,217 @@ Each flavor has its own entry point and configuration:
 - `main_development.dart` - Development environment
 - `main_staging.dart` - Staging environment
 - `main_production.dart` - Production environment
+
+## Docker Deployment Architecture
+
+The application supports containerized deployment for the web platform using Docker. This provides a production-ready infrastructure with automatic SSL management and optimized serving.
+
+### Container Architecture
+
+```
+┌───────────────────────────────────────────────────────┐
+│                   Internet (HTTP/HTTPS)               │
+│                    Ports 80/443                       │
+└──────────────────┬────────────────────────────────────┘
+                   │
+                   ▼
+┌─────────────────────────────────────────────────────┐
+│            nginx-proxy Container                    │
+│  ┌───────────────────────────────────────────────┐  │
+│  │  - SSL Termination (Let's Encrypt)           │  │
+│  │  - HTTP → HTTPS Redirect                     │  │
+│  │  - Reverse Proxy                             │  │
+│  │  - Security Headers (HSTS, X-Frame, etc.)    │  │
+│  └───────────────────────────────────────────────┘  │
+└──────────────────┬──────────────────────────────────┘
+                   │
+                   ▼
+┌─────────────────────────────────────────────────────┐
+│            otogapo-web Container                    │
+│  ┌───────────────────────────────────────────────┐  │
+│  │  Multi-stage Build:                          │  │
+│  │  Stage 1: Flutter SDK + Build                │  │
+│  │  Stage 2: Nginx Alpine + Static Files        │  │
+│  │                                               │  │
+│  │  Features:                                    │  │
+│  │  - SPA routing (all → index.html)            │  │
+│  │  - Gzip compression                           │  │
+│  │  - Static asset caching (1 year)             │  │
+│  │  - HTML no-cache for updates                 │  │
+│  │  - Proper MIME types (.wasm, .js, .json)     │  │
+│  │  - Health check endpoint                     │  │
+│  └───────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│              certbot Container                      │
+│  ┌───────────────────────────────────────────────┐  │
+│  │  - Automatic SSL certificate renewal         │  │
+│  │  - Let's Encrypt integration                 │  │
+│  │  - Runs every 12 hours                       │  │
+│  │  - Nginx reload on renewal                   │  │
+│  └───────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│               Shared Volumes                        │
+│  - certbot/conf  → SSL certificates               │
+│  - certbot/www   → ACME challenges                │
+└─────────────────────────────────────────────────────┘
+```
+
+### Docker Components
+
+**1. Dockerfile (Multi-stage)**
+
+- **Stage 1 (Build)**: Ubuntu-based Flutter build environment
+  - Installs Flutter SDK
+  - Builds production web app
+  - Target: `lib/main_production.dart`
+- **Stage 2 (Serve)**: Nginx Alpine
+  - Minimal footprint (~20MB)
+  - Serves static files
+  - Custom nginx configuration
+  - Health check support
+
+**2. docker-compose.yml**
+
+Orchestrates three services:
+
+- `otogapo-web`: Flutter web application
+- `nginx-proxy`: SSL-enabled reverse proxy
+- `certbot`: Certificate management
+
+**3. Nginx Configurations**
+
+- **app.conf**: Application-specific serving rules
+- **proxy.conf**: Reverse proxy with SSL termination
+- **ssl-params.conf**: Secure TLS configuration
+
+### Deployment Flow
+
+```
+1. Developer pushes code → GitHub Repository
+                              ↓
+2. Server pulls latest     ← git pull
+                              ↓
+3. deploy_docker.sh        → Build Flutter web app
+                              ↓
+4. Docker build            → Create multi-stage image
+                              ↓
+5. First run?              → Initialize SSL certificates
+                              ↓
+6. docker-compose up       → Start all containers
+                              ↓
+7. Health check            → Verify deployment
+                              ↓
+8. Live application        → https://otogapo.lexserver.org
+```
+
+### Security Features
+
+1. **SSL/TLS**
+
+   - Automatic Let's Encrypt certificates
+   - TLS 1.2 and 1.3 only
+   - Strong cipher suites
+   - OCSP stapling
+   - HTTP Strict Transport Security (HSTS)
+
+2. **Security Headers**
+
+   - X-Frame-Options: SAMEORIGIN
+   - X-Content-Type-Options: nosniff
+   - X-XSS-Protection: enabled
+   - Referrer-Policy: no-referrer-when-downgrade
+
+3. **Container Security**
+   - Minimal base images (Alpine)
+   - Non-root user execution
+   - Health checks for availability
+   - Restart policies for reliability
+
+### Performance Optimizations
+
+1. **Caching Strategy**
+
+   - Static assets: 1 year cache
+   - HTML files: no-cache for instant updates
+   - Service worker: no-cache for version control
+
+2. **Compression**
+
+   - Gzip enabled for text-based files
+   - Optimized compression levels
+
+3. **Build Optimization**
+   - Multi-stage builds (smaller images)
+   - Flutter web renderer: auto-selection
+   - Tree-shaking enabled
+
+### Management Tools
+
+**Portainer Integration**
+
+The Docker setup is compatible with Portainer for visual management:
+
+- Stack import from docker-compose.yml
+- Container monitoring and logs
+- Resource usage tracking
+- One-click restarts and updates
+- Webhook support for CI/CD
+
+**Automation Scripts**
+
+- `deploy_docker.sh`: Full deployment automation
+- `renew_ssl.sh`: SSL renewal (cron-compatible)
+
+### Monitoring and Maintenance
+
+**Health Checks**
+
+- Application: `http://localhost/health`
+- Container: Docker health check every 30s
+- SSL: Certificate expiry monitoring
+
+**Logging**
+
+```bash
+# View all logs
+docker-compose logs -f
+
+# Specific service
+docker-compose logs -f otogapo-web
+docker-compose logs -f nginx-proxy
+
+# SSL renewal logs
+cat certbot-renew.log
+```
+
+**Updates**
+
+```bash
+# Pull latest code
+git pull origin main
+
+# Rebuild and redeploy
+./scripts/deploy_docker.sh
+```
+
+### Backup and Recovery
+
+**Backup**
+
+- SSL certificates: `certbot/conf/` directory
+- Docker images: `docker save otogapo-web:latest`
+- Configuration: `.env` file (excluded from git)
+
+**Rollback**
+
+- Previous Docker images tagged by version
+- Quick rollback: `docker-compose down && docker-compose up -d <previous-tag>`
+
+For detailed deployment instructions, see [Docker Deployment Guide](../DOCKER_DEPLOYMENT.md).
 
 ## Scalability Considerations
 
