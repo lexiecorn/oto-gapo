@@ -38,7 +38,6 @@ COPY . .
 RUN flutter build web \
     --release \
     --target lib/main_production.dart \
-    --web-renderer auto \
     --base-href /
 
 # Stage 2: Serve with Nginx
