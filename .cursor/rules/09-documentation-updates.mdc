@@ -1,0 +1,46 @@
+---
+alwaysApply: true
+description: Require documentation updates for code changes
+---
+
+## Documentation Update Policy
+
+- **Always update documentation** when making code changes that affect:
+
+  - Public APIs or interfaces
+  - Architecture or design patterns
+  - New features or modules
+  - Configuration or setup steps
+  - Deployment procedures
+  - Breaking changes
+
+- **Documentation locations** to update:
+
+  - `docs/API_DOCUMENTATION.md` - for API changes, endpoints, and service interfaces
+  - `docs/ARCHITECTURE.md` - for architectural changes, patterns, or module structure
+  - `docs/DEPLOYMENT.md` - for deployment, build, or CI/CD changes
+  - `docs/DEVELOPER_GUIDE.md` - for development setup, workflows, or tooling changes
+  - `README.md` - for project overview, quick start, or major feature changes
+  - Package-level `README.md` files in `packages/` - for package-specific changes
+
+- **Documentation update workflow**:
+
+  1. After implementing code changes, identify which documentation files need updates
+  2. Update the relevant documentation with clear, accurate information
+  3. Ensure examples and code snippets in documentation are current
+  4. Update version numbers or changelogs if applicable
+  5. Verify that documentation changes are included in the same change set
+
+- **When to skip documentation updates**:
+
+  - Internal refactoring that doesn't change behavior
+  - Bug fixes that don't alter functionality
+  - Formatting or style-only changes
+  - Private helper functions or internal implementation details
+
+- **Best practices**:
+  - Write documentation in clear, concise language
+  - Include code examples where appropriate
+  - Keep documentation up-to-date with code changes
+  - Document the "why" not just the "what"
+  - Use markdown formatting consistently
