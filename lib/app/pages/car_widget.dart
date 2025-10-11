@@ -134,189 +134,196 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
               ),
               child: Padding(
                 padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Main image and vehicle info side by side
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Vehicle information (left) with staggered animation
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.state.vehicles.isNotEmpty
-                                    ? '${widget.state.vehicles.first.make} ${widget.state.vehicles.first.model}'
-                                    : 'No Vehicle',
-                                style: OpstechTextTheme.heading2.copyWith(
-                                  color: Colors.black87,
-                                  fontSize: 22.sp,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ).animate().fadeIn(delay: 400.ms, duration: 600.ms).slideX(begin: -0.3, duration: 600.ms),
-                              const SizedBox(height: 5),
-                              if (widget.state.vehicles.isNotEmpty) ...[
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Main image and vehicle info side by side
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Vehicle information (left) with staggered animation
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(
-                                  'Plate Number: ${widget.state.vehicles.first.plateNumber}',
-                                  style: OpstechTextTheme.regular.copyWith(
-                                    color: Colors.black54,
-                                    fontSize: 14.sp,
+                                  widget.state.vehicles.isNotEmpty
+                                      ? '${widget.state.vehicles.first.make} ${widget.state.vehicles.first.model}'
+                                      : 'No Vehicle',
+                                  style: OpstechTextTheme.heading2.copyWith(
+                                    color: Colors.black87,
+                                    fontSize: 22.sp,
+                                    fontWeight: FontWeight.w900,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
                                 )
                                     .animate()
-                                    .fadeIn(delay: 500.ms, duration: 600.ms)
+                                    .fadeIn(delay: 400.ms, duration: 600.ms)
                                     .slideX(begin: -0.3, duration: 600.ms),
-                                Text(
-                                  'Color: ${widget.state.vehicles.first.color}',
-                                  style: OpstechTextTheme.regular.copyWith(
-                                    color: Colors.black54,
-                                    fontSize: 14.sp,
-                                  ),
-                                )
-                                    .animate()
-                                    .fadeIn(delay: 600.ms, duration: 600.ms)
-                                    .slideX(begin: -0.3, duration: 600.ms),
-                                Text(
-                                  'Year: ${widget.state.vehicles.first.year}',
-                                  style: OpstechTextTheme.regular.copyWith(
-                                    color: Colors.black54,
-                                    fontSize: 14.sp,
-                                  ),
-                                )
-                                    .animate()
-                                    .fadeIn(delay: 700.ms, duration: 600.ms)
-                                    .slideX(begin: -0.3, duration: 600.ms),
-                              ] else ...[
-                                Text(
-                                  'No vehicle information available',
-                                  style: OpstechTextTheme.regular.copyWith(
-                                    color: Colors.black54,
-                                    fontSize: 14.sp,
-                                  ),
-                                )
-                                    .animate()
-                                    .fadeIn(delay: 500.ms, duration: 600.ms)
-                                    .slideX(begin: -0.3, duration: 600.ms),
+                                const SizedBox(height: 5),
+                                if (widget.state.vehicles.isNotEmpty) ...[
+                                  Text(
+                                    'Plate Number: ${widget.state.vehicles.first.plateNumber}',
+                                    style: OpstechTextTheme.regular.copyWith(
+                                      color: Colors.black54,
+                                      fontSize: 14.sp,
+                                    ),
+                                  )
+                                      .animate()
+                                      .fadeIn(delay: 500.ms, duration: 600.ms)
+                                      .slideX(begin: -0.3, duration: 600.ms),
+                                  Text(
+                                    'Color: ${widget.state.vehicles.first.color}',
+                                    style: OpstechTextTheme.regular.copyWith(
+                                      color: Colors.black54,
+                                      fontSize: 14.sp,
+                                    ),
+                                  )
+                                      .animate()
+                                      .fadeIn(delay: 600.ms, duration: 600.ms)
+                                      .slideX(begin: -0.3, duration: 600.ms),
+                                  Text(
+                                    'Year: ${widget.state.vehicles.first.year}',
+                                    style: OpstechTextTheme.regular.copyWith(
+                                      color: Colors.black54,
+                                      fontSize: 14.sp,
+                                    ),
+                                  )
+                                      .animate()
+                                      .fadeIn(delay: 700.ms, duration: 600.ms)
+                                      .slideX(begin: -0.3, duration: 600.ms),
+                                ] else ...[
+                                  Text(
+                                    'No vehicle information available',
+                                    style: OpstechTextTheme.regular.copyWith(
+                                      color: Colors.black54,
+                                      fontSize: 14.sp,
+                                    ),
+                                  )
+                                      .animate()
+                                      .fadeIn(delay: 500.ms, duration: 600.ms)
+                                      .slideX(begin: -0.3, duration: 600.ms),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Main car image (right, bigger) with enhanced animation
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: FutureBuilder<String?>(
-                            future: mainImageFuture,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return Container(
+                          const SizedBox(width: 12),
+                          // Main car image (right, bigger) with enhanced animation
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: FutureBuilder<String?>(
+                              future: mainImageFuture,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return Container(
+                                    width: 140,
+                                    height: 140,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  ).animate(onPlay: (controller) => controller.repeat()).shimmer(duration: 1500.ms);
+                                }
+                                if (snapshot.hasData && snapshot.data != null) {
+                                  return OpstechExtendedImageNetwork(
+                                    img: snapshot.data!,
+                                    width: 140,
+                                    height: 140,
+                                  )
+                                      .animate()
+                                      .fadeIn(delay: 800.ms, duration: 800.ms)
+                                      .scale(delay: 900.ms, duration: 600.ms, curve: Curves.easeOutBack);
+                                }
+                                // Fallback to default image if no main image exists
+                                return Image.asset(
+                                  'assets/images/vios.jpg',
                                   width: 140,
                                   height: 140,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                ).animate(onPlay: (controller) => controller.repeat()).shimmer(duration: 1500.ms);
-                              }
-                              if (snapshot.hasData && snapshot.data != null) {
-                                return OpstechExtendedImageNetwork(
-                                  img: snapshot.data!,
-                                  width: 140,
-                                  height: 140,
+                                  fit: BoxFit.cover,
                                 )
                                     .animate()
                                     .fadeIn(delay: 800.ms, duration: 800.ms)
                                     .scale(delay: 900.ms, duration: 600.ms, curve: Curves.easeOutBack);
-                              }
-                              // Fallback to default image if no main image exists
-                              return Image.asset(
-                                'assets/images/vios.jpg',
-                                width: 140,
-                                height: 140,
-                                fit: BoxFit.cover,
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // Car images grid with enhanced animation
+                      FutureBuilder<List<String>>(
+                        future: _getCarImageUrls(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Container(
+                              height: 200,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            ).animate(onPlay: (controller) => controller.repeat()).shimmer(duration: 1500.ms);
+                          }
+
+                          final imageUrls = snapshot.data ?? [];
+
+                          if (imageUrls.isEmpty) {
+                            // Show default image if no car images exist
+                            return Container(
+                              height: 200,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.asset(
+                                  'assets/images/vios.jpg',
+                                  width: double.infinity,
+                                  height: 200,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ).animate().fadeIn(delay: 1000.ms, duration: 800.ms).slideY(begin: 0.2, duration: 800.ms);
+                          }
+
+                          // Display car images in a 2x2 grid with staggered animations
+                          return GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              childAspectRatio: 1.2,
+                            ),
+                            itemCount: imageUrls.length,
+                            itemBuilder: (context, index) {
+                              return ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: OpstechExtendedImageNetwork(
+                                  img: imageUrls[index],
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                ),
                               )
                                   .animate()
-                                  .fadeIn(delay: 800.ms, duration: 800.ms)
-                                  .scale(delay: 900.ms, duration: 600.ms, curve: Curves.easeOutBack);
+                                  .fadeIn(delay: (1000 + (index * 200)).ms, duration: 600.ms)
+                                  .slideY(begin: 0.3, duration: 600.ms)
+                                  .scale(delay: (1100 + (index * 200)).ms, duration: 400.ms, curve: Curves.easeOutBack);
                             },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // Car images grid with enhanced animation
-                    FutureBuilder<List<String>>(
-                      future: _getCarImageUrls(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Container(
-                            height: 200,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          ).animate(onPlay: (controller) => controller.repeat()).shimmer(duration: 1500.ms);
-                        }
-
-                        final imageUrls = snapshot.data ?? [];
-
-                        if (imageUrls.isEmpty) {
-                          // Show default image if no car images exist
-                          return Container(
-                            height: 200,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.asset(
-                                'assets/images/vios.jpg',
-                                width: double.infinity,
-                                height: 200,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ).animate().fadeIn(delay: 1000.ms, duration: 800.ms).slideY(begin: 0.2, duration: 800.ms);
-                        }
-
-                        // Display car images in a 2x2 grid with staggered animations
-                        return GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 8,
-                            mainAxisSpacing: 8,
-                            childAspectRatio: 1.2,
-                          ),
-                          itemCount: imageUrls.length,
-                          itemBuilder: (context, index) {
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: OpstechExtendedImageNetwork(
-                                img: imageUrls[index],
-                                width: double.infinity,
-                                height: double.infinity,
-                              ),
-                            )
-                                .animate()
-                                .fadeIn(delay: (1000 + (index * 200)).ms, duration: 600.ms)
-                                .slideY(begin: 0.3, duration: 600.ms)
-                                .scale(delay: (1100 + (index * 200)).ms, duration: 400.ms, curve: Curves.easeOutBack);
-                          },
-                        );
-                      },
-                    ),
-                  ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
