@@ -1,3 +1,7 @@
+---
+description: Testing rules and conventions for Flutter widgets, Cubits, and integration
+---
+
 # Testing Rules and Conventions
 
 ## When to Update or Create Tests
@@ -5,21 +9,25 @@
 ### ✅ ALWAYS write/update tests when:
 
 1. **Creating new widgets or pages**
+
    - Widget tests for UI components
    - State management tests for Cubits/Blocs
    - Integration with test helpers
 
 2. **Modifying existing widget behavior**
+
    - Update affected widget tests
    - Add new test cases for new behavior
    - Verify edge cases still pass
 
 3. **Adding new Cubits or Blocs**
+
    - State transition tests
    - Event/action handling tests
    - Error state tests
 
 4. **Modifying data models**
+
    - Update mock factories in `test/helpers/mock_factories.dart`
    - Update affected tests using those models
 
@@ -237,7 +245,7 @@ testWidgets('handles animations pragmatically', (tester) async {
 
   // Pump widget but don't wait for all animations
   await tester.pumpTestApp(CarWidget(state: state));
-  
+
   // Pump a few frames manually
   for (int i = 0; i < 3; i++) {
     await tester.pump(const Duration(milliseconds: 100));
@@ -305,12 +313,14 @@ testWidgets('handles special characters', (tester) async {
 ### 1. Use Descriptive Test Names
 
 ❌ **BAD:**
+
 ```dart
 testWidgets('test 1', (tester) async { ... });
 testWidgets('works', (tester) async { ... });
 ```
 
 ✅ **GOOD:**
+
 ```dart
 testWidgets('displays vehicle information correctly', (tester) async { ... });
 testWidgets('shows empty state when vehicles list is empty', (tester) async { ... });
@@ -334,6 +344,7 @@ testWidgets('example test', (tester) async {
 ### 3. Use Test Helpers, Not Inline Data
 
 ❌ **AVOID:**
+
 ```dart
 final vehicle = Vehicle(
   make: 'Toyota',
@@ -347,6 +358,7 @@ final vehicle = Vehicle(
 ```
 
 ✅ **PREFER:**
+
 ```dart
 final vehicle = createMockVehicle(
   make: 'Toyota',
@@ -376,6 +388,7 @@ group('MyWidget', () {
 ### 5. Test Behavior, Not Implementation
 
 ❌ **AVOID:**
+
 ```dart
 // Don't test private methods or internal state
 expect(widget._internalVariable, equals(42));
@@ -383,6 +396,7 @@ expect(controller.animationValue, closeTo(0.5, 0.01));
 ```
 
 ✅ **PREFER:**
+
 ```dart
 // Test what users see and interact with
 expect(find.text('Expected Output'), findsOneWidget);
@@ -394,6 +408,7 @@ expect(find.byType(MyWidget), findsOneWidget);
 Each test should be self-contained:
 
 ❌ **AVOID:**
+
 ```dart
 var sharedState; // Don't share state between tests
 
@@ -408,6 +423,7 @@ testWidgets('test 2', (tester) async {
 ```
 
 ✅ **PREFER:**
+
 ```dart
 testWidgets('test 1', (tester) async {
   final state = createState(); // Each test creates its own state
@@ -480,7 +496,7 @@ testWidgets('example with Cubit', (tester) async {
 testWidgets('responds to state changes', (tester) async {
   final initialState = createEmptyProfileState();
   final updatedState = createProfileStateWithVehicle();
-  
+
   final mockCubit = createMockProfileCubitWithState(initialState);
 
   whenListen(
@@ -525,6 +541,7 @@ for (int i = 0; i < 3; i++) {
 **Problem:** Widget not found when expected.
 
 **Solutions:**
+
 1. Ensure widget has been pumped
 2. Use `find.byType()` instead of `find.byWidget()`
 3. Check widget is actually rendered (not in a conditional that's false)
@@ -612,13 +629,12 @@ group('MyWidget', () {
   testWidgets('does something', (tester) async {
     // Arrange
     final data = createMockData();
-    
+
     // Act
     await tester.pumpAndSettleTestApp(MyWidget(data: data));
-    
+
     // Assert
     expect(find.text('Expected'), findsOneWidget);
   });
 });
 ```
-
