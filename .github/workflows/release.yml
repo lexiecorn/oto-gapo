@@ -119,8 +119,17 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+            - name: Check Google Play credentials
+              id: check_gp_creds
+              run: |
+                  if [ -n "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}" ]; then
+                    echo "has_gp_creds=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "has_gp_creds=false" >> $GITHUB_OUTPUT
+                  fi
+
             - name: Upload to Google Play Console (Internal Track)
-              if: secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != ''
+              if: steps.check_gp_creds.outputs.has_gp_creds == 'true'
               env:
                   GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
               run: |
