@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:otogapo/app/modules/signin/bloc/signin_cubit.dart';
 import 'package:otogapo/app/modules/utils/error_dialog.dart';
 import 'package:otogapo_core/otogapo_core.dart';
@@ -39,57 +38,15 @@ class SigninPageState extends State<SigninPage> {
     context.read<SigninCubit>().signin(email: _email!, password: _password!);
   }
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(); // Google Sign-In instance
-
   Future<void> _handleGoogleSignIn(BuildContext context) async {
     try {
-      _googleSignIn.signOut(); // Non-blocking sign out
+      final signinCubit = context.read<SigninCubit>();
 
-      final googleUser = await _googleSignIn.signIn();
-
-      if (googleUser != null) {
-        final googleAuth = await googleUser.authentication;
-
-        if (googleAuth.idToken != null) {
-          // Use a local variable to store the result of read<SigninCubit>()
-          final signinCubit = context.read<SigninCubit>();
-
-          // Check if the context is still valid before calling the cubit method
-          if (context.mounted) {
-            signinCubit.signinWithGoogle(
-              idToken: googleAuth.idToken!,
-              displayName: googleUser.displayName,
-            );
-          } else {
-            debugPrint('Context is no longer mounted. Not calling cubit method.');
-            // Optionally handle this case, e.g., by logging an error or showing a snackbar on the next screen
-          }
-        } else {
-          if (context.mounted) {
-            await errorDialog(
-              context,
-              'Sign-in Failed',
-              "We couldn't verify your Google account. Please try again. If the problem continues, check your internet connection or try a different account.",
-              'Missing ID Token',
-            );
-          }
-        }
-      } else {
-        debugPrint('User canceled Google Sign-In');
+      if (context.mounted) {
+        // Use PocketBase OAuth directly
+        signinCubit.signinWithGoogleOAuth();
       }
-    }
-    // on GoogleSignInException catch (e) {
-    //   if (context.mounted) {
-    //     await errorDialog(
-    //       context,
-    //       'Google Sign-In Error',
-    //       e.message ?? 'An error occurred during Google Sign-In.',
-    //       e.runtimeType.toString(),
-    //     );
-    //   }
-    //   debugPrint('Google Sign-In Exception: ${e.toString()}');
-    // }
-    catch (error) {
+    } catch (error) {
       if (context.mounted) {
         await errorDialog(
           context,

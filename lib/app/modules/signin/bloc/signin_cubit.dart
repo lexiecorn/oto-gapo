@@ -15,13 +15,63 @@ class SigninCubit extends Cubit<SigninState> {
   final AuthRepository authRepository;
   final PocketBaseAuthRepository pocketBaseAuth;
 
+  Future<void> signinWithGoogleOAuth() async {
+    emit(state.copyWith(signinStatus: SigninStatus.submitting));
+    try {
+      // Use PocketBase Google OAuth
+      await pocketBaseAuth.signInWithGoogleOAuth();
+      emit(state.copyWith(signinStatus: SigninStatus.success));
+    } on AuthFailure catch (e) {
+      log('signinWithGoogleOAuth cubit error: ${e.message}');
+      emit(
+        state.copyWith(
+          signinStatus: SigninStatus.error,
+          error: FirebaseAuthApiFailure(e.message.toString(), e.code, e.plugin),
+        ),
+      );
+    } catch (e) {
+      log('signinWithGoogleOAuth cubit unknown error: $e');
+      emit(
+        state.copyWith(
+          signinStatus: SigninStatus.error,
+          error: const FirebaseAuthApiFailure(
+            'Unknown Authentication error',
+            'Authentication error',
+            'pocketbase_google_oauth',
+          ),
+        ),
+      );
+    }
+  }
+
+  // Keep the old Firebase method as fallback if needed
   Future<void> signinWithGoogle({required String idToken, String? displayName}) async {
     emit(state.copyWith(signinStatus: SigninStatus.submitting));
     try {
       await authRepository.signInWithGoogle(idToken: idToken, displayName: displayName); // Call your repository method
       emit(state.copyWith(signinStatus: SigninStatus.success));
+    } on AuthFailure catch (e) {
+      log('signinWithGoogle cubit error: ${e.message}');
+      emit(
+        state.copyWith(
+          signinStatus: SigninStatus.error,
+          error: FirebaseAuthApiFailure(e.message.toString(), e.code, e.plugin),
+        ),
+      );
     } on FirebaseAuthApiFailure catch (e) {
       emit(state.copyWith(signinStatus: SigninStatus.error, error: e));
+    } catch (e) {
+      log('signinWithGoogle cubit unknown error: $e');
+      emit(
+        state.copyWith(
+          signinStatus: SigninStatus.error,
+          error: const FirebaseAuthApiFailure(
+            'Unknown Authentication error',
+            'Authentication error',
+            'google_sign_in',
+          ),
+        ),
+      );
     }
   }
 

@@ -212,7 +212,7 @@ class AuthRepository {
       return result.items.isNotEmpty ? result.items.first : null;
     } catch (e) {
       print('Error getting user from PocketBase: $e');
-      return null;
+      return null;  
     }
   }
 

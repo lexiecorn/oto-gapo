@@ -69,8 +69,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
 
     on<SignoutRequestedEvent>((event, emit) async {
-      await pocketBaseAuth.signOut();
-      // Auth state will be updated via the stream listener
+      try {
+        log('Signout requested...');
+        emit(state.copyWith(authStatus: AuthStatus.unknown));
+
+        await pocketBaseAuth.signOut();
+
+        // Immediately emit unauthenticated state
+        emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
+        log('Signout completed successfully');
+      } catch (e) {
+        log('Error during signout: $e');
+        // Still emit unauthenticated state even if there's an error
+        emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
+      }
     });
 
     on<CheckExistingAuthEvent>((event, emit) async {

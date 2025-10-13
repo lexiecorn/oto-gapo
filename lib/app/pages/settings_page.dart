@@ -321,7 +321,29 @@ class _SettingsPageState extends State<SettingsPage> {
                     );
 
                     if (shouldLogout == true && mounted) {
+                      // Show loading dialog
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          return const AlertDialog(
+                            content: Row(
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(width: 20),
+                                Text('Logging out...'),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+
                       await _handleLogout(context);
+
+                      // Close loading dialog
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                      }
                     }
                   },
                 ),
@@ -347,20 +369,20 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _handleLogout(BuildContext context) async {
     try {
-      // Get the current authentication state
-      final authState = context.read<AuthBloc>().state;
+      debugPrint('Starting logout process...');
 
-      if (authState.user != null) {
-        // User is authenticated with PocketBase, sign out from PocketBase
-        final pocketBaseService = PocketBaseService();
-        pocketBaseService.pb.authStore.clear();
-        debugPrint('Logged out from PocketBase');
-      }
+      // Use AuthBloc to handle logout properly
+      context.read<AuthBloc>().add(SignoutRequestedEvent());
+
+      // Wait a moment for the logout to complete
+      await Future.delayed(const Duration(milliseconds: 500));
 
       // Navigate to login screen
       if (mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
+
+      debugPrint('Logout completed and navigated to login screen');
     } catch (e) {
       debugPrint('Error during logout: $e');
       // Still navigate to login screen even if logout fails
