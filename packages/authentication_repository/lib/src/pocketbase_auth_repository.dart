@@ -1,6 +1,7 @@
 import 'package:authentication_repository/src/models/auth_failure.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:pocketbase/pocketbase.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PocketBaseAuthRepository {
   PocketBase? _pocketBase;
@@ -74,8 +75,8 @@ class PocketBaseAuthRepository {
             password,
           );
 
-      print('✅ Sign in successful for user: ${authData.record?.data['email']}');
-      return authData.record ?? (throw Exception('Authentication failed - no user record returned'));
+      print('✅ Sign in successful for user: ${authData.record.data['email']}');
+      return authData.record;
     } catch (e) {
       print('❌ Sign in failed: $e');
       throw AuthFailure(
@@ -115,6 +116,33 @@ class PocketBaseAuthRepository {
     // Return the current user's data from auth store instead of making API call
     // This avoids the 403 "Only superusers can perform this action" error
     return user;
+  }
+
+  /// Get user by email
+  Future<RecordModel?> getUserByEmail(String email) async {
+    try {
+      print('PocketBaseAuthRepository.getUserByEmail - Getting user by email: $email');
+      print('PocketBaseAuthRepository.getUserByEmail - Is authenticated: ${pocketBase.authStore.isValid}');
+      print('PocketBaseAuthRepository.getUserByEmail - Current user: ${pocketBase.authStore.model?.id}');
+
+      // Query users collection with filter for email
+      final result = await pocketBase.collection('users').getList(
+            filter: 'email = "$email"',
+            perPage: 1,
+          );
+
+      final user = result.items.isNotEmpty ? result.items.first : null;
+      print('PocketBaseAuthRepository.getUserByEmail - User found: ${user != null}');
+      if (user != null) {
+        print('PocketBaseAuthRepository.getUserByEmail - User ID: ${user.id}');
+        print('PocketBaseAuthRepository.getUserByEmail - User email: ${user.data['email']}');
+      }
+      return user;
+    } catch (e) {
+      print('PocketBaseAuthRepository.getUserByEmail - Exception: $e');
+      print('PocketBaseAuthRepository.getUserByEmail - Exception type: ${e.runtimeType}');
+      return null; // Return null instead of rethrowing to handle gracefully
+    }
   }
 
   /// Get vehicles by owner ID
@@ -168,38 +196,98 @@ class PocketBaseAuthRepository {
     }
   }
 
-  /// Sign in with Google OAuth
+  /// Sign in with Google OAuth using PocketBase native OAuth2
   Future<RecordModel> signInWithGoogleOAuth() async {
     try {
-      print('🔍 Google OAuth requested - checking if user exists in PocketBase');
+      print('🔍 Starting PocketBase Google OAuth flow');
 
-      // For testing: Check if the Google user (ialexies@gmail.com) exists in PocketBase
-      // and authenticate them directly if OAuth is not set up
-      final testEmail = 'ialexies@gmail.com';
-      final testPassword = 'chachielex';
-
-      print('🧪 Testing with account: $testEmail');
-
-      try {
-        // Try to authenticate with the test account
-        final authData = await pocketBase.collection('users').authWithPassword(
-              testEmail,
-              testPassword,
+      // Use PocketBase's native OAuth2 with Google
+      // This method initializes a one-off realtime subscription and will
+      // call the provided urlCallback with the OAuth2 vendor url to authenticate.
+      final authData = await pocketBase.collection('users').authWithOAuth2(
+        'google',
+        (url) async {
+          print('🔗 Opening OAuth URL: $url');
+          try {
+            // Use url_launcher to open the OAuth URL
+            final launched = await launchUrl(
+              url,
+              mode: LaunchMode.externalApplication,
             );
 
-        print('✅ Google OAuth fallback successful - authenticated as: ${authData.record?.data['email']}');
-        return authData.record ?? (throw Exception('Authentication failed - no user record returned'));
-      } catch (e) {
-        print('❌ Test account authentication failed: $e');
+            if (!launched) {
+              throw Exception('Failed to open OAuth URL');
+            }
 
+            print('✅ OAuth URL opened successfully');
+            print('⚠️  IMPORTANT: Do not close the browser window manually!');
+            print('⚠️  Let Google redirect back automatically to complete authentication.');
+          } catch (e) {
+            print('❌ Failed to open OAuth URL: $e');
+            throw Exception('Failed to open OAuth URL: $e');
+          }
+        },
+      );
+
+      print('✅ PocketBase Google OAuth successful');
+      print('✅ Authenticated user: ${authData.record.data['email']}');
+      print('✅ Auth store valid: ${pocketBase.authStore.isValid}');
+      print('✅ Auth token: ${pocketBase.authStore.token}');
+
+      return authData.record;
+    } catch (e) {
+      print('❌ PocketBase Google OAuth failed: $e');
+
+      // Handle specific OAuth errors
+      if (e.toString().contains('popup') || e.toString().contains('blocked')) {
         throw AuthFailure(
-          code: 'Google OAuth Not Available',
-          message:
-              'Google OAuth is not configured. Please use email/password login with:\nEmail: $testEmail\nPassword: $testPassword',
-          plugin: 'pocketbase_auth',
+          code: 'OAuth Popup Blocked',
+          message: 'Google sign-in popup was blocked. Please allow popups and try again.',
+          plugin: 'pocketbase_oauth',
         );
       }
-    } catch (e) {
+
+      if (e.toString().contains('cancelled') ||
+          e.toString().contains('canceled') ||
+          e.toString().contains('aborted') ||
+          e.toString().contains('interrupted')) {
+        throw AuthFailure(
+          code: 'OAuth Cancelled',
+          message: 'Google sign-in was cancelled or interrupted. Please try again.',
+          plugin: 'pocketbase_oauth',
+        );
+      }
+
+      // Handle realtime connection issues
+      if (e.toString().contains('realtime') || e.toString().contains('connection')) {
+        throw AuthFailure(
+          code: 'OAuth Connection Error',
+          message:
+              'OAuth connection was interrupted. Please ensure the browser window remains open during authentication.',
+          plugin: 'pocketbase_oauth',
+        );
+      }
+
+      // Handle realtime connection issues (Android 15+ specific)
+      if (e.toString().contains('realtime') || e.toString().contains('connection')) {
+        throw AuthFailure(
+          code: 'OAuth Connection Error',
+          message:
+              'OAuth connection was interrupted. This may be due to Android 15+ background restrictions. Please:\n\n1. Keep the browser window open during authentication\n2. Do not manually close the browser\n3. Let Google redirect back automatically',
+          plugin: 'pocketbase_oauth',
+        );
+      }
+
+      // Handle Android 15+ background processing issues
+      if (e.toString().contains('background') || e.toString().contains('foreground')) {
+        throw AuthFailure(
+          code: 'Android 15+ Background Restriction',
+          message:
+              'Authentication failed due to Android 15+ background processing restrictions. Please try again and ensure the browser stays open.',
+          plugin: 'pocketbase_oauth',
+        );
+      }
+
       if (e is AuthFailure) {
         rethrow;
       }

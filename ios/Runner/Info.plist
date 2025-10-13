@@ -52,5 +52,16 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.otogapo.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.otogapo.app</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

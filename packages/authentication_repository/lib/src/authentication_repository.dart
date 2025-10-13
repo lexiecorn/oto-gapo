@@ -185,20 +185,37 @@ class AuthRepository {
   /// Sync Firebase user with PocketBase
   Future<void> _syncUserWithPocketBase(User firebaseUser) async {
     try {
-      // Check if user exists in PocketBase
-      final existingUser = await _getUserByFirebaseUid(firebaseUser.uid);
+      print('🔄 Syncing Firebase user with PocketBase: ${firebaseUser.email}');
 
-      if (existingUser == null) {
-        // Create new user in PocketBase
-        await _createUserWithFirebaseUid(
-          firebaseUid: firebaseUser.uid,
-          email: firebaseUser.email ?? '',
-          firstName: firebaseUser.displayName?.split(' ').first ?? '',
-          lastName: firebaseUser.displayName?.split(' ').last ?? '',
-        );
+      // First try to find user by Firebase UID
+      final existingUserByUid = await _getUserByFirebaseUid(firebaseUser.uid);
+
+      if (existingUserByUid != null) {
+        print('✅ Found user by Firebase UID: ${existingUserByUid.id}');
+        return;
       }
+
+      // If not found by UID, try to find by email
+      final existingUserByEmail = await _getUserByEmail(firebaseUser.email ?? '');
+
+      if (existingUserByEmail != null) {
+        print('✅ Found user by email: ${existingUserByEmail.id}');
+        // Update the existing user with Firebase UID
+        await _updateUserWithFirebaseUid(existingUserByEmail.id, firebaseUser.uid);
+        return;
+      }
+
+      // User doesn't exist, create new user
+      print('❌ User not found, creating new user');
+      await _createUserWithFirebaseUid(
+        firebaseUid: firebaseUser.uid,
+        email: firebaseUser.email ?? '',
+        firstName: firebaseUser.displayName?.split(' ').first ?? '',
+        lastName: firebaseUser.displayName?.split(' ').last ?? '',
+      );
     } catch (e) {
       print('Error syncing user with PocketBase: $e');
+      rethrow; // Rethrow to let the caller handle the error
     }
   }
 
@@ -212,7 +229,39 @@ class AuthRepository {
       return result.items.isNotEmpty ? result.items.first : null;
     } catch (e) {
       print('Error getting user from PocketBase: $e');
-      return null;  
+      return null;
+    }
+  }
+
+  /// Get user by email from PocketBase
+  Future<RecordModel?> _getUserByEmail(String email) async {
+    try {
+      print('🔍 Looking up user by email: $email');
+      final result = await pocketBase.collection('users').getList(
+            filter: 'email = "$email"',
+            perPage: 1,
+          );
+      final user = result.items.isNotEmpty ? result.items.first : null;
+      print('🔍 User found by email: ${user != null}');
+      return user;
+    } catch (e) {
+      print('Error getting user by email from PocketBase: $e');
+      return null;
+    }
+  }
+
+  /// Update user with Firebase UID
+  Future<void> _updateUserWithFirebaseUid(String userId, String firebaseUid) async {
+    try {
+      print('🔄 Updating user $userId with Firebase UID: $firebaseUid');
+      await pocketBase.collection('users').update(
+        userId,
+        body: {'firebaseUid': firebaseUid},
+      );
+      print('✅ Successfully updated user with Firebase UID');
+    } catch (e) {
+      print('Error updating user with Firebase UID: $e');
+      rethrow;
     }
   }
 

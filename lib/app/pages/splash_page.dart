@@ -30,8 +30,13 @@ class _SplashPageState extends State<SplashPage> {
       if (mounted) {
         // If still unknown after timeout, redirect to signin
         final authBloc = context.read<AuthBloc>();
+        debugPrint('SplashPage - Timeout reached, auth status: ${authBloc.state.authStatus}');
         if (authBloc.state.authStatus == AuthStatus.unknown) {
-          AutoRouter.of(context).push(const SigninPageRouter());
+          debugPrint('SplashPage - Timeout: Navigating to signin page');
+          AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
+        } else if (authBloc.state.authStatus == AuthStatus.authenticated) {
+          debugPrint('SplashPage - Timeout: User authenticated, navigating to intro page');
+          AutoRouter.of(context).replaceAll([const IntroPageRouter()]);
         }
       }
     });
@@ -47,16 +52,23 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
+        debugPrint('SplashPage - Auth state changed: ${state.authStatus}');
+        debugPrint('SplashPage - User: ${state.user?.data['email']}');
+        debugPrint('SplashPage - Mounted: $mounted');
+
         // Only navigate when we have a definitive auth status
         if (state.authStatus == AuthStatus.unauthenticated) {
           _timeoutTimer?.cancel();
-          AutoRouter.of(context).push(const SigninPageRouter());
+          debugPrint('SplashPage - Navigating to signin page');
+          AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
         } else if (state.authStatus == AuthStatus.authenticated) {
           _timeoutTimer?.cancel();
-          AutoRouter.of(context).push(
-            // const HomePageRouter(),
+          debugPrint('SplashPage - Navigating to intro page');
+          AutoRouter.of(context).replaceAll([
             const IntroPageRouter(),
-          );
+          ]);
+        } else {
+          debugPrint('SplashPage - Auth status is unknown, keeping loading state');
         }
         // If status is still unknown, keep showing loading
       },
@@ -71,7 +83,11 @@ class _SplashPageState extends State<SplashPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  state.authStatus == AuthStatus.unknown ? 'Checking authentication...' : 'Loading...',
+                  state.authStatus == AuthStatus.unknown
+                      ? 'Checking authentication...'
+                      : state.authStatus == AuthStatus.unauthenticated
+                          ? 'Redirecting to login...'
+                          : 'Loading...',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],

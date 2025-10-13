@@ -15,12 +15,17 @@ class SigninCubit extends Cubit<SigninState> {
   final AuthRepository authRepository;
   final PocketBaseAuthRepository pocketBaseAuth;
 
+  /// Sign in with Google using PocketBase native OAuth
   Future<void> signinWithGoogleOAuth() async {
     emit(state.copyWith(signinStatus: SigninStatus.submitting));
     try {
-      // Use PocketBase Google OAuth
+      log('Starting PocketBase Google OAuth...');
+
+      // Use PocketBase's native Google OAuth
       await pocketBaseAuth.signInWithGoogleOAuth();
+
       emit(state.copyWith(signinStatus: SigninStatus.success));
+      log('PocketBase Google OAuth successful');
     } on AuthFailure catch (e) {
       log('signinWithGoogleOAuth cubit error: ${e.message}');
       emit(
@@ -35,9 +40,9 @@ class SigninCubit extends Cubit<SigninState> {
         state.copyWith(
           signinStatus: SigninStatus.error,
           error: const FirebaseAuthApiFailure(
-            'Unknown Authentication error',
-            'Authentication error',
-            'pocketbase_google_oauth',
+            'Google OAuth failed. Please try again.',
+            'google_oauth_error',
+            'pocketbase_oauth',
           ),
         ),
       );

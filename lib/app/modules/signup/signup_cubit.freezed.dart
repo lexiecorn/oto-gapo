@@ -17,7 +17,7 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$SignupState {
   SignupStatus get signupStatus => throw _privateConstructorUsedError;
-  CustomError get error => throw _privateConstructorUsedError;
+  CustomError? get error => throw _privateConstructorUsedError;
 
   /// Create a copy of SignupState
   /// with the given fields replaced by the non-null parameter values.
@@ -32,7 +32,7 @@ abstract class $SignupStateCopyWith<$Res> {
           SignupState value, $Res Function(SignupState) then) =
       _$SignupStateCopyWithImpl<$Res, SignupState>;
   @useResult
-  $Res call({SignupStatus signupStatus, CustomError error});
+  $Res call({SignupStatus signupStatus, CustomError? error});
 }
 
 /// @nodoc
@@ -51,17 +51,17 @@ class _$SignupStateCopyWithImpl<$Res, $Val extends SignupState>
   @override
   $Res call({
     Object? signupStatus = null,
-    Object? error = null,
+    Object? error = freezed,
   }) {
     return _then(_value.copyWith(
       signupStatus: null == signupStatus
           ? _value.signupStatus
           : signupStatus // ignore: cast_nullable_to_non_nullable
               as SignupStatus,
-      error: null == error
+      error: freezed == error
           ? _value.error
           : error // ignore: cast_nullable_to_non_nullable
-              as CustomError,
+              as CustomError?,
     ) as $Val);
   }
 }
@@ -74,7 +74,7 @@ abstract class _$$SignupStateImplCopyWith<$Res>
       __$$SignupStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({SignupStatus signupStatus, CustomError error});
+  $Res call({SignupStatus signupStatus, CustomError? error});
 }
 
 /// @nodoc
@@ -91,17 +91,17 @@ class __$$SignupStateImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? signupStatus = null,
-    Object? error = null,
+    Object? error = freezed,
   }) {
     return _then(_$SignupStateImpl(
       signupStatus: null == signupStatus
           ? _value.signupStatus
           : signupStatus // ignore: cast_nullable_to_non_nullable
               as SignupStatus,
-      error: null == error
+      error: freezed == error
           ? _value.error
           : error // ignore: cast_nullable_to_non_nullable
-              as CustomError,
+              as CustomError?,
     ));
   }
 }
@@ -109,12 +109,14 @@ class __$$SignupStateImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$SignupStateImpl implements _SignupState {
-  const _$SignupStateImpl({required this.signupStatus, required this.error});
+  const _$SignupStateImpl(
+      {this.signupStatus = SignupStatus.initial, this.error});
 
   @override
+  @JsonKey()
   final SignupStatus signupStatus;
   @override
-  final CustomError error;
+  final CustomError? error;
 
   @override
   String toString() {
@@ -145,13 +147,13 @@ class _$SignupStateImpl implements _SignupState {
 
 abstract class _SignupState implements SignupState {
   const factory _SignupState(
-      {required final SignupStatus signupStatus,
-      required final CustomError error}) = _$SignupStateImpl;
+      {final SignupStatus signupStatus,
+      final CustomError? error}) = _$SignupStateImpl;
 
   @override
   SignupStatus get signupStatus;
   @override
-  CustomError get error;
+  CustomError? get error;
 
   /// Create a copy of SignupState
   /// with the given fields replaced by the non-null parameter values.

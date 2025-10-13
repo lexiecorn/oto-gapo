@@ -9,12 +9,7 @@ part 'signup_state.dart';
 class SignupCubit extends Cubit<SignupState> {
   SignupCubit({
     required this.authRepository,
-  }) : super(
-          SignupState(
-            error: CustomError.initial(),
-            signupStatus: SignupStatus.initial,
-          ),
-        );
+  }) : super(SignupState.initial());
   final AuthRepository authRepository;
 
   Future<void> signup({

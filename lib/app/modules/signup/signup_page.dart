@@ -55,9 +55,9 @@ class SignupPageState extends State<SignupPage> {
           if (state.signupStatus == SignupStatus.error) {
             errorDialog(
               context,
-              state.error.message,
-              state.error.code,
-              state.error.plugin,
+              state.error?.message ?? 'An error occurred',
+              state.error?.code ?? 'unknown',
+              state.error?.plugin ?? 'unknown',
             );
           }
         },

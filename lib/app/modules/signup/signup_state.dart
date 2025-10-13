@@ -10,8 +10,8 @@ enum SignupStatus {
 @freezed
 class SignupState with _$SignupState {
   const factory SignupState({
-    required SignupStatus signupStatus,
-    required CustomError error,
+    @Default(SignupStatus.initial) SignupStatus signupStatus,
+    CustomError? error,
   }) = _SignupState;
 
   factory SignupState.initial() {

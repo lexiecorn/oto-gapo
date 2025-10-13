@@ -1,8 +1,10 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
+import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo_core/otogapo_core.dart';
 
 class PickerSideBar extends StatefulWidget {
@@ -111,14 +113,68 @@ class _PickerSideBarState extends State<PickerSideBar> {
                 Row(
                   children: [
                     IconButton(
-                      onPressed: () => context.read<AuthBloc>().add(SignoutRequestedEvent()),
+                      onPressed: () async {
+                        // Show confirmation dialog
+                        final shouldLogout = await showDialog<bool>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Confirm Logout'),
+                              content: const Text('Are you sure you want to logout?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(true),
+                                  child: const Text('Logout'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if (shouldLogout == true && context.mounted) {
+                          context.read<AuthBloc>().add(SignoutRequestedEvent());
+                          // Navigate to splash page to handle auth state transition
+                          AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
+                        }
+                      },
                       icon: Icon(
                         Icons.logout,
                         size: 100.sp,
                       ),
                     ),
                     TextButton(
-                      onPressed: () => context.read<AuthBloc>().add(SignoutRequestedEvent()),
+                      onPressed: () async {
+                        // Show confirmation dialog
+                        final shouldLogout = await showDialog<bool>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Confirm Logout'),
+                              content: const Text('Are you sure you want to logout?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(true),
+                                  child: const Text('Logout'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if (shouldLogout == true && context.mounted) {
+                          context.read<AuthBloc>().add(SignoutRequestedEvent());
+                          // Navigate to splash page to handle auth state transition
+                          AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
+                        }
+                      },
                       child: Text(
                         'Logout',
                         style: OpstechTextTheme.heading3.copyWith(

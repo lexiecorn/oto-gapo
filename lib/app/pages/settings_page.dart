@@ -1,11 +1,13 @@
 // ignore_for_file: prefer_single_quotes
 
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/admin_page.dart';
 import 'package:otogapo/app/pages/current_user_account_page.dart';
+import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/providers/theme_provider.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:provider/provider.dart';
@@ -322,7 +324,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
                     if (shouldLogout == true && mounted) {
                       // Show loading dialog
-                      showDialog(
+                      showDialog<void>(
                         context: context,
                         barrierDismissible: false,
                         builder: (BuildContext context) {
@@ -374,20 +376,17 @@ class _SettingsPageState extends State<SettingsPage> {
       // Use AuthBloc to handle logout properly
       context.read<AuthBloc>().add(SignoutRequestedEvent());
 
-      // Wait a moment for the logout to complete
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // Navigate to login screen
+      // Navigate back to splash page which will handle the auth state transition
       if (mounted) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
+        AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
       }
 
-      debugPrint('Logout completed and navigated to login screen');
+      debugPrint('Logout completed and navigated to splash page');
     } catch (e) {
       debugPrint('Error during logout: $e');
-      // Still navigate to login screen even if logout fails
+      // Still navigate to splash page even if logout fails
       if (mounted) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
+        AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
       }
     }
   }

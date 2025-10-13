@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/signin/bloc/signin_cubit.dart';
 import 'package:otogapo/app/modules/utils/error_dialog.dart';
+import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo_core/otogapo_core.dart';
 import 'package:validators/validators.dart';
 
@@ -43,7 +44,7 @@ class SigninPageState extends State<SigninPage> {
       final signinCubit = context.read<SigninCubit>();
 
       if (context.mounted) {
-        // Use PocketBase OAuth directly
+        // Use PocketBase native Google OAuth
         signinCubit.signinWithGoogleOAuth();
       }
     } catch (error) {
@@ -75,6 +76,10 @@ class SigninPageState extends State<SigninPage> {
                 state.error.code,
                 state.error.plugin,
               );
+            } else if (state.signinStatus == SigninStatus.success) {
+              // Navigate to splash page which will handle auth state transition
+              debugPrint('SigninPage - Signin successful, navigating to splash page');
+              AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
             }
           },
           builder: (context, state) {
@@ -213,14 +218,23 @@ class SigninPageState extends State<SigninPage> {
                                 ],
                               ),
                               child: IconButton(
-                                onPressed: () {
-                                  state.signinStatus == SigninStatus.submitting ? null : _handleGoogleSignIn(context);
-                                },
-                                icon: Image.asset(
-                                  'assets/icons/goog.png',
-                                  height: 24,
-                                  width: 24,
-                                ),
+                                onPressed: state.signinStatus == SigninStatus.submitting
+                                    ? null
+                                    : () => _handleGoogleSignIn(context),
+                                icon: state.signinStatus == SigninStatus.submitting
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                                        ),
+                                      )
+                                    : Image.asset(
+                                        'assets/icons/goog.png',
+                                        height: 24,
+                                        width: 24,
+                                      ),
                               ),
                             ),
                           ],

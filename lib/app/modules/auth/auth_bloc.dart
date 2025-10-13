@@ -14,9 +14,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.authRepository,
     required this.pocketBaseAuth,
   }) : super(AuthState.unknown()) {
+    _isLoggingOut = false;
+
     // Listen to PocketBase auth changes
     authSubsription = pocketBaseAuth.user.listen((RecordModel? user) {
-      add(AuthStateChangedEvent(user: user));
+      // Don't process auth changes during logout to prevent race conditions
+      if (!_isLoggingOut) {
+        add(AuthStateChangedEvent(user: user));
+      }
     });
 
     on<AuthStateChangedEvent>((event, emit) {
@@ -71,6 +76,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignoutRequestedEvent>((event, emit) async {
       try {
         log('Signout requested...');
+        _isLoggingOut = true; // Prevent stream listener from interfering
         emit(state.copyWith(authStatus: AuthStatus.unknown));
 
         await pocketBaseAuth.signOut();
@@ -78,10 +84,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         // Immediately emit unauthenticated state
         emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
         log('Signout completed successfully');
+
+        // Re-enable stream listener after a short delay
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          _isLoggingOut = false;
+        });
       } catch (e) {
         log('Error during signout: $e');
         // Still emit unauthenticated state even if there's an error
         emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
+        _isLoggingOut = false; // Re-enable stream listener
       }
     });
 
@@ -142,4 +154,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   late final StreamSubscription<RecordModel?> authSubsription;
   final AuthRepository authRepository;
   final PocketBaseAuthRepository pocketBaseAuth;
+
+  // Flag to prevent race conditions during logout
+  bool _isLoggingOut = false;
 }
