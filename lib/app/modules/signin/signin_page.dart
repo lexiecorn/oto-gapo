@@ -197,47 +197,82 @@ class SigninPageState extends State<SigninPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 40),
-                        // Google login button
+                        const SizedBox(height: 20),
+                        // OR divider
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.3),
-                                    spreadRadius: 1,
-                                    blurRadius: 5,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
+                            Expanded(
+                              child: Divider(
+                                color: Colors.grey.withOpacity(0.5),
+                                thickness: 1,
                               ),
-                              child: IconButton(
-                                onPressed: state.signinStatus == SigninStatus.submitting
-                                    ? null
-                                    : () => _handleGoogleSignIn(context),
-                                icon: state.signinStatus == SigninStatus.submitting
-                                    ? const SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-                                        ),
-                                      )
-                                    : Image.asset(
-                                        'assets/icons/goog.png',
-                                        height: 24,
-                                        width: 24,
-                                      ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                'OR',
+                                style: TextStyle(
+                                  color: Colors.grey.withOpacity(0.7),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Divider(
+                                color: Colors.grey.withOpacity(0.5),
+                                thickness: 1,
                               ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 20),
+                        // Google login button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: state.signinStatus == SigninStatus.submitting
+                                ? null
+                                : () => _handleGoogleSignIn(context),
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              backgroundColor: Colors.white,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: state.signinStatus == SigninStatus.submitting
+                                  ? const SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                                      ),
+                                    )
+                                  : Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset(
+                                          'assets/icons/goog.png',
+                                          height: 24,
+                                          width: 24,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          'Sign in with Google',
+                                          style: OpstechTextTheme.heading3.copyWith(
+                                            color: Colors.black87,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 10),
                       ],
