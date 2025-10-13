@@ -622,43 +622,47 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                 ),
               ],
             ),
-            SizedBox(height: 12.sp),
+            SizedBox(height: 8.sp),
             // Summary Row - Always visible
-            Row(
-              children: [
-                Expanded(
-                  child: _buildSummaryItem(
-                    'Paid',
-                    _paidCount.toString(),
-                    Icons.check_circle,
-                    Colors.green,
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4.sp),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: _buildSummaryItem(
+                      'Paid',
+                      _paidCount.toString(),
+                      Icons.check_circle,
+                      Colors.green,
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _buildSummaryItem(
-                    'Unpaid',
-                    _unpaidCount.toString(),
-                    Icons.cancel,
-                    Colors.red,
+                  Expanded(
+                    child: _buildSummaryItem(
+                      'Unpaid',
+                      _unpaidCount.toString(),
+                      Icons.cancel,
+                      Colors.red,
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _buildSummaryItem(
-                    'Advance',
-                    _advanceCount.toString(),
-                    Icons.fast_forward,
-                    Colors.purple,
+                  Expanded(
+                    child: _buildSummaryItem(
+                      'Advance',
+                      _advanceCount.toString(),
+                      Icons.fast_forward,
+                      Colors.purple,
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _buildSummaryItem(
-                    'Total',
-                    '₱${_totalAmount.toInt()}',
-                    Icons.account_balance_wallet,
-                    Colors.blue,
+                  Expanded(
+                    child: _buildSummaryItem(
+                      'Total',
+                      '₱${_totalAmount.toInt()}',
+                      Icons.account_balance_wallet,
+                      Colors.blue,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -848,24 +852,31 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
 
   Widget _buildSummaryItem(String title, String value, IconData icon, Color color) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: color, size: 20.sp)
+        Icon(icon, color: color, size: 18.sp)
             .animate()
             .fadeIn(delay: 300.ms, duration: 600.ms)
             .scale(delay: 400.ms, duration: 400.ms, curve: Curves.easeOutBack),
         SizedBox(height: 4.sp),
         Text(
           value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 16.sp,
+            fontSize: 14.sp,
             fontWeight: FontWeight.bold,
             color: color,
           ),
         ).animate().fadeIn(delay: 500.ms, duration: 600.ms).slideY(begin: 0.2, duration: 600.ms),
         Text(
           title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 10.sp,
+            fontSize: 9.sp,
             color: Colors.grey,
           ),
         ).animate().fadeIn(delay: 600.ms, duration: 600.ms).slideY(begin: 0.2, duration: 600.ms),
