@@ -1,12 +1,11 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/announcements.dart';
-import 'package:otogapo/app/widgets/CarouselViewFromFirebase.dart';
+import 'package:otogapo/app/widgets/carousel_view_from_pocketbase.dart';
 
 @RoutePage(
   name: 'HomeBodyRouter',
@@ -19,10 +18,6 @@ class HomeBody extends StatefulWidget {
 }
 
 class HomeBodyState extends State<HomeBody> {
-  final FirebaseStorage storage = FirebaseStorage.instance;
-  late Reference storageRef;
-  String userProfile = '';
-
   final ScrollController _announcementScrolllController = ScrollController();
   @override
   void initState() {
@@ -137,7 +132,7 @@ class HomeBodyState extends State<HomeBody> {
               Container(
                 color: Colors.black,
                 height: 220.h,
-                child: const CarouselViewFromFirebase(),
+                child: const CarouselViewFromPocketbase(),
               ),
 
               // Announcements Widget takes the remaining space

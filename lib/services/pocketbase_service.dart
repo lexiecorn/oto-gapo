@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_flavor/flutter_flavor.dart';
+import 'package:http/http.dart' show MultipartFile;
 import 'package:otogapo/models/monthly_dues.dart';
 import 'package:otogapo/utils/payment_statistics_utils.dart';
 import 'package:pocketbase/pocketbase.dart';
@@ -109,10 +110,16 @@ class PocketBaseService {
 
   // Get announcements
   Future<List<RecordModel>> getAnnouncements() async {
-    final result = await pb.collection('Announcements').getList(
-          sort: '-created',
-        );
-    return result.items;
+    try {
+      await _ensureAuthenticated();
+      final result = await pb.collection('Announcements').getList(
+            sort: '-created',
+          );
+      return result.items;
+    } catch (e) {
+      print('Error getting announcements: $e');
+      return [];
+    }
   }
 
   // Create announcement
@@ -530,6 +537,160 @@ class PocketBaseService {
   // Subscribe to monthly dues updates
   Future<UnsubscribeFunc> subscribeToMonthlyDues(void Function(RecordModel) onUpdate) async {
     return pb.collection('monthly_dues').subscribe('*', (e) {
+      if ((e.action == 'create' || e.action == 'update' || e.action == 'delete') && e.record != null) {
+        onUpdate(e.record!);
+      }
+    });
+  }
+
+  // Gallery Images Methods
+
+  /// Get all active gallery images sorted by display_order
+  Future<List<RecordModel>> getActiveGalleryImages() async {
+    try {
+      await _ensureAuthenticated();
+      final result = await pb.collection('gallery_images').getList(
+            filter: 'is_active = true',
+            sort: '+display_order',
+            expand: 'uploaded_by',
+          );
+      return result.items;
+    } catch (e) {
+      print('Error getting active gallery images: $e');
+      return [];
+    }
+  }
+
+  /// Get all gallery images (admin only)
+  Future<List<RecordModel>> getAllGalleryImages() async {
+    try {
+      await _ensureAuthenticated();
+      final result = await pb.collection('gallery_images').getList(
+            sort: '+display_order',
+            expand: 'uploaded_by',
+          );
+      return result.items;
+    } catch (e) {
+      print('Error getting all gallery images: $e');
+      return [];
+    }
+  }
+
+  /// Create a new gallery image
+  Future<RecordModel> createGalleryImage({
+    required String imageFilePath,
+    required String uploadedBy,
+    String? title,
+    String? description,
+    int displayOrder = 0,
+    bool isActive = true,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+      final body = <String, dynamic>{
+        'image': await MultipartFile.fromPath('image', imageFilePath),
+        'uploaded_by': uploadedBy,
+        'display_order': displayOrder,
+        'is_active': isActive,
+      };
+
+      if (title != null && title.isNotEmpty) {
+        body['title'] = title;
+      }
+      if (description != null && description.isNotEmpty) {
+        body['description'] = description;
+      }
+
+      return await pb.collection('gallery_images').create(body: body);
+    } catch (e) {
+      print('Error creating gallery image: $e');
+      rethrow;
+    }
+  }
+
+  /// Update gallery image metadata
+  Future<RecordModel> updateGalleryImage({
+    required String imageId,
+    String? imageFilePath,
+    String? title,
+    String? description,
+    int? displayOrder,
+    bool? isActive,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+      final body = <String, dynamic>{};
+
+      if (imageFilePath != null) {
+        body['image'] = await MultipartFile.fromPath('image', imageFilePath);
+      }
+      if (title != null) {
+        body['title'] = title;
+      }
+      if (description != null) {
+        body['description'] = description;
+      }
+      if (displayOrder != null) {
+        body['display_order'] = displayOrder;
+      }
+      if (isActive != null) {
+        body['is_active'] = isActive;
+      }
+
+      return await pb.collection('gallery_images').update(imageId, body: body);
+    } catch (e) {
+      print('Error updating gallery image: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete a gallery image
+  Future<void> deleteGalleryImage(String imageId) async {
+    try {
+      await _ensureAuthenticated();
+      await pb.collection('gallery_images').delete(imageId);
+    } catch (e) {
+      print('Error deleting gallery image: $e');
+      rethrow;
+    }
+  }
+
+  /// Reorder gallery images by updating display_order
+  Future<void> reorderGalleryImages(List<Map<String, dynamic>> imageOrders) async {
+    try {
+      for (final order in imageOrders) {
+        await pb.collection('gallery_images').update(
+          order['id'] as String,
+          body: {'display_order': order['order']},
+        );
+      }
+    } catch (e) {
+      print('Error reordering gallery images: $e');
+      rethrow;
+    }
+  }
+
+  /// Get image URL from PocketBase
+  String getGalleryImageUrl(RecordModel record, {String? thumb}) {
+    final filename = record.data['image'] as String?;
+    if (filename == null || filename.isEmpty) {
+      return '';
+    }
+
+    final baseUrl = pb.baseUrl;
+    final collectionId = record.collectionId;
+    final recordId = record.id;
+
+    if (thumb != null && thumb.isNotEmpty) {
+      return '$baseUrl/api/files/$collectionId/$recordId/$filename?thumb=$thumb';
+    }
+
+    return '$baseUrl/api/files/$collectionId/$recordId/$filename';
+  }
+
+  /// Subscribe to gallery images updates
+  Future<UnsubscribeFunc> subscribeToGalleryImages(void Function(RecordModel) onUpdate) async {
+    return pb.collection('gallery_images').subscribe('*', (e) {
       if ((e.action == 'create' || e.action == 'update' || e.action == 'delete') && e.record != null) {
         onUpdate(e.record!);
       }

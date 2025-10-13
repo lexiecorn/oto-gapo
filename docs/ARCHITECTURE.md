@@ -66,8 +66,10 @@ lib/
 │   │       └── signup_page.dart  # Sign-up UI
 │   ├── pages/                   # Application pages/screens
 │   │   ├── home_page.dart      # Main home page
+│   │   ├── home_body.dart      # Home page content with carousel
 │   │   ├── splash_page.dart    # Splash screen
 │   │   ├── admin_page.dart     # Admin dashboard
+│   │   ├── gallery_management_page.dart  # Gallery admin (admin only)
 │   │   ├── settings_page.dart  # Settings page
 │   │   └── ...                 # Other pages
 │   ├── routes/                 # Navigation routing
@@ -76,7 +78,7 @@ lib/
 │   ├── view/                   # App shell and main views
 │   │   └── app.dart           # Main app widget
 │   └── widgets/               # Reusable UI components
-│       ├── CarouselViewFromFirebase.dart
+│       ├── carousel_view_from_pocketbase.dart  # Gallery carousel
 │       └── ...
 ├── bootstrap.dart             # App initialization
 ├── main_development.dart      # Development entry point
@@ -303,6 +305,52 @@ class AuthRepositoryImpl implements AuthRepository {
 2. **PocketBase** - Primary data management
 3. **Local Storage** - Offline data and caching
 4. **HTTP Client** - API communications
+
+### PocketBase Collections
+
+The app uses PocketBase (https://pb.lexserver.org/) for data management with the following collections:
+
+#### users
+
+- User profile data
+- Authentication information
+- Membership details
+- Vehicle information
+
+#### monthly_dues
+
+- Payment tracking
+- Due dates and amounts
+- Payment history
+
+#### Announcements
+
+- System-wide announcements
+- News and updates
+
+#### gallery_images
+
+- Homepage carousel images
+- Managed by admin users
+- Fields:
+  - `image` (file) - The gallery image
+  - `title` (text) - Optional image title
+  - `description` (text) - Optional description
+  - `display_order` (number) - Sort order for carousel
+  - `is_active` (bool) - Show/hide in carousel
+  - `uploaded_by` (relation) - Admin who uploaded
+  - `created` (autodate) - Upload timestamp
+  - `updated` (autodate) - Last update timestamp
+
+**API Rules:**
+
+- View: Authenticated users only
+- Create/Update/Delete: Admins only (membership_type 1 or 2)
+
+#### app_data
+
+- Application configuration
+- System settings
 
 ### Data Flow
 
@@ -570,6 +618,126 @@ class UserBuilder {
 - **Input validation** - Validate all user inputs
 - **Secure storage** - Use encrypted storage for sensitive data
 - **Authentication checks** - Verify permissions before operations
+
+## Admin Features
+
+The application includes comprehensive admin functionality for managing users, payments, and content.
+
+### Admin Access Control
+
+Admin access is controlled by the `membership_type` field in the user profile:
+
+- **Type 1**: Super Admin (full access)
+- **Type 2**: Admin (full access)
+- **Type 3+**: Regular users (no admin access)
+
+### Admin Dashboard
+
+Location: `lib/app/pages/admin_page.dart`
+
+The admin dashboard provides centralized access to:
+
+1. **User Management** - Manage all user accounts
+2. **Payment Management** - Track and manage monthly dues
+3. **Gallery Management** - Manage homepage carousel images
+4. **Analytics** - View system analytics (planned)
+5. **System Settings** - Configure application (planned)
+
+### Gallery Management System
+
+Location: `lib/app/pages/gallery_management_page.dart`
+
+#### Overview
+
+The gallery management system allows admin users to manage the homepage carousel images displayed to all users. Images are stored in PocketBase with rich metadata.
+
+#### Features
+
+**Upload**
+
+- Image picker integration
+- Metadata collection (title, description, display order)
+- Active/inactive status toggle
+- Automatic display order assignment
+
+**Edit**
+
+- Update image metadata
+- Replace image file
+- Change display order
+- Toggle active status
+
+**Delete**
+
+- Confirmation dialog
+- Permanent deletion from PocketBase
+
+**View**
+
+- Grid view of all gallery images
+- Visual indicators for active/inactive status
+- Display order badges
+- Thumbnail previews
+
+#### Workflow
+
+```
+1. Admin navigates to Admin Panel
+2. Selects "Gallery Management"
+3. Views all gallery images in grid
+4. Performs actions:
+   - Upload: Pick image → Enter metadata → Save
+   - Edit: Click edit → Modify fields → Save
+   - Delete: Click delete → Confirm → Remove
+   - Toggle: Click visibility icon → Update status
+```
+
+#### Data Flow
+
+```
+GalleryManagementPage
+  ↓
+PocketBaseService
+  ↓
+PocketBase API (https://pb.lexserver.org/)
+  ↓
+gallery_images collection
+```
+
+#### Service Methods
+
+Location: `lib/services/pocketbase_service.dart`
+
+- `getActiveGalleryImages()` - Fetch visible images for carousel
+- `getAllGalleryImages()` - Fetch all images (admin only)
+- `createGalleryImage()` - Upload new image with metadata
+- `updateGalleryImage()` - Update image or metadata
+- `deleteGalleryImage()` - Remove image
+- `getGalleryImageUrl()` - Generate image URL
+
+### Homepage Carousel
+
+Location: `lib/app/widgets/carousel_view_from_pocketbase.dart`
+
+The carousel displays active gallery images to all authenticated users:
+
+- Fetches only active images (`is_active = true`)
+- Sorted by `display_order` (ascending)
+- Auto-plays with 5-second intervals
+- Displays optional title overlay
+- Error handling and loading states
+- Responsive sizing with ScreenUtil
+
+#### Integration
+
+```dart
+// In home_body.dart
+Container(
+  color: Colors.black,
+  height: 220.h,
+  child: const CarouselViewFromPocketbase(),
+)
+```
 
 ## Flavor Architecture
 

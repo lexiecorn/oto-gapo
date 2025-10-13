@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
+import 'package:otogapo/app/pages/gallery_management_page.dart';
 import 'package:otogapo/app/pages/payment_management_page.dart';
 import 'package:otogapo/app/pages/user_management_page.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
@@ -158,6 +159,17 @@ class _AdminPageState extends State<AdminPage> {
                       // Navigate to payment management
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(builder: (context) => const PaymentManagementPage()),
+                      );
+                    },
+                  ),
+                  _buildAdminCard(
+                    icon: Icons.photo_library,
+                    title: 'Gallery Management',
+                    subtitle: 'Manage carousel images',
+                    onTap: () {
+                      // Navigate to gallery management
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(builder: (context) => const GalleryManagementPage()),
                       );
                     },
                   ),

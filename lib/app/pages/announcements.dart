@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 
 class AnnouncementsWidget extends StatefulWidget {
@@ -14,6 +16,7 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
   final ScrollController _scrollController = ScrollController();
   List<Map<String, dynamic>> _announcements = [];
   bool _isLoading = true;
+  bool _hasTriedFetching = false;
   String _errorMessage = '';
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -35,20 +38,34 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
     _fadeAnimation = Tween<double>(
       begin: 0,
       end: 1,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    ),);
+    ).animate(
+      CurvedAnimation(
+        parent: _fadeController,
+        curve: Curves.easeInOut,
+      ),
+    );
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ),);
+    ).animate(
+      CurvedAnimation(
+        parent: _slideController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
 
-    _fetchAnnouncements();
+    // Don't fetch immediately - wait for authentication
+  }
+
+  void _checkAuthAndFetch() {
+    final authState = context.read<AuthBloc>().state;
+
+    // Only fetch if user is authenticated and we haven't tried yet
+    if (authState.authStatus == AuthStatus.authenticated && authState.user != null && !_hasTriedFetching) {
+      _hasTriedFetching = true;
+      _fetchAnnouncements();
+    }
   }
 
   @override
@@ -121,6 +138,30 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
 
   @override
   Widget build(BuildContext context) {
+    // Check authentication status and fetch data if ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAuthAndFetch();
+    });
+
+    // If user is not authenticated yet, show loading
+    final authState = context.read<AuthBloc>().state;
+    if (authState.authStatus != AuthStatus.authenticated || authState.user == null) {
+      return Container(
+        height: 200.sp,
+        padding: EdgeInsets.all(16.sp),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16.sp),
+          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).colorScheme.surface : Colors.white,
+          border: Border.all(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Theme.of(context).colorScheme.outline.withOpacity(0.2)
+                : Colors.grey.shade200,
+          ),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
 
