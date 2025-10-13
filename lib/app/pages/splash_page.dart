@@ -51,6 +51,12 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
+      // Listen to every state change to avoid missing transitions
+      listenWhen: (previous, current) {
+        // Always listen to state changes
+        debugPrint('SplashPage - State change: ${previous.authStatus} -> ${current.authStatus}');
+        return true;
+      },
       listener: (context, state) {
         debugPrint('SplashPage - Auth state changed: ${state.authStatus}');
         debugPrint('SplashPage - User: ${state.user?.data['email']}');
@@ -60,13 +66,22 @@ class _SplashPageState extends State<SplashPage> {
         if (state.authStatus == AuthStatus.unauthenticated) {
           _timeoutTimer?.cancel();
           debugPrint('SplashPage - Navigating to signin page');
-          AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
+          // Use a small delay to ensure any pending state changes complete
+          Future.microtask(() {
+            if (context.mounted) {
+              AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
+            }
+          });
         } else if (state.authStatus == AuthStatus.authenticated) {
           _timeoutTimer?.cancel();
           debugPrint('SplashPage - Navigating to intro page');
-          AutoRouter.of(context).replaceAll([
-            const IntroPageRouter(),
-          ]);
+          Future.microtask(() {
+            if (context.mounted) {
+              AutoRouter.of(context).replaceAll([
+                const IntroPageRouter(),
+              ]);
+            }
+          });
         } else {
           debugPrint('SplashPage - Auth status is unknown, keeping loading state');
         }

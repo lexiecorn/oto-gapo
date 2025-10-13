@@ -373,20 +373,36 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       debugPrint('Starting logout process...');
 
-      // Use AuthBloc to handle logout properly
-      context.read<AuthBloc>().add(SignoutRequestedEvent());
+      final authBloc = context.read<AuthBloc>();
 
-      // Navigate back to splash page which will handle the auth state transition
+      // Add logout event
+      authBloc.add(SignoutRequestedEvent());
+
+      // Wait for the logout to complete by listening to state changes
+      await authBloc.stream
+          .firstWhere(
+        (state) => state.authStatus == AuthStatus.unauthenticated,
+        orElse: () => authBloc.state,
+      )
+          .timeout(
+        const Duration(seconds: 3),
+        onTimeout: () {
+          debugPrint('Logout timeout - forcing navigation');
+          return authBloc.state;
+        },
+      );
+
+      debugPrint('Logout completed, navigating to signin page');
+
+      // Navigate directly to signin page after logout completes
       if (mounted) {
-        AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
+        AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
       }
-
-      debugPrint('Logout completed and navigated to splash page');
     } catch (e) {
       debugPrint('Error during logout: $e');
-      // Still navigate to splash page even if logout fails
+      // Still navigate to signin page even if logout fails
       if (mounted) {
-        AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
+        AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
       }
     }
   }

@@ -136,9 +136,31 @@ class _PickerSideBarState extends State<PickerSideBar> {
                         );
 
                         if (shouldLogout == true && context.mounted) {
-                          context.read<AuthBloc>().add(SignoutRequestedEvent());
-                          // Navigate to splash page to handle auth state transition
-                          AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
+                          final authBloc = context.read<AuthBloc>();
+
+                          // Add logout event
+                          authBloc.add(SignoutRequestedEvent());
+
+                          // Wait for the logout to complete
+                          await authBloc.stream
+                              .firstWhere(
+                            (state) => state.authStatus == AuthStatus.unauthenticated,
+                            orElse: () => authBloc.state,
+                          )
+                              .timeout(
+                            const Duration(seconds: 3),
+                            onTimeout: () {
+                              debugPrint('Logout timeout - forcing navigation');
+                              return authBloc.state;
+                            },
+                          );
+
+                          debugPrint('Logout completed, navigating to signin page');
+
+                          // Navigate directly to signin page after logout completes
+                          if (context.mounted) {
+                            AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
+                          }
                         }
                       },
                       icon: Icon(
@@ -170,9 +192,31 @@ class _PickerSideBarState extends State<PickerSideBar> {
                         );
 
                         if (shouldLogout == true && context.mounted) {
-                          context.read<AuthBloc>().add(SignoutRequestedEvent());
-                          // Navigate to splash page to handle auth state transition
-                          AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
+                          final authBloc = context.read<AuthBloc>();
+
+                          // Add logout event
+                          authBloc.add(SignoutRequestedEvent());
+
+                          // Wait for the logout to complete
+                          await authBloc.stream
+                              .firstWhere(
+                            (state) => state.authStatus == AuthStatus.unauthenticated,
+                            orElse: () => authBloc.state,
+                          )
+                              .timeout(
+                            const Duration(seconds: 3),
+                            onTimeout: () {
+                              debugPrint('Logout timeout - forcing navigation');
+                              return authBloc.state;
+                            },
+                          );
+
+                          debugPrint('Logout completed, navigating to signin page');
+
+                          // Navigate directly to signin page after logout completes
+                          if (context.mounted) {
+                            AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
+                          }
                         }
                       },
                       child: Text(
