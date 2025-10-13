@@ -439,6 +439,9 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
 
   Future<void> _loadPaymentData() async {
     try {
+      // Check if widget is still mounted before starting
+      if (!mounted) return;
+
       setState(() {
         _isLoading = true;
       });
@@ -449,12 +452,18 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
       // Debug: Let's see ALL monthly dues records first
       await pocketBaseService.debugAllMonthlyDues();
 
+      // Check if still mounted after async operation
+      if (!mounted) return;
+
       // If no records exist, create test records
       final allDues = await pocketBaseService.getAllMonthlyDues();
       if (allDues.isEmpty) {
         print('No monthly dues records found, creating test records...');
         await pocketBaseService.createTestMonthlyDues(widget.userId);
       }
+
+      // Check if still mounted after async operation
+      if (!mounted) return;
 
       // First, let's check what user data we have
       try {
@@ -475,6 +484,9 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
       } catch (e) {
         print('PaymentStatusCard - Error getting user record: $e');
       }
+
+      // Check if still mounted after async operation
+      if (!mounted) return;
 
       // Get payment statistics
       final stats = await pocketBaseService.getPaymentStatistics(widget.userId);
@@ -497,6 +509,9 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
       } catch (e) {
         print('PaymentStatusCard - Error getting all monthly dues: $e');
       }
+
+      // Check if still mounted after async operations
+      if (!mounted) return;
 
       final recentPayments = <Map<String, dynamic>>[];
 
@@ -529,6 +544,9 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
       // Take only the last 6 payments for display
       final displayPayments = recentPayments.take(6).toList();
 
+      // Final mounted check before setState
+      if (!mounted) return;
+
       setState(() {
         _paidCount = stats['paid'] ?? 0;
         _unpaidCount = stats['unpaid'] ?? 0;
@@ -539,6 +557,8 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
       });
     } catch (e) {
       print('Error loading payment data: $e');
+      // Check mounted before setState in error handler
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
