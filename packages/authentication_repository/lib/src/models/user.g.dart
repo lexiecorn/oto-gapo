@@ -14,8 +14,8 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
       gender: json['gender'] as String,
       memberNumber: json['memberNumber'] as String,
       civilStatus: json['civilStatus'] as String,
-      dateOfBirth: TimestampConverter.fromJson(json['dateOfBirth']),
-      birthplace: json['birthplace'] as String,
+      birthDate: TimestampConverter.fromJsonNullable(json['birthDate']),
+      age: json['age'] as num?,
       nationality: json['nationality'] as String,
       emergencyContactNumber: json['emergencyContactNumber'] as String?,
       driversLicenseNumber: json['driversLicenseNumber'] as String?,
@@ -29,7 +29,7 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
       spouseName: json['spouseName'] as String?,
       spouseContactNumber: json['spouseContactNumber'] as String?,
       emergencyContactName: json['emergencyContactName'] as String?,
-      profile_image: json['profile_image'] as String?,
+      profileImage: json['profileImage'] as String?,
       membership_type: json['membership_type'] as num?,
     );
 
@@ -42,8 +42,8 @@ Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
       'gender': instance.gender,
       'memberNumber': instance.memberNumber,
       'civilStatus': instance.civilStatus,
-      'dateOfBirth': TimestampConverter.toJson(instance.dateOfBirth),
-      'birthplace': instance.birthplace,
+      'birthDate': TimestampConverter.toJsonNullable(instance.birthDate),
+      'age': instance.age,
       'nationality': instance.nationality,
       'emergencyContactNumber': instance.emergencyContactNumber,
       'driversLicenseNumber': instance.driversLicenseNumber,
@@ -56,6 +56,6 @@ Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
       'spouseName': instance.spouseName,
       'spouseContactNumber': instance.spouseContactNumber,
       'emergencyContactName': instance.emergencyContactName,
-      'profile_image': instance.profile_image,
+      'profileImage': instance.profileImage,
       'membership_type': instance.membership_type,
     };

@@ -17,4 +17,14 @@ class TimestampConverter {
   }
 
   static int toJson(Timestamp object) => object.millisecondsSinceEpoch;
+
+  static Timestamp? fromJsonNullable(dynamic json) {
+    if (json == null) return null;
+    if (json.runtimeType == Timestamp) {
+      return json as Timestamp;
+    }
+    return Timestamp.fromMicrosecondsSinceEpoch(json as int);
+  }
+
+  static int? toJsonNullable(Timestamp? object) => object?.millisecondsSinceEpoch;
 }

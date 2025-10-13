@@ -17,8 +17,9 @@ abstract class User with _$User {
     required String gender,
     required String memberNumber,
     required String civilStatus,
-    @JsonKey(fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson) required Timestamp dateOfBirth,
-    required String birthplace,
+    @JsonKey(fromJson: TimestampConverter.fromJsonNullable, toJson: TimestampConverter.toJsonNullable)
+    Timestamp? birthDate,
+    num? age,
     required String nationality,
     String? emergencyContactNumber,
     // Driver's License information
@@ -36,7 +37,7 @@ abstract class User with _$User {
     String? spouseContactNumber,
     // Emergency Contact
     String? emergencyContactName,
-    String? profile_image,
+    String? profileImage,
     /* 
     Membership Type
       1 - Super Admin
@@ -86,8 +87,8 @@ abstract class User with _$User {
         gender: '',
         memberNumber: '',
         civilStatus: '',
-        dateOfBirth: Timestamp.now(),
-        birthplace: '',
+        birthDate: null,
+        age: null,
         nationality: '',
         contactNumber: '',
         driversLicenseExpirationDate: Timestamp.now(),

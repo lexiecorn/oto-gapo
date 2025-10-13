@@ -1,5 +1,5 @@
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:intl/intl.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 
@@ -222,16 +222,19 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
     });
   }
 
-  // Helper method to get profile image download URL
-  Future<String?> _getProfileImageUrl(String userId, String? profileImageUri) async {
-    if (profileImageUri == null || profileImageUri.isEmpty) return null;
+  // Helper method to get profile image download URL for PocketBase
+  Future<String?> _getProfileImageUrl(String userId, String? profileImageFileName) async {
+    if (profileImageFileName == null || profileImageFileName.isEmpty) return null;
 
     try {
-      if (profileImageUri.startsWith('gs://')) {
-        final ref = FirebaseStorage.instance.refFromURL(profileImageUri);
-        return await ref.getDownloadURL();
+      // If it's already a full URL, return it
+      if (profileImageFileName.startsWith('http')) {
+        return profileImageFileName;
       }
-      return profileImageUri;
+
+      // Otherwise, construct the PocketBase file URL
+      final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+      return '$pocketbaseUrl/api/files/users/$userId/$profileImageFileName';
     } catch (e) {
       print('Error getting profile image URL: $e');
       return null;
@@ -696,7 +699,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                   radius: 18,
                   backgroundColor: Theme.of(context).primaryColor,
                   child: FutureBuilder<String?>(
-                    future: _getProfileImageUrl(user['id'] as String, user['profile_image'] as String?),
+                    future: _getProfileImageUrl(user['id'] as String, user['profileImage'] as String?),
                     builder: (context, snapshot) {
                       final profileImageUrl = snapshot.data;
                       return profileImageUrl == null
@@ -897,7 +900,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                           radius: 16,
                           backgroundColor: Theme.of(context).primaryColor,
                           child: FutureBuilder<String?>(
-                            future: _getProfileImageUrl(user['id'] as String, user['profile_image'] as String?),
+                            future: _getProfileImageUrl(user['id'] as String, user['profileImage'] as String?),
                             builder: (context, snapshot) {
                               final profileImageUrl = snapshot.data;
                               return profileImageUrl == null

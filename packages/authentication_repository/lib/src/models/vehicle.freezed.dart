@@ -20,6 +20,7 @@ Vehicle _$VehicleFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Vehicle {
+  String? get id => throw _privateConstructorUsedError; // PocketBase record ID
   String get make => throw _privateConstructorUsedError;
   String get model => throw _privateConstructorUsedError;
   String get year =>
@@ -46,7 +47,8 @@ abstract class $VehicleCopyWith<$Res> {
       _$VehicleCopyWithImpl<$Res, Vehicle>;
   @useResult
   $Res call(
-      {String make,
+      {String? id,
+      String make,
       String model,
       String year,
       String type,
@@ -72,6 +74,7 @@ class _$VehicleCopyWithImpl<$Res, $Val extends Vehicle>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = freezed,
     Object? make = null,
     Object? model = null,
     Object? year = null,
@@ -83,6 +86,10 @@ class _$VehicleCopyWithImpl<$Res, $Val extends Vehicle>
     Object? user = freezed,
   }) {
     return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
       make: null == make
           ? _value.make
           : make // ignore: cast_nullable_to_non_nullable
@@ -131,7 +138,8 @@ abstract class _$$VehicleImplCopyWith<$Res> implements $VehicleCopyWith<$Res> {
   @override
   @useResult
   $Res call(
-      {String make,
+      {String? id,
+      String make,
       String model,
       String year,
       String type,
@@ -155,6 +163,7 @@ class __$$VehicleImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = freezed,
     Object? make = null,
     Object? model = null,
     Object? year = null,
@@ -166,6 +175,10 @@ class __$$VehicleImplCopyWithImpl<$Res>
     Object? user = freezed,
   }) {
     return _then(_$VehicleImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
       make: null == make
           ? _value.make
           : make // ignore: cast_nullable_to_non_nullable
@@ -210,7 +223,8 @@ class __$$VehicleImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$VehicleImpl implements _Vehicle {
   const _$VehicleImpl(
-      {required this.make,
+      {this.id,
+      required this.make,
       required this.model,
       required this.year,
       required this.type,
@@ -224,6 +238,9 @@ class _$VehicleImpl implements _Vehicle {
   factory _$VehicleImpl.fromJson(Map<String, dynamic> json) =>
       _$$VehicleImplFromJson(json);
 
+  @override
+  final String? id;
+// PocketBase record ID
   @override
   final String make;
   @override
@@ -254,7 +271,7 @@ class _$VehicleImpl implements _Vehicle {
 
   @override
   String toString() {
-    return 'Vehicle(make: $make, model: $model, year: $year, type: $type, color: $color, plateNumber: $plateNumber, primaryPhoto: $primaryPhoto, photos: $photos, user: $user)';
+    return 'Vehicle(id: $id, make: $make, model: $model, year: $year, type: $type, color: $color, plateNumber: $plateNumber, primaryPhoto: $primaryPhoto, photos: $photos, user: $user)';
   }
 
   @override
@@ -262,6 +279,7 @@ class _$VehicleImpl implements _Vehicle {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$VehicleImpl &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.make, make) || other.make == make) &&
             (identical(other.model, model) || other.model == model) &&
             (identical(other.year, year) || other.year == year) &&
@@ -279,6 +297,7 @@ class _$VehicleImpl implements _Vehicle {
   @override
   int get hashCode => Object.hash(
       runtimeType,
+      id,
       make,
       model,
       year,
@@ -307,7 +326,8 @@ class _$VehicleImpl implements _Vehicle {
 
 abstract class _Vehicle implements Vehicle {
   const factory _Vehicle(
-      {required final String make,
+      {final String? id,
+      required final String make,
       required final String model,
       required final String year,
       required final String type,
@@ -319,6 +339,8 @@ abstract class _Vehicle implements Vehicle {
 
   factory _Vehicle.fromJson(Map<String, dynamic> json) = _$VehicleImpl.fromJson;
 
+  @override
+  String? get id; // PocketBase record ID
   @override
   String get make;
   @override

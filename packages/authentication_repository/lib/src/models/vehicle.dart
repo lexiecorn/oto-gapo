@@ -13,6 +13,7 @@ part 'vehicle.g.dart';
 @freezed
 abstract class Vehicle with _$Vehicle {
   const factory Vehicle({
+    String? id, // PocketBase record ID
     required String make,
     required String model,
     required String year, // Changed from int to String to match schema

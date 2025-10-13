@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:http/http.dart' show MultipartFile;
 import 'package:otogapo/models/monthly_dues.dart';
@@ -11,69 +12,80 @@ class PocketBaseService {
   PocketBaseService._internal();
   static final PocketBaseService _instance = PocketBaseService._internal();
 
-  PocketBase? _pb;
-  bool _isInitialized = false;
-
-  PocketBase get pb {
-    if (!_isInitialized) {
-      _pb = PocketBase(
-        FlavorConfig.instance.variables['pocketbaseUrl'] as String,
-      );
-      _isInitialized = true;
-    }
-    return _pb!;
-  }
+  // Use the shared PocketBase instance from PocketBaseAuthRepository
+  PocketBase get pb => PocketBaseAuthRepository().pocketBase;
 
   void init() {
-    // Lazy initialization - will be called when first accessed
-    if (!_isInitialized) {
-      _pb = PocketBase(
-        FlavorConfig.instance.variables['pocketbaseUrl'] as String,
-      );
-      _isInitialized = true;
-    }
+    // No-op: using shared instance from PocketBaseAuthRepository
   }
 
-  // Ensure authentication before any monthly dues operations
+  // Ensure authentication before any operations
   Future<void> _ensureAuthenticated() async {
     if (!pb.authStore.isValid) {
-      print('PocketBaseService - Not authenticated, authenticating with test account...');
-      await pb.collection('users').authWithPassword(
-            'ialexies@gmail.com',
-            'chachielex',
-          );
-      print('PocketBaseService - Authentication successful!');
-      print('PocketBaseService - Authenticated user ID: ${pb.authStore.model?.id}');
+      print('PocketBaseService - Not authenticated with PocketBase');
+      throw Exception('PocketBase authentication required. Please log in first.');
     } else {
       print('PocketBaseService - Already authenticated with user ID: ${pb.authStore.model?.id}');
     }
+
+    // Check the authenticated user's membership_type
+    try {
+      final currentUser = pb.authStore.model;
+      if (currentUser != null) {
+        print('PocketBaseService - Current user data: ${currentUser.data}');
+        print('PocketBaseService - Current user membership_type: ${currentUser.data['membership_type']}');
+        print('PocketBaseService - Current user email: ${currentUser.data['email']}');
+      }
+    } catch (e) {
+      print('PocketBaseService - Error getting current user data: $e');
+    }
   }
 
-  // Get user by Firebase UID
-  Future<RecordModel?> getUserByFirebaseUid(String firebaseUid) async {
+  // Authenticate with PocketBase using email and password
+  Future<void> authenticateWithPocketBase(String email, String password) async {
+    try {
+      await pb.collection('users').authWithPassword(email, password);
+      print('PocketBaseService - Authentication successful with: $email');
+    } catch (e) {
+      print('PocketBaseService - Authentication failed: $e');
+      rethrow;
+    }
+  }
+
+  // Get user by email
+  Future<RecordModel?> getUserByEmail(String email) async {
     try {
       final result = await pb.collection('users').getList(
-            filter: 'firebaseUid = "$firebaseUid"',
+            filter: 'email = "$email"',
             perPage: 1,
           );
-      return result.items.isNotEmpty ? result.items.first : null;
+      if (result.items.isNotEmpty) {
+        print('Found user by email: $email');
+        return result.items.first;
+      }
+
+      print('No user found with email: $email');
+      return null;
     } catch (e) {
-      print('Error getting user: $e');
+      print('Error getting user by email: $e');
       return null;
     }
   }
 
-  // Create user with Firebase UID
-  Future<RecordModel> createUserWithFirebaseUid({
-    required String firebaseUid,
+  // Create user in PocketBase
+  Future<RecordModel> createUser({
     required String email,
+    required String password,
     required String firstName,
     required String lastName,
     Map<String, dynamic>? additionalData,
   }) async {
+    await _ensureAuthenticated();
+
     final data = {
-      'firebaseUid': firebaseUid,
       'email': email,
+      'password': password,
+      'passwordConfirm': password,
       'firstName': firstName,
       'lastName': lastName,
       'isActive': true,
@@ -82,7 +94,17 @@ class PocketBaseService {
       ...?additionalData,
     };
 
-    return pb.collection('users').create(body: data);
+    print('PocketBaseService - Creating user with data: $data');
+
+    try {
+      final result = await pb.collection('users').create(body: data);
+      print('PocketBaseService - User created successfully: ${result.id}');
+      return result;
+    } catch (e) {
+      print('PocketBaseService - Error creating user: $e');
+      print('PocketBaseService - Error details: ${e.toString()}');
+      rethrow;
+    }
   }
 
   // Update user data
@@ -100,11 +122,84 @@ class PocketBaseService {
     return pb.collection('users').getOne(userId);
   }
 
+  // Create vehicle for user
+  Future<RecordModel> createVehicle({
+    required String userId,
+    required String color,
+    required String make,
+    required String model,
+    required String plateNumber,
+    required String type,
+    required int year,
+    String? primaryPhoto,
+    List<String>? photos,
+  }) async {
+    await _ensureAuthenticated();
+
+    final data = {
+      'user': userId,
+      'color': color,
+      'make': make,
+      'model': model,
+      'plateNumber': plateNumber,
+      'type': type,
+      'year': year,
+      if (primaryPhoto != null) 'primaryPhoto': primaryPhoto,
+      if (photos != null && photos.isNotEmpty) 'photos': photos,
+    };
+
+    print('PocketBaseService - Creating vehicle for user: $userId');
+    print('PocketBaseService - Vehicle data: $data');
+
+    try {
+      final result = await pb.collection('vehicles').create(body: data);
+      print('PocketBaseService - Vehicle created successfully: ${result.id}');
+      return result;
+    } catch (e) {
+      print('PocketBaseService - Error creating vehicle: $e');
+      rethrow;
+    }
+  }
+
+  // Get vehicles for user
+  Future<List<RecordModel>> getVehiclesByUser(String userId) async {
+    try {
+      final result = await pb.collection('vehicles').getList(
+            filter: 'user = "$userId"',
+          );
+      return result.items;
+    } catch (e) {
+      print('Error getting vehicles for user: $e');
+      return [];
+    }
+  }
+
+  // Update vehicle
+  Future<RecordModel> updateVehicle(String vehicleId, Map<String, dynamic> data) async {
+    return pb.collection('vehicles').update(vehicleId, body: data);
+  }
+
+  // Delete vehicle
+  Future<void> deleteVehicle(String vehicleId) async {
+    await pb.collection('vehicles').delete(vehicleId);
+  }
+
   // Get all users (admin only)
   Future<List<RecordModel>> getAllUsers() async {
+    await _ensureAuthenticated();
+    print('PocketBaseService - Getting all users...');
+    print('PocketBaseService - Authenticated user: ${pb.authStore.model?.id}');
+
     final result = await pb.collection('users').getList(
           sort: '-created',
+          perPage: 500, // Increase limit to get more users
         );
+
+    print('PocketBaseService - Found ${result.items.length} users');
+    for (final user in result.items) {
+      print('PocketBaseService - User: ${user.data['email']} (ID: ${user.id})');
+    }
+
     return result.items;
   }
 

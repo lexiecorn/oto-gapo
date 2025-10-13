@@ -82,22 +82,19 @@ class ProfileRepository {
         userData['profile_image'] = userData['profileImage'];
       }
 
-      // Handle date field conversion - only convert if it's a string
-      if (userData['birthplace'] != null) {
-        // birthplace is actually a date field in the schema
-        if (userData['birthplace'] is String) {
-          userData['dateOfBirth'] = Timestamp.fromDate(DateTime.parse(userData['birthplace'] as String));
-        }
-        // If it's already a Timestamp, leave it as is
+      // Handle date field conversion - PocketBase returns dates as ISO strings
+      if (userData['birthDate'] != null && userData['birthDate'] is String) {
+        userData['birthDate'] = Timestamp.fromDate(DateTime.parse(userData['birthDate'] as String));
       }
-      if (userData['driversLicenseExpirationDate'] != null) {
-        // Only convert if it's a string, otherwise leave the Timestamp as is
-        if (userData['driversLicenseExpirationDate'] is String) {
-          userData['driversLicenseExpirationDate'] =
-              Timestamp.fromDate(DateTime.parse(userData['driversLicenseExpirationDate'] as String));
-        }
-        // If it's already a Timestamp, leave it as is
+
+      if (userData['driversLicenseExpirationDate'] != null && userData['driversLicenseExpirationDate'] is String) {
+        userData['driversLicenseExpirationDate'] =
+            Timestamp.fromDate(DateTime.parse(userData['driversLicenseExpirationDate'] as String));
       }
+
+      // Remove legacy fields if they exist
+      userData.remove('dateOfBirth');
+      userData.remove('birthplace');
 
       final currentUser = my_auth_repo.User.fromJson(userData);
       print('ProfileRepository.getProfile - User created successfully');
@@ -126,6 +123,14 @@ class ProfileRepository {
       final authToken = pocketBaseAuth.pocketBase.authStore.token;
       final vehicles = vehicleRecords.map((record) {
         final vehicleData = Map<String, dynamic>.from(record.data);
+
+        // Add vehicle ID from record
+        vehicleData['id'] = record.id;
+
+        // Convert year from number to String (PocketBase returns number, model expects String)
+        if (vehicleData['year'] != null) {
+          vehicleData['year'] = vehicleData['year'].toString();
+        }
 
         // Normalize primaryPhoto if it's a filename (not a full URL)
         final primary = vehicleData['primaryPhoto'];
@@ -215,22 +220,19 @@ class ProfileRepository {
         userData['profile_image'] = userData['profileImage'];
       }
 
-      // Handle date field conversion - only convert if it's a string
-      if (userData['birthplace'] != null) {
-        // birthplace is actually a date field in the schema
-        if (userData['birthplace'] is String) {
-          userData['dateOfBirth'] = Timestamp.fromDate(DateTime.parse(userData['birthplace'] as String));
-        }
-        // If it's already a Timestamp, leave it as is
+      // Handle date field conversion - PocketBase returns dates as ISO strings
+      if (userData['birthDate'] != null && userData['birthDate'] is String) {
+        userData['birthDate'] = Timestamp.fromDate(DateTime.parse(userData['birthDate'] as String));
       }
-      if (userData['driversLicenseExpirationDate'] != null) {
-        // Only convert if it's a string, otherwise leave the Timestamp as is
-        if (userData['driversLicenseExpirationDate'] is String) {
-          userData['driversLicenseExpirationDate'] =
-              Timestamp.fromDate(DateTime.parse(userData['driversLicenseExpirationDate'] as String));
-        }
-        // If it's already a Timestamp, leave it as is
+
+      if (userData['driversLicenseExpirationDate'] != null && userData['driversLicenseExpirationDate'] is String) {
+        userData['driversLicenseExpirationDate'] =
+            Timestamp.fromDate(DateTime.parse(userData['driversLicenseExpirationDate'] as String));
       }
+
+      // Remove legacy fields if they exist
+      userData.remove('dateOfBirth');
+      userData.remove('birthplace');
 
       final currentUser = my_auth_repo.User.fromJson(userData);
       print('ProfileRepository.updateProfile - Profile updated successfully');

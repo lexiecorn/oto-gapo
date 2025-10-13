@@ -713,14 +713,12 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       final pocketBaseService = PocketBaseService();
 
       // Create user in PocketBase
-      final userRecord = await pocketBaseService.createUserWithFirebaseUid(
-        firebaseUid: '', // We'll generate a unique ID
+      final userRecord = await pocketBaseService.createUser(
         email: email,
+        password: password,
         firstName: firstName,
         lastName: lastName,
         additionalData: {
-          'password': password,
-          'passwordConfirm': password,
           'joinedDate': DateTime.now().toIso8601String(),
         },
       );
@@ -789,12 +787,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       // Update user data in PocketBase
       print('Updating PocketBase user data with ID: $uid');
       final userData = {
-        'age': age,
-        'birthplace': birthplace,
+        'age': age.isNotEmpty ? double.tryParse(age) : null,
+        'birthDate': dateOfBirth?.toIso8601String(), // Schema has birthDate as date field
         'bloodType': bloodType,
         'civilStatus': civilStatus,
         'contactNumber': contactNumber,
-        'dateOfBirth': dateOfBirth?.toIso8601String(),
         'driversLicenseExpirationDate': driversLicenseExpirationDate?.toIso8601String(),
         'driversLicenseNumber': driversLicenseNumber,
         'driversLicenseRestrictionCode': driversLicenseRestrictionCode,
@@ -803,39 +800,53 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         'emergencyContactNumber': emergencyContactNumber,
         'firstName': firstName,
         'gender': '', // Add gender field if needed
-        'id': uid, // Add the Firebase Auth UID to the document
+        'id': uid,
         'isActive': isActive,
         'isAdmin': isAdmin,
         'lastName': lastName,
-        'memberNumber': memberNumber,
+        'memberNumber': memberNumber.isNotEmpty ? double.tryParse(memberNumber) : null,
         'membership_type': membershipType,
         'middleName': middleName,
         'nationality': nationality,
-        'profile_image': profileImageUrl ?? profileImage, // Use uploaded image URL or fallback to text input
+        'profileImage': profileImageUrl ?? profileImage, // Use uploaded image URL or fallback to text input
         'religion': religion,
         'spouseContactNumber': spouseContactNumber,
         'spouseName': spouseName,
-        'vehicle': {
-          'color': vehicleColor,
-          'make': vehicleMake,
-          'model': vehicleModel,
-          'photos': [
-            ...vehiclePhotos,
-            if (carImage1Url != null) carImage1Url,
-            if (carImage2Url != null) carImage2Url,
-            if (carImage3Url != null) carImage3Url,
-            if (carImage4Url != null) carImage4Url,
-          ].where((url) => url.isNotEmpty).toList(),
-          'plateNumber': vehiclePlateNumber,
-          'primaryPhoto': mainCarImageUrl ?? vehiclePrimaryPhoto,
-          'type': vehicleType,
-          'year': vehicleYear,
-        },
       };
 
       // Update user in PocketBase
       await pocketBaseService.updateUser(uid, userData);
       print('PocketBase user updated successfully');
+
+      // Create vehicle record if vehicle data is provided
+      if (vehicleMake.isNotEmpty || vehicleModel.isNotEmpty || vehiclePlateNumber.isNotEmpty) {
+        print('Creating vehicle record for user: $uid');
+        try {
+          final vehiclePhotosUrls = [
+            ...vehiclePhotos,
+            if (carImage1Url != null) carImage1Url,
+            if (carImage2Url != null) carImage2Url,
+            if (carImage3Url != null) carImage3Url,
+            if (carImage4Url != null) carImage4Url,
+          ].where((url) => url.isNotEmpty).toList();
+
+          await pocketBaseService.createVehicle(
+            userId: uid,
+            color: vehicleColor,
+            make: vehicleMake,
+            model: vehicleModel,
+            plateNumber: vehiclePlateNumber,
+            type: vehicleType,
+            year: vehicleYear,
+            primaryPhoto: mainCarImageUrl ?? vehiclePrimaryPhoto,
+            photos: vehiclePhotosUrls.isNotEmpty ? vehiclePhotosUrls : null,
+          );
+          print('Vehicle record created successfully');
+        } catch (e) {
+          print('Error creating vehicle record: $e');
+          // Continue even if vehicle creation fails
+        }
+      }
 
       setState(() {
         _isCreatingUser = false;
@@ -1040,14 +1051,13 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       print('Creating PocketBase test user with email: $randomEmail');
       final pocketBaseService = PocketBaseService();
 
-      final userRecord = await pocketBaseService.createUserWithFirebaseUid(
-        firebaseUid: '', // Generate unique ID
+      final userRecord = await pocketBaseService.createUser(
         email: randomEmail,
+        password: '12345678',
         firstName: randomFirstName,
         lastName: randomLastName,
         additionalData: {
-          'password': '123456',
-          'passwordConfirm': '123456',
+          'passwordConfirm': '12345678',
         },
       );
 
@@ -1057,12 +1067,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       // Update user data in PocketBase
       print('Updating PocketBase test user data with ID: $uid');
       final userData = {
-        'age': randomAge.toString(),
-        'birthplace': randomBirthplace,
+        'age': randomAge,
+        'birthplace': randomDateOfBirth.toIso8601String(), // Schema has birthplace as date field (birthdate)
         'bloodType': randomBloodType,
         'civilStatus': randomCivilStatus,
         'contactNumber': randomPhoneNumber,
-        'dateOfBirth': randomDateOfBirth.toIso8601String(),
         'driversLicenseExpirationDate': randomLicenseExpiration.toIso8601String(),
         'driversLicenseNumber': _generateRandomString(12),
         'driversLicenseRestrictionCode': (Random().nextInt(9) + 1).toString(),
@@ -1079,27 +1088,34 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         'membership_type': 3, // Regular member
         'middleName': randomMiddleName,
         'nationality': 'Filipino',
-        'profile_image': '',
+        'profileImage': '',
         'religion': randomReligion,
         'spouseContactNumber': randomCivilStatus == 'Married' ? _getRandomPhoneNumber() : '',
         'spouseName': randomCivilStatus == 'Married'
             ? '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}'
             : '',
-        'vehicle': {
-          'color': randomVehicleColor,
-          'make': selectedMake,
-          'model': _vehicleModels.isNotEmpty ? _vehicleModels.first : 'yaris',
-          'photos': [],
-          'plateNumber': randomPlateNumber,
-          'primaryPhoto': '',
-          'type': randomVehicleType,
-          'year': randomVehicleYear,
-        },
       };
 
       // Update test user in PocketBase
       await pocketBaseService.updateUser(uid, userData);
       print('PocketBase test user updated successfully');
+
+      // Create vehicle record for test user
+      try {
+        await pocketBaseService.createVehicle(
+          userId: uid,
+          color: randomVehicleColor,
+          make: selectedMake,
+          model: _vehicleModels.isNotEmpty ? _vehicleModels.first : 'Corolla',
+          plateNumber: randomPlateNumber,
+          type: randomVehicleType,
+          year: randomVehicleYear,
+        );
+        print('Vehicle record created for test user');
+      } catch (e) {
+        print('Error creating vehicle for test user: $e');
+        // Continue even if vehicle creation fails
+      }
 
       // Create random payment records for the last 6 months
       await _createRandomPaymentRecords(uid);
@@ -1366,52 +1382,75 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 final randomVehicleYear = _getRandomVehicleYear();
 
                 setState(() {
+                  // Personal Information (Required)
                   _newFirstNameController.text = randomFirstName;
                   _newLastNameController.text = randomLastName;
+                  _middleNameController.text = randomMiddleName;
                   _newEmailController.text =
                       '${randomFirstName.toLowerCase()}.${randomLastName.toLowerCase()}${_generateRandomString(3)}@gmail.com';
-                  _newPasswordController.text = '123456';
+                  _newPasswordController.text = 'TestPass123!'; // Strong password (min 8 chars)
+
+                  // Age and Birth Info
                   _ageController.text = randomAge.toString();
                   _birthplaceController.text = randomBirthplace;
+                  _selectedDateOfBirth = randomDateOfBirth;
+                  _dateOfBirthController.text =
+                      '${randomDateOfBirth.day}/${randomDateOfBirth.month}/${randomDateOfBirth.year}';
+
+                  // Blood Type and Civil Status
                   _bloodTypeController.text = randomBloodType;
                   _selectedBloodType = randomBloodType;
                   _civilStatusController.text = randomCivilStatus;
                   _selectedCivilStatus = randomCivilStatus;
-                  _contactNumberController.text = randomPhoneNumber;
-                  _selectedDateOfBirth = randomDateOfBirth;
-                  _dateOfBirthController.text =
-                      '${randomDateOfBirth.day}/${randomDateOfBirth.month}/${randomDateOfBirth.year}';
-                  _selectedLicenseExpirationDate = randomLicenseExpiration;
-                  _driversLicenseExpirationDateController.text =
-                      '${randomLicenseExpiration.day}/${randomLicenseExpiration.month}/${randomLicenseExpiration.year}';
-                  _driversLicenseNumberController.text = _generateRandomString(12);
-                  _driversLicenseRestrictionCodeController.text = '${Random().nextInt(9) + 1}';
+
+                  // Contact Information (10 digits for Philippine mobile)
+                  _contactNumberController.text = randomPhoneNumber.substring(2); // Remove '09' prefix
+
+                  // Emergency Contact
                   _emergencyContactNameController.text =
                       '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}';
-                  _emergencyContactNumberController.text = _getRandomPhoneNumber();
-                  _isActive = true;
-                  _isAdmin = Random().nextBool(); // Random admin status
-                  _memberNumberController.text = randomMemberNumber;
-                  _membershipTypeController.text = '3';
-                  _middleNameController.text = randomMiddleName;
+                  _emergencyContactNumberController.text = _getRandomPhoneNumber().substring(2);
+
+                  // Nationality and Religion
                   _nationalityController.text = 'Filipino';
-                  _profileImageController.text = '';
                   _religionController.text = randomReligion;
-                  _spouseContactNumberController.text = randomCivilStatus == 'Married' ? _getRandomPhoneNumber() : '';
+
+                  // Spouse Information (only if married)
+                  _spouseContactNumberController.text =
+                      randomCivilStatus == 'Married' ? _getRandomPhoneNumber().substring(2) : '';
                   _spouseNameController.text = randomCivilStatus == 'Married'
                       ? '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}'
                       : '';
-                  _vehicleColorController.text = randomVehicleColor;
+
+                  // Driver's License
+                  _driversLicenseNumberController.text = _generateRandomString(12).toUpperCase();
+                  _selectedLicenseExpirationDate = randomLicenseExpiration;
+                  _driversLicenseExpirationDateController.text =
+                      '${randomLicenseExpiration.day}/${randomLicenseExpiration.month}/${randomLicenseExpiration.year}';
+                  _driversLicenseRestrictionCodeController.text = '${Random().nextInt(9) + 1}';
+
+                  // Account & Membership
+                  _isActive = true;
+                  _isAdmin = false; // Default to non-admin for test users
+                  _memberNumberController.text = randomMemberNumber;
+                  _membershipTypeController.text = '3'; // Member
+                  _selectedMembershipType = '3';
+
+                  // Profile Image
+                  _profileImageController.text = '';
+
+                  // Vehicle Details
+                  _vehicleColorController.text = randomVehicleColor.toLowerCase();
                   _selectedVehicleColor = _getColorFromName(randomVehicleColor);
                   _vehicleMakeController.text = selectedMake;
-                  _vehicleModelController.text = _vehicleModels.isNotEmpty ? _vehicleModels.first : 'yaris';
+                  _vehicleModelController.text = _vehicleModels.isNotEmpty ? _vehicleModels.first : 'Corolla';
                   _selectedVehicleModel = _vehicleModels.isNotEmpty ? _vehicleModels.first : null;
-                  _vehiclePhotosController.text = '';
                   _vehiclePlateNumberController.text = randomPlateNumber;
-                  _vehiclePrimaryPhotoController.text = '';
                   _selectedVehicleType = randomVehicleType;
                   _vehicleTypeController.text = randomVehicleType;
                   _selectedVehicleYear = randomVehicleYear;
+                  _vehiclePhotosController.text = '';
+                  _vehiclePrimaryPhotoController.text = '';
                 });
               },
               child: const Text('Test (Auto-fill All Fields)'),

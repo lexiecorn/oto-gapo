@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
+import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/gallery_management_page.dart';
 import 'package:otogapo/app/pages/payment_management_page.dart';
 import 'package:otogapo/app/pages/user_management_page.dart';
@@ -26,23 +27,36 @@ class _AdminPageState extends State<AdminPage> {
 
   Future<void> _loadCurrentUserData() async {
     try {
-      // First try to get user from PocketBase authentication
+      // Prefer profile state which is already loaded and consistent
+      final profileState = context.read<ProfileCubit>().state;
+      final profileUser = profileState.user;
+
+      if (profileState.profileStatus == ProfileStatus.loaded && profileUser.uid.isNotEmpty) {
+        setState(() {
+          _currentUserData = {
+            'firstName': profileUser.firstName,
+            'lastName': profileUser.lastName,
+            'memberNumber': profileUser.memberNumber,
+            'membership_type': profileUser.membership_type,
+          };
+          _isAdmin = (profileUser.membership_type == 1) || (profileUser.membership_type == 2);
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Fallback: resolve PocketBase user by email
       final authState = context.read<AuthBloc>().state;
-
       if (authState.user != null) {
-        // User is authenticated with PocketBase
         final pocketBaseService = PocketBaseService();
-        final userRecord = await pocketBaseService.getUser(authState.user!.id);
-        final userData = userRecord.data;
-
+        final rec = await pocketBaseService.getUserByEmail(authState.user!.data['email'].toString());
+        final userData = rec?.data;
         setState(() {
           _currentUserData = userData;
-          // Check if user is Super Admin (1) or Admin (2)
-          _isAdmin = userData['membership_type'] == 1 || userData['membership_type'] == 2;
+          _isAdmin = (userData?['membership_type'] == 1) || (userData?['membership_type'] == 2);
           _isLoading = false;
         });
       } else {
-        // No authenticated user
         setState(() {
           _isLoading = false;
         });
@@ -165,7 +179,7 @@ class _AdminPageState extends State<AdminPage> {
                   _buildAdminCard(
                     icon: Icons.photo_library,
                     title: 'Gallery Management',
-                    subtitle: 'Manage carousel images',
+                    subtitle: 'Manage images',
                     onTap: () {
                       // Navigate to gallery management
                       Navigator.of(context).push(
@@ -210,6 +224,7 @@ class _AdminPageState extends State<AdminPage> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final iconColor = Theme.of(context).brightness == Brightness.light ? Colors.black87 : Colors.white;
     return Card(
       elevation: 4,
       child: InkWell(
@@ -220,7 +235,7 @@ class _AdminPageState extends State<AdminPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 48, color: Theme.of(context).primaryColor),
+              Icon(icon, size: 48, color: iconColor),
               const SizedBox(height: 12),
               Text(
                 title,

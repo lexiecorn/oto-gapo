@@ -4,6 +4,11 @@ import 'package:pocketbase/pocketbase.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PocketBaseAuthRepository {
+  // Singleton pattern
+  factory PocketBaseAuthRepository() => _instance;
+  PocketBaseAuthRepository._internal();
+  static final PocketBaseAuthRepository _instance = PocketBaseAuthRepository._internal();
+
   PocketBase? _pocketBase;
   bool _isInitialized = false;
 

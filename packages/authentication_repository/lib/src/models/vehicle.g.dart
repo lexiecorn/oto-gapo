@@ -8,6 +8,7 @@ part of 'vehicle.dart';
 
 _$VehicleImpl _$$VehicleImplFromJson(Map<String, dynamic> json) =>
     _$VehicleImpl(
+      id: json['id'] as String?,
       make: json['make'] as String,
       model: json['model'] as String,
       year: json['year'] as String,
@@ -22,6 +23,7 @@ _$VehicleImpl _$$VehicleImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$VehicleImplToJson(_$VehicleImpl instance) =>
     <String, dynamic>{
+      'id': instance.id,
       'make': instance.make,
       'model': instance.model,
       'year': instance.year,

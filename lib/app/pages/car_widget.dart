@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo_core/otogapo_core.dart';
@@ -84,8 +85,19 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
   Future<List<String>> _getCarImageUrls() async {
     try {
       if (widget.state.vehicles.isEmpty) return [];
-      final photos = widget.state.vehicles.first.photos ?? <String>[];
-      return photos.where((p) => p.isNotEmpty).toList();
+      final vehicle = widget.state.vehicles.first;
+      final photos = vehicle.photos ?? <String>[];
+
+      // Convert PocketBase filenames to full URLs
+      final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+      final vehicleId = vehicle.id;
+
+      return photos.where((p) => p.isNotEmpty).map((filename) {
+        if (filename.startsWith('http')) {
+          return filename; // Already a full URL
+        }
+        return '$pocketbaseUrl/api/files/vehicles/$vehicleId/$filename';
+      }).toList();
     } catch (e) {
       return [];
     }
@@ -98,10 +110,17 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
     Future<String?> _resolvePrimaryPhotoUrl() async {
       try {
         if (widget.state.vehicles.isEmpty) return null;
-        final primary = widget.state.vehicles.first.primaryPhoto;
+        final vehicle = widget.state.vehicles.first;
+        final primary = vehicle.primaryPhoto;
         if (primary == null || primary.isEmpty) return null;
-        // Use PocketBase-provided URL as-is
-        return primary;
+
+        // Convert PocketBase filename to full URL
+        if (primary.startsWith('http')) {
+          return primary; // Already a full URL
+        }
+
+        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        return '$pocketbaseUrl/api/files/vehicles/${vehicle.id}/$primary';
       } catch (_) {
         return null;
       }
@@ -239,12 +258,19 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                                       .fadeIn(delay: 800.ms, duration: 800.ms)
                                       .scale(delay: 900.ms, duration: 600.ms, curve: Curves.easeOutBack);
                                 }
-                                // Fallback to default image if no main image exists
-                                return Image.asset(
-                                  'assets/images/vios.jpg',
+                                // Fallback to placeholder icon if no main image exists
+                                return Container(
                                   width: 140,
                                   height: 140,
-                                  fit: BoxFit.cover,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    Icons.directions_car,
+                                    size: 60,
+                                    color: Colors.grey[600],
+                                  ),
                                 )
                                     .animate()
                                     .fadeIn(delay: 800.ms, duration: 800.ms)
@@ -275,20 +301,31 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                           final imageUrls = snapshot.data ?? [];
 
                           if (imageUrls.isEmpty) {
-                            // Show default image if no car images exist
+                            // Show placeholder if no car images exist
                             return Container(
                               height: 200,
                               decoration: BoxDecoration(
                                 color: Colors.grey[200],
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.asset(
-                                  'assets/images/vios.jpg',
-                                  width: double.infinity,
-                                  height: 200,
-                                  fit: BoxFit.cover,
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.photo_library_outlined,
+                                      size: 48,
+                                      color: Colors.grey[400],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'No vehicle photos',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ).animate().fadeIn(delay: 1000.ms, duration: 800.ms).slideY(begin: 0.2, duration: 800.ms);

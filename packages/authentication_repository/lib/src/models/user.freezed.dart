@@ -29,9 +29,10 @@ mixin _$User {
   String get memberNumber => throw _privateConstructorUsedError;
   String get civilStatus => throw _privateConstructorUsedError;
   @JsonKey(
-      fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
-  Timestamp get dateOfBirth => throw _privateConstructorUsedError;
-  String get birthplace => throw _privateConstructorUsedError;
+      fromJson: TimestampConverter.fromJsonNullable,
+      toJson: TimestampConverter.toJsonNullable)
+  Timestamp? get birthDate => throw _privateConstructorUsedError;
+  num? get age => throw _privateConstructorUsedError;
   String get nationality => throw _privateConstructorUsedError;
   String? get emergencyContactNumber =>
       throw _privateConstructorUsedError; // Driver's License information
@@ -51,7 +52,7 @@ mixin _$User {
   String? get spouseContactNumber =>
       throw _privateConstructorUsedError; // Emergency Contact
   String? get emergencyContactName => throw _privateConstructorUsedError;
-  String? get profile_image =>
+  String? get profileImage =>
       throw _privateConstructorUsedError; /* 
     Membership Type
       1 - Super Admin
@@ -83,10 +84,10 @@ abstract class $UserCopyWith<$Res> {
       String memberNumber,
       String civilStatus,
       @JsonKey(
-          fromJson: TimestampConverter.fromJson,
-          toJson: TimestampConverter.toJson)
-      Timestamp dateOfBirth,
-      String birthplace,
+          fromJson: TimestampConverter.fromJsonNullable,
+          toJson: TimestampConverter.toJsonNullable)
+      Timestamp? birthDate,
+      num? age,
       String nationality,
       String? emergencyContactNumber,
       String? driversLicenseNumber,
@@ -101,7 +102,7 @@ abstract class $UserCopyWith<$Res> {
       String? spouseName,
       String? spouseContactNumber,
       String? emergencyContactName,
-      String? profile_image,
+      String? profileImage,
       num? membership_type});
 }
 
@@ -127,8 +128,8 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
     Object? gender = null,
     Object? memberNumber = null,
     Object? civilStatus = null,
-    Object? dateOfBirth = null,
-    Object? birthplace = null,
+    Object? birthDate = freezed,
+    Object? age = freezed,
     Object? nationality = null,
     Object? emergencyContactNumber = freezed,
     Object? driversLicenseNumber = freezed,
@@ -140,7 +141,7 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
     Object? spouseName = freezed,
     Object? spouseContactNumber = freezed,
     Object? emergencyContactName = freezed,
-    Object? profile_image = freezed,
+    Object? profileImage = freezed,
     Object? membership_type = freezed,
   }) {
     return _then(_value.copyWith(
@@ -172,14 +173,14 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
           ? _value.civilStatus
           : civilStatus // ignore: cast_nullable_to_non_nullable
               as String,
-      dateOfBirth: null == dateOfBirth
-          ? _value.dateOfBirth
-          : dateOfBirth // ignore: cast_nullable_to_non_nullable
-              as Timestamp,
-      birthplace: null == birthplace
-          ? _value.birthplace
-          : birthplace // ignore: cast_nullable_to_non_nullable
-              as String,
+      birthDate: freezed == birthDate
+          ? _value.birthDate
+          : birthDate // ignore: cast_nullable_to_non_nullable
+              as Timestamp?,
+      age: freezed == age
+          ? _value.age
+          : age // ignore: cast_nullable_to_non_nullable
+              as num?,
       nationality: null == nationality
           ? _value.nationality
           : nationality // ignore: cast_nullable_to_non_nullable
@@ -224,9 +225,9 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
           ? _value.emergencyContactName
           : emergencyContactName // ignore: cast_nullable_to_non_nullable
               as String?,
-      profile_image: freezed == profile_image
-          ? _value.profile_image
-          : profile_image // ignore: cast_nullable_to_non_nullable
+      profileImage: freezed == profileImage
+          ? _value.profileImage
+          : profileImage // ignore: cast_nullable_to_non_nullable
               as String?,
       membership_type: freezed == membership_type
           ? _value.membership_type
@@ -252,10 +253,10 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
       String memberNumber,
       String civilStatus,
       @JsonKey(
-          fromJson: TimestampConverter.fromJson,
-          toJson: TimestampConverter.toJson)
-      Timestamp dateOfBirth,
-      String birthplace,
+          fromJson: TimestampConverter.fromJsonNullable,
+          toJson: TimestampConverter.toJsonNullable)
+      Timestamp? birthDate,
+      num? age,
       String nationality,
       String? emergencyContactNumber,
       String? driversLicenseNumber,
@@ -270,7 +271,7 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
       String? spouseName,
       String? spouseContactNumber,
       String? emergencyContactName,
-      String? profile_image,
+      String? profileImage,
       num? membership_type});
 }
 
@@ -293,8 +294,8 @@ class __$$UserImplCopyWithImpl<$Res>
     Object? gender = null,
     Object? memberNumber = null,
     Object? civilStatus = null,
-    Object? dateOfBirth = null,
-    Object? birthplace = null,
+    Object? birthDate = freezed,
+    Object? age = freezed,
     Object? nationality = null,
     Object? emergencyContactNumber = freezed,
     Object? driversLicenseNumber = freezed,
@@ -306,7 +307,7 @@ class __$$UserImplCopyWithImpl<$Res>
     Object? spouseName = freezed,
     Object? spouseContactNumber = freezed,
     Object? emergencyContactName = freezed,
-    Object? profile_image = freezed,
+    Object? profileImage = freezed,
     Object? membership_type = freezed,
   }) {
     return _then(_$UserImpl(
@@ -338,14 +339,14 @@ class __$$UserImplCopyWithImpl<$Res>
           ? _value.civilStatus
           : civilStatus // ignore: cast_nullable_to_non_nullable
               as String,
-      dateOfBirth: null == dateOfBirth
-          ? _value.dateOfBirth
-          : dateOfBirth // ignore: cast_nullable_to_non_nullable
-              as Timestamp,
-      birthplace: null == birthplace
-          ? _value.birthplace
-          : birthplace // ignore: cast_nullable_to_non_nullable
-              as String,
+      birthDate: freezed == birthDate
+          ? _value.birthDate
+          : birthDate // ignore: cast_nullable_to_non_nullable
+              as Timestamp?,
+      age: freezed == age
+          ? _value.age
+          : age // ignore: cast_nullable_to_non_nullable
+              as num?,
       nationality: null == nationality
           ? _value.nationality
           : nationality // ignore: cast_nullable_to_non_nullable
@@ -390,9 +391,9 @@ class __$$UserImplCopyWithImpl<$Res>
           ? _value.emergencyContactName
           : emergencyContactName // ignore: cast_nullable_to_non_nullable
               as String?,
-      profile_image: freezed == profile_image
-          ? _value.profile_image
-          : profile_image // ignore: cast_nullable_to_non_nullable
+      profileImage: freezed == profileImage
+          ? _value.profileImage
+          : profileImage // ignore: cast_nullable_to_non_nullable
               as String?,
       membership_type: freezed == membership_type
           ? _value.membership_type
@@ -414,10 +415,10 @@ class _$UserImpl implements _User {
       required this.memberNumber,
       required this.civilStatus,
       @JsonKey(
-          fromJson: TimestampConverter.fromJson,
-          toJson: TimestampConverter.toJson)
-      required this.dateOfBirth,
-      required this.birthplace,
+          fromJson: TimestampConverter.fromJsonNullable,
+          toJson: TimestampConverter.toJsonNullable)
+      this.birthDate,
+      this.age,
       required this.nationality,
       this.emergencyContactNumber,
       this.driversLicenseNumber,
@@ -432,7 +433,7 @@ class _$UserImpl implements _User {
       this.spouseName,
       this.spouseContactNumber,
       this.emergencyContactName,
-      this.profile_image,
+      this.profileImage,
       this.membership_type});
 
   factory _$UserImpl.fromJson(Map<String, dynamic> json) =>
@@ -455,10 +456,11 @@ class _$UserImpl implements _User {
   final String civilStatus;
   @override
   @JsonKey(
-      fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
-  final Timestamp dateOfBirth;
+      fromJson: TimestampConverter.fromJsonNullable,
+      toJson: TimestampConverter.toJsonNullable)
+  final Timestamp? birthDate;
   @override
-  final String birthplace;
+  final num? age;
   @override
   final String nationality;
   @override
@@ -489,7 +491,7 @@ class _$UserImpl implements _User {
   @override
   final String? emergencyContactName;
   @override
-  final String? profile_image;
+  final String? profileImage;
 /* 
     Membership Type
       1 - Super Admin
@@ -501,7 +503,7 @@ class _$UserImpl implements _User {
 
   @override
   String toString() {
-    return 'User(uid: $uid, firstName: $firstName, middleName: $middleName, lastName: $lastName, gender: $gender, memberNumber: $memberNumber, civilStatus: $civilStatus, dateOfBirth: $dateOfBirth, birthplace: $birthplace, nationality: $nationality, emergencyContactNumber: $emergencyContactNumber, driversLicenseNumber: $driversLicenseNumber, driversLicenseExpirationDate: $driversLicenseExpirationDate, driversLicenseRestrictionCode: $driversLicenseRestrictionCode, contactNumber: $contactNumber, bloodType: $bloodType, religion: $religion, spouseName: $spouseName, spouseContactNumber: $spouseContactNumber, emergencyContactName: $emergencyContactName, profile_image: $profile_image, membership_type: $membership_type)';
+    return 'User(uid: $uid, firstName: $firstName, middleName: $middleName, lastName: $lastName, gender: $gender, memberNumber: $memberNumber, civilStatus: $civilStatus, birthDate: $birthDate, age: $age, nationality: $nationality, emergencyContactNumber: $emergencyContactNumber, driversLicenseNumber: $driversLicenseNumber, driversLicenseExpirationDate: $driversLicenseExpirationDate, driversLicenseRestrictionCode: $driversLicenseRestrictionCode, contactNumber: $contactNumber, bloodType: $bloodType, religion: $religion, spouseName: $spouseName, spouseContactNumber: $spouseContactNumber, emergencyContactName: $emergencyContactName, profileImage: $profileImage, membership_type: $membership_type)';
   }
 
   @override
@@ -521,10 +523,9 @@ class _$UserImpl implements _User {
                 other.memberNumber == memberNumber) &&
             (identical(other.civilStatus, civilStatus) ||
                 other.civilStatus == civilStatus) &&
-            (identical(other.dateOfBirth, dateOfBirth) ||
-                other.dateOfBirth == dateOfBirth) &&
-            (identical(other.birthplace, birthplace) ||
-                other.birthplace == birthplace) &&
+            (identical(other.birthDate, birthDate) ||
+                other.birthDate == birthDate) &&
+            (identical(other.age, age) || other.age == age) &&
             (identical(other.nationality, nationality) ||
                 other.nationality == nationality) &&
             (identical(other.emergencyContactNumber, emergencyContactNumber) ||
@@ -551,8 +552,8 @@ class _$UserImpl implements _User {
                 other.spouseContactNumber == spouseContactNumber) &&
             (identical(other.emergencyContactName, emergencyContactName) ||
                 other.emergencyContactName == emergencyContactName) &&
-            (identical(other.profile_image, profile_image) ||
-                other.profile_image == profile_image) &&
+            (identical(other.profileImage, profileImage) ||
+                other.profileImage == profileImage) &&
             (identical(other.membership_type, membership_type) ||
                 other.membership_type == membership_type));
   }
@@ -568,8 +569,8 @@ class _$UserImpl implements _User {
         gender,
         memberNumber,
         civilStatus,
-        dateOfBirth,
-        birthplace,
+        birthDate,
+        age,
         nationality,
         emergencyContactNumber,
         driversLicenseNumber,
@@ -581,7 +582,7 @@ class _$UserImpl implements _User {
         spouseName,
         spouseContactNumber,
         emergencyContactName,
-        profile_image,
+        profileImage,
         membership_type
       ]);
 
@@ -611,10 +612,10 @@ abstract class _User implements User {
       required final String memberNumber,
       required final String civilStatus,
       @JsonKey(
-          fromJson: TimestampConverter.fromJson,
-          toJson: TimestampConverter.toJson)
-      required final Timestamp dateOfBirth,
-      required final String birthplace,
+          fromJson: TimestampConverter.fromJsonNullable,
+          toJson: TimestampConverter.toJsonNullable)
+      final Timestamp? birthDate,
+      final num? age,
       required final String nationality,
       final String? emergencyContactNumber,
       final String? driversLicenseNumber,
@@ -629,7 +630,7 @@ abstract class _User implements User {
       final String? spouseName,
       final String? spouseContactNumber,
       final String? emergencyContactName,
-      final String? profile_image,
+      final String? profileImage,
       final num? membership_type}) = _$UserImpl;
 
   factory _User.fromJson(Map<String, dynamic> json) = _$UserImpl.fromJson;
@@ -650,10 +651,11 @@ abstract class _User implements User {
   String get civilStatus;
   @override
   @JsonKey(
-      fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
-  Timestamp get dateOfBirth;
+      fromJson: TimestampConverter.fromJsonNullable,
+      toJson: TimestampConverter.toJsonNullable)
+  Timestamp? get birthDate;
   @override
-  String get birthplace;
+  num? get age;
   @override
   String get nationality;
   @override
@@ -680,7 +682,7 @@ abstract class _User implements User {
   String? get emergencyContactName;
   @override
   String?
-      get profile_image; /* 
+      get profileImage; /* 
     Membership Type
       1 - Super Admin
       2 - Admin

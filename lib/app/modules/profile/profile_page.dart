@@ -373,26 +373,26 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     String imagePath;
 
     // Check if user has a profile image URL stored
-    if (state.user.profile_image != null && state.user.profile_image!.isNotEmpty) {
+    if (state.user.profileImage != null && state.user.profileImage!.isNotEmpty) {
       // For PocketBase, profile images are typically file names that need to be converted to URLs
       // Format: https://your-pocketbase-url/api/files/collection_id/record_id/filename
-      if (state.user.profile_image!.startsWith('http')) {
+      if (state.user.profileImage!.startsWith('http')) {
         // It's already a full URL
-        imagePath = state.user.profile_image!;
+        imagePath = state.user.profileImage!;
       } else {
         // It's a filename, construct the PocketBase file URL
         final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-        imagePath = '$pocketbaseUrl/api/files/users/${state.user.uid}/${state.user.profile_image}';
+        imagePath = '$pocketbaseUrl/api/files/users/${state.user.uid}/${state.user.profileImage}';
       }
     } else {
-      // No profile_image field, or it's empty. Use a default placeholder.
+      // No profileImage field, or it's empty. Use a default placeholder.
       imagePath = 'assets/images/alex.png';
     }
 
     return IdCard(
       imagePath: imagePath,
       name: '${state.user.firstName} ${state.user.lastName}',
-      dob: DateFormat('MMM dd, yyyy').format(state.user.dateOfBirth.toDate()),
+      dob: state.user.birthDate != null ? DateFormat('MMM dd, yyyy').format(state.user.birthDate!.toDate()) : 'N/A',
       idNumber: state.user.memberNumber,
       membersNum: state.user.memberNumber,
       car: state.vehicles.isNotEmpty ? state.vehicles.first.make : 'No Vehicle',

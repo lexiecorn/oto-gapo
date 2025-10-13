@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
@@ -32,40 +31,31 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
       final authState = context.read<AuthBloc>().state;
 
       if (authState.user != null) {
-        // User is authenticated with PocketBase, get their data
-        final pocketBaseService = PocketBaseService();
-        final userRecord = await pocketBaseService.getUser(authState.user!.id);
-        final userData = userRecord.data;
-
-        // Get profile image URL if it exists
-        String? profileImageUrl;
-        if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
-          if (userData['profile_image'].toString().startsWith('gs://')) {
-            try {
-              final ref = FirebaseStorage.instance.refFromURL(userData['profile_image'].toString());
-              profileImageUrl = await ref.getDownloadURL();
-            } catch (e) {
-              profileImageUrl = 'assets/images/alex.png';
+        // User is authenticated with PocketBase, use their data directly from authStore
+        final userData = authState.user!.data;
+        if (userData != null) {
+          // Get profile image URL if it exists
+          String? profileImageUrl;
+          if (userData['profileImage'] != null && userData['profileImage'].toString().isNotEmpty) {
+            if (userData['profileImage'].toString().startsWith('http')) {
+              // It's already a full URL
+              profileImageUrl = userData['profileImage'].toString();
+            } else {
+              // It's a filename, construct the PocketBase file URL
+              final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+              profileImageUrl = '$pocketbaseUrl/api/files/users/${authState.user!.id}/${userData['profileImage']}';
             }
-          } else if (userData['profile_image'].toString().startsWith('http')) {
-            // It's already a full URL
-            profileImageUrl = userData['profile_image'].toString();
           } else {
-            // It's a filename, construct the PocketBase file URL
-            final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-            profileImageUrl = '$pocketbaseUrl/api/files/users/${authState.user!.id}/${userData['profile_image']}';
+            profileImageUrl = 'assets/images/alex.png';
           }
-        } else {
-          profileImageUrl = 'assets/images/alex.png';
-        }
 
-        setState(() {
-          _userData = userData;
-          _profileImageUrl = profileImageUrl;
-          _isLoading = false;
-        });
+          setState(() {
+            _userData = userData;
+            _profileImageUrl = profileImageUrl;
+            _isLoading = false;
+          });
+        }
       } else {
-        // No authenticated user, check if there's a Firebase user as fallback
         // No authenticated user
         setState(() {
           _isLoading = false;
@@ -193,8 +183,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                   if (_userData!['middleName'] != null && _userData!['middleName'].toString().isNotEmpty)
                     _buildInfoRow('Middle Name', _userData!['middleName'].toString()),
                   _buildInfoRow('Gender', (_userData!['gender'] ?? 'N/A').toString()),
-                  _buildInfoRow('Date of Birth', _formatDate(_userData!['dateOfBirth'])),
-                  _buildInfoRow('Birthplace', (_userData!['birthplace'] ?? 'N/A').toString()),
+                  _buildInfoRow('Age', (_userData!['age']?.toString() ?? 'N/A')),
+                  _buildInfoRow('Birth Date', _formatDate(_userData!['birthDate'])),
                   _buildInfoRow('Nationality', (_userData!['nationality'] ?? 'N/A').toString()),
                   _buildInfoRow('Civil Status', (_userData!['civilStatus'] ?? 'N/A').toString()),
                   if (_userData!['bloodType'] != null && _userData!['bloodType'].toString().isNotEmpty)
@@ -265,10 +255,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                   _buildInfoRow('Member Number', (_userData!['memberNumber'] ?? 'N/A').toString()),
                   _buildInfoRow('Membership Type', _getMembershipTypeText(_userData!['membership_type'])),
                   _buildInfoRow('Account Status', (_userData!['isActive'] == true ? 'Active' : 'Inactive')),
-                  if (_userData!['createdAt'] != null)
-                    _buildInfoRow('Member Since', _formatDate(_userData!['createdAt'])),
-                  if (_userData!['updatedAt'] != null)
-                    _buildInfoRow('Last Updated', _formatDate(_userData!['updatedAt'])),
+                  if (_userData!['created'] != null) _buildInfoRow('Member Since', _formatDate(_userData!['created'])),
+                  if (_userData!['updated'] != null) _buildInfoRow('Last Updated', _formatDate(_userData!['updated'])),
                 ],
               ),
               SizedBox(height: 32.sp),

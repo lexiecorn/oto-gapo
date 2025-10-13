@@ -20,18 +20,18 @@ class SigninCubit extends Cubit<SigninState> {
     emit(state.copyWith(signinStatus: SigninStatus.submitting));
     try {
       log('Starting PocketBase Google OAuth...');
-
-      // Use PocketBase's native Google OAuth
       await pocketBaseAuth.signInWithGoogleOAuth();
-
       emit(state.copyWith(signinStatus: SigninStatus.success));
       log('PocketBase Google OAuth successful');
     } on AuthFailure catch (e) {
-      log('signinWithGoogleOAuth cubit error: ${e.message}');
+      final raw = e.message.toString();
+      final friendly =
+          'Google Sign‑In failed. Please try again or use Email Sign‑In.\nIf the problem persists, contact the administrator.';
+      log('signinWithGoogleOAuth cubit error: $raw');
       emit(
         state.copyWith(
           signinStatus: SigninStatus.error,
-          error: FirebaseAuthApiFailure(e.message.toString(), e.code, e.plugin),
+          error: FirebaseAuthApiFailure(friendly, 'Google Sign‑In Failed', ''),
         ),
       );
     } catch (e) {
@@ -40,9 +40,9 @@ class SigninCubit extends Cubit<SigninState> {
         state.copyWith(
           signinStatus: SigninStatus.error,
           error: const FirebaseAuthApiFailure(
-            'Google OAuth failed. Please try again.',
-            'google_oauth_error',
-            'pocketbase_oauth',
+            'Google Sign‑In failed. Please try again or use Email Sign‑In. If the problem persists, contact the administrator.',
+            'Google Sign‑In Failed',
+            'pocketbase_google_oauth',
           ),
         ),
       );
@@ -92,11 +92,16 @@ class SigninCubit extends Cubit<SigninState> {
 
       emit(state.copyWith(signinStatus: SigninStatus.success));
     } on AuthFailure catch (e) {
-      log('signin cubit error: ${e.message}');
+      // Map PocketBase's generic 400 to a friendlier message
+      final raw = e.message.toString();
+      final friendly = (raw.contains('Failed to authenticate') || raw.contains('status: 400'))
+          ? 'Invalid email or password, or your account is not yet registered/activated.\nPlease verify your credentials or contact the administrator.'
+          : raw;
+      log('signin cubit error: $raw');
       emit(
         state.copyWith(
           signinStatus: SigninStatus.error,
-          error: FirebaseAuthApiFailure(e.message.toString(), e.code, e.plugin),
+          error: FirebaseAuthApiFailure(friendly, 'Invalid User', ''),
         ),
       );
     } catch (e) {
@@ -105,8 +110,8 @@ class SigninCubit extends Cubit<SigninState> {
         state.copyWith(
           signinStatus: SigninStatus.error,
           error: const FirebaseAuthApiFailure(
-            'Unknown Authentication error',
-            'Authentication error',
+            'Sign in failed. Please check your email and password, or contact the administrator.',
+            'authentication_error',
             'pocketbase_auth',
           ),
         ),
