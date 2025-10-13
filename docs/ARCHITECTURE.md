@@ -739,6 +739,50 @@ Container(
 )
 ```
 
+#### Authentication & Loading Strategy
+
+The carousel and announcements widgets implement a robust authentication-aware loading strategy:
+
+**Problem Solved**: On first app launch, gallery images and announcements would show "no data available" because widgets tried to fetch data before user authentication was complete.
+
+**Solution Implemented**:
+
+1. **Authentication Monitoring**: Widgets monitor `AuthBloc` state changes
+2. **Delayed Fetching**: Data fetching only occurs after user authentication is confirmed
+3. **Single Fetch Prevention**: `_hasTriedFetching` flag prevents multiple fetch attempts
+4. **Proper Loading States**: Shows loading indicators until authentication is ready
+
+**Code Pattern**:
+
+```dart
+void _checkAuthAndFetch() {
+  final authState = context.read<AuthBloc>().state;
+
+  if (authState.authStatus == AuthStatus.authenticated &&
+      authState.user != null &&
+      !_hasTriedFetching) {
+    _hasTriedFetching = true;
+    _fetchData();
+  }
+}
+
+@override
+Widget build(BuildContext context) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _checkAuthAndFetch();
+  });
+
+  // Show loading until authenticated
+  final authState = context.read<AuthBloc>().state;
+  if (authState.authStatus != AuthStatus.authenticated || authState.user == null) {
+    return const Center(child: CircularProgressIndicator());
+  }
+  // ... rest of build method
+}
+```
+
+**PocketBase Service Authentication**: All gallery and announcement methods now call `_ensureAuthenticated()` before making API requests to ensure proper authentication state.
+
 ## Flavor Architecture
 
 ### Environment Configuration
