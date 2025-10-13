@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "833031029708",
     "project_id": "otogapo-prod",
-    "storage_bucket": "otogapo-prod.appspot.com"
+    "storage_bucket": "otogapo-prod.firebasestorage.app"
   },
   "client": [
     {
@@ -12,7 +12,36 @@
           "package_name": "com.digitappstudio.otogapo"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "833031029708-1molrj379ev9n68ej77lr6qt57moii2g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.digitappstudio.otogapo",
+            "certificate_hash": "fee3e65059bdbf9bf6abaeafa591499d01710abc"
+          }
+        },
+        {
+          "client_id": "833031029708-o9rpo6eirhq5gih6adatv7qf3n3825pe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.digitappstudio.otogapo",
+            "certificate_hash": "67bc108763a7dc3e3aa71f6b2716eb3435465edd"
+          }
+        },
+        {
+          "client_id": "833031029708-rllq2dnp7bmo1s38lmq67744r2p9tkiv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.digitappstudio.otogapo",
+            "certificate_hash": "9fcaa750454fbdbc8cc6e3cc6c261e031390c16e"
+          }
+        },
+        {
+          "client_id": "833031029708-2rr4fphq89oe5h341ab1up3faimcs4rm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCHOByf9zSlvlykYyVSgIWTa3BraI1M0AE"
@@ -20,7 +49,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "833031029708-2rr4fphq89oe5h341ab1up3faimcs4rm.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "833031029708-cnltns25hb8r86hpmsuhte10lkc5f3qi.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.digitappstudio.otogapo"
+              }
+            }
+          ]
         }
       }
     }

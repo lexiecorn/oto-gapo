@@ -8,9 +8,9 @@ class PocketBaseAuthRepository {
 
   PocketBase get pocketBase {
     if (!_isInitialized) {
-      _pocketBase = PocketBase(
-        FlavorConfig.instance.variables['pocketbaseUrl'] as String,
-      );
+      // Default URL if FlavorConfig is not yet initialized
+      final url = FlavorConfig.instance.variables['pocketbaseUrl'] as String? ?? 'https://pb.lexserver.org';
+      _pocketBase = PocketBase(url);
       _isInitialized = true;
     }
     return _pocketBase!;

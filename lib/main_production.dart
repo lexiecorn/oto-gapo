@@ -12,8 +12,27 @@ import 'package:otogapo/firebase_options_prod.dart';
 Future<void> main() async {
   await runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+
+    // Initialize Firebase only if not already initialized
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    } catch (e) {
+      // Firebase already initialized, continue
+      if (e.toString().contains('duplicate-app')) {
+        print('Firebase already initialized, continuing...');
+      } else {
+        rethrow;
+      }
+    }
+
+    // Set up flavor configuration before bootstrap
+    FlavorConfig(
+      name: 'PROD',
+      variables: {
+        'pocketbaseUrl': 'https://pb.lexserver.org',
+      },
     );
 
     await bootstrap(
@@ -32,6 +51,7 @@ Future<void> main() async {
           ),
         );
 
+        // Update FlavorConfig with package info
         FlavorConfig(
           name: 'PROD',
           variables: {
