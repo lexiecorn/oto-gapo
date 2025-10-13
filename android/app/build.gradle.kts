@@ -95,6 +95,14 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    // Ensure native libraries use 16 KB page alignment for Android 15+ requirements
+    // See: https://developer.android.com/guide/practices/page-alignment
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
 }
 
 flutter {
@@ -102,8 +110,6 @@ flutter {
 }
 
 dependencies {
-    // Play Core library removed - not needed and incompatible with SDK 34
-    // If in-app updates or reviews are needed in the future, use:
-    // implementation("com.google.android.play:app-update:2.1.0")
-    // implementation("com.google.android.play:review:2.0.1")
+    // Required for Activity.enableEdgeToEdge()
+    implementation("androidx.activity:activity-ktx:1.9.3")
 }

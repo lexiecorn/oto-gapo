@@ -43,7 +43,7 @@ class MonthlyDues {
       } else if (dateString.contains(' ')) {
         // Format with space: "2025-11-01 12:00:00.000Z"
         // Convert to ISO format by replacing space with T
-        final isoFormat = dateString.replaceFirst(' ', 'T');
+      final isoFormat = dateString.replaceFirst(' ', 'T');
         return DateTime.parse(isoFormat);
       } else {
         // Date only format: "2025-11-01"
