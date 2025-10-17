@@ -136,6 +136,17 @@ workflows:
           flutter test --coverage
         ignore_failure: true
       
+      - name: Create key.properties
+        script: |
+          echo "🔐 Creating key.properties from Codemagic keystore..."
+          cat > android/key.properties << EOF
+          storeFile=$CM_KEYSTORE_PATH
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          keyPassword=$CM_KEY_PASSWORD
+          EOF
+          echo "✅ key.properties created"
+      
       - name: Prepare release notes
         script: |
           echo "📝 Preparing release notes..."
@@ -358,6 +369,17 @@ workflows:
         script: |
           echo "⚙️ Generating code with build_runner..."
           dart run build_runner build --delete-conflicting-outputs
+      
+      - name: Create key.properties
+        script: |
+          echo "🔐 Creating key.properties from Codemagic keystore..."
+          cat > android/key.properties << EOF
+          storeFile=$CM_KEYSTORE_PATH
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          keyPassword=$CM_KEY_PASSWORD
+          EOF
+          echo "✅ key.properties created"
       
       - name: Build Android APK
         script: |
