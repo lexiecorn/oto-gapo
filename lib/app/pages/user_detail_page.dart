@@ -509,7 +509,21 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             final imageUrl = snapshot.data!;
                             return CircleAvatar(
                               radius: 60,
-                              backgroundImage: NetworkImage(imageUrl),
+                              child: ClipOval(
+                                child: Image.network(
+                                  imageUrl,
+                                  width: 120,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Icon(Icons.person, size: 60);
+                                  },
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const CircularProgressIndicator();
+                                  },
+                                ),
+                              ),
                             );
                           },
                         )

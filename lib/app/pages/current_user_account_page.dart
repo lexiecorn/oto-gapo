@@ -5,7 +5,6 @@ import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
-import 'package:otogapo/services/pocketbase_service.dart';
 
 class CurrentUserAccountPage extends StatefulWidget {
   const CurrentUserAccountPage({super.key});
@@ -33,28 +32,26 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
       if (authState.user != null) {
         // User is authenticated with PocketBase, use their data directly from authStore
         final userData = authState.user!.data;
-        if (userData != null) {
-          // Get profile image URL if it exists
-          String? profileImageUrl;
-          if (userData['profileImage'] != null && userData['profileImage'].toString().isNotEmpty) {
-            if (userData['profileImage'].toString().startsWith('http')) {
-              // It's already a full URL
-              profileImageUrl = userData['profileImage'].toString();
-            } else {
-              // It's a filename, construct the PocketBase file URL
-              final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-              profileImageUrl = '$pocketbaseUrl/api/files/users/${authState.user!.id}/${userData['profileImage']}';
-            }
+        // Get profile image URL if it exists
+        String? profileImageUrl;
+        if (userData['profileImage'] != null && userData['profileImage'].toString().isNotEmpty) {
+          if (userData['profileImage'].toString().startsWith('http')) {
+            // It's already a full URL
+            profileImageUrl = userData['profileImage'].toString();
           } else {
-            profileImageUrl = 'assets/images/alex.png';
+            // It's a filename, construct the PocketBase file URL
+            final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+            profileImageUrl = '$pocketbaseUrl/api/files/users/${authState.user!.id}/${userData['profileImage']}';
           }
-
-          setState(() {
-            _userData = userData;
-            _profileImageUrl = profileImageUrl;
-            _isLoading = false;
-          });
+        } else {
+          profileImageUrl = 'assets/images/alex.png';
         }
+
+        setState(() {
+          _userData = userData;
+          _profileImageUrl = profileImageUrl;
+          _isLoading = false;
+        });
       } else {
         // No authenticated user
         setState(() {
@@ -127,27 +124,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                   padding: EdgeInsets.all(20.sp),
                   child: Column(
                     children: [
-                      CircleAvatar(
-                        radius: 50.sp,
-                        backgroundColor: Theme.of(context).primaryColor,
-                        backgroundImage: _profileImageUrl != null && !_profileImageUrl!.startsWith('assets/')
-                            ? NetworkImage(_profileImageUrl!)
-                            : null,
-                        child: _profileImageUrl != null && _profileImageUrl!.startsWith('assets/')
-                            ? Image.asset(
-                                _profileImageUrl!,
-                                width: 100.sp,
-                                height: 100.sp,
-                                fit: BoxFit.cover,
-                              )
-                            : _profileImageUrl == null
-                                ? Icon(
-                                    Icons.person,
-                                    size: 50.sp,
-                                    color: Colors.white,
-                                  )
-                                : null,
-                      ),
+                      _buildProfileAvatar(),
                       SizedBox(height: 16.sp),
                       Text(
                         '${_userData!['firstName'] ?? ''} ${_userData!['lastName'] ?? ''}',
@@ -263,6 +240,76 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildProfileAvatar() {
+    // Show asset image
+    if (_profileImageUrl != null && _profileImageUrl!.startsWith('assets/')) {
+      return CircleAvatar(
+        radius: 50.sp,
+        backgroundColor: Theme.of(context).primaryColor,
+        child: ClipOval(
+          child: Image.asset(
+            _profileImageUrl!,
+            width: 100.sp,
+            height: 100.sp,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Icon(
+                Icons.person,
+                size: 50.sp,
+                color: Colors.white,
+              );
+            },
+          ),
+        ),
+      );
+    }
+
+    // Show network image with error handling
+    if (_profileImageUrl != null && !_profileImageUrl!.startsWith('assets/')) {
+      return CircleAvatar(
+        radius: 50.sp,
+        backgroundColor: Theme.of(context).primaryColor,
+        child: ClipOval(
+          child: Image.network(
+            _profileImageUrl!,
+            width: 100.sp,
+            height: 100.sp,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Icon(
+                Icons.person,
+                size: 50.sp,
+                color: Colors.white,
+              );
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                      : null,
+                  color: Colors.white,
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+
+    // Default placeholder (no profile image)
+    return CircleAvatar(
+      radius: 50.sp,
+      backgroundColor: Theme.of(context).primaryColor,
+      child: Icon(
+        Icons.person,
+        size: 50.sp,
+        color: Colors.white,
       ),
     );
   }

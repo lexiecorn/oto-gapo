@@ -707,11 +707,19 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                               ((user['firstName'] as String?) ?? '')[0].toUpperCase(),
                               style: const TextStyle(color: Colors.white, fontSize: 16),
                             )
-                          : Image.network(
-                              profileImageUrl,
-                              width: 36,
-                              height: 36,
-                              fit: BoxFit.cover,
+                          : ClipOval(
+                              child: Image.network(
+                                profileImageUrl,
+                                width: 36,
+                                height: 36,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Text(
+                                    ((user['firstName'] as String?) ?? '')[0].toUpperCase(),
+                                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                                  );
+                                },
+                              ),
                             );
                     },
                   ),
@@ -908,11 +916,19 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                       ((user['firstName'] as String?) ?? '')[0].toUpperCase(),
                                       style: const TextStyle(color: Colors.white, fontSize: 14),
                                     )
-                                  : Image.network(
-                                      profileImageUrl,
-                                      width: 32,
-                                      height: 32,
-                                      fit: BoxFit.cover,
+                                  : ClipOval(
+                                      child: Image.network(
+                                        profileImageUrl,
+                                        width: 32,
+                                        height: 32,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Text(
+                                            ((user['firstName'] as String?) ?? '')[0].toUpperCase(),
+                                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                                          );
+                                        },
+                                      ),
                                     );
                             },
                           ),

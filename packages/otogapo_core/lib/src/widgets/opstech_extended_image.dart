@@ -98,7 +98,7 @@ class OpstechExtendedImageNetwork extends StatelessWidget {
 
   /// **Opens the Lightbox Dialog with Scroll & Tap Outside to Close**
   void _showLightbox(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) {
         return GestureDetector(
@@ -183,23 +183,28 @@ class OpstechExtendedImageAsset extends StatelessWidget {
 
           case LoadState.failed:
             return GestureDetector(
-              child: const Stack(
-                fit: StackFit.expand,
-                children: <Widget>[
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Text(
-                      'load image failed, click to reload',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
               onTap: () {
                 state.reLoadImage();
               },
+              child: Container(
+                alignment: Alignment.center,
+                color: Colors.grey.shade200,
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.person,
+                      size: 60,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Tap to reload',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
             );
         }
       },
