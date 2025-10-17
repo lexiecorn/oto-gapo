@@ -4,7 +4,24 @@
 [![Powered by Mason](https://img.shields.io/endpoint?url=https%3A%2F%2Ftinyurl.com%2Fmason-badge)](https://github.com/felangel/mason)
 [![License: MIT][license_badge]][license_link]
 
-A Very Good Project created by Very Good CLI.
+A secure and efficient local storage solution for the OtoGapo application, providing encrypted key-value storage and persistent data management.
+
+## Overview
+
+This package provides a unified interface for local data persistence using:
+
+- **Hive** - Fast and efficient NoSQL database for Flutter
+- **SharedPreferences** - Simple key-value storage for settings and preferences
+- **Encryption** - Secure encryption for sensitive data
+
+## Features
+
+- Encrypted local storage for sensitive data
+- Simple key-value storage interface
+- Asynchronous operations
+- Type-safe storage and retrieval
+- Automatic initialization
+- Cross-platform support (Android, iOS, Web, Desktop)
 
 ## Installation 💻
 
@@ -15,13 +32,141 @@ Add `local_storage` to your `pubspec.yaml`:
 ```yaml
 dependencies:
   local_storage:
+    path: packages/local_storage
 ```
 
 Install it:
 
 ```sh
-flutter packages get
+flutter pub get
 ```
+
+## Usage
+
+### Initialize Storage
+
+```dart
+import 'package:local_storage/local_storage.dart';
+
+// Create storage instance
+const storage = LocalStorage();
+
+// Initialize storage (required before first use)
+await storage.init();
+```
+
+### Store and Retrieve Data
+
+```dart
+// Write data
+await storage.write(key: 'user_token', value: 'abc123');
+await storage.write(key: 'user_id', value: '12345');
+await storage.write(key: 'is_first_launch', value: true);
+
+// Read data
+final token = storage.read(key: 'user_token'); // Returns 'abc123'
+final userId = storage.read(key: 'user_id'); // Returns '12345'
+final isFirstLaunch = storage.read(key: 'is_first_launch'); // Returns true
+
+// Check if key exists
+final hasToken = storage.containsKey(key: 'user_token'); // Returns true
+
+// Delete data
+await storage.delete(key: 'user_token');
+
+// Clear all data
+await storage.clear();
+```
+
+### Token Storage
+
+The package includes a specialized `TokenStorage` implementation for authentication tokens:
+
+```dart
+import 'package:local_storage/local_storage.dart';
+import 'package:fresh_dio/fresh_dio.dart';
+
+class AuthTokenStorage implements TokenStorage<String> {
+  AuthTokenStorage(this._storage);
+  final LocalStorage _storage;
+
+  static const _key = '__auth_token__';
+
+  @override
+  Future<void> write(String token) async {
+    await _storage.write(key: _key, value: token);
+  }
+
+  @override
+  Future<String?> read() async {
+    return _storage.read(key: _key) as String?;
+  }
+
+  @override
+  Future<void> delete() async {
+    await _storage.delete(key: _key);
+  }
+}
+```
+
+### Best Practices
+
+1. **Initialize Once**: Call `init()` once during app startup
+2. **Secure Sensitive Data**: Use encrypted storage for tokens and credentials
+3. **Handle Errors**: Wrap storage operations in try-catch blocks
+4. **Clean Up**: Clear storage on logout or when no longer needed
+5. **Type Safety**: Store and retrieve data with appropriate types
+
+### Example: Complete Setup
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:local_storage/local_storage.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize storage
+  const storage = LocalStorage();
+  await storage.init();
+
+  // Check if first launch
+  final isFirstLaunch = storage.read(key: 'is_first_launch') ?? true;
+
+  if (isFirstLaunch) {
+    // First launch setup
+    await storage.write(key: 'is_first_launch', value: false);
+  }
+
+  runApp(MyApp(storage: storage));
+}
+```
+
+## API Reference
+
+### LocalStorage
+
+The main storage class providing key-value storage operations.
+
+#### Methods
+
+- `Future<void> init()` - Initialize storage (must be called before use)
+- `Future<void> write({required String key, required dynamic value})` - Write data
+- `dynamic read({required String key})` - Read data (returns null if not found)
+- `bool containsKey({required String key})` - Check if key exists
+- `Future<void> delete({required String key})` - Delete specific key
+- `Future<void> clear()` - Clear all stored data
+
+### Storage Types
+
+The package supports storing the following types:
+
+- `String` - Text data
+- `int` - Integer numbers
+- `double` - Floating-point numbers
+- `bool` - Boolean values
+- `List` - Lists of supported types
+- `Map` - Maps with string keys and supported value types
 
 ---
 

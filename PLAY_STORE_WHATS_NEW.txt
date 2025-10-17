@@ -1,0 +1,20 @@
+🎉 Welcome to Otogapo v1.0.0!
+
+This is our initial release bringing you a complete vehicle association management solution.
+
+✨ What's Included:
+• Secure authentication with Google Sign-In
+• Complete member profile management
+• Vehicle registration and tracking
+• Monthly dues payment tracking
+• Association announcements
+• Admin dashboard for association managers
+• Gallery management for homepage carousel
+• Modern, intuitive interface
+
+🚗 Perfect for vehicle association members and administrators!
+
+📝 Note: This is our first production release. We welcome your feedback to make Otogapo even better!
+
+💬 Questions or feedback? Contact us through the app or email support@otogapo.com
+

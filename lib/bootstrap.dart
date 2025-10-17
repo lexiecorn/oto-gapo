@@ -1,3 +1,15 @@
+/// Bootstrap file for initializing the OtoGapo application.
+///
+/// This file handles the complete application initialization process including:
+/// - Error handling setup
+/// - BLoC observer configuration
+/// - Dependency injection setup
+/// - Service initialization
+/// - Repository configuration
+///
+/// The bootstrap process is flavor-aware and configures the app based on
+/// the current environment (development, staging, or production).
+
 import 'dart:async';
 import 'dart:developer';
 
@@ -13,9 +25,16 @@ import 'package:otogapo/app/routes/app_router.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+/// Global GetIt instance for dependency injection.
 final getIt = GetIt.instance;
+
+/// Current application flavor name.
 final flavor = FlavorConfig.instance.name.toString();
 
+/// BLoC observer for logging and debugging BLoC state changes.
+///
+/// This observer logs all state changes and errors in BLoCs throughout
+/// the application, useful for debugging and monitoring app behavior.
 class AppBlocObserver extends BlocObserver {
   const AppBlocObserver();
 
@@ -32,6 +51,10 @@ class AppBlocObserver extends BlocObserver {
   }
 }
 
+/// Type definition for the bootstrap builder function.
+///
+/// This function receives all initialized dependencies and returns
+/// the root widget of the application.
 typedef BootstrapBuilder = FutureOr<Widget> Function(
   AuthRepository authRepository,
   PocketBaseAuthRepository pocketBaseAuthRepository,
@@ -40,6 +63,28 @@ typedef BootstrapBuilder = FutureOr<Widget> Function(
   LocalStorage storage,
 );
 
+/// Bootstraps the application with all necessary initialization.
+///
+/// This function:
+/// 1. Sets up error handling for Flutter errors
+/// 2. Configures BLoC observer for state management monitoring
+/// 3. Initializes package info for version tracking
+/// 4. Sets up Dio HTTP client
+/// 5. Initializes PocketBase service
+/// 6. Registers services in dependency injection container
+/// 7. Initializes local storage
+/// 8. Creates and registers repositories
+/// 9. Runs the application with the provided builder
+///
+/// Example:
+/// ```dart
+/// await bootstrap((authRepo, pocketBaseRepo, dio, packageInfo, storage) {
+///   return App(
+///     authRepository: authRepo,
+///     pocketBaseAuthRepository: pocketBaseRepo,
+///   );
+/// });
+/// ```
 Future<void> bootstrap(
   BootstrapBuilder builder,
 ) async {

@@ -7,6 +7,25 @@ import 'package:otogapo/models/monthly_dues.dart';
 import 'package:otogapo/utils/payment_statistics_utils.dart';
 import 'package:pocketbase/pocketbase.dart';
 
+/// Service class for interacting with PocketBase backend.
+///
+/// Provides a centralized interface for all PocketBase operations including:
+/// - User management (CRUD operations)
+/// - Vehicle management
+/// - Monthly dues tracking
+/// - Announcements
+/// - Gallery image management
+/// - Real-time subscriptions
+///
+/// This service uses the singleton pattern to ensure a single instance
+/// throughout the application. It shares the PocketBase instance with
+/// [PocketBaseAuthRepository] for authentication consistency.
+///
+/// Example:
+/// ```dart
+/// final service = PocketBaseService();
+/// final users = await service.getAllUsers();
+/// ```
 class PocketBaseService {
   factory PocketBaseService() => _instance;
   PocketBaseService._internal();

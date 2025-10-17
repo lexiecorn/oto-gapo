@@ -1,5 +1,35 @@
 import 'package:pocketbase/pocketbase.dart';
 
+/// Represents a monthly dues record for a user in the association.
+///
+/// This model tracks payment obligations and payments for association members.
+/// Each record represents a single month's dues for a specific user.
+///
+/// Key features:
+/// - Payment tracking with `paymentDate`
+/// - Automatic overdue calculation
+/// - Support for advance payments
+/// - Integration with PocketBase backend
+///
+/// Example:
+/// ```dart
+/// final dues = MonthlyDues(
+///   id: '123',
+///   userId: 'user123',
+///   amount: 100.0,
+///   dueForMonth: DateTime(2025, 11),
+///   paymentDate: null, // Not yet paid
+///   created: DateTime.now(),
+///   updated: DateTime.now(),
+/// );
+///
+/// // Check payment status
+/// if (dues.isPaid) {
+///   print('Payment completed');
+/// } else if (dues.isOverdue) {
+///   print('Payment is overdue');
+/// }
+/// ```
 class MonthlyDues {
   const MonthlyDues({
     required this.id,
@@ -43,7 +73,7 @@ class MonthlyDues {
       } else if (dateString.contains(' ')) {
         // Format with space: "2025-11-01 12:00:00.000Z"
         // Convert to ISO format by replacing space with T
-      final isoFormat = dateString.replaceFirst(' ', 'T');
+        final isoFormat = dateString.replaceFirst(' ', 'T');
         return DateTime.parse(isoFormat);
       } else {
         // Date only format: "2025-11-01"
