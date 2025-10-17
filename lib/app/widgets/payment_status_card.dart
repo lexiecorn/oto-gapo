@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo_core/otogapo_core.dart';
 
 class PaymentStatusCard extends StatefulWidget {
   const PaymentStatusCard({required this.userId, super.key});
@@ -196,7 +197,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
               children: [
                 Icon(
                   Icons.payment,
-                  color: Colors.blue,
+                  color: OpstechColors.accentRed,
                   size: 20.sp,
                 ),
                 SizedBox(width: 8.sp),
@@ -229,7 +230,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                       'Paid',
                       _paidCount.toString(),
                       Icons.check_circle,
-                      Colors.green,
+                      OpstechColors.green,
                     ),
                   ),
                   Expanded(
@@ -237,7 +238,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                       'Unpaid',
                       _unpaidCount.toString(),
                       Icons.cancel,
-                      Colors.red,
+                      OpstechColors.accentRed,
                     ),
                   ),
                   Expanded(
@@ -245,7 +246,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                       'Advance',
                       _advanceCount.toString(),
                       Icons.fast_forward,
-                      Colors.purple,
+                      OpstechColors.purple,
                     ),
                   ),
                   Expanded(
@@ -253,7 +254,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                       'Total',
                       '₱${_totalAmount.toInt()}',
                       Icons.account_balance_wallet,
-                      Colors.blue,
+                      OpstechColors.blue,
                     ),
                   ),
                 ],
@@ -308,19 +309,19 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
 
                       if (isAdvance) {
                         icon = Icons.fast_forward;
-                        color = Colors.purple;
+                        color = OpstechColors.purple;
                         statusText = 'ADVANCE';
-                        statusColor = Colors.purple;
+                        statusColor = OpstechColors.purple;
                       } else if (isPaid) {
                         icon = Icons.check_circle;
-                        color = Colors.green;
+                        color = OpstechColors.green;
                         statusText = 'PAID';
-                        statusColor = Colors.green;
+                        statusColor = OpstechColors.green;
                       } else {
                         icon = Icons.cancel;
-                        color = Colors.red;
+                        color = OpstechColors.accentRed;
                         statusText = 'UNPAID';
-                        statusColor = Colors.red;
+                        statusColor = OpstechColors.accentRed;
                       }
 
                       return Padding(
@@ -351,7 +352,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                                 vertical: 2.sp,
                               ),
                               decoration: BoxDecoration(
-                                color: statusColor.withOpacity(0.1),
+                                color: statusColor.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8.sp),
                                 border: Border.all(
                                   color: statusColor,
@@ -392,10 +393,12 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                 Container(
                   padding: EdgeInsets.all(12.sp),
                   decoration: BoxDecoration(
-                    color: _unpaidCount > 0 ? Colors.orange.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                    color: _unpaidCount > 0
+                        ? OpstechColors.accentRed.withValues(alpha: 0.1)
+                        : OpstechColors.green.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8.sp),
                     border: Border.all(
-                      color: _unpaidCount > 0 ? Colors.orange : Colors.green,
+                      color: _unpaidCount > 0 ? OpstechColors.accentRed : OpstechColors.green,
                       width: 0.5,
                     ),
                   ),
@@ -403,7 +406,7 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                     children: [
                       Icon(
                         _unpaidCount > 0 ? Icons.warning : Icons.check_circle,
-                        color: _unpaidCount > 0 ? Colors.orange : Colors.green,
+                        color: _unpaidCount > 0 ? OpstechColors.accentRed : OpstechColors.green,
                         size: 16.sp,
                       )
                           .animate()
@@ -417,8 +420,8 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                               : 'All payments are up to date!',
                           style: TextStyle(
                             fontSize: 12.sp,
-                            fontWeight: FontWeight.w500,
-                            color: _unpaidCount > 0 ? Colors.orange : Colors.green,
+                            fontWeight: FontWeight.w600,
+                            color: _unpaidCount > 0 ? OpstechColors.accentRed : OpstechColors.green,
                           ),
                         ).animate().fadeIn(delay: 1250.ms, duration: 400.ms).slideX(begin: 0.2, duration: 400.ms),
                       ),
