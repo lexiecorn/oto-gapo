@@ -97,8 +97,18 @@ android {
     }
 
     // Ensure native libraries use 16 KB page alignment for Android 15+ requirements
+    // This is required for Google Play Store compliance starting Nov 1, 2025
     // See: https://developer.android.com/guide/practices/page-alignment
     packagingOptions {
+        jniLibs {
+            // Use modern packaging to ensure proper alignment for 16 KB page sizes
+            useLegacyPackaging = false
+        }
+    }
+    
+    // Additional configuration for 16 KB page size support
+    packaging {
+        // Ensure proper alignment for native libraries
         jniLibs {
             useLegacyPackaging = false
         }

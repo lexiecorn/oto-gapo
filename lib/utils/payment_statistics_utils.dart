@@ -146,7 +146,7 @@ class PaymentStatisticsUtils {
   /// Returns:
   /// - null: Month is before user joined (not applicable)
   /// - true: Month is paid
-  /// - false: Month is unpaid
+  /// - false: Month is unpaid (including future months without records)
   static bool? getPaymentStatusForMonth({
     required DateTime monthDate,
     required DateTime joinedDate,
@@ -171,6 +171,7 @@ class PaymentStatisticsUtils {
     }
 
     // No record found, but user was a member, so it's unpaid
+    // This includes future months that don't have dues records yet
     return false;
   }
 

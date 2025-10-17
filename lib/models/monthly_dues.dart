@@ -66,6 +66,12 @@ class MonthlyDues {
   // Helper method to safely parse dates from PocketBase
   static DateTime _parseDate(String dateString) {
     try {
+      // Handle empty or null date strings
+      if (dateString.isEmpty || dateString.trim().isEmpty) {
+        print('Empty date string provided to _parseDate');
+        return DateTime.now();
+      }
+
       // Handle different date formats from PocketBase
       if (dateString.contains('T')) {
         // ISO 8601 format with time: "2025-11-01T12:00:00.000Z" or "2025-11-01T00:00:00.000Z"

@@ -47,17 +47,23 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       for (final user in pocketBaseUsers) {
         final userData = user.data;
         userData['id'] = user.id;
-        users.add(userData);
+        // Only add users that have valid data and are active
+        if (userData['isActive'] == true && userData['id'] != null) {
+          users.add(userData);
+        }
       }
 
+      print('Loaded ${users.length} valid users (filtered out inactive/deleted users)');
       setState(() {
         _users = users;
       });
     } catch (e) {
       print('Error loading users: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading users: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading users: $e')),
+        );
+      }
     }
   }
 
@@ -95,17 +101,21 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       // Refresh the data
       await _loadUsers();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(status ? 'Payment marked as paid' : 'Payment marked as unpaid'),
-          backgroundColor: status ? Colors.green : Colors.orange,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(status ? 'Payment marked as paid' : 'Payment marked as unpaid'),
+            backgroundColor: status ? Colors.green : Colors.orange,
+          ),
+        );
+      }
     } catch (e) {
       print('Error updating payment status: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating payment status: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating payment status: $e')),
+        );
+      }
     }
   }
 
@@ -140,7 +150,17 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         'updated_at': monthlyDues?.updated,
       };
     } catch (e) {
-      print('Error getting payment status: $e');
+      // Handle 404 errors gracefully - user might not exist
+      if (e.toString().contains('404') || e.toString().contains('not found')) {
+        print('User $userId not found or inactive - skipping payment status check');
+        return {
+          'status': null,
+          'amount': 0,
+          'payment_date': null,
+          'updated_at': null,
+        };
+      }
+      print('Error getting payment status for user $userId, month $month: $e');
       return null;
     }
   }
@@ -150,9 +170,14 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
     final monthStatus = <String, bool?>{};
 
     for (final month in _availableMonths) {
-      final paymentData = await _getPaymentStatus(userId, month);
-      // Store the actual status (null, true, or false)
-      monthStatus[month] = paymentData?['status'] as bool?;
+      try {
+        final paymentData = await _getPaymentStatus(userId, month);
+        // Store the actual status (null, true, or false)
+        monthStatus[month] = paymentData?['status'] as bool?;
+      } catch (e) {
+        print('Error getting status for user $userId, month $month: $e');
+        monthStatus[month] = null; // Default to null for error cases
+      }
     }
 
     return monthStatus;
@@ -161,34 +186,46 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   // New method to bulk update payments for a user
   Future<void> _bulkUpdatePayments(String userId, List<String> months, bool status) async {
     try {
+      print('Bulk Update - Starting update for user: $userId');
+      print('Bulk Update - Months to update: $months');
+      print('Bulk Update - Status: $status');
+
       final pocketBaseService = PocketBaseService();
 
       for (final month in months) {
+        print('Bulk Update - Processing month: $month');
         final monthDate = DateFormat('yyyy_MM').parse(month);
-        await pocketBaseService.markPaymentStatus(
+        print('Bulk Update - Parsed date: $monthDate');
+
+        final result = await pocketBaseService.markPaymentStatus(
           userId: userId,
           month: monthDate,
           isPaid: status,
         );
+        print('Bulk Update - Updated month $month, result ID: ${result.id}');
       }
 
       // Refresh the data
       await _loadUsers();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Successfully updated ${months.length} payment(s) as ${status ? 'paid' : 'unpaid'}'),
-          backgroundColor: status ? Colors.green : Colors.orange,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Successfully updated ${months.length} payment(s) as ${status ? 'paid' : 'unpaid'}'),
+            backgroundColor: status ? Colors.green : Colors.orange,
+          ),
+        );
+      }
     } catch (e) {
       print('Error bulk updating payments: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error updating payments: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating payments: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -1052,79 +1089,77 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                       return Column(
                         children: [
                           Expanded(
-                            child: Scrollbar(
-                              thumbVisibility: true,
-                              trackVisibility: true,
-                              child: ListView.builder(
-                                itemCount: allMonths.length,
-                                itemBuilder: (context, index) {
-                                  final month = allMonths[index];
-                                  final date = DateFormat('yyyy_MM').parse(month);
-                                  final displayText = DateFormat('MMMM yyyy').format(date);
-                                  final status = _cachedMonthStatus[month];
-                                  final isSelected = _selectedMonthsForBulkUpdate.contains(month);
+                            child: ListView.builder(
+                              itemCount: allMonths.length,
+                              itemBuilder: (context, index) {
+                                final month = allMonths[index];
+                                final date = DateFormat('yyyy_MM').parse(month);
+                                final displayText = DateFormat('MMMM yyyy').format(date);
+                                final status = _cachedMonthStatus[month];
+                                final isSelected = _selectedMonthsForBulkUpdate.contains(month);
 
-                                  return Theme(
-                                    data: Theme.of(context).copyWith(
-                                      listTileTheme: const ListTileThemeData(
-                                        dense: true,
-                                        minVerticalPadding: 0,
-                                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                                return Theme(
+                                  data: Theme.of(context).copyWith(
+                                    listTileTheme: const ListTileThemeData(
+                                      dense: true,
+                                      minVerticalPadding: 0,
+                                      contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                                    ),
+                                  ),
+                                  child: CheckboxListTile(
+                                    visualDensity: VisualDensity.compact,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                    title: Text(
+                                      displayText,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
-                                    child: CheckboxListTile(
-                                      visualDensity: VisualDensity.compact,
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                                      title: Text(
-                                        displayText,
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      subtitle: Text(
-                                        status == null
-                                            ? 'Not Applicable'
-                                            : (status == true ? 'Paid' : (_isFutureMonth(month) ? 'Future' : 'Unpaid')),
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: status == null
-                                              ? Colors.grey
-                                              : (status == true
-                                                  ? Colors.green
-                                                  : (_isFutureMonth(month) ? Colors.blue : Colors.red)),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      value: status == null ? false : isSelected,
-                                      onChanged: status == null
-                                          ? null
-                                          : (value) {
-                                              setState(() {
-                                                if (value == true) {
-                                                  _selectedMonthsForBulkUpdate.add(month);
-                                                } else {
-                                                  _selectedMonthsForBulkUpdate.remove(month);
-                                                }
-                                              });
-                                            },
-                                      secondary: Icon(
-                                        status == null
-                                            ? Icons.remove
-                                            : (status == true
-                                                ? Icons.check_circle
-                                                : (_isFutureMonth(month) ? Icons.schedule : Icons.cancel)),
+                                    subtitle: Text(
+                                      status == null
+                                          ? 'Not Applicable'
+                                          : (status == true ? 'Paid' : (_isFutureMonth(month) ? 'Future' : 'Unpaid')),
+                                      style: TextStyle(
+                                        fontSize: 11,
                                         color: status == null
                                             ? Colors.grey
                                             : (status == true
                                                 ? Colors.green
                                                 : (_isFutureMonth(month) ? Colors.blue : Colors.red)),
-                                        size: 18,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                  );
-                                },
-                              ),
+                                    value: status == null ? false : isSelected,
+                                    onChanged: status == null
+                                        ? null
+                                        : (value) {
+                                            print('Checkbox tapped for month: $month, value: $value');
+                                            setDialogState(() {
+                                              if (value == true) {
+                                                _selectedMonthsForBulkUpdate.add(month);
+                                              } else {
+                                                _selectedMonthsForBulkUpdate.remove(month);
+                                              }
+                                              print('Selected months: $_selectedMonthsForBulkUpdate');
+                                            });
+                                          },
+                                    secondary: Icon(
+                                      status == null
+                                          ? Icons.remove
+                                          : (status == true
+                                              ? Icons.check_circle
+                                              : (_isFutureMonth(month) ? Icons.schedule : Icons.cancel)),
+                                      color: status == null
+                                          ? Colors.grey
+                                          : (status == true
+                                              ? Colors.green
+                                              : (_isFutureMonth(month) ? Colors.blue : Colors.red)),
+                                      size: 18,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
                           Padding(
@@ -1134,7 +1169,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                 Expanded(
                                   child: ElevatedButton(
                                     onPressed: () {
-                                      setState(() {
+                                      setDialogState(() {
                                         // Only select months that are applicable (not null status)
                                         _selectedMonthsForBulkUpdate =
                                             allMonths.where((month) => _cachedMonthStatus[month] != null).toList();
@@ -1156,7 +1191,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                 Expanded(
                                   child: ElevatedButton(
                                     onPressed: () {
-                                      setState(() {
+                                      setDialogState(() {
                                         _selectedMonthsForBulkUpdate.clear();
                                       });
                                     },

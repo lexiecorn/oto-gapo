@@ -210,7 +210,75 @@ FlavorConfig(
 
 ## Android Deployment
 
-### 1. Configure Signing
+### 1. 16 KB Page Size Support (Android 15+ Requirement)
+
+**Required for Google Play Store compliance as of November 1, 2025**
+
+Starting with Android 15, Google Play requires all apps to support 16 KB memory page sizes. This project is already configured with the necessary settings:
+
+#### Configuration Details
+
+**Gradle Properties** (`android/gradle.properties`):
+
+```properties
+# Enable 16 KB page size support for Android 15+
+android.bundle.enableUncompressedNativeLibs=false
+```
+
+**Build Configuration** (`android/app/build.gradle.kts`):
+
+```kotlin
+android {
+    // Use NDK version 27.0.12077973 or higher
+    ndkVersion = "27.0.12077973"
+
+    // Native library packaging with 16 KB alignment
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+}
+```
+
+#### What This Does
+
+- **Proper Alignment**: Ensures native libraries are aligned to 16 KB page boundaries
+- **Modern Packaging**: Uses current Android packaging standards (`useLegacyPackaging = false`)
+- **Native Library Support**: NDK 27+ includes built-in support for 16 KB page alignment
+- **Automatic Compression**: Gradle handles library compression and alignment automatically
+
+#### Verification
+
+To verify your app supports 16 KB page sizes:
+
+1. **Build your app bundle**:
+
+   ```bash
+   flutter build appbundle --release --target lib/main_production.dart --flavor production
+   ```
+
+2. **Upload to Play Console**: The Play Console will automatically verify 16 KB support
+
+3. **Check Release Dashboard**: Look for the "16 KB support" indicator on your app bundle
+
+#### Testing in 16 KB Environment
+
+For thorough testing, you can run your app on a device with 16 KB page sizes enabled. See [Testing 16 KB Support](#testing-16-kb-page-size-support) below for detailed instructions.
+
+#### Additional Resources
+
+- [Android 16 KB Page Size Guide](https://developer.android.com/guide/practices/page-alignment)
+- [Google Play Requirements](https://support.google.com/googleplay/android-developer/answer/14710219)
+- [Testing 16 KB Apps](https://developer.android.com/guide/practices/page-alignment#test)
+
+### 2. Configure Signing
 
 Create `android/key.properties`:
 
@@ -221,7 +289,7 @@ keyAlias=your_key_alias
 storeFile=../keystore/otogapo-release.jks
 ```
 
-### 2. Build Release APK
+### 3. Build Release APK
 
 ```bash
 # Development
@@ -234,19 +302,135 @@ flutter build apk --release --target lib/main_staging.dart --flavor staging
 flutter build apk --release --target lib/main_production.dart --flavor production
 ```
 
-### 3. Build App Bundle (Recommended)
+### 4. Build App Bundle (Recommended)
 
 ```bash
 # Production
 flutter build appbundle --release --target lib/main_production.dart --flavor production
 ```
 
-### 4. Deploy to Google Play Store
+### 5. Deploy to Google Play Store
 
 1. Upload AAB file to Google Play Console
 2. Fill in store listing information
 3. Configure app content and pricing
 4. Submit for review
+
+### 6. Testing 16 KB Page Size Support
+
+To ensure your app works correctly on devices with 16 KB page sizes, follow these testing instructions:
+
+#### Option 1: Using Android Emulator (Recommended)
+
+1. **Install Android SDK Platform Tools 35 or higher**:
+
+   ```bash
+   # Update SDK tools
+   sdkmanager --update
+   sdkmanager "platform-tools" "platforms;android-35"
+   ```
+
+2. **Create a 16 KB page size AVD**:
+
+   ```bash
+   # Create AVD with 16 KB page size support
+   avdmanager create avd -n "Pixel_8_16KB" \
+     -k "system-images;android-35;google_apis;x86_64" \
+     -d "pixel_8" \
+     -g "google_apis"
+
+   # Edit AVD config to enable 16 KB pages
+   echo "hw.ramSize=4096" >> ~/.android/avd/Pixel_8_16KB.avd/config.ini
+   echo "hw.cpu.ncore=4" >> ~/.android/avd/Pixel_8_16KB.avd/config.ini
+   ```
+
+3. **Launch emulator with 16 KB page size**:
+
+   ```bash
+   # Start emulator with 16 KB page size
+   emulator -avd Pixel_8_16KB -qemu -machine kernel-page-size=16k
+   ```
+
+4. **Run your app**:
+   ```bash
+   # Run production flavor on the emulator
+   flutter run --release --target lib/main_production.dart --flavor production
+   ```
+
+#### Option 2: Using Physical Device
+
+Some newer Android devices (Pixel 8 and newer with Android 15) support 16 KB page sizes natively:
+
+1. **Enable 16 KB page sizes** (if supported by device):
+
+   - This typically requires a device reboot with specific kernel parameters
+   - Check your device manufacturer's documentation
+
+2. **Verify page size**:
+
+   ```bash
+   adb shell getconf PAGE_SIZE
+   # Should output: 16384
+   ```
+
+3. **Deploy and test**:
+   ```bash
+   flutter run --release --target lib/main_production.dart --flavor production
+   ```
+
+#### Option 3: Using Android Studio
+
+1. **Open AVD Manager** in Android Studio
+2. **Create New Virtual Device**
+3. **Select a device** with Android 15 (API 35) or higher
+4. **Select System Image** with API 35+
+5. **Advanced Settings** → Emulated Performance → **Configure** → Add `-qemu -machine kernel-page-size=16k` to additional emulator command-line options
+6. **Finish** and launch the AVD
+
+#### What to Test
+
+When testing with 16 KB page sizes, verify:
+
+1. **App Launch**: App starts without crashes
+2. **Core Functionality**: All features work as expected
+3. **Native Libraries**: Camera, image picker, and other native features function correctly
+4. **Memory Usage**: Monitor for memory-related crashes
+5. **Performance**: Check for any performance degradation
+6. **Firebase Services**: Authentication and Firestore operations work correctly
+7. **Google Sign-In**: OAuth flow completes successfully
+8. **PocketBase Integration**: API calls and data synchronization work
+
+#### Common Issues and Solutions
+
+**App crashes on startup**:
+
+- Check that NDK version is 27.0.12077973 or higher
+- Verify `useLegacyPackaging = false` in `build.gradle.kts`
+- Rebuild the app: `flutter clean && flutter build appbundle`
+
+**Native library errors**:
+
+- Update Flutter to the latest stable version
+- Update all Flutter plugins to their latest versions
+- Check plugin compatibility with 16 KB page sizes
+
+**Memory issues**:
+
+- Monitor memory usage with Android Profiler
+- Check for memory leaks in native code
+- Verify proper resource cleanup
+
+#### Verification Checklist
+
+Before submitting to Play Store, ensure:
+
+- [ ] App builds successfully with 16 KB configuration
+- [ ] App runs without crashes on 16 KB emulator
+- [ ] All core features tested and working
+- [ ] Native plugins (camera, image picker) tested
+- [ ] Firebase and PocketBase integration tested
+- [ ] Memory profiling shows no issues
+- [ ] No warnings or errors in logcat related to page size
 
 ## iOS Deployment
 

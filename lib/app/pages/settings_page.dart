@@ -47,6 +47,7 @@ class _SettingsPageState extends State<SettingsPage> {
         try {
           final pocketBaseService = PocketBaseService();
           final userRecord = await pocketBaseService.getUser(authState.user!.id);
+          if (userRecord == null) throw Exception('User record not found');
           final userData = userRecord.data;
 
           setState(() {

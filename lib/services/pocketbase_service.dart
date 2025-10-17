@@ -137,8 +137,18 @@ class PocketBaseService {
   }
 
   // Get user data
-  Future<RecordModel> getUser(String userId) async {
-    return pb.collection('users').getOne(userId);
+  Future<RecordModel?> getUser(String userId) async {
+    try {
+      return await pb.collection('users').getOne(userId);
+    } catch (e) {
+      // Handle 404 errors gracefully - user might not exist
+      if (e.toString().contains('404') || e.toString().contains('not found')) {
+        print('User $userId not found in getUser method');
+        return null;
+      }
+      print('Error getting user $userId: $e');
+      rethrow;
+    }
   }
 
   // Create vehicle for user
@@ -467,9 +477,12 @@ class PocketBaseService {
     DateTime? paymentDate,
     String? notes,
   }) async {
-    final existingDues = await getMonthlyDuesForUserAndMonth(userId, month);
+    print('PocketBase - markPaymentStatus called for user: $userId, month: $month, isPaid: $isPaid');
 
-    return createOrUpdateMonthlyDues(
+    final existingDues = await getMonthlyDuesForUserAndMonth(userId, month);
+    print('PocketBase - Existing dues found: ${existingDues?.id}');
+
+    final result = await createOrUpdateMonthlyDues(
       userId: userId,
       dueForMonth: month,
       amount: 100, // Fixed amount per month
@@ -477,6 +490,9 @@ class PocketBaseService {
       notes: notes,
       existingId: existingDues?.id,
     );
+
+    print('PocketBase - markPaymentStatus completed, result ID: ${result.id}');
+    return result;
   }
 
   // Get payment statistics for a user
@@ -484,6 +500,11 @@ class PocketBaseService {
     try {
       // Get user details to find joinedDate
       final userRecord = await getUser(userId);
+      if (userRecord == null) {
+        print('User $userId not found in getPaymentStatistics - returning zero stats');
+        return {'paid': 0, 'unpaid': 0, 'advance': 0, 'total': 0};
+      }
+
       final joinedDateString = userRecord.data['joinedDate'] as String?;
 
       if (joinedDateString == null) {
@@ -513,6 +534,11 @@ class PocketBaseService {
     try {
       // Get user details to find joinedDate
       final userRecord = await getUser(userId);
+      if (userRecord == null) {
+        print('User $userId not found in getPaymentStatusForMonth - returning null');
+        return null;
+      }
+
       final joinedDateString = userRecord.data['joinedDate'] as String?;
 
       if (joinedDateString == null) {
@@ -523,13 +549,24 @@ class PocketBaseService {
       final joinedDate = DateTime.parse(joinedDateString);
       final dues = await getMonthlyDuesForUser(userId);
 
+      print('getPaymentStatusForMonth - User: $userId, Month: $monthDate, Joined: $joinedDate');
+      print('getPaymentStatusForMonth - Found ${dues.length} dues records');
+
       // Use the utility class to get payment status
-      return PaymentStatisticsUtils.getPaymentStatusForMonth(
+      final status = PaymentStatisticsUtils.getPaymentStatusForMonth(
         monthDate: monthDate,
         joinedDate: joinedDate,
         monthlyDues: dues,
       );
+
+      print('getPaymentStatusForMonth - Status: $status');
+      return status;
     } catch (e) {
+      // Handle 404 errors gracefully - user might not exist
+      if (e.toString().contains('404') || e.toString().contains('not found')) {
+        print('User $userId not found in getPaymentStatusForMonth - returning null');
+        return null;
+      }
       print('Error getting payment status for month: $e');
       return null;
     }
