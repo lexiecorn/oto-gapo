@@ -32,11 +32,13 @@ class _GalleryManagementPageState extends State<GalleryManagementPage> {
       if (authState.user != null) {
         _currentUserId = authState.user!.id;
         final userRecord = await _pbService.getUser(authState.user!.id);
-        final userData = userRecord.data;
 
-        setState(() {
-          _isAdmin = userData['membership_type'] == 1 || userData['membership_type'] == 2;
-        });
+        if (userRecord != null) {
+          final userData = userRecord.data;
+          setState(() {
+            _isAdmin = userData['membership_type'] == 1 || userData['membership_type'] == 2;
+          });
+        }
 
         if (_isAdmin) {
           await _loadGalleryImages();
