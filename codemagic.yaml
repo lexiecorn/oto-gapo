@@ -136,6 +136,13 @@ workflows:
           flutter test --coverage
         ignore_failure: true
       
+      - name: Prepare release notes
+        script: |
+          echo "📝 Preparing release notes..."
+          mkdir -p android/fastlane/metadata/android/en-US/changelogs
+          cp PLAY_STORE_WHATS_NEW.txt android/fastlane/metadata/android/en-US/changelogs/default.txt
+          echo "✅ Release notes ready"
+      
       - name: Build Android App Bundle (AAB)
         script: |
           echo "🔨 Building Android App Bundle for Play Store..."
