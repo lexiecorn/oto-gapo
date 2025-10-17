@@ -197,7 +197,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   return Column(
                     children: [
                       PaymentStatusCard(userId: profileState.user.uid),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
                     ],
                   );
                 }

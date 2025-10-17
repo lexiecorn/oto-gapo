@@ -180,8 +180,15 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
     }
 
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 8.sp),
       child: ExpansionTile(
+        collapsedShape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
+        // tilePadding: EdgeInsets.zero,
+        // childrenPadding: EdgeInsets.zero,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -211,7 +218,6 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                 ),
               ],
             ),
-            SizedBox(height: 8.sp),
             // Summary Row - Always visible
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 4.sp),
@@ -269,7 +275,6 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: 8.sp),
 
                 if (_recentPayments.isEmpty)
                   Padding(
@@ -382,8 +387,6 @@ class _PaymentStatusCardState extends State<PaymentStatusCard> {
                       );
                     }).toList(),
                   ),
-
-                SizedBox(height: 12.sp),
 
                 // Payment Status Summary
                 Container(
