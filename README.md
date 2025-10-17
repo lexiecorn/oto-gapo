@@ -294,9 +294,35 @@ The app supports internationalization using `flutter_localizations`:
 
 ## 🚀 Deployment
 
-The project features automated CI/CD pipelines for streamlined deployment.
+The project supports two automated CI/CD platforms for streamlined deployment:
 
-### Automated Deployment (Recommended)
+1. **Codemagic** (Recommended) - Flutter-native platform with GUI-based setup
+2. **GitHub Actions** (Alternative) - Git-integrated CI/CD with Fastlane
+
+### Codemagic Deployment (Recommended)
+
+**Setup:**
+
+```bash
+# 1. Sign up at codemagic.io
+# 2. Connect your GitHub repository
+# 3. Upload keystore via UI: Settings → Code signing
+# 4. Upload Google Play service account: Teams → Integrations
+# 5. Push a tag to trigger release
+```
+
+**Quick Release:**
+
+```bash
+./scripts/bump_version.sh minor
+git tag v1.1.0
+git push origin v1.1.0
+# Codemagic automatically builds and deploys to Play Store
+```
+
+See [Codemagic Setup Guide](./docs/CODEMAGIC_SETUP.md) for detailed instructions.
+
+### GitHub Actions Deployment (Alternative)
 
 **Quick Release:**
 
@@ -419,10 +445,23 @@ For detailed deployment instructions, see:
 
 ### CI/CD Pipeline
 
+The project supports two CI/CD platforms:
+
+**Codemagic (Recommended)**
+
+- Flutter-native platform with GUI-based setup
+- Simplified Play Store deployment
+- Mac builds included for iOS
+- See [Codemagic Setup Guide](./docs/CODEMAGIC_SETUP.md)
+
+**GitHub Actions (Alternative)**
+
+- Git-integrated CI/CD with Fastlane
 - All PRs automatically run tests and linting
 - Merges to main trigger build verification
 - Tags trigger automated releases
-- See [Deployment Guide](./docs/DEPLOYMENT.md) for details
+
+See [Deployment Guide](./docs/DEPLOYMENT.md) for detailed comparison and setup instructions.
 
 ## 📄 License
 

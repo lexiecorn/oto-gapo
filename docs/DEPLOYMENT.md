@@ -842,7 +842,97 @@ This deployment guide provides comprehensive instructions for deploying the OtoG
 
 ### Overview
 
-The Otogapo project uses GitHub Actions for continuous integration and automated deployments to the Google Play Store via Fastlane.
+The Otogapo project supports two CI/CD platforms:
+
+1. **Codemagic** (Recommended) - Flutter-native platform with simplified Play Store deployment
+2. **GitHub Actions** - Git-integrated CI/CD with Fastlane integration
+
+Both platforms can coexist or be used independently. See [Codemagic Setup Guide](./CODEMAGIC_SETUP.md) for detailed instructions on the recommended platform.
+
+---
+
+## Codemagic CI/CD (Recommended)
+
+### Why Codemagic?
+
+Codemagic is a Flutter-native CI/CD platform that simplifies deployment:
+
+- ✅ **GUI-based credential management** - Upload keystore and service account via UI
+- ✅ **Built-in Play Store publishing** - No Fastlane configuration needed
+- ✅ **Mac builds included** - iOS builds without owning a Mac
+- ✅ **Flutter-optimized builds** - Faster builds with intelligent caching
+- ✅ **Free tier**: 500 build minutes/month for personal projects
+
+### Quick Start with Codemagic
+
+1. **Sign up**: Visit [codemagic.io](https://codemagic.io) and sign in with GitHub
+2. **Add repository**: Select `oto-gapo` from your repositories
+3. **Upload keystore**: Settings → Code signing → Upload `android/keystore/otogapo-release.jks`
+4. **Configure Play Store**: Teams → Integrations → Google Play → Upload service account JSON
+5. **Test build**: Push a commit or create a tag `v1.0.0` to trigger builds
+
+### Codemagic Workflows
+
+The project includes `codemagic.yaml` with pre-configured workflows:
+
+#### 1. android-ci (Continuous Integration)
+
+**Triggers:** Push to any branch, pull requests  
+**Actions:** Format check, analyze, test, build dev/staging APKs  
+**Artifacts:** Development and staging APKs with coverage
+
+#### 2. android-production (Production Release)
+
+**Triggers:** Git tags matching `v*.*.*` (e.g., `v1.0.0`)  
+**Actions:** Build signed AAB/APK, upload to Play Store internal track  
+**Artifacts:** Android App Bundle, APK, ProGuard mapping
+
+#### 3. web-production (Web Build)
+
+**Triggers:** Git tags matching `v*.*.*`  
+**Actions:** Build web app, create ZIP archive  
+**Artifacts:** Web build files, deployment metadata
+
+#### 4. web-firebase-deploy (Auto Web Deploy)
+
+**Triggers:** Push to main branch  
+**Actions:** Build and deploy to Firebase Hosting automatically  
+**Artifacts:** Web build files
+
+#### 5. manual-build (On-Demand Builds)
+
+**Triggers:** Manual via Codemagic UI  
+**Actions:** Build any flavor on demand for testing  
+**Artifacts:** APK and AAB for selected flavor
+
+### Usage Example
+
+```bash
+# Standard release with Codemagic
+./scripts/bump_version.sh minor
+git commit -am "chore: bump version to 1.1.0"
+git push origin main
+
+git tag v1.1.0
+git push origin v1.1.0
+
+# Codemagic automatically:
+# 1. Builds signed Android AAB and APK
+# 2. Uploads AAB to Play Store internal track (10% rollout)
+# 3. Builds web application
+# 4. Sends email notification
+```
+
+### Documentation
+
+- **Setup Guide**: [CODEMAGIC_SETUP.md](./CODEMAGIC_SETUP.md) - Complete setup instructions
+- **Migration Guide**: [CODEMAGIC_MIGRATION.md](./CODEMAGIC_MIGRATION.md) - Migrate from GitHub Actions
+
+---
+
+## GitHub Actions CI/CD (Alternative)
+
+The Otogapo project also uses GitHub Actions for continuous integration and automated deployments to the Google Play Store via Fastlane.
 
 ### GitHub Actions Workflows
 
@@ -1301,12 +1391,37 @@ git push origin v1.0.2
 
 1. **Keep CHANGELOG.md updated** with all changes
 2. **Tag releases consistently** using v1.0.0 format
-3. **Never commit keystore or passwords** (use GitHub Secrets)
+3. **Never commit keystore or passwords** (use GitHub Secrets or Codemagic UI)
 4. **Review generated changelog before releases**
 5. **Build and test both platforms** (Android and Web) before release
 6. **Document configuration changes** in deployment docs
 7. **Set up monitoring and analytics** for all platforms
 8. **Maintain separate environments** (dev, staging, production)
+
+#### CI/CD Platform Selection
+
+**Use Codemagic if:**
+
+- ✅ You want simpler Play Store deployment
+- ✅ You need iOS builds without a Mac
+- ✅ You prefer GUI for credential management
+- ✅ Build speed is critical
+- ✅ You're within 500 min/month usage
+
+**Use GitHub Actions if:**
+
+- ✅ You need more than 500 min/month (private repos get 2,000 free)
+- ✅ You prefer infrastructure-as-code
+- ✅ You're already using GitHub heavily
+- ✅ You need custom deployment targets
+- ✅ You want everything in one place (code + CI/CD)
+
+**Use Both if:**
+
+- ✅ You want maximum redundancy
+- ✅ You want to test Codemagic without disruption
+- ✅ Different teams prefer different platforms
+- ✅ You want GitHub Actions for CI, Codemagic for releases
 
 ### Troubleshooting CI/CD
 
@@ -1353,8 +1468,16 @@ git push origin v1.0.2
 
 ### Additional Resources
 
+#### CI/CD Documentation
+
+- [Codemagic Setup Guide](./CODEMAGIC_SETUP.md) - Complete Codemagic setup instructions
+- [Codemagic Migration Guide](./CODEMAGIC_MIGRATION.md) - Migrate from GitHub Actions
+- [Codemagic Documentation](https://docs.codemagic.io/) - Official Codemagic docs
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Fastlane Documentation](https://docs.fastlane.tools/)
+
+#### Platform & Deployment Guides
+
 - [Play Console API Guide](https://developers.google.com/android-publisher)
 - [Flutter CI/CD Guide](https://docs.flutter.dev/deployment/cd)
 - [Web Deployment Guide](./WEB_DEPLOYMENT.md)
