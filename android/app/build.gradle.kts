@@ -24,7 +24,8 @@ val keystoreProperties = Properties().apply {
 
 val hasReleaseKeystore = keystoreProperties["storeFile"] != null
 
-val flutterMinSdkVersion = localProperties.getProperty("flutter.minSdkVersion")?.toIntOrNull() ?: 21
+// Firebase Auth requires minSdkVersion 23+
+val flutterMinSdkVersion = localProperties.getProperty("flutter.minSdkVersion")?.toIntOrNull() ?: 23
 
 
 android {
