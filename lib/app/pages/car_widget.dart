@@ -82,6 +82,13 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  String _capitalizeCarName(String carName) {
+    return carName.split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
+  }
+
   Future<List<String>> _getCarImageUrls() async {
     try {
       if (widget.state.vehicles.isEmpty) return [];
@@ -168,7 +175,8 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                               children: [
                                 Text(
                                   widget.state.vehicles.isNotEmpty
-                                      ? '${widget.state.vehicles.first.make} ${widget.state.vehicles.first.model}'
+                                      ? _capitalizeCarName(
+                                          '${widget.state.vehicles.first.make} ${widget.state.vehicles.first.model}')
                                       : 'No Vehicle',
                                   style: OpstechTextTheme.heading2.copyWith(
                                     color: Colors.black87,

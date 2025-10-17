@@ -3,11 +3,13 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/admin_page.dart';
 import 'package:otogapo/app/pages/current_user_account_page.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
+import 'package:otogapo/app/widgets/payment_status_card.dart';
 import 'package:otogapo/providers/theme_provider.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:provider/provider.dart';
@@ -186,6 +188,22 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             const SizedBox(height: 24),
+
+            // Monthly Dues Section
+            BlocBuilder<ProfileCubit, ProfileState>(
+              builder: (context, profileState) {
+                // Only show if user is loaded
+                if (profileState.profileStatus == ProfileStatus.loaded && profileState.user.uid.isNotEmpty) {
+                  return Column(
+                    children: [
+                      PaymentStatusCard(userId: profileState.user.uid),
+                      const SizedBox(height: 24),
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
 
             // Settings Options
             Column(

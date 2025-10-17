@@ -106,7 +106,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
             end: Alignment.bottomCenter,
             colors: [
               Theme.of(context).primaryColor.withOpacity(0.1),
-              Colors.white,
+              Theme.of(context).colorScheme.surface,
             ],
           ),
         ),
@@ -131,6 +131,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         style: TextStyle(
                           fontSize: 24.sp,
                           fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -139,7 +140,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         'Member #${_userData!['memberNumber'] ?? ''}',
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: Colors.grey[600],
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -350,6 +351,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                   style: TextStyle(
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -375,7 +377,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey[700],
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
               ),
             ),
           ),
@@ -384,7 +386,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
               value,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
