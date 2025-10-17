@@ -96,6 +96,11 @@ packages/**/pubspec.lock
 certbot/
 certbot-renew.log
 
+# Codemagic related
+codemagic.yaml.enc
+.codemagic/
+*.codemagic.yaml
+
 # Symbolication related
 app.*.symbols
 

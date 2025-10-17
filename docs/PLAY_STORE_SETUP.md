@@ -415,7 +415,7 @@ Required for automated deployments with Fastlane.
 5. Click **Grant access**
 6. Set permissions:
    - [ ] View app information
-   - [ ] Manage releases
+   - [ ] Manage releases 
    - [ ] Manage store presence
 7. Click **Invite user**
 8. Accept the invitation (check email)

@@ -1,0 +1,382 @@
+# Codemagic CI/CD Configuration for OtoGapo
+# Documentation: https://docs.codemagic.io/yaml-quick-start/building-a-flutter-app/
+
+workflows:
+  # ============================================================================
+  # Android CI Workflow - Runs on every push and PR
+  # ============================================================================
+  android-ci:
+    name: Android CI
+    max_build_duration: 30
+    instance_type: mac_mini_m1
+    environment:
+      flutter: 3.24.0
+      xcode: latest
+      cocoapods: default
+      vars:
+        PACKAGE_NAME: "com.digitappstudio.otogapo"
+    
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: '*'
+          include: true
+        - pattern: 'main'
+          include: true
+        - pattern: 'develop'
+          include: true
+        - pattern: 'feature/**'
+          include: true
+      cancel_previous_builds: true
+    
+    scripts:
+      - name: Get dependencies
+        script: |
+          echo "📦 Installing Flutter dependencies..."
+          flutter pub get
+      
+      - name: Verify formatting
+        script: |
+          echo "🎨 Verifying code formatting..."
+          dart format --set-exit-if-changed .
+      
+      - name: Analyze code
+        script: |
+          echo "🔍 Running static analysis..."
+          flutter analyze
+      
+      - name: Generate code
+        script: |
+          echo "⚙️ Generating code with build_runner..."
+          dart run build_runner build --delete-conflicting-outputs
+      
+      - name: Run tests
+        script: |
+          echo "🧪 Running tests with coverage..."
+          flutter test --coverage --test-randomize-ordering-seed random
+      
+      - name: Build Development APK
+        script: |
+          echo "🔨 Building development APK..."
+          flutter build apk \
+            --debug \
+            --target lib/main_development.dart \
+            --flavor development
+      
+      - name: Build Staging APK
+        script: |
+          echo "🔨 Building staging APK..."
+          flutter build apk \
+            --debug \
+            --target lib/main_staging.dart \
+            --flavor staging
+    
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
+      - coverage/lcov.info
+    
+    publishing:
+      email:
+        recipients:
+          - $CM_EMAIL
+        notify:
+          success: false
+          failure: true
+
+  # ============================================================================
+  # Android Production Release - Triggered by version tags
+  # ============================================================================
+  android-production:
+    name: Android Production Release
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      flutter: 3.24.0
+      xcode: latest
+      cocoapods: default
+      groups:
+        - google_play
+        - keystore_credentials
+      vars:
+        PACKAGE_NAME: "com.digitappstudio.otogapo"
+        GOOGLE_PLAY_TRACK: "internal"
+      android_signing:
+        - otogapo_release
+    
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'v*.*.*'
+          include: true
+      cancel_previous_builds: false
+    
+    scripts:
+      - name: Set up environment
+        script: |
+          echo "🚀 Starting production build for tag: $CM_TAG"
+          echo "Package: $PACKAGE_NAME"
+          echo "Track: $GOOGLE_PLAY_TRACK"
+      
+      - name: Get dependencies
+        script: |
+          echo "📦 Installing Flutter dependencies..."
+          flutter pub get
+      
+      - name: Generate code
+        script: |
+          echo "⚙️ Generating code with build_runner..."
+          dart run build_runner build --delete-conflicting-outputs
+      
+      - name: Run tests
+        script: |
+          echo "🧪 Running tests..."
+          flutter test --coverage
+        ignore_failure: true
+      
+      - name: Build Android App Bundle (AAB)
+        script: |
+          echo "🔨 Building Android App Bundle for Play Store..."
+          flutter build appbundle \
+            --release \
+            --target lib/main_production.dart \
+            --flavor production
+      
+      - name: Build Android APK
+        script: |
+          echo "🔨 Building Android APK for direct distribution..."
+          flutter build apk \
+            --release \
+            --target lib/main_production.dart \
+            --flavor production
+    
+    artifacts:
+      - build/app/outputs/bundle/productionRelease/*.aab
+      - build/app/outputs/flutter-apk/app-production-release.apk
+      - build/app/outputs/mapping/productionRelease/mapping.txt
+    
+    publishing:
+      email:
+        recipients:
+          - $CM_EMAIL
+        notify:
+          success: true
+          failure: true
+      
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: $GOOGLE_PLAY_TRACK
+        submit_as_draft: false
+        rollout_fraction: 0.1
+        changes_not_sent_for_review: false
+        in_app_update_priority: 3
+
+  # ============================================================================
+  # Web Production Build - Triggered by version tags
+  # ============================================================================
+  web-production:
+    name: Web Production Build
+    max_build_duration: 30
+    instance_type: mac_mini_m1
+    environment:
+      flutter: 3.24.0
+      vars:
+        PACKAGE_NAME: "com.digitappstudio.otogapo"
+    
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'v*.*.*'
+          include: true
+      cancel_previous_builds: false
+    
+    scripts:
+      - name: Set up environment
+        script: |
+          echo "🌐 Starting web build for tag: $CM_TAG"
+          flutter config --enable-web
+      
+      - name: Get dependencies
+        script: |
+          echo "📦 Installing Flutter dependencies..."
+          flutter pub get
+      
+      - name: Generate code
+        script: |
+          echo "⚙️ Generating code with build_runner..."
+          dart run build_runner build --delete-conflicting-outputs
+      
+      - name: Build Web Application
+        script: |
+          echo "🔨 Building web application..."
+          flutter build web \
+            --release \
+            --target lib/main_production.dart \
+            --base-href /
+      
+      - name: Create web archive
+        script: |
+          echo "📦 Creating web archive..."
+          cd build/web
+          zip -r ../otogapo-web-${CM_TAG}.zip .
+          cd ../..
+          echo "✅ Web archive created: build/otogapo-web-${CM_TAG}.zip"
+      
+      - name: Create deployment info
+        script: |
+          echo "📝 Creating deployment info..."
+          cat > build/web/deployment-info.json << EOF
+          {
+            "version": "${CM_TAG}",
+            "buildNumber": "${CM_BUILD_ID}",
+            "buildDate": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "commit": "${CM_COMMIT}",
+            "branch": "${CM_BRANCH}",
+            "repository": "${CM_REPO_SLUG}"
+          }
+          EOF
+    
+    artifacts:
+      - build/web/**
+      - build/*.zip
+    
+    publishing:
+      email:
+        recipients:
+          - $CM_EMAIL
+        notify:
+          success: true
+          failure: true
+
+  # ============================================================================
+  # Web Deploy to Firebase - Manual trigger
+  # ============================================================================
+  web-firebase-deploy:
+    name: Deploy Web to Firebase
+    max_build_duration: 30
+    instance_type: mac_mini_m1
+    environment:
+      flutter: 3.24.0
+      groups:
+        - firebase_credentials
+      vars:
+        PACKAGE_NAME: "com.digitappstudio.otogapo"
+        FIREBASE_PROJECT_ID: "otogapo-prod"
+    
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+      cancel_previous_builds: true
+    
+    scripts:
+      - name: Set up environment
+        script: |
+          echo "🌐 Setting up Firebase deployment..."
+          flutter config --enable-web
+          npm install -g firebase-tools
+      
+      - name: Get dependencies
+        script: |
+          echo "📦 Installing Flutter dependencies..."
+          flutter pub get
+      
+      - name: Generate code
+        script: |
+          echo "⚙️ Generating code with build_runner..."
+          dart run build_runner build --delete-conflicting-outputs
+      
+      - name: Build Web Application
+        script: |
+          echo "🔨 Building web application..."
+          flutter build web \
+            --release \
+            --target lib/main_production.dart \
+            --base-href /
+      
+      - name: Deploy to Firebase Hosting
+        script: |
+          echo "🚀 Deploying to Firebase Hosting..."
+          firebase deploy \
+            --only hosting \
+            --project $FIREBASE_PROJECT_ID \
+            --token $FIREBASE_TOKEN
+    
+    artifacts:
+      - build/web/**
+    
+    publishing:
+      email:
+        recipients:
+          - $CM_EMAIL
+        notify:
+          success: true
+          failure: true
+
+  # ============================================================================
+  # Manual Build - On-demand builds for testing
+  # ============================================================================
+  manual-build:
+    name: Manual Build
+    max_build_duration: 45
+    instance_type: mac_mini_m1
+    environment:
+      flutter: 3.24.0
+      xcode: latest
+      cocoapods: default
+      groups:
+        - keystore_credentials
+      vars:
+        PACKAGE_NAME: "com.digitappstudio.otogapo"
+        BUILD_FLAVOR: "staging"
+        BUILD_TARGET: "lib/main_staging.dart"
+      android_signing:
+        - otogapo_release
+    
+    triggering:
+      events: []  # Manual trigger only
+    
+    scripts:
+      - name: Get dependencies
+        script: |
+          echo "📦 Installing Flutter dependencies..."
+          flutter pub get
+      
+      - name: Generate code
+        script: |
+          echo "⚙️ Generating code with build_runner..."
+          dart run build_runner build --delete-conflicting-outputs
+      
+      - name: Build Android APK
+        script: |
+          echo "🔨 Building $BUILD_FLAVOR APK..."
+          flutter build apk \
+            --release \
+            --target $BUILD_TARGET \
+            --flavor $BUILD_FLAVOR
+      
+      - name: Build Android App Bundle
+        script: |
+          echo "🔨 Building $BUILD_FLAVOR AAB..."
+          flutter build appbundle \
+            --release \
+            --target $BUILD_TARGET \
+            --flavor $BUILD_FLAVOR
+    
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
+      - build/app/outputs/bundle/*/*.aab
+    
+    publishing:
+      email:
+        recipients:
+          - $CM_EMAIL
+        notify:
+          success: true
+          failure: true
+
