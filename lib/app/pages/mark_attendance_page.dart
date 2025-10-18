@@ -282,9 +282,7 @@ class _MarkAttendancePageState extends State<MarkAttendancePage> {
                     label: Text(
                       status.displayName,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: isSelected
-                            ? (isDark ? theme.colorScheme.onPrimary : Colors.white)
-                            : null,
+                        color: isSelected ? (isDark ? theme.colorScheme.onPrimary : Colors.white) : null,
                       ),
                     ),
                     selected: isSelected,
