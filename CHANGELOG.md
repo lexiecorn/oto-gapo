@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0+6] - 2025-10-18
+
+### Added
+
+- Complete meeting management system
+  - Create and schedule meetings with location, date, and time
+  - View upcoming and past meetings with filters
+  - Track meeting status (upcoming, ongoing, past, closed)
+  - Generate unique QR codes for each meeting
+- Comprehensive attendance tracking
+  - Quick QR code check-in for members
+  - Manual attendance marking for admins
+  - Real-time attendance statistics and counts
+  - Personal attendance history view
+  - Attendance percentage tracking
+- Advanced reporting features
+  - Export attendance data to CSV format
+  - Meeting-specific attendance reports
+  - Individual member attendance history
+  - Attendance analytics and summaries
+- Admin capabilities
+  - Mark attendance for any member manually
+  - View complete attendee lists
+  - Close meetings to finalize attendance
+  - Generate detailed attendance reports
+
+### Technical
+
+- New PocketBase collections: `meetings`, `attendance`, `attendance_summary`
+- New repository package: `attendance_repository`
+- New cubits: `MeetingCubit`, `AttendanceCubit`
+- 7 new pages for meeting and attendance management
+- CSV export functionality with `csv` package
+- Share functionality with `share_plus` package
+- Comprehensive unit tests for new features
+
+### Improved
+
+- Enhanced app stability and performance
+- Better error handling and user feedback
+- Improved UI/UX consistency
+- Optimized QR code scanning and generation
+
+## [1.0.0+5] - 2025-10-15
+
 ### Added
 
 - CI/CD pipeline with GitHub Actions

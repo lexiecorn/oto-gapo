@@ -1,0 +1,44 @@
+🎉 NEW ATTENDANCE MANAGEMENT FEATURE!
+
+What's New in v1.0.0+6:
+
+📋 MEETING MANAGEMENT
+• Create and schedule meetings
+• Set locations, dates, and times
+• Track meeting attendance
+• View upcoming and past meetings
+• Filter meetings by status
+
+✅ ATTENDANCE TRACKING
+• Quick QR code check-in for members
+• Manual attendance marking for admins
+• Real-time attendance statistics
+• Personal attendance history
+• Export attendance data to CSV
+
+📱 QR CODE FEATURES
+• Generate unique QR codes for meetings
+• Scan QR codes to mark attendance
+• Fast and secure check-in process
+• QR code validation
+
+📊 ANALYTICS & REPORTS
+• View attendance percentages
+• Track attendance trends
+• Export attendance reports
+• Meeting summaries with statistics
+
+👥 ADMIN FEATURES
+• Mark attendance manually for any member
+• View all meeting attendees
+• Close meetings to finalize attendance
+• Generate detailed attendance reports
+
+🔧 IMPROVEMENTS
+• Enhanced app stability
+• Improved performance
+• Better user interface
+• Bug fixes and optimizations
+
+Perfect for managing club meetings and events! 🚗💨
+

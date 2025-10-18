@@ -1,113 +1,91 @@
-Otogapo is a comprehensive vehicle association management application designed to streamline membership management, payment tracking, and community communication for vehicle association members and administrators.
+Otogapo is a comprehensive vehicle association management application that streamlines membership, meetings, attendance, payments, and community communication for association members and administrators.
 
 🚗 KEY FEATURES
 
-🔐 Secure Authentication
-• Firebase-powered authentication
-• Google Sign-In support
-• Secure session management
-• Privacy-focused design
+🔐 SECURE AUTHENTICATION
+• Firebase-powered authentication with Google Sign-In
+• Secure session management and privacy-focused design
 
-👥 Member Management
-• Complete member profile management
-• Vehicle registration and details
-• Driver's license information tracking
-• Emergency contact information
-• Medical information storage
-• Profile photo upload
+👥 MEMBER MANAGEMENT
+• Complete profile management with vehicle registration
+• Driver's license and emergency contact tracking
+• Medical information storage and profile photos
 
-💰 Payment Tracking
-• Monthly dues management
-• Payment status monitoring
-• Payment history and statistics
-• Advance payment support
-• Overdue payment alerts
-• Complete payment records
+📅 MEETING MANAGEMENT (NEW!)
+• Create and schedule meetings (Regular, GMM, Special, Emergency)
+• Track status: Scheduled, Ongoing, Completed, Cancelled
+• View upcoming and past meetings with filters
+• Real-time attendance tracking per meeting
 
-📢 Announcements & Updates
-• Association-wide announcements
-• Real-time updates
-• Important notices and events
-• Community news feed
+📱 QR CODE ATTENDANCE (NEW!)
+• Generate unique QR codes for each meeting
+• Quick member check-in via QR code scanning
+• Time-limited secure tokens with instant confirmation
+• Built-in mobile scanner with automatic recording
+
+✅ ATTENDANCE TRACKING (NEW!)
+• Real-time statistics with multiple status types
+• Present, Late, Absent, Excused, Leave tracking
+• Personal attendance history and percentage calculation
+• Manual marking for admins with comprehensive reports
+
+📊 REPORTING & ANALYTICS (NEW!)
+• Export attendance to CSV format
+• Meeting-specific and individual member reports
+• Attendance analytics, trends, and statistics
+• Payment and membership insights
+
+💰 PAYMENT TRACKING
+• Monthly dues management with status monitoring
+• Payment history, advance payments, and overdue alerts
+• Complete payment records and statistics
+
+📢 ANNOUNCEMENTS
+• Association-wide announcements with real-time updates
+• Important notices, events, and community news
 • Image carousel gallery
 
-👨‍💼 Admin Dashboard (For Administrators)
-• User management tools
-• Payment oversight
-• Member statistics and reports
-• Gallery management
-• Announcement creation
-• Administrative functions
+👨‍💼 ADMIN DASHBOARD
+• User and meeting management tools
+• Attendance oversight and manual marking
+• Payment management with member statistics
+• Gallery management and announcement creation
+• Export and reporting tools with administrative functions
 
 ✨ BENEFITS
-
-✓ Simplified membership management
-✓ Easy payment tracking and monitoring
-✓ Stay updated with association news
-✓ Secure and reliable platform
-✓ Modern and intuitive interface
-✓ Responsive design for all devices
-✓ Professional admin tools
+✓ Simplified membership and meeting coordination
+✓ Effortless QR code attendance tracking
+✓ Easy payment monitoring with comprehensive analytics
+✓ Secure, modern interface with responsive design
+✓ Professional admin tools with data export capabilities
+✓ Real-time statistics and insights
 
 🎯 WHO IS IT FOR?
-
-Otogapo is perfect for:
-• Vehicle association members
-• Association administrators
-• Super admins managing multiple associations
-• Anyone involved in vehicle association management
+Perfect for vehicle association members, administrators, super admins, and anyone involved in vehicle association management.
 
 🛡️ SECURITY & PRIVACY
-
-Your data security is our priority. Otogapo uses industry-standard encryption and secure authentication to protect your information. We follow strict data protection guidelines and never share your personal information without consent.
+Your data security is our priority. We use industry-standard encryption and secure authentication to protect your information. We follow strict data protection guidelines and never share your personal information without consent.
 
 📱 USER-FRIENDLY DESIGN
-
-• Beautiful Material Design interface
-• Easy navigation
-• Smooth animations
-• Responsive layouts
-• Dark mode support
-• Intuitive user experience
+Beautiful Material Design interface with easy navigation, smooth animations, responsive layouts, dark mode support, and intuitive user experience.
 
 🚀 TECHNICAL EXCELLENCE
-
-• Built with Flutter for best performance
-• Offline capability for essential features
-• Fast and responsive
-• Regular updates and improvements
-• Cross-platform compatibility
+Built with Flutter for best performance, offline capability for essential features, fast and responsive with regular updates and cross-platform compatibility.
 
 💡 GETTING STARTED
-
-1. Download Otogapo from the Play Store
-2. Create your account with email or Google
+1. Download from Play Store
+2. Create account with email or Google
 3. Complete your member profile
-4. Add your vehicle information
-5. Start tracking your payments
-6. Stay connected with announcements
+4. Add vehicle information
+5. Track payments and check in to meetings
+6. View attendance history
+7. Stay connected with announcements
 
 📞 SUPPORT
+We're here to help with in-app support, email support, comprehensive documentation, and a responsive support team.
 
-Need help? We're here to assist you:
-• In-app support
-• Email support
-• Comprehensive help documentation
-• Responsive support team
-
-🎉 WHAT'S COMING
-
-We're constantly improving Otogapo with new features:
-• Push notifications
-• In-app payments
-• Enhanced reporting
-• Member directory
-• Event calendar
-• And more!
+🎉 COMING SOON
+Push notifications, in-app payment gateway, advanced analytics dashboard, recurring meetings, version updates, PDF reports, email notifications, and bulk operations.
 
 Download Otogapo today and experience hassle-free vehicle association management!
-
----
-
-Keywords: vehicle association, membership management, payment tracking, dues management, association app, member management, admin tools, community app, vehicle registry
 
