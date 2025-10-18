@@ -54,12 +54,24 @@ The app follows a clean architecture pattern with:
   - Payment history and statistics
   - Advance payment support
 
+- **Attendance Management** ✨ **NEW**
+
+  - Meeting creation and management
+  - QR code-based check-in system
+  - Manual attendance marking by admins
+  - Real-time attendance statistics
+  - CSV export for reports
+  - Personal attendance history
+  - Attendance rate tracking
+
 - **Admin Features**
 
   - User management dashboard
   - Payment oversight
+  - Meeting and attendance management
   - Announcement creation and management
   - Member statistics and reports
+  - Gallery management for homepage carousel
 
 - **Profile Management**
   - Personal information management
@@ -86,6 +98,9 @@ The app follows a clean architecture pattern with:
 - **Authentication**: `firebase_auth`, `google_sign_in`
 - **Image Handling**: `image_picker`
 - **Validation**: `validators`
+- **QR Code**: `qr_flutter`, `mobile_scanner`
+- **Data Export**: `csv`, `share_plus`
+- **Charts**: `fl_chart`
 
 ### Development Tools
 
@@ -182,22 +197,40 @@ lib/
 │   │   ├── auth/                # Authentication module
 │   │   ├── profile/             # Profile management
 │   │   ├── signin/              # Sign-in functionality
-│   │   └── signup/              # Sign-up functionality
+│   │   ├── signup/              # Sign-up functionality
+│   │   ├── meetings/            # Meeting management (Cubit)
+│   │   └── attendance/          # Attendance tracking (Cubit)
 │   ├── pages/                   # UI pages/screens
+│   │   ├── meetings_list_page.dart
+│   │   ├── create_meeting_page.dart
+│   │   ├── meeting_details_page.dart
+│   │   ├── meeting_qr_code_page.dart
+│   │   ├── qr_scanner_page.dart
+│   │   ├── mark_attendance_page.dart
+│   │   ├── user_attendance_history_page.dart
+│   │   └── ...
 │   ├── routes/                  # Navigation routing
 │   ├── view/                    # App shell and main views
 │   └── widgets/                 # Reusable UI components
+│       ├── meeting_card.dart
+│       ├── attendance_card.dart
+│       └── ...
 ├── bootstrap.dart               # App initialization
 ├── main_development.dart        # Development entry point
 ├── main_staging.dart           # Staging entry point
 ├── main_production.dart        # Production entry point
 ├── models/                     # Data models
+│   ├── meeting.dart            # Meeting model
+│   ├── attendance.dart         # Attendance model
+│   ├── attendance_summary.dart # Attendance summary
+│   └── ...
 ├── providers/                  # Provider classes
 ├── services/                   # Service classes
 └── utils/                      # Utility functions
 
 packages/                       # Local packages
 ├── authentication_repository/  # Authentication logic
+├── attendance_repository/      # Attendance & meeting management
 ├── local_storage/             # Local storage abstraction
 └── otogapo_core/             # Core UI components and themes
 ```
@@ -225,8 +258,43 @@ The app uses PocketBase for backend services with the following collections:
 
 - `users` - Member information
 - `monthly_dues` - Payment tracking
+- `payment_transactions` - Modern payment management
+- `meetings` - Meeting information and schedules
+- `attendance` - Attendance records
+- `attendance_summary` - User attendance statistics
+- `gallery_images` - Homepage carousel images
 - `Announcements` - Association announcements
 - `app_data` - Application configuration
+
+#### PocketBase URL Configuration
+
+The PocketBase URL is configured per environment in `FlavorConfig`:
+
+```dart
+// In lib/main_development.dart
+FlavorConfig(
+  name: 'DEV',
+  variables: {
+    'pocketbaseUrl': 'https://pb.lexserver.org',
+    'pkgInfoVersion': 'Ver:${packageInfo.version} Build:${packageInfo.buildNumber}',
+  },
+);
+
+// In lib/main_production.dart
+FlavorConfig(
+  name: 'PROD',
+  variables: {
+    'pocketbaseUrl': 'https://pb.lexserver.org',
+    'pkgInfoVersion': 'Ver:${packageInfo.version} Build:${packageInfo.buildNumber}',
+  },
+);
+```
+
+Access the URL in your code:
+
+```dart
+final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+```
 
 ## 🧪 Testing
 

@@ -552,6 +552,424 @@ Future<RecordModel> setAppData({
 })
 ```
 
+## Attendance Management
+
+### Attendance Repository
+
+Located in `packages/attendance_repository/lib/src/attendance_repository.dart`
+
+The Attendance Repository provides comprehensive meeting and attendance management functionality.
+
+#### Repository Class
+
+```dart
+class AttendanceRepository {
+  final PocketBase pb;
+
+  AttendanceRepository(this.pb);
+}
+```
+
+#### Meeting Operations
+
+```dart
+// Create a new meeting
+Future<Meeting> createMeeting({
+  required DateTime meetingDate,
+  required String meetingType,
+  required String title,
+  required String createdBy,
+  String? location,
+  DateTime? startTime,
+  DateTime? endTime,
+  String? description,
+  int? totalExpectedMembers,
+})
+
+// Get all meetings with optional filters
+Future<List<Meeting>> getMeetings({
+  String? status,
+  String? meetingType,
+  DateTime? startDate,
+  DateTime? endDate,
+  int? page,
+  int? perPage,
+})
+
+// Get specific meeting by ID
+Future<Meeting> getMeetingById(String meetingId)
+
+// Update meeting
+Future<Meeting> updateMeeting(String meetingId, Map<String, dynamic> data)
+
+// Delete meeting
+Future<void> deleteMeeting(String meetingId)
+
+// Generate QR code for meeting
+Future<Meeting> generateMeetingQRCode(String meetingId)
+
+// Validate QR code token
+Future<Meeting?> validateQRCode(String token)
+```
+
+#### Attendance Operations
+
+```dart
+// Mark attendance for a user
+Future<Attendance> markAttendance({
+  required String userId,
+  required String memberNumber,
+  required String memberName,
+  required String meetingId,
+  required DateTime meetingDate,
+  required String meetingTitle,
+  required String status,
+  String? checkInMethod,
+  String? markedBy,
+  String? notes,
+  String? profileImage,
+})
+
+// Get attendance records for a meeting
+Future<List<Attendance>> getMeetingAttendance(String meetingId)
+
+// Get attendance records for a user
+Future<List<Attendance>> getUserAttendance(String userId)
+
+// Update attendance status
+Future<Attendance> updateAttendance(
+  String attendanceId,
+  Map<String, dynamic> data,
+)
+
+// Delete attendance record
+Future<void> deleteAttendance(String attendanceId)
+```
+
+#### Attendance Summary Operations
+
+```dart
+// Get user's attendance summary
+Future<AttendanceSummary?> getUserSummary(String userId)
+
+// Update user's attendance summary
+Future<AttendanceSummary> updateUserSummary(
+  String userId,
+  Map<String, dynamic> data,
+)
+```
+
+#### Meeting Count Updates
+
+```dart
+// Update meeting attendance counts
+Future<Meeting> updateMeetingCounts(String meetingId)
+```
+
+#### CSV Export
+
+```dart
+// Export meeting attendance to CSV
+String exportAttendanceToCsv(List<Attendance> attendanceList)
+```
+
+### Attendance Data Models
+
+#### Meeting Model
+
+Located in `lib/models/meeting.dart`
+
+```dart
+class Meeting {
+  final String id;
+  final DateTime meetingDate;
+  final MeetingType meetingType;
+  final String title;
+  final String? location;
+  final DateTime? startTime;
+  final DateTime? endTime;
+  final MeetingStatus status;
+  final String createdBy;
+  final String? qrCodeToken;
+  final DateTime? qrCodeExpiry;
+  final int? totalExpectedMembers;
+  final int? presentCount;
+  final int? absentCount;
+  final int? lateCount;
+  final int? excusedCount;
+  final String? description;
+  final DateTime created;
+  final DateTime updated;
+
+  // Computed properties
+  bool get hasActiveQRCode;
+  bool get isUpcoming;
+  bool get isPast;
+  int get totalAttended;
+  double? get attendanceRate;
+}
+
+enum MeetingType {
+  regular,
+  gmm,      // General Member Meeting
+  special,
+  emergency,
+}
+
+enum MeetingStatus {
+  scheduled,
+  ongoing,
+  completed,
+  cancelled,
+}
+```
+
+#### Attendance Model
+
+Located in `lib/models/attendance.dart`
+
+```dart
+class Attendance {
+  final String id;
+  final String userId;
+  final String memberNumber;
+  final String memberName;
+  final String? profileImage;
+  final String meetingId;
+  final DateTime meetingDate;
+  final String meetingTitle;
+  final AttendanceStatus status;
+  final DateTime? checkInTime;
+  final CheckInMethod? checkInMethod;
+  final String? markedBy;
+  final String? notes;
+  final DateTime created;
+  final DateTime updated;
+
+  // Computed properties
+  bool get isPresent;
+  bool get isAbsent;
+  bool get isLate;
+  String get statusDisplay;
+  String get checkInMethodDisplay;
+}
+
+enum AttendanceStatus {
+  present,
+  late,
+  absent,
+  excused,
+  leave,
+}
+
+enum CheckInMethod {
+  manual,
+  qrScan,
+  auto,
+}
+```
+
+#### AttendanceSummary Model
+
+Located in `lib/models/attendance_summary.dart`
+
+```dart
+class AttendanceSummary {
+  final String id;
+  final String userId;
+  final int totalMeetings;
+  final int totalPresent;
+  final int totalAbsent;
+  final int totalLate;
+  final int totalExcused;
+  final double attendanceRate;
+  final DateTime created;
+  final DateTime updated;
+
+  // Computed properties
+  int get totalAttended; // present + late + excused
+  double get presentPercentage;
+  double get latePercentage;
+  double get absentPercentage;
+}
+```
+
+### Attendance PocketBase Collections
+
+#### meetings Collection
+
+| Field                | Type     | Required | Description                              |
+| -------------------- | -------- | -------- | ---------------------------------------- |
+| id                   | text     | Yes      | Auto-generated unique ID                 |
+| meetingDate          | date     | Yes      | Date and time of meeting                 |
+| meetingType          | select   | Yes      | regular, gmm, special, emergency         |
+| title                | text     | Yes      | Meeting title                            |
+| location             | text     | No       | Meeting location                         |
+| startTime            | date     | No       | Meeting start time                       |
+| endTime              | date     | No       | Meeting end time                         |
+| status               | select   | Yes      | scheduled, ongoing, completed, cancelled |
+| createdBy            | relation | Yes      | Reference to users collection            |
+| qrCodeToken          | text     | No       | QR code token for check-in               |
+| qrCodeExpiry         | date     | No       | QR code expiration time                  |
+| totalExpectedMembers | number   | No       | Expected number of attendees             |
+| presentCount         | number   | No       | Number of present members                |
+| absentCount          | number   | No       | Number of absent members                 |
+| lateCount            | number   | No       | Number of late members                   |
+| excusedCount         | number   | No       | Number of excused members                |
+| description          | text     | No       | Meeting description                      |
+| created              | autodate | Yes      | Record creation timestamp                |
+| updated              | autodate | Yes      | Record update timestamp                  |
+
+**API Rules:**
+
+```javascript
+// List/View: All authenticated users
+List/View: @request.auth.id != ""
+
+// Create/Update: Admin only
+Create/Update: @request.auth.isAdmin = true || @request.auth.membership_type = 1 || @request.auth.membership_type = 2
+
+// Delete: Super Admin only
+Delete: @request.auth.membership_type = 1
+```
+
+#### attendance Collection
+
+| Field         | Type     | Required | Description                           |
+| ------------- | -------- | -------- | ------------------------------------- |
+| id            | text     | Yes      | Auto-generated unique ID              |
+| userId        | relation | Yes      | Reference to users collection         |
+| memberNumber  | text     | Yes      | Cached member number                  |
+| memberName    | text     | Yes      | Cached member name                    |
+| profileImage  | url      | No       | Cached profile image URL              |
+| meetingId     | relation | Yes      | Reference to meetings collection      |
+| meetingDate   | date     | Yes      | Cached meeting date                   |
+| meetingTitle  | text     | Yes      | Cached meeting title                  |
+| status        | select   | Yes      | present, late, absent, excused, leave |
+| checkInTime   | date     | No       | Time of check-in                      |
+| checkInMethod | select   | No       | manual, qr_scan, auto                 |
+| markedBy      | relation | No       | Admin who marked attendance           |
+| notes         | text     | No       | Optional notes                        |
+| created       | autodate | Yes      | Record creation timestamp             |
+| updated       | autodate | Yes      | Record update timestamp               |
+
+**Unique Index:** `(userId, meetingId)` prevents duplicate attendance records
+
+**API Rules:**
+
+```javascript
+// List/View: Users see their own, admins see all
+List/View: @request.auth.id != "" && (@request.auth.isAdmin = true || @request.auth.membership_type = 1 || @request.auth.membership_type = 2 || userId = @request.auth.id)
+
+// Create: Admin or user via QR scan
+Create: @request.auth.isAdmin = true || @request.auth.membership_type = 1 || @request.auth.membership_type = 2 || (userId = @request.auth.id && checkInMethod = "qr_scan")
+
+// Update: Admin only
+Update: @request.auth.isAdmin = true || @request.auth.membership_type = 1 || @request.auth.membership_type = 2
+
+// Delete: Super Admin only
+Delete: @request.auth.membership_type = 1
+```
+
+#### attendance_summary Collection
+
+| Field          | Type     | Required | Description                   |
+| -------------- | -------- | -------- | ----------------------------- |
+| id             | text     | Yes      | Auto-generated unique ID      |
+| userId         | relation | Yes      | Reference to users collection |
+| totalMeetings  | number   | No       | Total meetings held           |
+| totalPresent   | number   | No       | Number of present attendances |
+| totalAbsent    | number   | No       | Number of absent records      |
+| totalLate      | number   | No       | Number of late check-ins      |
+| totalExcused   | number   | No       | Number of excused absences    |
+| attendanceRate | number   | No       | Overall attendance percentage |
+| created        | autodate | Yes      | Record creation timestamp     |
+| updated        | autodate | Yes      | Record update timestamp       |
+
+**Unique Index:** `userId` ensures one summary per user
+
+**API Rules:**
+
+```javascript
+// List/View: Users see their own, admins see all
+List/View: @request.auth.id != "" && (@request.auth.isAdmin = true || @request.auth.membership_type = 1 || @request.auth.membership_type = 2 || userId = @request.auth.id)
+
+// Create/Update: Admin only
+Create/Update: @request.auth.isAdmin = true || @request.auth.membership_type = 1 || @request.auth.membership_type = 2
+
+// Delete: Super Admin only
+Delete: @request.auth.membership_type = 1
+```
+
+### Attendance Error Handling
+
+The attendance repository uses custom error types for clear error handling:
+
+```dart
+class AttendanceFailure {
+  final String message;
+  final String code;
+
+  AttendanceFailure(this.message, this.code);
+
+  // Common error codes
+  static const String duplicateAttendance = 'DUPLICATE_ATTENDANCE';
+  static const String meetingNotFound = 'MEETING_NOT_FOUND';
+  static const String invalidQRCode = 'INVALID_QR_CODE';
+  static const String qrCodeExpired = 'QR_CODE_EXPIRED';
+  static const String permissionDenied = 'PERMISSION_DENIED';
+  static const String networkError = 'NETWORK_ERROR';
+}
+```
+
+### Usage Example
+
+```dart
+// Initialize repository
+final attendanceRepository = AttendanceRepository(pocketBase);
+
+// Create a meeting
+final meeting = await attendanceRepository.createMeeting(
+  meetingDate: DateTime.now().add(Duration(days: 7)),
+  meetingType: 'regular',
+  title: 'Monthly General Meeting',
+  createdBy: 'admin_user_id',
+  location: 'Main Hall',
+  totalExpectedMembers: 50,
+);
+
+// Generate QR code for check-in
+final updatedMeeting = await attendanceRepository.generateMeetingQRCode(meeting.id);
+
+// Mark attendance via QR scan
+final attendance = await attendanceRepository.markAttendance(
+  userId: 'user_id',
+  memberNumber: 'M001',
+  memberName: 'John Doe',
+  meetingId: meeting.id,
+  meetingDate: meeting.meetingDate,
+  meetingTitle: meeting.title,
+  status: 'present',
+  checkInMethod: 'qr_scan',
+);
+
+// Get meeting attendance list
+final attendanceList = await attendanceRepository.getMeetingAttendance(meeting.id);
+
+// Export to CSV
+final csvData = attendanceRepository.exportAttendanceToCsv(attendanceList);
+
+// Get user's attendance summary
+final summary = await attendanceRepository.getUserSummary('user_id');
+print('Attendance rate: ${summary?.attendanceRate}%');
+```
+
+For complete attendance system documentation, see:
+
+- [Attendance Implementation Guide](./ATTENDANCE_IMPLEMENTATION.md)
+- [Attendance Schema Design](./ATTENDANCE_SCHEMA.md)
+- [PocketBase Attendance Setup](./POCKETBASE_ATTENDANCE_SETUP.md)
+
 ## Real-time Updates
 
 ### Subscriptions

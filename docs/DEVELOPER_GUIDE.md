@@ -583,6 +583,66 @@ abstract class User with _$User {
 }
 ```
 
+## Local Packages
+
+### Attendance Repository
+
+Located in `packages/attendance_repository/`
+
+**Purpose**: Provides meeting and attendance management functionality.
+
+**Features**:
+
+- Meeting CRUD operations
+- Attendance tracking and marking
+- QR code generation and validation
+- CSV export functionality
+- Real-time statistics
+
+**Usage**:
+
+```dart
+// Add to pubspec.yaml dependencies
+attendance_repository:
+  path: packages/attendance_repository
+
+// Import in your code
+import 'package:attendance_repository/attendance_repository.dart';
+
+// Initialize with PocketBase
+final repository = AttendanceRepository(pocketBase);
+
+// Create a meeting
+final meeting = await repository.createMeeting(
+  meetingDate: DateTime.now(),
+  meetingType: 'regular',
+  title: 'Monthly Meeting',
+  createdBy: userId,
+);
+
+// Mark attendance
+final attendance = await repository.markAttendance(
+  userId: userId,
+  memberNumber: 'M001',
+  memberName: 'John Doe',
+  meetingId: meeting.id,
+  meetingDate: meeting.meetingDate,
+  meetingTitle: meeting.title,
+  status: 'present',
+);
+```
+
+**Dependencies**:
+
+- `pocketbase`: Backend integration
+- `csv`: Data export functionality
+
+**Testing**:
+
+```bash
+flutter test packages/attendance_repository/test/
+```
+
 ## Debugging
 
 ### Debug Tools

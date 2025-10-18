@@ -157,6 +157,8 @@ App
 ├── SigninCubit (Sign-in form state)
 ├── SignupCubit (Sign-up form state)
 ├── ProfileCubit (Profile management state)
+├── MeetingCubit (Meeting management state)
+├── AttendanceCubit (Attendance tracking state)
 └── ThemeProvider (Theme state)
 ```
 
@@ -351,6 +353,30 @@ The app uses PocketBase (https://pb.lexserver.org/) for data management with the
 
 - Application configuration
 - System settings
+
+#### meetings
+
+- Meeting schedules and details
+- QR code tokens for check-in
+- Attendance count tracking
+- Meeting status and types
+- Fields: meetingDate, meetingType, title, location, status, qrCodeToken, qrCodeExpiry, presentCount, absentCount, etc.
+
+#### attendance
+
+- Individual attendance records
+- User check-in tracking
+- Denormalized member data for performance
+- Unique constraint on (userId, meetingId)
+- Fields: userId, memberNumber, memberName, meetingId, status, checkInTime, checkInMethod, markedBy, notes
+
+#### attendance_summary
+
+- User attendance statistics
+- Cached attendance rates
+- Auto-updated by attendance changes
+- Unique constraint on userId
+- Fields: userId, totalMeetings, totalPresent, totalAbsent, totalLate, totalExcused, attendanceRate
 
 ### Data Flow
 
@@ -588,13 +614,26 @@ The app uses a modular package architecture:
 - **Dependencies**: Firebase Auth, PocketBase, Dio
 - **Exports**: AuthRepository, PocketBaseAuthRepository, User model
 
-#### 2. local_storage
+#### 2. attendance_repository
+
+- **Purpose**: Meeting and attendance management
+- **Dependencies**: PocketBase, CSV
+- **Exports**: AttendanceRepository, Meeting, Attendance, AttendanceSummary models
+- **Features**:
+  - Meeting CRUD operations
+  - Attendance tracking and marking
+  - QR code generation and validation
+  - CSV export functionality
+  - Real-time attendance statistics
+  - Automatic count updates
+
+#### 3. local_storage
 
 - **Purpose**: Local data persistence
 - **Dependencies**: Hive, SharedPreferences
 - **Exports**: LocalStorage interface and implementation
 
-#### 3. otogapo_core
+#### 4. otogapo_core
 
 - **Purpose**: Core UI components and themes
 - **Dependencies**: Flutter, Google Fonts, ScreenUtil
@@ -608,6 +647,9 @@ otogapo (main app)
 │   ├── local_storage
 │   ├── firebase_auth
 │   └── pocketbase
+├── attendance_repository
+│   ├── pocketbase
+│   └── csv
 ├── local_storage
 │   └── hive
 └── otogapo_core
@@ -743,6 +785,245 @@ class UserBuilder {
 - **Input validation** - Validate all user inputs
 - **Secure storage** - Use encrypted storage for sensitive data
 - **Authentication checks** - Verify permissions before operations
+
+## Attendance Management System
+
+The application includes a comprehensive attendance management system for tracking member attendance at meetings.
+
+### Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Presentation Layer                        │
+├─────────────────────────────────────────────────────────────┤
+│  MeetingsListPage  │  CreateMeetingPage  │  MarkAttendance │
+│  MeetingDetails    │  MeetingQRCode      │  UserHistory    │
+├─────────────────────────────────────────────────────────────┤
+│            State Management (BLoC/Cubit)                    │
+├─────────────────────────────────────────────────────────────┤
+│  MeetingCubit      │  AttendanceCubit                       │
+├─────────────────────────────────────────────────────────────┤
+│            Domain Layer (Repository)                        │
+├─────────────────────────────────────────────────────────────┤
+│  AttendanceRepository (packages/attendance_repository)      │
+├─────────────────────────────────────────────────────────────┤
+│            Data Layer (PocketBase)                          │
+├─────────────────────────────────────────────────────────────┤
+│  meetings  │  attendance  │  attendance_summary             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Components
+
+#### 1. Meeting Management
+
+**MeetingCubit** (`lib/app/modules/meetings/bloc/meeting_cubit.dart`)
+
+Manages meeting-related state including:
+
+- Meeting list (upcoming/past)
+- Meeting creation and updates
+- QR code generation
+- Meeting filters
+- Real-time count updates
+
+**Features:**
+
+- Create meetings with details and scheduling
+- Generate time-limited QR codes for check-in
+- Filter meetings by status and type
+- Track attendance counts in real-time
+- Export meeting attendance to CSV
+
+#### 2. Attendance Tracking
+
+**AttendanceCubit** (`lib/app/modules/attendance/bloc/attendance_cubit.dart`)
+
+Manages attendance-related state including:
+
+- Attendance marking (manual and QR)
+- User attendance history
+- Attendance statistics
+- Real-time updates
+
+**Features:**
+
+- Mark attendance manually by admin
+- QR code-based check-in
+- Track multiple attendance statuses (present, late, absent, excused, leave)
+- Calculate attendance rates
+- View personal attendance history
+
+#### 3. User Selection Methods
+
+**MarkAttendancePage** supports two methods for selecting users:
+
+1. **Browse Users**
+
+   - Modal bottom sheet with searchable user list
+   - Displays all active members
+   - Shows member number, name, and profile image
+   - Real-time search filtering
+
+2. **QR Code Scanning**
+   - Mobile scanner integration
+   - Scans member QR codes
+   - Automatic user selection
+   - Error handling for invalid codes
+
+#### 4. Data Models
+
+**Meeting Model** (`lib/models/meeting.dart`)
+
+- Comprehensive meeting information
+- Computed properties (hasActiveQRCode, isUpcoming, attendanceRate)
+- Enums for MeetingType and MeetingStatus
+
+**Attendance Model** (`lib/models/attendance.dart`)
+
+- Individual attendance records
+- Denormalized member data for performance
+- Enums for AttendanceStatus and CheckInMethod
+
+**AttendanceSummary Model** (`lib/models/attendance_summary.dart`)
+
+- Cached user statistics
+- Attendance rate calculations
+- Historical data aggregation
+
+### Data Flow
+
+**Creating a Meeting:**
+
+```
+CreateMeetingPage
+  ↓ Form submission
+MeetingCubit.createMeeting()
+  ↓ Call repository
+AttendanceRepository.createMeeting()
+  ↓ API call
+PocketBase (meetings collection)
+  ↓ Record created
+Meeting object returned
+  ↓ State emission
+UI updated with new meeting
+```
+
+**Marking Attendance via QR:**
+
+```
+User scans QR code
+  ↓
+QRScannerPage validates token
+  ↓
+AttendanceCubit.markAttendanceViaQR()
+  ↓
+AttendanceRepository.validateQRCode()
+  ↓
+If valid, create attendance record
+  ↓
+Update meeting counts
+  ↓
+Update user summary
+  ↓
+Emit success state
+```
+
+### PocketBase Schema
+
+The attendance system uses three related collections with specific indexes and API rules for security and performance:
+
+**meetings** - Stores meeting information
+
+- Unique QR tokens per meeting
+- Auto-updated attendance counts
+- Admin-only create/update/delete
+
+**attendance** - Stores individual check-ins
+
+- Unique index on (userId, meetingId)
+- Denormalized member data
+- Users can create via QR scan only
+
+**attendance_summary** - Stores user statistics
+
+- Unique index on userId
+- Auto-calculated attendance rates
+- Admin-only updates
+
+For detailed schema information, see [docs/ATTENDANCE_SCHEMA.md](./ATTENDANCE_SCHEMA.md)
+
+### Security
+
+**Permission Model:**
+
+- Admins (membership_type 1 or 2) can:
+
+  - Create, edit, delete meetings
+  - Mark attendance manually
+  - View all attendance records
+  - Export data to CSV
+  - Manage meeting QR codes
+
+- Members can:
+  - View meeting list
+  - Check in via QR code
+  - View own attendance history
+  - See own statistics
+
+**QR Code Security:**
+
+- Tokens are time-limited (configurable expiry)
+- One-time use per user per meeting
+- Validated server-side
+- Unique constraint prevents duplicate check-ins
+
+### Performance Optimizations
+
+1. **Denormalized Data**
+
+   - Member info cached in attendance records
+   - Fast display without joins
+   - Reduces database queries
+
+2. **Auto-Updated Counts**
+
+   - Meeting counts updated on attendance changes
+   - No need to count on every query
+   - Improves list view performance
+
+3. **Cached Summaries**
+   - User statistics pre-calculated
+   - Updated incrementally
+   - Fast history page loads
+
+### Export Features
+
+**CSV Export:**
+
+- Meeting attendance exported to CSV
+- Includes member info and attendance details
+- Shareable via system share sheet
+- Compatible with Excel/Google Sheets
+
+### Future Enhancements
+
+Planned features for v2.0:
+
+- Push notifications for upcoming meetings
+- Advanced analytics dashboard with charts
+- Attendance trends and predictions
+- Bulk attendance operations
+- Meeting templates
+- Recurring meetings support
+- Offline QR scanning with sync
+
+For complete attendance documentation, see:
+
+- [Attendance Implementation Guide](./ATTENDANCE_IMPLEMENTATION.md)
+- [Attendance Schema Design](./ATTENDANCE_SCHEMA.md)
+- [PocketBase Setup Guide](./POCKETBASE_ATTENDANCE_SETUP.md)
+- [Attendance Feature Summary](../ATTENDANCE_FEATURE_COMPLETE.md)
 
 ## Admin Features
 

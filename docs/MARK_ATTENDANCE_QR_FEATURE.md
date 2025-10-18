@@ -1,180 +1,512 @@
-# Mark Attendance QR Code Feature
+# Mark Attendance Page - User Selection Methods
 
 ## Overview
 
-Added two methods for marking attendance in the Mark Attendance page:
+The Mark Attendance Page (`lib/app/pages/mark_attendance_page.dart`) provides admins with flexible methods to select users when marking attendance for meetings. This document details the implementation of the two user selection methods.
 
-1. **Browse Users** - Search and select from a list of all members
-2. **Scan QR Code** - Quick scan of a member's QR code to auto-fill their details
+## User Selection Methods
 
-## Implementation Details
+### 1. Browse Users Method
 
-### Components Added
+A modal bottom sheet interface that allows admins to browse and search through all active members.
 
-#### 1. Mark Attendance Page Updates (`lib/app/pages/mark_attendance_page.dart`)
+#### Implementation
 
-**New Features:**
+**Modal Component**: `_UserBrowserModal`
 
-- Two selection cards for choosing between Browse and Scan methods
-- User browser modal with search functionality
-- QR code scanner modal with camera controls
-- Display-only selected member information (no manual text input)
-- Clear button to remove selection and choose a different member
+Location: `lib/app/pages/mark_attendance_page.dart`
 
-**Key Methods:**
+**Features**:
 
-- `_browseUsers()` - Opens modal to browse and search users
-- `_scanQRCode()` - Opens camera modal to scan user QR codes
-- Stores member number, name, and user ID in state variables (no text fields)
-
-#### 2. User Browser Modal (`_UserBrowserModal`)
-
-**Features:**
-
-- Search by name or member number
-- Real-time filtering
+- Full list of active members
+- Real-time search filtering
 - Profile image display
-- Loading and error states
-- Pulls user list from PocketBase
+- Member number and name display
+- Smooth animations
+- Pull-to-refresh support
 
-**UI Elements:**
+**UI Structure**:
 
-- Search bar with real-time filtering
-- User list with avatar, name, and member number
-- Pull to refresh functionality
-- Error handling with retry button
+```
+Modal Bottom Sheet
+├── Handle bar (drag indicator)
+├── Header
+│   ├── Title: "Select Member"
+│   └── Close button
+├── Search Field
+│   └── Real-time filtering
+└── Scrollable User List
+    └── User Tiles
+        ├── Profile Image (CircleAvatar)
+        ├── Member Info
+        │   ├── Member Name
+        │   └── Member Number
+        └── Tap to select
+```
 
-#### 3. QR Scanner Modal (`_UserQRScannerModal`)
+**Code Flow**:
 
-**Features:**
+```dart
+1. Admin taps "Browse Users" button
+   ↓
+2. showModalBottomSheet displays _UserBrowserModal
+   ↓
+3. Modal loads all users from PocketBase
+   ↓
+4. User can search to filter list
+   ↓
+5. User taps on a member
+   ↓
+6. Modal returns Map<String, String> with:
+   - userId
+   - memberNumber
+   - memberName
+   ↓
+7. Selected user info displayed on form
+```
 
-- Full-screen camera scanner
-- QR code validation (format: `USER:{userId}:{memberNumber}`)
-- Flashlight toggle
-- Camera switch (front/back)
-- Scanning overlay with corner guides
-- User validation against PocketBase
+**Search Implementation**:
 
-**Security:**
+```dart
+// Filter users based on search query
+final filteredUsers = users.where((user) {
+  final query = _searchController.text.toLowerCase();
+  final name = (user.data['firstName'] ?? '').toLowerCase() +
+      ' ' +
+      (user.data['lastName'] ?? '').toLowerCase();
+  final memberNumber = (user.data['memberNumber'] ?? '').toLowerCase();
 
-- Validates QR code format
-- Fetches and verifies user from PocketBase
+  return name.contains(query) || memberNumber.contains(query);
+}).toList();
+```
+
+**User Tile Design**:
+
+```dart
+ListTile(
+  leading: CircleAvatar(
+    backgroundImage: profileImageUrl != null
+        ? NetworkImage(profileImageUrl)
+        : null,
+    child: profileImageUrl == null ? Icon(Icons.person) : null,
+  ),
+  title: Text(memberName),
+  subtitle: Text('Member #$memberNumber'),
+  onTap: () => Navigator.pop(context, {
+    'userId': user.id,
+    'memberNumber': memberNumber,
+    'memberName': memberName,
+  }),
+)
+```
+
+#### User Experience
+
+**Loading State**:
+
+- Shows circular progress indicator while fetching users
+- Prevents interaction during load
+
+**Empty State**:
+
+- Displays "No members found" when search returns no results
+- Provides clear feedback
+
+**Error State**:
+
+- Shows error message if user fetch fails
+- Option to retry
+
+**Performance Optimization**:
+
+- Loads all users once on modal open
+- Real-time search filters cached data (no additional API calls)
+- Efficient list rendering with ListView.builder
+
+### 2. QR Code Scanning Method
+
+A camera-based interface that scans member QR codes for quick selection.
+
+#### Implementation
+
+**Modal Component**: `_UserQRScannerModal`
+
+Location: `lib/app/pages/mark_attendance_page.dart`
+
+**Features**:
+
+- Live camera preview
+- QR code detection
+- Visual scanning overlay
+- Torch/flashlight toggle
 - Error handling for invalid codes
+- Smooth camera lifecycle management
 
-### User Flow
-
-1. **Browse Method:**
-
-   - User taps "Browse" card
-   - Modal opens with searchable user list
-   - User searches/scrolls to find member
-   - Taps member to select
-   - Selected member details display in colored card
-   - User can tap "X" button to clear and select different member
-
-2. **Scan Method:**
-   - User taps "Scan QR" card
-   - Camera modal opens
-   - User aligns member's QR code in frame
-   - App validates QR code format
-   - App fetches user details from PocketBase
-   - Selected member details display in colored card
-   - Modal closes automatically
-   - User can tap "X" button to clear and scan different member
-
-### QR Code Format
-
-Member QR codes must follow this format:
+**UI Structure**:
 
 ```
-USER:{userId}:{memberNumber}
+Modal Bottom Sheet (Full Height)
+├── Scanner View
+│   ├── MobileScanner (camera preview)
+│   ├── Scanning Overlay
+│   │   └── Semi-transparent frame
+│   └── Torch Toggle Button
+├── Instructions
+│   └── "Scan member QR code"
+└── Close Button
 ```
 
-Example: `USER:abc123xyz:12345`
+**Code Flow**:
 
-This format is generated in `lib/app/pages/user_qr_code_page.dart` (line 59).
+```dart
+1. Admin taps "Scan QR Code" button
+   ↓
+2. showModalBottomSheet displays _UserQRScannerModal
+   ↓
+3. MobileScanner initializes camera
+   ↓
+4. User points camera at QR code
+   ↓
+5. Scanner detects barcode
+   ↓
+6. Extract user ID from QR data
+   ↓
+7. Fetch user details from PocketBase
+   ↓
+8. Validate user exists and is active
+   ↓
+9. Modal returns Map<String, String> with:
+   - userId
+   - memberNumber
+   - memberName
+   ↓
+10. Selected user info displayed on form
+```
 
-### Check-in Method Tracking
+**QR Code Format**:
 
-The system automatically tracks the check-in method:
+The scanner expects QR codes containing user IDs in the following format:
 
-- `'manual'` - When user types in details manually
-- `'qr_scan'` - When user is selected via Browse or QR Scan
+```
+user_id_string
+```
 
-This is stored in the attendance record for reporting purposes.
+Or JSON format:
 
-### Dependencies
+```json
+{
+  "userId": "user_id_string",
+  "memberNumber": "M001"
+}
+```
 
-- `mobile_scanner` - For QR code scanning
-- `PocketBaseService` - For fetching user data
-- `flutter_screenutil` - For responsive UI sizing
+**Scanner Configuration**:
 
-### UI/UX Improvements
+```dart
+MobileScanner(
+  controller: MobileScannerController(
+    detectionSpeed: DetectionSpeed.noDuplicates,
+    facing: CameraFacing.back,
+    torchEnabled: _torchEnabled,
+  ),
+  onDetect: (capture) async {
+    final List<Barcode> barcodes = capture.barcodes;
+    for (final barcode in barcodes) {
+      if (barcode.rawValue != null) {
+        await _processQRCode(barcode.rawValue!);
+      }
+    }
+  },
+)
+```
 
-1. **Clear Selection Options**: Two prominent cards make it obvious users have two methods
-2. **Visual Feedback**: Selected user shows in a colored card with name, member number, and avatar
-3. **No Manual Entry**: Removes redundant text fields - all selection via Browse or Scan
-4. **Clear Selection**: "X" button allows administrators to quickly change their selection
-5. **Info Message**: When no member selected, shows helpful message to guide user
-6. **Search Functionality**: Quick filtering in browse mode
-7. **Camera Controls**: Flashlight and camera switch for better scanning
-8. **Error Handling**: Clear error messages for invalid QR codes or failed user fetches
-9. **Validation**: Prevents form submission without a member selection
+**QR Code Processing**:
 
-## Usage
+```dart
+Future<void> _processQRCode(String qrData) async {
+  // Prevent multiple scans
+  if (_isProcessing) return;
+  _isProcessing = true;
 
-### For Administrators
+  try {
+    // Extract user ID from QR data
+    final userId = _extractUserId(qrData);
 
-1. Navigate to Meeting Details page
-2. Tap "Mark" button
-3. Choose method:
-   - **Browse**: Search and select from user list
-   - **Scan QR**: Scan member's QR code from their profile
-4. Selected member displays in colored card
-5. (Optional) Tap "X" button on card to clear and select different member
-6. Select attendance status (Present, Absent, Late, Excused)
-7. Add optional notes
-8. Tap "Mark Attendance"
+    // Fetch user details from PocketBase
+    final user = await _pocketbaseService.getUser(userId);
 
-### For Members
+    // Validate user
+    if (!user.data['isActive']) {
+      throw Exception('User is inactive');
+    }
 
-To use the QR scan feature:
+    // Return user info
+    Navigator.pop(context, {
+      'userId': user.id,
+      'memberNumber': user.data['memberNumber'],
+      'memberName': '${user.data['firstName']} ${user.data['lastName']}',
+    });
+  } catch (e) {
+    // Show error message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: ${e.toString()}')),
+    );
+    _isProcessing = false;
+  }
+}
+```
 
-1. Open your profile
-2. Navigate to "My QR Code"
-3. Show QR code to administrator
-4. Administrator scans your code
-5. Attendance is marked instantly
+#### User Experience
 
-## Technical Notes
+**Permission Handling**:
 
-### PocketBase Integration
+- Requests camera permission on first use
+- Shows permission denied message if rejected
+- Provides instructions to enable in settings
 
-- Uses `PocketBaseService.getAllUsers()` to fetch user list
-- Uses `PocketBaseService.getUser(userId)` to fetch individual user details
-- Handles authentication automatically via shared PocketBase instance
+**Torch Control**:
 
-### Error Handling
+- Toggle button for flashlight in low light
+- Icon updates to reflect torch state
+- Accessible from scanner view
 
-- Invalid QR code format: "Invalid user QR code"
-- User not found in database: "User not found"
-- Network errors: Displayed with retry option
-- Camera permission denied: Handled by mobile_scanner package
+**Feedback**:
 
-### Performance
+- Haptic feedback on successful scan
+- Visual confirmation animation
+- Error messages for invalid codes
+- Automatic modal close on success
 
-- User list is loaded once and cached in modal
-- Search filtering happens locally (no API calls)
-- QR scanning processes at camera frame rate
-- Duplicate scans prevented with `_isProcessing` flag
+**Error Handling**:
+
+```dart
+try {
+  // Scan and process QR code
+} on NotFoundException catch (e) {
+  showError('User not found');
+} on FormatException catch (e) {
+  showError('Invalid QR code format');
+} catch (e) {
+  showError('Error scanning QR code: ${e.toString()}');
+}
+```
+
+**Camera Lifecycle**:
+
+- Properly initialized on modal open
+- Disposed on modal close
+- Handles app lifecycle (pause/resume)
+
+## Integration with Mark Attendance Form
+
+### Form State Management
+
+The selected user information is stored in the page state:
+
+```dart
+String? _selectedUserId;
+String? _selectedMemberNumber;
+String? _selectedMemberName;
+```
+
+### User Selection Display
+
+After selection, the form displays:
+
+```dart
+if (_selectedUserId != null) {
+  Container(
+    padding: EdgeInsets.all(16.r),
+    decoration: BoxDecoration(
+      color: OpstechColors.lightGray,
+      borderRadius: BorderRadius.circular(8.r),
+    ),
+    child: Row(
+      children: [
+        Icon(Icons.person, size: 24.r),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _selectedMemberName!,
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                'Member #$_selectedMemberNumber',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          icon: Icon(Icons.close),
+          onPressed: () {
+            setState(() {
+              _selectedUserId = null;
+              _selectedMemberNumber = null;
+              _selectedMemberName = null;
+            });
+          },
+        ),
+      ],
+    ),
+  )
+}
+```
+
+### Validation
+
+Before marking attendance:
+
+```dart
+void _markAttendance() {
+  if (!_formKey.currentState!.validate()) return;
+
+  // Validate user selection
+  if (_selectedUserId == null ||
+      _selectedMemberNumber == null ||
+      _selectedMemberName == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please select a member first'),
+        backgroundColor: Colors.orange,
+      ),
+    );
+    return;
+  }
+
+  // Mark attendance via cubit
+  context.read<AttendanceCubit>().markAttendance(
+    userId: _selectedUserId!,
+    memberNumber: _selectedMemberNumber!,
+    memberName: _selectedMemberName!,
+    meetingId: widget.meetingId,
+    meetingDate: DateTime.now(),
+    status: _selectedStatus.value,
+    checkInMethod: 'manual',
+    notes: _notesController.text.trim().isEmpty
+        ? null
+        : _notesController.text.trim(),
+  );
+}
+```
+
+## UI/UX Best Practices
+
+### 1. Accessibility
+
+- Clear button labels
+- Sufficient tap targets (minimum 48x48 dp)
+- Screen reader support
+- High contrast colors
+
+### 2. Performance
+
+- Lazy loading of user list
+- Efficient search filtering
+- Optimized camera preview
+- Proper resource disposal
+
+### 3. Error Handling
+
+- Graceful error messages
+- Clear recovery actions
+- No silent failures
+- User-friendly language
+
+### 4. Feedback
+
+- Loading indicators
+- Success confirmations
+- Error alerts
+- Progress visibility
+
+## Dependencies
+
+### Browse Users Method
+
+- `PocketBaseService`: User data fetching
+- `flutter_screenutil`: Responsive sizing
+- `flutter/material`: UI components
+
+### QR Scanner Method
+
+- `mobile_scanner`: QR code scanning
+- `PocketBaseService`: User validation
+- `flutter/services`: Haptic feedback
+- `flutter_screenutil`: Responsive sizing
+
+## Configuration
+
+### Camera Permissions
+
+**Android** (`android/app/src/main/AndroidManifest.xml`):
+
+```xml
+<uses-permission android:name="android.permission.CAMERA" />
+```
+
+**iOS** (`ios/Runner/Info.plist`):
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>Camera access is required to scan member QR codes</string>
+```
+
+## Testing
+
+### Unit Tests
+
+- User selection logic
+- QR code parsing
+- Error handling
+- Validation
+
+### Widget Tests
+
+- Modal rendering
+- Search functionality
+- Scanner initialization
+- User interaction
+
+### Integration Tests
+
+- End-to-end user selection flow
+- QR scanning workflow
+- Error scenarios
+- Network failures
 
 ## Future Enhancements
 
-Potential improvements:
+### Browse Users Method
 
-1. Bulk attendance marking (scan multiple QR codes in sequence)
-2. Offline mode with sync
-3. NFC support for contactless check-in
-4. Face recognition as alternative to QR
-5. Barcode support for member cards
-6. Export attendance with check-in method analytics
+- Pagination for large member lists
+- Advanced filtering (by status, membership type)
+- Recent selections history
+- Favorites/pinned members
+
+### QR Scanner Method
+
+- Batch QR scanning (multiple members at once)
+- Offline QR validation
+- Custom QR code generator for members
+- QR code history/audit trail
+
+## Related Documentation
+
+- [Attendance Implementation Guide](./ATTENDANCE_IMPLEMENTATION.md)
+- [Mark Attendance Page Component](../lib/app/pages/mark_attendance_page.dart)
+- [Architecture Documentation](./ARCHITECTURE.md)
+- [Developer Guide](./DEVELOPER_GUIDE.md)
+
+## Summary
+
+The Mark Attendance Page provides a flexible, user-friendly interface for admins to mark attendance using either browsing or QR scanning methods. Both methods are optimized for performance, accessibility, and error handling, ensuring a smooth user experience in various scenarios.
