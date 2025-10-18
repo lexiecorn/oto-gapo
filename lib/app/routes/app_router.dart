@@ -34,5 +34,34 @@ class AppRouter extends $AppRouter {
           page: ProfilePageRouter.page,
           path: '/profile',
         ),
+        // Attendance routes
+        AutoRoute(
+          page: MeetingsListPageRouter.page,
+          path: '/meetings',
+        ),
+        AutoRoute(
+          page: CreateMeetingPageRouter.page,
+          path: '/meetings/create',
+        ),
+        AutoRoute(
+          page: MeetingDetailsPageRouter.page,
+          path: '/meetings/:meetingId',
+        ),
+        AutoRoute(
+          page: MeetingQRCodePageRouter.page,
+          path: '/meetings/:meetingId/qr',
+        ),
+        AutoRoute(
+          page: MarkAttendancePageRouter.page,
+          path: '/meetings/:meetingId/mark-attendance',
+        ),
+        AutoRoute(
+          page: QRScannerPageRouter.page,
+          path: '/scan-qr',
+        ),
+        AutoRoute(
+          page: UserAttendanceHistoryPageRouter.page,
+          path: '/attendance/history',
+        ),
       ];
 }

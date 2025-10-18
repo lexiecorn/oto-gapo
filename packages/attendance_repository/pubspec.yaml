@@ -1,0 +1,20 @@
+name: attendance_repository
+description: Repository package for attendance management with PocketBase integration
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  pocketbase: ^0.21.0
+  equatable: ^2.0.5
+
+dev_dependencies:
+  mocktail: ^0.3.0
+  test: ^1.19.2
+  very_good_analysis: ^3.1.0
+
+

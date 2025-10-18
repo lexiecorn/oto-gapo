@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
@@ -6,6 +7,7 @@ import 'package:otogapo/app/pages/analytics_page.dart';
 import 'package:otogapo/app/pages/gallery_management_page.dart';
 import 'package:otogapo/app/pages/payment_management_page_new.dart';
 import 'package:otogapo/app/pages/user_management_page.dart';
+import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 
 class AdminPage extends StatefulWidget {
@@ -186,6 +188,14 @@ class _AdminPageState extends State<AdminPage> {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(builder: (context) => const GalleryManagementPage()),
                       );
+                    },
+                  ),
+                  _buildAdminCard(
+                    icon: Icons.event_note,
+                    title: 'Meetings',
+                    subtitle: 'Manage meetings',
+                    onTap: () {
+                      context.router.push(const MeetingsListPageRouter());
                     },
                   ),
                   _buildAdminCard(

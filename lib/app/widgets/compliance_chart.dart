@@ -247,3 +247,4 @@ class ComplianceChart extends StatelessWidget {
     }
   }
 }
+

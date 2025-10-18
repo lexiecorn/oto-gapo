@@ -8,6 +8,8 @@ environment:
 
 dependencies:
   animated_text_kit: ^4.2.2
+  attendance_repository:
+    path: packages/attendance_repository
   authentication_repository:
     path: packages/authentication_repository
   auto_route: ^7.9.2
@@ -41,7 +43,11 @@ dependencies:
     path: packages/otogapo_core
   package_info_plus: ^8.0.0
   pocketbase: ^0.21.0
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^5.2.3
   validators: ^3.0.0
+  csv: ^6.0.0
+  share_plus: ^10.1.2
   cupertino_icons: ^1.0.2
   provider: ^6.0.5
   shared_preferences: ^2.2.2

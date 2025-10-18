@@ -270,6 +270,28 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 const SizedBox(height: 16),
 
+                // My Attendance (All Users)
+                _buildSettingsCard(
+                  icon: Icons.event_available,
+                  title: 'My Attendance',
+                  subtitle: 'View your attendance history',
+                  onTap: () {
+                    context.router.push(const UserAttendanceHistoryPageRouter());
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Scan QR Code (All Users)
+                _buildSettingsCard(
+                  icon: Icons.qr_code_scanner,
+                  title: 'Check-in',
+                  subtitle: 'Scan QR code to mark attendance',
+                  onTap: () {
+                    context.router.push(const QRScannerPageRouter());
+                  },
+                ),
+                const SizedBox(height: 16),
+
                 // Notifications (placeholder for future implementation)
                 _buildSettingsCard(
                   icon: Icons.notifications,

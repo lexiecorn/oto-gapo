@@ -1,10 +1,13 @@
+import 'package:attendance_repository/attendance_repository.dart';
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:otogapo/app/modules/attendance/bloc/attendance_cubit.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
+import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/modules/signin/bloc/signin_cubit.dart';
 import 'package:otogapo/app/modules/signup/signup_cubit.dart';
@@ -48,6 +51,11 @@ class App extends StatelessWidget {
               create: (context) => ProfileRepository(
                 firebaseFirestore: FirebaseFirestore.instance,
                 pocketBaseAuth: context.read<PocketBaseAuthRepository>(),
+              ),
+            ),
+            RepositoryProvider<AttendanceRepository>(
+              create: (context) => AttendanceRepository(
+                pocketBase: context.read<PocketBaseAuthRepository>().pocketBase,
               ),
             ),
             // RepositoryProvider(
@@ -97,6 +105,16 @@ class App extends StatelessWidget {
               BlocProvider<ProfileCubit>(
                 create: (context) => ProfileCubit(
                   profileRepository: context.read<ProfileRepository>(),
+                ),
+              ),
+              BlocProvider<MeetingCubit>(
+                create: (context) => MeetingCubit(
+                  attendanceRepository: context.read<AttendanceRepository>(),
+                ),
+              ),
+              BlocProvider<AttendanceCubit>(
+                create: (context) => AttendanceCubit(
+                  attendanceRepository: context.read<AttendanceRepository>(),
                 ),
               ),
             ],

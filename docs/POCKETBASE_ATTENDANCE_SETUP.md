@@ -20,10 +20,10 @@ Follow these steps to manually create attendance tables in PocketBase Dashboard.
 | #   | Field Name           | Type           | Required | Options                                                              |
 | --- | -------------------- | -------------- | -------- | -------------------------------------------------------------------- |
 | 1   | meetingDate          | **Date**       | ✅ Yes   | -                                                                    |
-| 2   | meetingType          | **Select**     | ✅ Yes   | Values: `regular`, `special`, `emergency` (one per line)             |
+| 2   | meetingType          | **Select**     | ✅ Yes   | Values: `regular`, `gmm`, `special`, `emergency` (one per line)      |
 | 3   | title                | **Plain text** | ✅ Yes   | Min: 1, Max: 200                                                     |
 | 4   | location             | **Plain text** | ❌ No    | Max: 200                                                             |
-| 5   | startTime            | **Date**       | ✅ Yes   | -                                                                    |
+| 5   | startTime            | **Date**       | ❌ No    | -                                                                    |
 | 6   | endTime              | **Date**       | ❌ No    | -                                                                    |
 | 7   | status               | **Select**     | ✅ Yes   | Values: `scheduled`, `ongoing`, `completed`, `cancelled`             |
 | 8   | createdBy            | **Relation**   | ✅ Yes   | Collection: `users`, Single, Display fields: `firstName`, `lastName` |

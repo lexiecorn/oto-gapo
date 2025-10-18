@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/announcements.dart';
+import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/app/widgets/carousel_view_from_pocketbase.dart';
 
 @RoutePage(
@@ -135,16 +136,90 @@ class HomeBodyState extends State<HomeBody> {
                 child: const CarouselViewFromPocketbase(),
               ),
 
+              // Quick Actions
+              Padding(
+                padding: EdgeInsets.all(16.sp),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _QuickActionButton(
+                        icon: Icons.qr_code_scanner,
+                        label: 'Check-in',
+                        onTap: () {
+                          context.router.push(const QRScannerPageRouter());
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: _QuickActionButton(
+                        icon: Icons.event_available,
+                        label: 'My Attendance',
+                        onTap: () {
+                          context.router.push(const UserAttendanceHistoryPageRouter());
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               // Announcements Widget takes the remaining space
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.all(16.sp),
+                  padding: EdgeInsets.symmetric(horizontal: 16.sp),
                   child: const AnnouncementsWidget(),
                 ),
               ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _QuickActionButton extends StatelessWidget {
+  const _QuickActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      elevation: 2,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 16.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 32.sp,
+                color: theme.colorScheme.primary,
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                label,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
