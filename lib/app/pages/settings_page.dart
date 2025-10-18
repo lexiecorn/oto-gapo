@@ -36,19 +36,19 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<String?> _getProfileImageUrl() async {
     if (_profileImage == null || _profileImage!.isEmpty) return null;
-    
+
     try {
       final authState = context.read<AuthBloc>().state;
       if (authState.user?.id == null) return null;
-      
+
       final pocketBaseService = PocketBaseService();
       final userRecord = await pocketBaseService.getUser(authState.user!.id);
       if (userRecord == null) return null;
-      
+
       final baseUrl = pocketBaseService.baseUrl;
       final collectionId = userRecord.collectionId;
       final recordId = userRecord.id;
-      
+
       return '$baseUrl/api/files/$collectionId/$recordId/$_profileImage';
     } catch (e) {
       print('Error getting profile image URL: $e');
@@ -188,9 +188,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         return CircleAvatar(
                           radius: 40,
                           backgroundColor: Theme.of(context).colorScheme.secondary,
-                          backgroundImage: imageUrl != null && imageUrl.isNotEmpty
-                              ? NetworkImage(imageUrl)
-                              : null,
+                          backgroundImage: imageUrl != null && imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
                           child: imageUrl == null || imageUrl.isEmpty
                               ? const Icon(
                                   Icons.person,
