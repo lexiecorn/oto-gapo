@@ -4,6 +4,7 @@ import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:http/http.dart' show MultipartFile;
 import 'package:intl/intl.dart';
 import 'package:otogapo/models/monthly_dues.dart';
+import 'package:otogapo/models/payment_analytics.dart';
 import 'package:otogapo/models/payment_statistics.dart';
 import 'package:otogapo/models/payment_transaction.dart';
 import 'package:otogapo/utils/payment_statistics_utils.dart';
@@ -1292,6 +1293,278 @@ class PocketBaseService {
     } catch (e) {
       print('Error getting recorded by name: $e');
       return 'Unknown';
+    }
+  }
+
+  // ========================================================================
+  // Analytics Methods
+  // ========================================================================
+
+  /// Get all payment transactions (admin only) within date range
+  Future<List<PaymentTransaction>> getAllPaymentTransactions({
+    String? startMonth,
+    String? endMonth,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      var filter = '';
+      if (startMonth != null && endMonth != null) {
+        filter = 'month >= "$startMonth" && month <= "$endMonth"';
+      }
+
+      final result = await pb.collection('payment_transactions').getList(
+            filter: filter,
+            sort: '-month',
+            expand: 'user,recorded_by',
+            perPage: 5000,
+          );
+
+      return result.items.map(PaymentTransaction.fromRecord).toList();
+    } catch (e) {
+      print('Error getting all payment transactions: $e');
+      return [];
+    }
+  }
+
+  /// Get system-wide analytics for admin dashboard
+  Future<PaymentAnalytics> getSystemWideAnalytics({
+    String? startMonth,
+    String? endMonth,
+  }) async {
+    try {
+      // Get all transactions in the date range
+      final transactions = await getAllPaymentTransactions(
+        startMonth: startMonth,
+        endMonth: endMonth,
+      );
+
+      if (transactions.isEmpty) {
+        return PaymentAnalytics.empty();
+      }
+
+      // Calculate overall statistics
+      final paidTransactions = transactions.where((t) => t.status == PaymentStatus.paid).toList();
+      final totalRevenue = paidTransactions.fold<double>(0, (sum, t) => sum + t.amount);
+      final avgPayment = paidTransactions.isEmpty ? 0.0 : totalRevenue / paidTransactions.length;
+
+      // Group by month for monthly revenue
+      final monthlyRevenueMap = <String, MonthlyRevenue>{};
+      for (final transaction in transactions) {
+        final month = transaction.month;
+        final existing = monthlyRevenueMap[month];
+
+        if (existing == null) {
+          monthlyRevenueMap[month] = MonthlyRevenue(
+            month: month,
+            totalAmount: transaction.isPaid ? transaction.amount : 0,
+            transactionCount: 1,
+            paidCount: transaction.isPaid ? 1 : 0,
+            pendingCount: transaction.isPending ? 1 : 0,
+            waivedCount: transaction.isWaived ? 1 : 0,
+          );
+        } else {
+          monthlyRevenueMap[month] = MonthlyRevenue(
+            month: month,
+            totalAmount: existing.totalAmount + (transaction.isPaid ? transaction.amount : 0),
+            transactionCount: existing.transactionCount + 1,
+            paidCount: existing.paidCount + (transaction.isPaid ? 1 : 0),
+            pendingCount: existing.pendingCount + (transaction.isPending ? 1 : 0),
+            waivedCount: existing.waivedCount + (transaction.isWaived ? 1 : 0),
+          );
+        }
+      }
+
+      final monthlyRevenues = monthlyRevenueMap.values.toList()..sort((a, b) => a.month.compareTo(b.month));
+
+      // Calculate payment method statistics
+      final methodCounts = <PaymentMethod, int>{};
+      final methodAmounts = <PaymentMethod, double>{};
+
+      for (final transaction in paidTransactions) {
+        if (transaction.paymentMethod != null) {
+          final method = transaction.paymentMethod!;
+          methodCounts[method] = (methodCounts[method] ?? 0) + 1;
+          methodAmounts[method] = (methodAmounts[method] ?? 0) + transaction.amount;
+        }
+      }
+
+      final totalPaidCount = paidTransactions.length;
+      final paymentMethodStats = <PaymentMethodStats>[];
+
+      for (final method in PaymentMethod.values) {
+        final count = methodCounts[method] ?? 0;
+        if (count > 0) {
+          paymentMethodStats.add(
+            PaymentMethodStats(
+              method: method,
+              count: count,
+              totalAmount: methodAmounts[method] ?? 0,
+              percentage: totalPaidCount > 0 ? (count / totalPaidCount) * 100 : 0,
+            ),
+          );
+        }
+      }
+
+      // Calculate compliance rates by month
+      final complianceMap = <String, ComplianceRate>{};
+      for (final transaction in transactions) {
+        final month = transaction.month;
+        final existing = complianceMap[month];
+
+        if (existing == null) {
+          complianceMap[month] = ComplianceRate(
+            month: month,
+            totalExpected: 1,
+            paidCount: transaction.isPaid ? 1 : 0,
+            waivedCount: transaction.isWaived ? 1 : 0,
+            pendingCount: transaction.isPending ? 1 : 0,
+            overdueCount: transaction.isPending && transaction.isOverdue ? 1 : 0,
+          );
+        } else {
+          complianceMap[month] = ComplianceRate(
+            month: month,
+            totalExpected: existing.totalExpected + 1,
+            paidCount: existing.paidCount + (transaction.isPaid ? 1 : 0),
+            waivedCount: existing.waivedCount + (transaction.isWaived ? 1 : 0),
+            pendingCount: existing.pendingCount + (transaction.isPending ? 1 : 0),
+            overdueCount: existing.overdueCount + (transaction.isPending && transaction.isOverdue ? 1 : 0),
+          );
+        }
+      }
+
+      final complianceRates = complianceMap.values.toList()..sort((a, b) => a.month.compareTo(b.month));
+
+      // Calculate overall compliance rate
+      final totalExpected = transactions.length;
+      final totalPaid = transactions.where((t) => t.isPaid || t.isWaived).length;
+      final overallCompliance = totalExpected > 0 ? (totalPaid / totalExpected) * 100.0 : 0.0;
+
+      return PaymentAnalytics(
+        totalRevenue: totalRevenue,
+        totalTransactions: transactions.length,
+        averagePaymentAmount: avgPayment,
+        overallComplianceRate: overallCompliance,
+        monthlyRevenues: monthlyRevenues,
+        paymentMethodStats: paymentMethodStats,
+        complianceRates: complianceRates,
+        startMonth: startMonth ?? '',
+        endMonth: endMonth ?? '',
+      );
+    } catch (e) {
+      print('Error calculating system-wide analytics: $e');
+      return PaymentAnalytics.empty();
+    }
+  }
+
+  /// Get user-specific analytics
+  Future<PaymentAnalytics> getUserAnalytics(
+    String userId, {
+    String? startMonth,
+    String? endMonth,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      // Get user's transactions
+      var transactions = await getPaymentTransactions(userId);
+
+      // Filter by date range if provided
+      if (startMonth != null && endMonth != null) {
+        transactions = transactions
+            .where(
+              (t) => t.month.compareTo(startMonth) >= 0 && t.month.compareTo(endMonth) <= 0,
+            )
+            .toList();
+      }
+
+      if (transactions.isEmpty) {
+        return PaymentAnalytics.empty();
+      }
+
+      // Calculate overall statistics
+      final paidTransactions = transactions.where((t) => t.status == PaymentStatus.paid).toList();
+      final totalRevenue = paidTransactions.fold<double>(0, (sum, t) => sum + t.amount);
+      final avgPayment = paidTransactions.isEmpty ? 0.0 : totalRevenue / paidTransactions.length;
+
+      // Monthly revenue (user version)
+      final monthlyRevenueMap = <String, MonthlyRevenue>{};
+      for (final transaction in transactions) {
+        monthlyRevenueMap[transaction.month] = MonthlyRevenue(
+          month: transaction.month,
+          totalAmount: transaction.isPaid ? transaction.amount : 0,
+          transactionCount: 1,
+          paidCount: transaction.isPaid ? 1 : 0,
+          pendingCount: transaction.isPending ? 1 : 0,
+          waivedCount: transaction.isWaived ? 1 : 0,
+        );
+      }
+
+      final monthlyRevenues = monthlyRevenueMap.values.toList()..sort((a, b) => a.month.compareTo(b.month));
+
+      // Payment method statistics for user
+      final methodCounts = <PaymentMethod, int>{};
+      final methodAmounts = <PaymentMethod, double>{};
+
+      for (final transaction in paidTransactions) {
+        if (transaction.paymentMethod != null) {
+          final method = transaction.paymentMethod!;
+          methodCounts[method] = (methodCounts[method] ?? 0) + 1;
+          methodAmounts[method] = (methodAmounts[method] ?? 0) + transaction.amount;
+        }
+      }
+
+      final totalPaidCount = paidTransactions.length;
+      final paymentMethodStats = <PaymentMethodStats>[];
+
+      for (final method in PaymentMethod.values) {
+        final count = methodCounts[method] ?? 0;
+        if (count > 0) {
+          paymentMethodStats.add(
+            PaymentMethodStats(
+              method: method,
+              count: count,
+              totalAmount: methodAmounts[method] ?? 0,
+              percentage: totalPaidCount > 0 ? (count / totalPaidCount) * 100 : 0,
+            ),
+          );
+        }
+      }
+
+      // Compliance by month (for user)
+      final complianceMap = <String, ComplianceRate>{};
+      for (final transaction in transactions) {
+        complianceMap[transaction.month] = ComplianceRate(
+          month: transaction.month,
+          totalExpected: 1,
+          paidCount: transaction.isPaid ? 1 : 0,
+          waivedCount: transaction.isWaived ? 1 : 0,
+          pendingCount: transaction.isPending ? 1 : 0,
+          overdueCount: transaction.isPending && transaction.isOverdue ? 1 : 0,
+        );
+      }
+
+      final complianceRates = complianceMap.values.toList()..sort((a, b) => a.month.compareTo(b.month));
+
+      // Overall compliance
+      final totalExpected = transactions.length;
+      final totalPaid = transactions.where((t) => t.isPaid || t.isWaived).length;
+      final overallCompliance = totalExpected > 0 ? (totalPaid / totalExpected) * 100.0 : 0.0;
+
+      return PaymentAnalytics(
+        totalRevenue: totalRevenue,
+        totalTransactions: transactions.length,
+        averagePaymentAmount: avgPayment,
+        overallComplianceRate: overallCompliance,
+        monthlyRevenues: monthlyRevenues,
+        paymentMethodStats: paymentMethodStats,
+        complianceRates: complianceRates,
+        startMonth: startMonth ?? '',
+        endMonth: endMonth ?? '',
+      );
+    } catch (e) {
+      print('Error calculating user analytics: $e');
+      return PaymentAnalytics.empty();
     }
   }
 }

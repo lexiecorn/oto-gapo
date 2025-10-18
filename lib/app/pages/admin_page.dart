@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
+import 'package:otogapo/app/pages/analytics_page.dart';
 import 'package:otogapo/app/pages/gallery_management_page.dart';
 import 'package:otogapo/app/pages/payment_management_page_new.dart';
 import 'package:otogapo/app/pages/user_management_page.dart';
@@ -192,9 +193,8 @@ class _AdminPageState extends State<AdminPage> {
                     title: 'Analytics',
                     subtitle: 'View system analytics',
                     onTap: () {
-                      // TODO: Implement analytics page
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Analytics feature coming soon!')),
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(builder: (context) => const AnalyticsPage()),
                       );
                     },
                   ),
