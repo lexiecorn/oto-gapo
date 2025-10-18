@@ -972,6 +972,9 @@ class PocketBaseService {
     }
   }
 
+  /// Get base URL for PocketBase
+  String get baseUrl => pb.baseUrl;
+
   /// Get image URL from PocketBase
   String getGalleryImageUrl(RecordModel record, {String? thumb}) {
     final filename = record.data['image'] as String?;

@@ -10,7 +10,6 @@ import 'package:otogapo/app/pages/admin_page.dart';
 import 'package:otogapo/app/pages/current_user_account_page.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/app/widgets/payment_status_card_new.dart';
-import 'package:otogapo/app/pages/payment_history_page.dart';
 import 'package:otogapo/providers/theme_provider.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:provider/provider.dart';
@@ -27,11 +26,34 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _isAdmin = false;
   String? _userName;
   String? _userEmail;
+  String? _profileImage;
 
   @override
   void initState() {
     super.initState();
     _checkUserStatus();
+  }
+
+  Future<String?> _getProfileImageUrl() async {
+    if (_profileImage == null || _profileImage!.isEmpty) return null;
+    
+    try {
+      final authState = context.read<AuthBloc>().state;
+      if (authState.user?.id == null) return null;
+      
+      final pocketBaseService = PocketBaseService();
+      final userRecord = await pocketBaseService.getUser(authState.user!.id);
+      if (userRecord == null) return null;
+      
+      final baseUrl = pocketBaseService.baseUrl;
+      final collectionId = userRecord.collectionId;
+      final recordId = userRecord.id;
+      
+      return '$baseUrl/api/files/$collectionId/$recordId/$_profileImage';
+    } catch (e) {
+      print('Error getting profile image URL: $e');
+      return null;
+    }
   }
 
   Future<void> _checkUserStatus() async {
@@ -61,6 +83,7 @@ class _SettingsPageState extends State<SettingsPage> {
             _userName =
                 '${userData['firstName']?.toString() ?? ''} ' + '${userData['lastName']?.toString() ?? ''}'.trim();
             _userEmail = userData['email']?.toString() ?? '';
+            _profileImage = userData['profileImage']?.toString();
             _isLoading = false;
           });
         } catch (e) {
@@ -158,14 +181,25 @@ class _SettingsPageState extends State<SettingsPage> {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
-                      child: const Icon(
-                        Icons.person,
-                        size: 40,
-                        color: Colors.white,
-                      ),
+                    FutureBuilder<String?>(
+                      future: _getProfileImageUrl(),
+                      builder: (context, snapshot) {
+                        final imageUrl = snapshot.data;
+                        return CircleAvatar(
+                          radius: 40,
+                          backgroundColor: Theme.of(context).colorScheme.secondary,
+                          backgroundImage: imageUrl != null && imageUrl.isNotEmpty
+                              ? NetworkImage(imageUrl)
+                              : null,
+                          child: imageUrl == null || imageUrl.isEmpty
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: Colors.white,
+                                )
+                              : null,
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -210,19 +244,6 @@ class _SettingsPageState extends State<SettingsPage> {
             // Settings Options
             Column(
               children: [
-                // Payment History
-                _buildSettingsCard(
-                  icon: Icons.payment,
-                  title: 'Payment History',
-                  subtitle: 'View your monthly payment records',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(builder: (context) => const PaymentHistoryPage()),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-
                 // Account Information
                 _buildSettingsCard(
                   icon: Icons.account_circle,

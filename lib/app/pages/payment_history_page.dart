@@ -27,9 +27,22 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
   }
 
   Future<void> _loadPaymentData() async {
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       final authState = context.read<AuthBloc>().state;
-      if (authState.user?.id == null) return;
+      if (authState.user?.id == null) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+        return;
+      }
 
       final pocketBaseService = PocketBaseService();
       final transactions = await pocketBaseService.getPaymentTransactions(authState.user!.id);
@@ -90,7 +103,16 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading payment history...'),
+                ],
+              ),
+            )
           : Column(
               children: [
                 _buildSummaryCard(),
