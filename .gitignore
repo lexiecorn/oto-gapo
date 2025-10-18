@@ -42,7 +42,8 @@ unlinked_spec.ds
 .fvm/
 
 # Android related
-**/android/**/gradle-wrapper.jar
+# Note: gradle-wrapper.jar must be committed for Codemagic builds
+!**/android/gradle/wrapper/gradle-wrapper.jar
 **/android/.gradle
 **/android/captures/
 **/android/local.properties
