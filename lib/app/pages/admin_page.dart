@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/gallery_management_page.dart';
-import 'package:otogapo/app/pages/payment_management_page.dart';
+import 'package:otogapo/app/pages/payment_management_page_new.dart';
 import 'package:otogapo/app/pages/user_management_page.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 
@@ -172,7 +172,7 @@ class _AdminPageState extends State<AdminPage> {
                     onTap: () {
                       // Navigate to payment management
                       Navigator.of(context).push(
-                        MaterialPageRoute<void>(builder: (context) => const PaymentManagementPage()),
+                        MaterialPageRoute<void>(builder: (context) => const PaymentManagementPageNew()),
                       );
                     },
                   ),

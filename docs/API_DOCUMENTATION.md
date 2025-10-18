@@ -241,171 +241,202 @@ Note: Each user has exactly one vehicle. The `vehicle` field is a single object.
 
 ## Payment Management
 
-### Monthly Dues System
+### Payment Transactions System
 
-The app manages monthly association dues with comprehensive tracking.
+The app uses a modern payment tracking system with explicit status fields, payment methods, and admin audit trails.
 
-#### Data Model: `MonthlyDues`
+> **Note:** The old `MonthlyDues` model is deprecated. Use `PaymentTransaction` for all new code.
 
-Located in `lib/models/monthly_dues.dart`
+#### Data Models
+
+##### PaymentTransaction
+
+Located in `lib/models/payment_transaction.dart`
 
 ```dart
-class MonthlyDues {
+class PaymentTransaction {
   final String id;
   final String userId;
-  final DateTime? dueForMonth;
+  final String month;                // Format: "YYYY-MM"
   final double amount;
+  final PaymentStatus status;        // pending, paid, waived
   final DateTime? paymentDate;
+  final PaymentMethod? paymentMethod; // cash, bank_transfer, gcash, other
+  final String? recordedBy;          // Admin user ID
   final String? notes;
   final DateTime created;
   final DateTime updated;
 
-  bool get isPaid => paymentDate != null;
-  bool get isUnpaid => paymentDate == null;
-  bool get isOverdue {
-    if (paymentDate != null) return false; // Already paid
-    if (dueForMonth == null) return false; // No due date set
+  // Computed properties
+  bool get isPaid => status == PaymentStatus.paid;
+  bool get isPending => status == PaymentStatus.pending;
+  bool get isWaived => status == PaymentStatus.waived;
+  bool get isOverdue; // pending + month before current
+  DateTime get monthDate;
+  String get paymentMethodDisplay;
+}
 
-    final now = DateTime.now();
-    final currentMonth = DateTime(now.year, now.month);
-    final dueMonth = DateTime(dueForMonth!.year, dueForMonth!.month);
+enum PaymentStatus { pending, paid, waived }
+enum PaymentMethod { cash, bankTransfer, gcash, other }
+```
 
-    return currentMonth.isAfter(dueMonth);
-  }
+##### PaymentStatistics
+
+Located in `lib/models/payment_statistics.dart`
+
+```dart
+class PaymentStatistics {
+  final int totalMonths;           // Total months user should have paid
+  final int paidCount;             // Number of paid months
+  final int pendingCount;          // Number of pending months
+  final int waivedCount;           // Number of waived months
+  final int overdueCount;          // Number of overdue months
+  final double totalPaidAmount;    // Total amount paid
+  final double totalExpectedAmount; // Total expected amount
+  final DateTime? lastPaymentDate;
+  final String? lastPaymentMethod;
+
+  // Computed properties
+  double get paymentPercentage;
+  bool get isUpToDate;
 }
 ```
 
 #### Payment Operations
 
+All operations are handled through `PocketBaseService`:
+
 ```dart
-// Get monthly dues for a specific user
-Future<List<MonthlyDues>> getMonthlyDuesForUser(String userId)
+// Get all transactions for a user
+Future<List<PaymentTransaction>> getPaymentTransactions(String userId)
 
-// Get dues for specific user and month
-Future<MonthlyDues?> getMonthlyDuesForUserAndMonth(String userId, DateTime month)
+// Get specific month transaction
+Future<PaymentTransaction?> getPaymentTransaction(String userId, String month)
 
-// Create or update monthly dues
-Future<MonthlyDues> createOrUpdateMonthlyDues({
+// Create or update a transaction
+Future<PaymentTransaction> updatePaymentTransaction({
   required String userId,
-  required DateTime dueForMonth,
-  required double amount,
+  required String month,      // Format: "YYYY-MM"
+  required PaymentStatus status,
   DateTime? paymentDate,
+  PaymentMethod? paymentMethod,
   String? notes,
-  String? existingId
+  String? recordedBy,         // Admin user ID
 })
 
-// Mark payment status
-Future<MonthlyDues> markPaymentStatus({
-  required String userId,
-  required DateTime month,
-  required bool isPaid,
-  DateTime? paymentDate,
-  String? notes
-})
+// Delete a transaction
+Future<void> deletePaymentTransaction(String transactionId)
 
-// Get payment statistics
-Future<Map<String, int>> getPaymentStatistics(String userId)
+// Get payment statistics for a user
+Future<PaymentStatistics> getPaymentStatistics(String userId)
 
-// Get payment status for a specific month
-Future<bool?> getPaymentStatusForMonth({
-  required String userId,
-  required DateTime monthDate,
-})
+// Get expected months from join date to current
+List<String> getExpectedMonths(DateTime joinedDate)
 
-// Get all monthly dues (admin only)
-Future<List<MonthlyDues>> getAllMonthlyDues()
+// Initialize payment records for a user
+Future<void> initializePaymentRecords(String userId, DateTime joinedDate)
 
-// Delete monthly dues
-Future<void> deleteMonthlyDues(String duesId)
-```
+// Get admin name for audit trail
+Future<String> getRecordedByName(String? recordedById)
 
-#### Payment Statistics
-
-The `getPaymentStatistics` method returns:
-
-```dart
-{
-  'paid': int,      // Number of paid months (from joinedDate to current)
-  'unpaid': int,    // Number of unpaid months (from joinedDate to current)
-  'advance': int,   // Number of advance payments (future months)
-  'total': int      // Total months user should have paid (joinedDate to current)
-}
+// Subscribe to real-time updates
+Future<UnsubscribeFunc> subscribeToPaymentTransactions(
+  void Function(RecordModel) onUpdate
+)
 ```
 
 #### Payment Status Values
 
-- `true` - Payment completed (paymentDate exists)
-- `false` - Payment pending (no paymentDate)
-- `null` - Not applicable (month is before user's joinedDate)
+- **`pending`** - Payment not yet received
+- **`paid`** - Payment completed and recorded
+- **`waived`** - Payment waived by admin (no payment required)
 
-#### Payment Statistics Utility
+#### Month is Overdue When:
 
-Located in `lib/utils/payment_statistics_utils.dart`
-
-A reusable utility class for computing payment statistics based on user's joined date and monthly dues records.
-
-```dart
-class PaymentStatisticsUtils {
-  // Compute payment statistics for a user
-  static Map<String, int> computePaymentStatistics({
-    required DateTime joinedDate,
-    required List<MonthlyDues> monthlyDues,
-    DateTime? currentDate,
-  })
-
-  // Compute statistics for a specific date range
-  static Map<String, int> computePaymentStatisticsForRange({
-    required DateTime joinedDate,
-    required List<MonthlyDues> monthlyDues,
-    required DateTime startDate,
-    required DateTime endDate,
-  })
-
-  // Get payment status for a specific month
-  static bool? getPaymentStatusForMonth({
-    required DateTime monthDate,
-    required DateTime joinedDate,
-    required List<MonthlyDues> monthlyDues,
-  })
-
-  // Get all months from joinedDate to current date
-  static List<DateTime> getAllPaymentMonths({
-    required DateTime joinedDate,
-    DateTime? currentDate,
-  })
-
-  // Calculate payment percentage
-  static double calculatePaymentPercentage(Map<String, int> stats)
-
-  // Get human-readable summary
-  static String getPaymentSummary(Map<String, int> stats)
-}
-```
+- Status is `pending` AND
+- Month is before current month
 
 **Example Usage:**
 
 ```dart
-// Get user's joined date and dues
-final joinedDate = DateTime.parse(userRecord.data['joinedDate']);
-final dues = await pocketBaseService.getMonthlyDuesForUser(userId);
-
-// Compute statistics
-final stats = PaymentStatisticsUtils.computePaymentStatistics(
-  joinedDate: joinedDate,
-  monthlyDues: dues,
+// Record a payment (admin operation)
+final currentAdminId = context.read<AuthBloc>().state.user?.id;
+final transaction = await pocketBaseService.updatePaymentTransaction(
+  userId: 'user123',
+  month: '2025-10',
+  status: PaymentStatus.paid,
+  paymentDate: DateTime.now(),
+  paymentMethod: PaymentMethod.cash,
+  notes: 'Paid in full',
+  recordedBy: currentAdminId,
 );
 
-// Get summary
-final summary = PaymentStatisticsUtils.getPaymentSummary(stats);
-print(summary); // "Payment Summary: 8 paid, 2 unpaid, 1 advance (10 total months, 80.0% paid)"
+// Get user's payment statistics
+final stats = await pocketBaseService.getPaymentStatistics('user123');
+print('Paid ${stats.paidCount} of ${stats.totalMonths} months');
+print('Payment percentage: ${stats.paymentPercentage}%');
+print('Overdue: ${stats.overdueCount}');
 
-// Get payment status for specific month
-final status = PaymentStatisticsUtils.getPaymentStatusForMonth(
-  monthDate: DateTime(2024, 6),
-  joinedDate: joinedDate,
-  monthlyDues: dues,
+// Get specific month transaction
+final octoberPayment = await pocketBaseService.getPaymentTransaction(
+  'user123',
+  '2025-10',
+);
+if (octoberPayment != null && octoberPayment.isPaid) {
+  print('October 2025 is paid via ${octoberPayment.paymentMethodDisplay}');
+}
+
+// Initialize records for a new user
+await pocketBaseService.initializePaymentRecords(
+  'user123',
+  DateTime(2024, 1), // Joined January 2024
 );
 ```
+
+#### PocketBase Schema
+
+**Collection:** `payment_transactions`
+
+| Field          | Type     | Required | Description                       |
+| -------------- | -------- | -------- | --------------------------------- |
+| id             | text     | Yes      | Auto-generated unique ID          |
+| user           | relation | Yes      | Reference to users collection     |
+| month          | text     | Yes      | Payment month "YYYY-MM"           |
+| amount         | number   | Yes      | Payment amount (default: 100)     |
+| status         | select   | Yes      | pending, paid, or waived          |
+| payment_date   | date     | No       | Date payment was made             |
+| payment_method | select   | No       | cash, bank_transfer, gcash, other |
+| recorded_by    | relation | No       | Admin who recorded payment        |
+| notes          | text     | No       | Optional notes                    |
+| created        | autodate | Yes      | Record creation timestamp         |
+| updated        | autodate | Yes      | Record update timestamp           |
+
+**Indexes:**
+
+- Unique index on `(user, month)` prevents duplicates
+- Index on `status` for faster filtering
+- Index on `payment_date` for sorting
+
+**API Rules:**
+
+```javascript
+// List/View: Users see their own, admins see all
+@request.auth.id != "" && (user = @request.auth.id || @request.auth.isAdmin = true)
+
+// Create/Update/Delete: Only admins
+@request.auth.id != "" && @request.auth.isAdmin = true
+```
+
+#### Benefits Over Old System
+
+1. **Explicit status field** - No inferring from payment_date existence
+2. **Unique constraint** - Prevents duplicate entries automatically
+3. **Payment methods** - Track how payments were made
+4. **Audit trail** - Know who recorded each payment
+5. **Clean API** - Simpler, more maintainable code
+6. **Better UX** - Users see detailed payment history
+
+For complete documentation, see [docs/PAYMENT_SYSTEM.md](./PAYMENT_SYSTEM.md)
 
 ## Admin Services
 

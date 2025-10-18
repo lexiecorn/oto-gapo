@@ -1,23 +1,53 @@
 import 'package:authentication_repository/src/models/auth_failure.dart';
+import 'package:authentication_repository/src/persistent_auth_store.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
+import 'package:local_storage/local_storage.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PocketBaseAuthRepository {
-  // Singleton pattern
-  factory PocketBaseAuthRepository() => _instance;
+  // Singleton pattern with LocalStorage dependency
+  factory PocketBaseAuthRepository({LocalStorage? storage}) {
+    if (storage != null) {
+      _instance._storage = storage;
+    }
+    return _instance;
+  }
   PocketBaseAuthRepository._internal();
   static final PocketBaseAuthRepository _instance = PocketBaseAuthRepository._internal();
 
   PocketBase? _pocketBase;
   bool _isInitialized = false;
+  LocalStorage? _storage;
+
+  /// Initialize PocketBase with persistent auth store.
+  ///
+  /// This must be called before accessing [pocketBase] to ensure
+  /// authentication persistence works correctly.
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    final url = FlavorConfig.instance.variables['pocketbaseUrl'] as String? ?? 'https://pb.lexserver.org';
+
+    // If storage is available, use persistent auth store
+    if (_storage != null) {
+      final persistentStore = PersistentAuthStore(_storage!);
+      final authStore = await persistentStore.createAuthStore();
+      _pocketBase = PocketBase(url, authStore: authStore);
+    } else {
+      // Fallback to default auth store if storage is not available
+      _pocketBase = PocketBase(url);
+    }
+
+    _isInitialized = true;
+  }
 
   PocketBase get pocketBase {
     if (!_isInitialized) {
-      // Default URL if FlavorConfig is not yet initialized
-      final url = FlavorConfig.instance.variables['pocketbaseUrl'] as String? ?? 'https://pb.lexserver.org';
-      _pocketBase = PocketBase(url);
-      _isInitialized = true;
+      throw StateError(
+        'PocketBaseAuthRepository not initialized. '
+        'Call initialize() before accessing pocketBase.',
+      );
     }
     return _pocketBase!;
   }

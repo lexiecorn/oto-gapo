@@ -1,5 +1,8 @@
 import 'package:pocketbase/pocketbase.dart';
 
+/// @deprecated Use PaymentTransaction instead. This model is from the old
+/// monthly_dues system and will be removed in a future version.
+///
 /// Represents a monthly dues record for a user in the association.
 ///
 /// This model tracks payment obligations and payments for association members.
@@ -30,6 +33,7 @@ import 'package:pocketbase/pocketbase.dart';
 ///   print('Payment is overdue');
 /// }
 /// ```
+@Deprecated('Use PaymentTransaction from payment_transaction.dart instead')
 class MonthlyDues {
   const MonthlyDues({
     required this.id,
@@ -43,11 +47,20 @@ class MonthlyDues {
   });
 
   factory MonthlyDues.fromRecord(RecordModel record) {
+    print('MonthlyDues.fromRecord - Raw data: ${record.data}');
+    print('MonthlyDues.fromRecord - payment_date raw: ${record.data['payment_date']}');
+
+    final paymentDateRaw = record.data['payment_date'];
+    final paymentDate = paymentDateRaw != null ? _parseDate(paymentDateRaw as String) : null;
+
+    print('MonthlyDues.fromRecord - payment_date parsed: $paymentDate');
+    print('MonthlyDues.fromRecord - payment_date != null: ${paymentDate != null}');
+
     return MonthlyDues(
       id: record.id,
       amount: (record.data['amount'] as num?)?.toDouble() ?? 0.0,
       dueForMonth: record.data['due_for_month'] != null ? _parseDate(record.data['due_for_month'] as String) : null,
-      paymentDate: record.data['payment_date'] != null ? _parseDate(record.data['payment_date'] as String) : null,
+      paymentDate: paymentDate,
       notes: record.data['notes'] as String?,
       userId: record.data['user'] as String,
       created: _parseDate(record.created),

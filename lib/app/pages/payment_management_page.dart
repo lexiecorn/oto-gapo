@@ -24,6 +24,84 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   bool _showBulkUpdateDialog = false;
   Map<String, bool?> _cachedMonthStatus = {}; // Cache for month status data
 
+  // Loading states for payment toggles
+  Set<String> _loadingPaymentToggles = {}; // Track which payment toggles are loading
+  bool _isBulkUpdating = false; // Track bulk update loading state
+
+  // Cache for payment status to avoid repeated API calls
+  Map<String, Map<String, dynamic>?> _paymentStatusCache = {};
+  Map<String, DateTime> _cacheTimestamps = {}; // Track when cache entries were created
+
+  // Clear all payment status cache
+  void _clearAllPaymentStatusCache() {
+    _paymentStatusCache.clear();
+    _cacheTimestamps.clear();
+    print('Payment Management - Cleared all payment status cache');
+  }
+
+  // Force cleanup duplicates for a specific user and month
+  Future<void> _forceCleanupUserMonth(String userId, String month) async {
+    try {
+      print('=== FORCE CLEANUP FOR USER/MONTH ===');
+      print('User ID: $userId, Month: $month');
+
+      final pocketBaseService = PocketBaseService();
+      final monthDate = DateFormat('yyyy_MM').parse(month);
+
+      // This will trigger the duplicate cleanup logic
+      final result = await pocketBaseService.getMonthlyDuesForUserAndMonth(userId, monthDate);
+
+      if (result != null) {
+        print('Force cleanup - Found record: ${result.id}');
+      } else {
+        print('Force cleanup - No record found');
+      }
+
+      print('=== END FORCE CLEANUP ===');
+    } catch (e) {
+      print('Error in force cleanup: $e');
+    }
+  }
+
+  // Debug method to test payment status
+  Future<void> _debugPaymentStatus(String userId, String month) async {
+    print('=== DEBUG PAYMENT STATUS ===');
+    print('User ID: $userId');
+    print('Month: $month');
+
+    try {
+      final pocketBaseService = PocketBaseService();
+      final monthDate = DateFormat('yyyy_MM').parse(month);
+
+      // Test direct database query
+      final monthlyDues = await pocketBaseService.getMonthlyDuesForUserAndMonth(userId, monthDate);
+      print('Direct query result: ${monthlyDues != null}');
+
+      if (monthlyDues != null) {
+        print('Record found:');
+        print('  - ID: ${monthlyDues.id}');
+        print('  - Amount: ${monthlyDues.amount}');
+        print('  - Payment Date: ${monthlyDues.paymentDate}');
+        print('  - Payment Date != null: ${monthlyDues.paymentDate != null}');
+        print('  - Due For Month: ${monthlyDues.dueForMonth}');
+
+        // Test the status determination logic
+        final isPaid = monthlyDues.paymentDate != null;
+        print('Is Paid (paymentDate != null): $isPaid');
+
+        // Test the UI status method
+        final uiStatus = await _getPaymentStatus(userId, month);
+        print('UI Status result: $uiStatus');
+        print('UI Status - status field: ${uiStatus?['status']}');
+      } else {
+        print('No record found in database');
+      }
+    } catch (e) {
+      print('Error in debug: $e');
+    }
+    print('=== END DEBUG ===');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -33,9 +111,49 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   Future<void> _initializeData() async {
     await _loadUsers();
     await _generateAvailableMonths();
+    // Clean up any existing duplicates on initialization
+    await _cleanupDuplicates();
     setState(() {
       _isLoading = false;
     });
+  }
+
+  Future<void> _cleanupDuplicates() async {
+    try {
+      print('Payment Management - Starting duplicate cleanup...');
+      final pocketBaseService = PocketBaseService();
+      await pocketBaseService.cleanupDuplicateMonthlyDues();
+      print('Payment Management - Duplicate cleanup completed');
+    } catch (e) {
+      print('Error cleaning up duplicates: $e');
+      // Don't show error to user as this is a background operation
+    }
+  }
+
+  Future<void> _manualCleanupDuplicates() async {
+    try {
+      final pocketBaseService = PocketBaseService();
+      await pocketBaseService.cleanupDuplicateMonthlyDues();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Duplicate records cleaned up successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error cleaning up duplicates: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error cleaning up duplicates: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _loadUsers() async {
@@ -88,24 +206,61 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   }
 
   Future<void> _markPaymentStatus(String userId, String month, bool status) async {
+    final toggleKey = '${userId}_$month';
+
+    // Add to loading set
+    setState(() {
+      _loadingPaymentToggles.add(toggleKey);
+    });
+
     try {
       final pocketBaseService = PocketBaseService();
       final monthDate = DateFormat('yyyy_MM').parse(month);
 
-      await pocketBaseService.markPaymentStatus(
+      final result = await pocketBaseService.markPaymentStatus(
         userId: userId,
         month: monthDate,
         isPaid: status,
       );
 
-      // Refresh the data
+      // Clear cache for this user/month combination
+      final cacheKey = '${userId}_$month';
+      _paymentStatusCache.remove(cacheKey);
+      _cacheTimestamps.remove(cacheKey);
+
+      // Clear cache for all months for this user to ensure consistency
+      _paymentStatusCache.removeWhere((key, value) => key.startsWith('${userId}_'));
+      _cacheTimestamps.removeWhere((key, value) => key.startsWith('${userId}_'));
+
+      print('Payment Management - Cleared cache for user: $userId, month: $month');
+      print('Payment Management - Remaining cache keys: ${_paymentStatusCache.keys.toList()}');
+
+      // Refresh the data and force UI update
       await _loadUsers();
 
+      // Force a rebuild of the specific user's payment status
       if (mounted) {
+        setState(() {
+          // This will trigger a rebuild of the payment status widgets
+        });
+      }
+
+      if (mounted) {
+        String message;
+        Color backgroundColor;
+
+        if (status) {
+          message = result == null ? 'Payment record not created' : 'Payment marked as paid';
+          backgroundColor = result == null ? Colors.red : Colors.green;
+        } else {
+          message = result == null ? 'Payment record deleted' : 'Payment marked as unpaid';
+          backgroundColor = result == null ? Colors.red : Colors.orange;
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(status ? 'Payment marked as paid' : 'Payment marked as unpaid'),
-            backgroundColor: status ? Colors.green : Colors.orange,
+            content: Text(message),
+            backgroundColor: backgroundColor,
           ),
         );
       }
@@ -116,39 +271,115 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
           SnackBar(content: Text('Error updating payment status: $e')),
         );
       }
+    } finally {
+      // Remove from loading set
+      if (mounted) {
+        setState(() {
+          _loadingPaymentToggles.remove(toggleKey);
+        });
+      }
     }
   }
 
   Future<Map<String, dynamic>?> _getPaymentStatus(String userId, String month) async {
+    final cacheKey = '${userId}_$month';
+
+    // Check cache first with expiration (5 minutes)
+    if (_paymentStatusCache.containsKey(cacheKey)) {
+      final cacheTime = _cacheTimestamps[cacheKey];
+      if (cacheTime != null && DateTime.now().difference(cacheTime).inMinutes < 5) {
+        print('_getPaymentStatus - Using cached data for $cacheKey');
+        return _paymentStatusCache[cacheKey];
+      } else {
+        print('_getPaymentStatus - Cache expired for $cacheKey, fetching fresh data');
+        _paymentStatusCache.remove(cacheKey);
+        _cacheTimestamps.remove(cacheKey);
+      }
+    }
+
     try {
       final pocketBaseService = PocketBaseService();
       final monthDate = DateFormat('yyyy_MM').parse(month);
 
-      // Use the new utility method to get payment status
-      final status = await pocketBaseService.getPaymentStatusForMonth(
-        userId: userId,
-        monthDate: monthDate,
-      );
+      // Get the actual dues record directly
+      final monthlyDues = await pocketBaseService.getMonthlyDuesForUserAndMonth(userId, monthDate);
 
-      if (status == null) {
-        // Not applicable - before joined date
-        return {
-          'status': null,
-          'amount': 0,
-          'payment_date': null,
-          'updated_at': null,
+      print('_getPaymentStatus - User: $userId, Month: $month, Record found: ${monthlyDues != null}');
+      if (monthlyDues != null) {
+        print('_getPaymentStatus - Record details:');
+        print('  - ID: ${monthlyDues.id}');
+        print('  - Amount: ${monthlyDues.amount}');
+        print('  - Payment Date: ${monthlyDues.paymentDate}');
+        print('  - Due For Month: ${monthlyDues.dueForMonth}');
+        print('  - Notes: ${monthlyDues.notes}');
+        print('  - Is Paid (paymentDate != null): ${monthlyDues.paymentDate != null}');
+      }
+
+      Map<String, dynamic>? result;
+
+      if (monthlyDues == null) {
+        // No record exists - check if user was a member during this month
+        final userRecord = await pocketBaseService.getUser(userId);
+        if (userRecord == null) {
+          result = {
+            'status': null,
+            'amount': 0,
+            'payment_date': null,
+            'updated_at': null,
+          };
+        } else {
+          final joinedDateString = userRecord.data['joinedDate'] as String?;
+          if (joinedDateString == null) {
+            result = {
+              'status': null,
+              'amount': 0,
+              'payment_date': null,
+              'updated_at': null,
+            };
+          } else {
+            final joinedDate = DateTime.parse(joinedDateString);
+            final monthStart = DateTime(monthDate.year, monthDate.month);
+            final joinedMonthStart = DateTime(joinedDate.year, joinedDate.month);
+
+            // If user joined after this month, not applicable
+            if (monthStart.isBefore(joinedMonthStart)) {
+              result = {
+                'status': null,
+                'amount': 0,
+                'payment_date': null,
+                'updated_at': null,
+              };
+            } else {
+              // User was a member but no payment record - unpaid
+              result = {
+                'status': false,
+                'amount': 100.0,
+                'payment_date': null,
+                'updated_at': null,
+              };
+            }
+          }
+        }
+      } else {
+        // Record exists - determine if paid
+        final isPaid = monthlyDues.paymentDate != null;
+
+        print(
+            '_getPaymentStatus - Record found: id=${monthlyDues.id}, paymentDate=${monthlyDues.paymentDate}, isPaid=$isPaid');
+
+        result = {
+          'status': isPaid,
+          'amount': monthlyDues.amount,
+          'payment_date': monthlyDues.paymentDate?.toIso8601String(),
+          'updated_at': monthlyDues.updated,
         };
       }
 
-      // Get the actual dues record for additional details
-      final monthlyDues = await pocketBaseService.getMonthlyDuesForUserAndMonth(userId, monthDate);
-
-      return {
-        'status': status,
-        'amount': monthlyDues?.amount ?? 100.0,
-        'payment_date': monthlyDues?.paymentDate?.toIso8601String(),
-        'updated_at': monthlyDues?.updated,
-      };
+      // Cache the result with timestamp
+      _paymentStatusCache[cacheKey] = result;
+      _cacheTimestamps[cacheKey] = DateTime.now();
+      print('_getPaymentStatus - Cached result for $cacheKey at ${DateTime.now()}');
+      return result;
     } catch (e) {
       // Handle 404 errors gracefully - user might not exist
       if (e.toString().contains('404') || e.toString().contains('not found')) {
@@ -185,6 +416,10 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   // New method to bulk update payments for a user
   Future<void> _bulkUpdatePayments(String userId, List<String> months, bool status) async {
+    setState(() {
+      _isBulkUpdating = true;
+    });
+
     try {
       print('Bulk Update - Starting update for user: $userId');
       print('Bulk Update - Months to update: $months');
@@ -202,8 +437,15 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
           month: monthDate,
           isPaid: status,
         );
-        print('Bulk Update - Updated month $month, result ID: ${result.id}');
+        if (result != null) {
+          print('Bulk Update - Updated month $month, result ID: ${result.id}');
+        } else {
+          print('Bulk Update - Deleted record for month $month');
+        }
       }
+
+      // Clear all payment status cache since we updated multiple records
+      _clearAllPaymentStatusCache();
 
       // Refresh the data
       await _loadUsers();
@@ -211,8 +453,10 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Successfully updated ${months.length} payment(s) as ${status ? 'paid' : 'unpaid'}'),
-            backgroundColor: status ? Colors.green : Colors.orange,
+            content: Text(status
+                ? 'Successfully updated ${months.length} payment(s) as paid'
+                : 'Successfully processed ${months.length} payment(s) - records deleted'),
+            backgroundColor: status ? Colors.green : Colors.red,
           ),
         );
       }
@@ -226,6 +470,12 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
           ),
         );
       }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isBulkUpdating = false;
+        });
+      }
     }
   }
 
@@ -234,6 +484,43 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
     final date = DateFormat('yyyy_MM').parse(month);
     final now = DateTime.now();
     return date.isAfter(DateTime(now.year, now.month));
+  }
+
+  // Build payment toggle with loading indicator
+  Widget _buildPaymentToggle(String userId, String month, bool? status) {
+    final toggleKey = '${userId}_$month';
+    final isLoading = _loadingPaymentToggles.contains(toggleKey);
+
+    if (isLoading) {
+      return Container(
+        width: 48,
+        height: 24,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Switch(
+      value: status == true,
+      onChanged: status == null
+          ? null
+          : (value) {
+              _markPaymentStatus(userId, month, value);
+            },
+      activeColor: Colors.green,
+    );
   }
 
   // New method to show user selection dialog
@@ -291,6 +578,45 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         title: const Text('Payment Management'),
         centerTitle: true,
         actions: [
+          // Debug button
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            onPressed: () async {
+              // Debug the first user for the current month
+              if (_users.isNotEmpty) {
+                await _debugPaymentStatus(_users.first['id'] as String, _selectedMonth);
+              }
+            },
+            tooltip: 'Debug Payment Status',
+          ),
+          // Force cleanup button
+          IconButton(
+            icon: const Icon(Icons.cleaning_services_outlined),
+            onPressed: () async {
+              // Force cleanup for the first user
+              if (_users.isNotEmpty) {
+                await _forceCleanupUserMonth(_users.first['id'] as String, _selectedMonth);
+              }
+            },
+            tooltip: 'Force Cleanup Duplicates',
+          ),
+          // Clear cache button
+          IconButton(
+            icon: const Icon(Icons.cached),
+            onPressed: () {
+              _clearAllPaymentStatusCache();
+              setState(() {
+                // Force rebuild to refresh all payment statuses
+              });
+            },
+            tooltip: 'Clear Payment Status Cache',
+          ),
+          // Cleanup duplicates button
+          IconButton(
+            icon: const Icon(Icons.cleaning_services),
+            onPressed: _manualCleanupDuplicates,
+            tooltip: 'Clean Up Duplicate Records',
+          ),
           // User selection button
           IconButton(
             icon: const Icon(Icons.person_search),
@@ -819,14 +1145,10 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                               ),
                             ),
                             const SizedBox(width: 4),
-                            Switch(
-                              value: status == true,
-                              onChanged: status == null
-                                  ? null
-                                  : (value) {
-                                      _markPaymentStatus(user['id'] as String, _selectedMonth, value);
-                                    },
-                              activeColor: Colors.green,
+                            _buildPaymentToggle(
+                              user['id'] as String,
+                              _selectedMonth,
+                              status,
                             ),
                           ],
                         ),
@@ -1216,7 +1538,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                               children: [
                                 Expanded(
                                   child: ElevatedButton(
-                                    onPressed: _selectedMonthsForBulkUpdate.isEmpty
+                                    onPressed: _selectedMonthsForBulkUpdate.isEmpty || _isBulkUpdating
                                         ? null
                                         : () async {
                                             await _bulkUpdatePayments(
@@ -1236,16 +1558,25 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                       padding: const EdgeInsets.symmetric(vertical: 8),
                                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
-                                    child: const Text(
-                                      'Mark as Paid',
-                                      style: TextStyle(fontSize: 12),
-                                    ),
+                                    child: _isBulkUpdating
+                                        ? const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            ),
+                                          )
+                                        : const Text(
+                                            'Mark as Paid',
+                                            style: TextStyle(fontSize: 12),
+                                          ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: ElevatedButton(
-                                    onPressed: _selectedMonthsForBulkUpdate.isEmpty
+                                    onPressed: _selectedMonthsForBulkUpdate.isEmpty || _isBulkUpdating
                                         ? null
                                         : () async {
                                             await _bulkUpdatePayments(
@@ -1265,10 +1596,19 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                       padding: const EdgeInsets.symmetric(vertical: 8),
                                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
-                                    child: const Text(
-                                      'Mark as Unpaid',
-                                      style: TextStyle(fontSize: 12),
-                                    ),
+                                    child: _isBulkUpdating
+                                        ? const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            ),
+                                          )
+                                        : const Text(
+                                            'Mark as Unpaid',
+                                            style: TextStyle(fontSize: 12),
+                                          ),
                                   ),
                                 ),
                               ],

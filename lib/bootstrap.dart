@@ -127,14 +127,16 @@ Future<void> bootstrap(
     storage: storage,
   );
 
-  final pocketBaseAuthRepository = PocketBaseAuthRepository();
+  // Create PocketBaseAuthRepository with storage and initialize it
+  final pocketBaseAuthRepository = PocketBaseAuthRepository(storage: storage);
+  await pocketBaseAuthRepository.initialize();
 
   // Register repositories in GetIt
   getIt
     ..registerSingleton<AuthRepository>(authRepository)
     ..registerSingleton<PocketBaseAuthRepository>(pocketBaseAuthRepository);
 
-  // PocketBase will be initialized lazily when first accessed
+  // PocketBase is now initialized with persistent auth store
   runApp(
     await builder(
       authRepository,

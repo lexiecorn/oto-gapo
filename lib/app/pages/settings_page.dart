@@ -9,7 +9,7 @@ import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/admin_page.dart';
 import 'package:otogapo/app/pages/current_user_account_page.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
-import 'package:otogapo/app/widgets/payment_status_card.dart';
+import 'package:otogapo/app/widgets/payment_status_card_new.dart';
 import 'package:otogapo/providers/theme_provider.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:provider/provider.dart';
@@ -197,7 +197,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 if (profileState.profileStatus == ProfileStatus.loaded && profileState.user.uid.isNotEmpty) {
                   return Column(
                     children: [
-                      PaymentStatusCard(userId: profileState.user.uid),
+                      PaymentStatusCardNew(userId: profileState.user.uid),
                       const SizedBox(height: 20),
                     ],
                   );

@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
-import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:http/http.dart' show MultipartFile;
+import 'package:intl/intl.dart';
 import 'package:otogapo/models/monthly_dues.dart';
+import 'package:otogapo/models/payment_statistics.dart';
+import 'package:otogapo/models/payment_transaction.dart';
 import 'package:otogapo/utils/payment_statistics_utils.dart';
 import 'package:pocketbase/pocketbase.dart';
 
@@ -425,14 +427,62 @@ class PocketBaseService {
   Future<MonthlyDues?> getMonthlyDuesForUserAndMonth(String userId, DateTime month) async {
     try {
       final monthString = month.toIso8601String().split('T')[0];
+      print('PocketBase - getMonthlyDuesForUserAndMonth: userId=$userId, month=$month, monthString=$monthString');
 
-      // Query for the specific user and month with expanded user relation
-      final result = await pb.collection('monthly_dues').getFirstListItem(
-            'user = "$userId" && due_for_month = "$monthString"',
+      // Also try with time component to match database format
+      final monthStringWithTime = '${monthString} 00:00:00 UTC';
+      print('PocketBase - monthStringWithTime: $monthStringWithTime');
+
+      // Query for ALL records for the specific user and month to handle duplicates
+      // Try both date formats to match database
+      final result = await pb.collection('monthly_dues').getList(
+            page: 1,
+            perPage: 100, // Should be enough for any reasonable number of duplicates
+            filter: 'user = "$userId" && (due_for_month = "$monthString" || due_for_month = "$monthStringWithTime")',
             expand: 'user',
           );
 
-      return MonthlyDues.fromRecord(result);
+      print('PocketBase - getMonthlyDuesForUserAndMonth: Found ${result.items.length} records');
+      for (int i = 0; i < result.items.length; i++) {
+        final item = result.items[i];
+        print(
+            'PocketBase - Record $i: id=${item.id}, due_for_month=${item.data['due_for_month']}, payment_date=${item.data['payment_date']}');
+        print('PocketBase - Record $i full data: ${item.data}');
+      }
+
+      if (result.items.isEmpty) {
+        print('PocketBase - getMonthlyDuesForUserAndMonth: No records found');
+        return null;
+      }
+
+      // If there are multiple records (duplicates), we need to clean them up
+      if (result.items.length > 1) {
+        print(
+            'PocketBase - Found ${result.items.length} duplicate records for user $userId, month $monthString. Cleaning up...');
+
+        // Keep the most recent record (highest created timestamp)
+        result.items.sort((a, b) => DateTime.parse(b.created).compareTo(DateTime.parse(a.created)));
+        final recordToKeep = result.items.first;
+
+        print('PocketBase - Keeping record: ${recordToKeep.id} (created: ${recordToKeep.created})');
+
+        // Delete all other duplicate records
+        for (int i = 1; i < result.items.length; i++) {
+          try {
+            print(
+                'PocketBase - Deleting duplicate record: ${result.items[i].id} (created: ${result.items[i].created})');
+            await pb.collection('monthly_dues').delete(result.items[i].id);
+            print('PocketBase - Successfully deleted duplicate record: ${result.items[i].id}');
+          } catch (e) {
+            print('PocketBase - Error deleting duplicate record ${result.items[i].id}: $e');
+          }
+        }
+
+        print('PocketBase - Cleanup completed, returning record: ${recordToKeep.id}');
+        return MonthlyDues.fromRecord(recordToKeep);
+      }
+
+      return MonthlyDues.fromRecord(result.items.first);
     } catch (e) {
       print('Error getting monthly dues for user and month: $e');
       return null;
@@ -459,6 +509,13 @@ class PocketBaseService {
       'notes': notes ?? '',
     };
 
+    print('PocketBaseService.createOrUpdateMonthlyDues - Data being sent:');
+    print('  - user: ${data['user']}');
+    print('  - due_for_month: ${data['due_for_month']}');
+    print('  - amount: ${data['amount']}');
+    print('  - payment_date: ${data['payment_date']}');
+    print('  - notes: ${data['notes']}');
+
     RecordModel record;
     if (existingId != null) {
       record = await pb.collection('monthly_dues').update(existingId, body: data);
@@ -466,11 +523,16 @@ class PocketBaseService {
       record = await pb.collection('monthly_dues').create(body: data);
     }
 
+    print('PocketBaseService.createOrUpdateMonthlyDues - Record created/updated:');
+    print('  - id: ${record.id}');
+    print('  - payment_date in record: ${record.data['payment_date']}');
+    print('  - amount in record: ${record.data['amount']}');
+
     return MonthlyDues.fromRecord(record);
   }
 
   // Mark payment status for a specific month
-  Future<MonthlyDues> markPaymentStatus({
+  Future<MonthlyDues?> markPaymentStatus({
     required String userId,
     required DateTime month,
     required bool isPaid,
@@ -481,50 +543,139 @@ class PocketBaseService {
 
     final existingDues = await getMonthlyDuesForUserAndMonth(userId, month);
     print('PocketBase - Existing dues found: ${existingDues?.id}');
+    print('PocketBase - Existing dues payment date: ${existingDues?.paymentDate}');
+    print('PocketBase - Existing dues isPaid: ${existingDues?.isPaid}');
 
-    final result = await createOrUpdateMonthlyDues(
-      userId: userId,
-      dueForMonth: month,
-      amount: 100, // Fixed amount per month
-      paymentDate: isPaid ? (paymentDate ?? DateTime.now()) : null,
-      notes: notes,
-      existingId: existingDues?.id,
-    );
+    // If marking as unpaid (isPaid = false)
+    if (!isPaid) {
+      if (existingDues != null) {
+        // Delete existing record
+        print('PocketBase - Deleting payment record for user: $userId, month: $month, record ID: ${existingDues.id}');
+        try {
+          await deleteMonthlyDues(existingDues.id);
+          print('PocketBase - Payment record deleted successfully');
+          return null; // Return null to indicate record was deleted
+        } catch (e) {
+          print('PocketBase - Error deleting payment record: $e');
+          rethrow;
+        }
+      } else {
+        // No existing record, nothing to do
+        print('PocketBase - No existing record to delete for user: $userId, month: $month');
+        return null; // Return null to indicate no action needed
+      }
+    }
 
+    // If marking as paid (isPaid = true)
+    print('PocketBase - Marking as paid for user: $userId, month: $month');
+    final paymentDateToUse = paymentDate ?? DateTime.now();
+    print('PocketBase - Using payment date: $paymentDateToUse');
+
+    MonthlyDues result;
+
+    if (existingDues != null) {
+      // Update existing record
+      print('PocketBase - Updating existing record: ${existingDues.id}');
+      result = await createOrUpdateMonthlyDues(
+        userId: userId,
+        dueForMonth: month,
+        amount: 100, // Fixed amount per month
+        paymentDate: paymentDateToUse,
+        notes: notes,
+        existingId: existingDues.id,
+      );
+    } else {
+      // Create new record - but first check again for duplicates
+      print('PocketBase - Creating new record, but first checking for duplicates...');
+
+      // Double-check for duplicates before creating
+      final duplicateCheck = await getMonthlyDuesForUserAndMonth(userId, month);
+      if (duplicateCheck != null) {
+        print('PocketBase - Found duplicate during creation, updating instead');
+        result = await createOrUpdateMonthlyDues(
+          userId: userId,
+          dueForMonth: month,
+          amount: 100, // Fixed amount per month
+          paymentDate: paymentDateToUse,
+          notes: notes,
+          existingId: duplicateCheck.id,
+        );
+      } else {
+        print('PocketBase - No duplicates found, creating new record');
+        result = await createOrUpdateMonthlyDues(
+          userId: userId,
+          dueForMonth: month,
+          amount: 100, // Fixed amount per month
+          paymentDate: paymentDateToUse,
+          notes: notes,
+          existingId: null,
+        );
+      }
+    }
+
+    print(
+        'PocketBase - Final record: id=${result.id}, paymentDate=${result.paymentDate}, isPaid=${result.paymentDate != null}');
     print('PocketBase - markPaymentStatus completed, result ID: ${result.id}');
     return result;
   }
 
-  // Get payment statistics for a user
-  Future<Map<String, int>> getPaymentStatistics(String userId) async {
+  // Clean up all duplicate monthly dues records across the system
+  Future<void> cleanupDuplicateMonthlyDues() async {
     try {
-      // Get user details to find joinedDate
-      final userRecord = await getUser(userId);
-      if (userRecord == null) {
-        print('User $userId not found in getPaymentStatistics - returning zero stats');
-        return {'paid': 0, 'unpaid': 0, 'advance': 0, 'total': 0};
+      print('PocketBase - Starting cleanup of duplicate monthly dues records...');
+
+      // Get all monthly dues records
+      final allRecords = await pb.collection('monthly_dues').getList(
+            page: 1,
+            perPage: 1000, // Adjust based on your data size
+          );
+
+      // Group records by user and month
+      final Map<String, List<RecordModel>> groupedRecords = {};
+
+      for (final record in allRecords.items) {
+        final user = record.data['user'] as String;
+        final dueForMonth = record.data['due_for_month'] as String;
+        final key = '$user-$dueForMonth';
+
+        if (!groupedRecords.containsKey(key)) {
+          groupedRecords[key] = [];
+        }
+        groupedRecords[key]!.add(record);
       }
 
-      final joinedDateString = userRecord.data['joinedDate'] as String?;
+      int totalDuplicatesRemoved = 0;
 
-      if (joinedDateString == null) {
-        print('Warning: User $userId has no joinedDate, using current date');
-        return {'paid': 0, 'unpaid': 0, 'advance': 0, 'total': 0};
+      // Process each group
+      for (final entry in groupedRecords.entries) {
+        final records = entry.value;
+
+        if (records.length > 1) {
+          print('PocketBase - Found ${records.length} duplicates for key: ${entry.key}');
+
+          // Sort by created date (keep the most recent)
+          records.sort((a, b) => DateTime.parse(b.created).compareTo(DateTime.parse(a.created)));
+
+          // Delete all other records
+          for (int i = 1; i < records.length; i++) {
+            try {
+              await pb.collection('monthly_dues').delete(records[i].id);
+              totalDuplicatesRemoved++;
+              print('PocketBase - Deleted duplicate record: ${records[i].id}');
+            } catch (e) {
+              print('PocketBase - Error deleting duplicate record ${records[i].id}: $e');
+            }
+          }
+        }
       }
 
-      final joinedDate = DateTime.parse(joinedDateString);
-      final dues = await getMonthlyDuesForUser(userId);
-
-      // Use the utility class to compute statistics
-      return PaymentStatisticsUtils.computePaymentStatistics(
-        joinedDate: joinedDate,
-        monthlyDues: dues,
-      );
+      print('PocketBase - Cleanup completed. Removed $totalDuplicatesRemoved duplicate records.');
     } catch (e) {
-      print('Error getting payment statistics: $e');
-      return {'paid': 0, 'unpaid': 0, 'advance': 0, 'total': 0};
+      print('PocketBase - Error during cleanup: $e');
     }
   }
+
+  // Old monthly_dues getPaymentStatistics removed - see new implementation below for payment_transactions
 
   // Get payment status for a specific month
   Future<bool?> getPaymentStatusForMonth({
@@ -846,5 +997,298 @@ class PocketBaseService {
         onUpdate(e.record!);
       }
     });
+  }
+
+  // ========================================================================
+  // Payment Transactions Methods (New Clean Implementation)
+  // ========================================================================
+
+  /// Get all payment transactions for a specific user
+  /// Expands the recorded_by relation to include admin name
+  Future<List<PaymentTransaction>> getPaymentTransactions(String userId) async {
+    try {
+      await _ensureAuthenticated();
+
+      final result = await pb.collection('payment_transactions').getList(
+            filter: 'user = "$userId"',
+            sort: '-month', // Most recent first
+            expand: 'recorded_by',
+            perPage: 500,
+          );
+
+      return result.items.map(PaymentTransaction.fromRecord).toList();
+    } catch (e) {
+      print('Error getting payment transactions for user $userId: $e');
+      return [];
+    }
+  }
+
+  /// Get a specific payment transaction for a user and month
+  Future<PaymentTransaction?> getPaymentTransaction(
+    String userId,
+    String month,
+  ) async {
+    try {
+      await _ensureAuthenticated();
+
+      final result = await pb.collection('payment_transactions').getList(
+            filter: 'user = "$userId" && month = "$month"',
+            expand: 'recorded_by',
+            perPage: 1,
+          );
+
+      if (result.items.isEmpty) return null;
+      return PaymentTransaction.fromRecord(result.items.first);
+    } catch (e) {
+      print('Error getting payment transaction for user $userId, month $month: $e');
+      return null;
+    }
+  }
+
+  /// Create or update a payment transaction
+  Future<PaymentTransaction> updatePaymentTransaction({
+    required String userId,
+    required String month,
+    required PaymentStatus status,
+    DateTime? paymentDate,
+    PaymentMethod? paymentMethod,
+    String? notes,
+    String? recordedBy,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      final data = <String, dynamic>{
+        'user': userId,
+        'month': month,
+        'amount': 100.0, // Default amount
+        'status': status.value,
+        'notes': notes ?? '',
+      };
+
+      // Only include payment_date if not null
+      if (paymentDate != null) {
+        data['payment_date'] = paymentDate.toIso8601String().split('T')[0];
+      }
+
+      // Only include payment_method if not null
+      if (paymentMethod != null) {
+        data['payment_method'] = paymentMethod.value;
+      }
+
+      // Only include recorded_by if not null
+      if (recordedBy != null) {
+        data['recorded_by'] = recordedBy;
+      }
+
+      // Check if record already exists
+      final existing = await getPaymentTransaction(userId, month);
+
+      RecordModel record;
+      if (existing != null) {
+        // Update existing record
+        record = await pb.collection('payment_transactions').update(
+              existing.id,
+              body: data,
+            );
+      } else {
+        // Create new record
+        record = await pb.collection('payment_transactions').create(body: data);
+      }
+
+      return PaymentTransaction.fromRecord(record);
+    } catch (e) {
+      print('Error updating payment transaction: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete a payment transaction
+  Future<void> deletePaymentTransaction(String transactionId) async {
+    try {
+      await _ensureAuthenticated();
+      await pb.collection('payment_transactions').delete(transactionId);
+    } catch (e) {
+      print('Error deleting payment transaction: $e');
+      rethrow;
+    }
+  }
+
+  /// Get payment statistics for a user
+  Future<PaymentStatistics> getPaymentStatistics(String userId) async {
+    try {
+      await _ensureAuthenticated();
+
+      // Get user's join date
+      final userRecord = await getUser(userId);
+      if (userRecord == null) {
+        return const PaymentStatistics(
+          totalMonths: 0,
+          paidCount: 0,
+          pendingCount: 0,
+          waivedCount: 0,
+          overdueCount: 0,
+          totalPaidAmount: 0,
+          totalExpectedAmount: 0,
+        );
+      }
+
+      final joinedDateString = userRecord.data['joinedDate'] as String?;
+      if (joinedDateString == null) {
+        return const PaymentStatistics(
+          totalMonths: 0,
+          paidCount: 0,
+          pendingCount: 0,
+          waivedCount: 0,
+          overdueCount: 0,
+          totalPaidAmount: 0,
+          totalExpectedAmount: 0,
+        );
+      }
+
+      final joinedDate = DateTime.parse(joinedDateString);
+      final transactions = await getPaymentTransactions(userId);
+
+      // Calculate expected months
+      final expectedMonths = getExpectedMonths(joinedDate);
+      final now = DateTime.now();
+      final currentMonth = DateTime(now.year, now.month);
+
+      // Count statistics
+      var paidCount = 0;
+      var pendingCount = 0;
+      var waivedCount = 0;
+      var overdueCount = 0;
+      var totalPaidAmount = 0.0;
+      DateTime? lastPaymentDate;
+      String? lastPaymentMethod;
+
+      for (final month in expectedMonths) {
+        final transaction = transactions.cast<PaymentTransaction?>().firstWhere(
+              (t) => t?.month == month,
+              orElse: () => null,
+            );
+
+        if (transaction != null) {
+          if (transaction.isPaid) {
+            paidCount++;
+            totalPaidAmount += transaction.amount;
+            if (lastPaymentDate == null || (transaction.paymentDate?.isAfter(lastPaymentDate) ?? false)) {
+              lastPaymentDate = transaction.paymentDate;
+              lastPaymentMethod = transaction.paymentMethod?.displayName;
+            }
+          } else if (transaction.isWaived) {
+            waivedCount++;
+          } else if (transaction.isPending) {
+            pendingCount++;
+            final monthDate = DateTime.parse('$month-01');
+            if (monthDate.isBefore(currentMonth)) {
+              overdueCount++;
+            }
+          }
+        } else {
+          // No record exists, count as pending
+          pendingCount++;
+          final monthDate = DateTime.parse('$month-01');
+          if (monthDate.isBefore(currentMonth)) {
+            overdueCount++;
+          }
+        }
+      }
+
+      return PaymentStatistics(
+        totalMonths: expectedMonths.length,
+        paidCount: paidCount,
+        pendingCount: pendingCount,
+        waivedCount: waivedCount,
+        overdueCount: overdueCount,
+        totalPaidAmount: totalPaidAmount,
+        totalExpectedAmount: expectedMonths.length * 100.0,
+        lastPaymentDate: lastPaymentDate,
+        lastPaymentMethod: lastPaymentMethod,
+      );
+    } catch (e) {
+      print('Error getting payment statistics: $e');
+      return const PaymentStatistics(
+        totalMonths: 0,
+        paidCount: 0,
+        pendingCount: 0,
+        waivedCount: 0,
+        overdueCount: 0,
+        totalPaidAmount: 0,
+        totalExpectedAmount: 0,
+      );
+    }
+  }
+
+  /// Get list of expected payment months from join date to current month
+  List<String> getExpectedMonths(DateTime joinedDate) {
+    final now = DateTime.now();
+    final currentMonth = DateTime(now.year, now.month);
+    final joinMonth = DateTime(joinedDate.year, joinedDate.month);
+
+    final months = <String>[];
+    var date = joinMonth;
+
+    while (date.isBefore(currentMonth) || date.isAtSameMomentAs(currentMonth)) {
+      months.add(DateFormat('yyyy-MM').format(date));
+      // Move to next month
+      date = DateTime(date.year, date.month + 1);
+    }
+
+    return months;
+  }
+
+  /// Initialize payment records for a user (creates pending records for all expected months)
+  Future<void> initializePaymentRecords(String userId, DateTime joinedDate) async {
+    try {
+      await _ensureAuthenticated();
+
+      final expectedMonths = getExpectedMonths(joinedDate);
+      final existingTransactions = await getPaymentTransactions(userId);
+      final existingMonths = existingTransactions.map((t) => t.month).toSet();
+
+      // Create records for months that don't exist yet
+      for (final month in expectedMonths) {
+        if (!existingMonths.contains(month)) {
+          await updatePaymentTransaction(
+            userId: userId,
+            month: month,
+            status: PaymentStatus.pending,
+          );
+        }
+      }
+    } catch (e) {
+      print('Error initializing payment records: $e');
+      rethrow;
+    }
+  }
+
+  /// Subscribe to payment transactions updates
+  Future<UnsubscribeFunc> subscribeToPaymentTransactions(
+    void Function(RecordModel) onUpdate,
+  ) async {
+    return pb.collection('payment_transactions').subscribe('*', (e) {
+      if ((e.action == 'create' || e.action == 'update' || e.action == 'delete') && e.record != null) {
+        onUpdate(e.record!);
+      }
+    });
+  }
+
+  /// Get name of user who recorded the payment (for audit trail)
+  Future<String> getRecordedByName(String? recordedById) async {
+    if (recordedById == null || recordedById.isEmpty) return 'System';
+
+    try {
+      final userRecord = await getUser(recordedById);
+      if (userRecord == null) return 'Unknown';
+
+      final firstName = userRecord.data['firstName'] as String? ?? '';
+      final lastName = userRecord.data['lastName'] as String? ?? '';
+      return '$firstName $lastName'.trim();
+    } catch (e) {
+      print('Error getting recorded by name: $e');
+      return 'Unknown';
+    }
   }
 }
