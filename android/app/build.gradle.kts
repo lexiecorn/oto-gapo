@@ -71,10 +71,20 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = keystoreProperties["storeFile"]?.let { file(it as String) }
-            storePassword = keystoreProperties["storePassword"] as String?
-            keyAlias = keystoreProperties["keyAlias"] as String?
-            keyPassword = keystoreProperties["keyPassword"] as String?
+            // Check if running on CI (Codemagic)
+            if (System.getenv("CI") == "true") {
+                // Use Codemagic environment variables
+                storeFile = System.getenv("CM_KEYSTORE_PATH")?.let { file(it) }
+                storePassword = System.getenv("CM_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("CM_KEY_ALIAS")
+                keyPassword = System.getenv("CM_KEY_PASSWORD")
+            } else if (hasReleaseKeystore) {
+                // Use local key.properties for local builds
+                storeFile = keystoreProperties["storeFile"]?.let { file(it as String) }
+                storePassword = keystoreProperties["storePassword"] as String?
+                keyAlias = keystoreProperties["keyAlias"] as String?
+                keyPassword = keystoreProperties["keyPassword"] as String?
+            }
         }
         getByName("debug") {
             // Keep debug config unchanged
@@ -83,11 +93,7 @@ android {
 
     buildTypes {
         getByName("release") {
-            if (hasReleaseKeystore) {
-                signingConfig = signingConfigs.getByName("release")
-            } else {
-                println("[Gradle] No key.properties found. Configure release signing before Play Store uploads.")
-            }
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
