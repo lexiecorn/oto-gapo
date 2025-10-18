@@ -53,13 +53,13 @@ class MeetingCard extends StatelessWidget {
                   Icon(
                     Icons.category_outlined,
                     size: 16.sp,
-                    color: theme.colorScheme.primary,
+                    color: theme.brightness == Brightness.light ? Colors.blue.shade700 : Colors.blue.shade300,
                   ),
                   SizedBox(width: 4.w),
                   Text(
                     meeting.meetingTypeDisplay,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.primary,
+                      color: theme.brightness == Brightness.light ? Colors.blue.shade700 : Colors.blue.shade300,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

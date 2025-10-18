@@ -5,7 +5,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/announcements.dart';
-import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/app/widgets/carousel_view_from_pocketbase.dart';
 
 @RoutePage(
@@ -136,34 +135,6 @@ class HomeBodyState extends State<HomeBody> {
                 child: const CarouselViewFromPocketbase(),
               ),
 
-              // Quick Actions
-              Padding(
-                padding: EdgeInsets.all(16.sp),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _QuickActionButton(
-                        icon: Icons.qr_code_scanner,
-                        label: 'Check-in',
-                        onTap: () {
-                          context.router.push(const QRScannerPageRouter());
-                        },
-                      ),
-                    ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: _QuickActionButton(
-                        icon: Icons.event_available,
-                        label: 'My Attendance',
-                        onTap: () {
-                          context.router.push(const UserAttendanceHistoryPageRouter());
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
               // Announcements Widget takes the remaining space
               Expanded(
                 child: Padding(
@@ -177,79 +148,4 @@ class HomeBodyState extends State<HomeBody> {
       ),
     );
   }
-}
-
-class _QuickActionButton extends StatelessWidget {
-  const _QuickActionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      elevation: 2,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12.r),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 32.sp,
-                color: theme.colorScheme.primary,
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                label,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Future<Widget> _userProfileCard(ProfileState state) async {
-  //   final storaProfilegeref = storage.ref().child('users/${state.user.uid}/images/profile.png');
-  //   final downloadUrlProfile = await storaProfilegeref.getDownloadURL();
-  //   return IdCard(
-  //     imagePath: downloadUrlProfile,
-  //     name: '${state.user.firstName} ${state.user.lastName}',
-  //     dob: DateFormat('MMM dd, yyyy').format(state.user.dateOfBirth.toDate()),
-  //     idNumber: state.user.memberNumber,
-  //     membersNum: state.user.memberNumber,
-  //     car: state.user.vehicle.first.make,
-  //     licenseNum: state.user.driversLicenseNumber ?? '',
-  //     licenseNumExpr: state.user.driversLicenseExpirationDate,
-  //     restrictionCode: state.user.driversLicenseRestrictionCode,
-  //     emergencyContact: state.user.emergencyContactNumber,
-  //   )
-  //       .animate()
-  //       .slideY(
-  //         delay: const Duration(milliseconds: 100),
-  //         duration: const Duration(milliseconds: 500),
-  //       )
-  //       .shimmer(
-  //         duration: const Duration(milliseconds: 800),
-  //       )
-  //       .fadeIn(
-  //         delay: const Duration(milliseconds: 100),
-  //         duration: const Duration(milliseconds: 500),
-  //       );
-  // }
 }

@@ -60,6 +60,10 @@ class AppRouter extends $AppRouter {
           path: '/scan-qr',
         ),
         AutoRoute(
+          page: UserQRCodePageRouter.page,
+          path: '/my-qr-code',
+        ),
+        AutoRoute(
           page: UserAttendanceHistoryPageRouter.page,
           path: '/attendance/history',
         ),

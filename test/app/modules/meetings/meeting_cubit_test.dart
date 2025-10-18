@@ -3,7 +3,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart';
-import 'package:otogapo/models/meeting.dart';
+import 'package:otogapo/models/meeting.dart' hide MeetingStatus;
 import 'package:pocketbase/pocketbase.dart';
 
 class MockAttendanceRepository extends Mock implements AttendanceRepository {}
@@ -33,24 +33,21 @@ void main() {
     });
 
     group('loadMeetings', () {
-      final mockMeeting = RecordModel(
-        id: 'test_id',
-        collectionId: 'meetings',
-        collectionName: 'meetings',
-        created: '2025-01-01T00:00:00Z',
-        updated: '2025-01-01T00:00:00Z',
-        data: {
-          'meetingDate': '2025-01-20',
-          'meetingType': 'regular',
-          'title': 'Test Meeting',
-          'status': 'scheduled',
-          'createdBy': 'admin_123',
-          'presentCount': 0,
-          'absentCount': 0,
-          'lateCount': 0,
-          'excusedCount': 0,
-        },
-      );
+      final mockMeeting = MockRecordModel();
+      when(() => mockMeeting.id).thenReturn('test_id');
+      when(() => mockMeeting.collectionId).thenReturn('meetings');
+      when(() => mockMeeting.collectionName).thenReturn('meetings');
+      when(() => mockMeeting.data).thenReturn({
+        'meetingDate': '2025-01-20',
+        'meetingType': 'regular',
+        'title': 'Test Meeting',
+        'status': 'scheduled',
+        'createdBy': 'admin_123',
+        'presentCount': 0,
+        'absentCount': 0,
+        'lateCount': 0,
+        'excusedCount': 0,
+      });
 
       blocTest<MeetingCubit, MeetingState>(
         'emits loading then loaded with meetings',
@@ -114,24 +111,21 @@ void main() {
     });
 
     group('createMeeting', () {
-      final mockMeeting = RecordModel(
-        id: 'new_meeting_id',
-        collectionId: 'meetings',
-        collectionName: 'meetings',
-        created: '2025-01-01T00:00:00Z',
-        updated: '2025-01-01T00:00:00Z',
-        data: {
-          'meetingDate': '2025-01-20',
-          'meetingType': 'regular',
-          'title': 'New Meeting',
-          'status': 'scheduled',
-          'createdBy': 'admin_123',
-          'presentCount': 0,
-          'absentCount': 0,
-          'lateCount': 0,
-          'excusedCount': 0,
-        },
-      );
+      final mockMeeting = MockRecordModel();
+      when(() => mockMeeting.id).thenReturn('new_meeting_id');
+      when(() => mockMeeting.collectionId).thenReturn('meetings');
+      when(() => mockMeeting.collectionName).thenReturn('meetings');
+      when(() => mockMeeting.data).thenReturn({
+        'meetingDate': '2025-01-20',
+        'meetingType': 'regular',
+        'title': 'New Meeting',
+        'status': 'scheduled',
+        'createdBy': 'admin_123',
+        'presentCount': 0,
+        'absentCount': 0,
+        'lateCount': 0,
+        'excusedCount': 0,
+      });
 
       blocTest<MeetingCubit, MeetingState>(
         'creates meeting and reloads list',
@@ -205,26 +199,23 @@ void main() {
     });
 
     group('generateQRCode', () {
-      final mockMeeting = RecordModel(
-        id: 'meeting_id',
-        collectionId: 'meetings',
-        collectionName: 'meetings',
-        created: '2025-01-01T00:00:00Z',
-        updated: '2025-01-01T00:00:00Z',
-        data: {
-          'meetingDate': '2025-01-20',
-          'meetingType': 'regular',
-          'title': 'Test Meeting',
-          'status': 'ongoing',
-          'createdBy': 'admin_123',
-          'qrCodeToken': 'ABC123',
-          'qrCodeExpiry': '2025-01-20T17:00:00Z',
-          'presentCount': 0,
-          'absentCount': 0,
-          'lateCount': 0,
-          'excusedCount': 0,
-        },
-      );
+      final mockMeeting = MockRecordModel();
+      when(() => mockMeeting.id).thenReturn('meeting_id');
+      when(() => mockMeeting.collectionId).thenReturn('meetings');
+      when(() => mockMeeting.collectionName).thenReturn('meetings');
+      when(() => mockMeeting.data).thenReturn({
+        'meetingDate': '2025-01-20',
+        'meetingType': 'regular',
+        'title': 'Test Meeting',
+        'status': 'ongoing',
+        'createdBy': 'admin_123',
+        'qrCodeToken': 'ABC123',
+        'qrCodeExpiry': '2025-01-20T17:00:00Z',
+        'presentCount': 0,
+        'absentCount': 0,
+        'lateCount': 0,
+        'excusedCount': 0,
+      });
 
       blocTest<MeetingCubit, MeetingState>(
         'generates QR code successfully',
@@ -249,4 +240,3 @@ void main() {
     });
   });
 }
-

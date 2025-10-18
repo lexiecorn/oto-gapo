@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/admin_page.dart';
@@ -38,6 +39,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (_profileImage == null || _profileImage!.isEmpty) return null;
 
     try {
+      if (!mounted) return null;
       final authState = context.read<AuthBloc>().state;
       if (authState.user?.id == null) return null;
 
@@ -73,6 +75,7 @@ class _SettingsPageState extends State<SettingsPage> {
           if (userRecord == null) throw Exception('User record not found');
           final userData = userRecord.data;
 
+          if (!mounted) return;
           setState(() {
             final membershipType = userData['membership_type'];
             debugPrint(
@@ -94,6 +97,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
           // Try ProfileCubit fallback immediately
           try {
+            if (!mounted) return;
             final profileCubit = context.read<ProfileCubit>();
             final profileState = profileCubit.state;
 
@@ -103,6 +107,7 @@ class _SettingsPageState extends State<SettingsPage> {
               debugPrint(
                 'Settings Page - ProfileCubit user membership_type: ${profileState.user.membership_type}',
               );
+              if (!mounted) return;
               setState(() {
                 final membershipType = profileState.user.membership_type;
                 debugPrint(
@@ -116,6 +121,7 @@ class _SettingsPageState extends State<SettingsPage> {
               });
             } else {
               debugPrint('Settings Page - ProfileCubit user data is empty');
+              if (!mounted) return;
               setState(() {
                 _isAdmin = false;
                 _userName = 'User';
@@ -125,6 +131,7 @@ class _SettingsPageState extends State<SettingsPage> {
             }
           } catch (profileError) {
             debugPrint('Settings Page - ProfileCubit fallback also failed: $profileError');
+            if (!mounted) return;
             setState(() {
               _isAdmin = false;
               _userName = 'User';
@@ -135,6 +142,7 @@ class _SettingsPageState extends State<SettingsPage> {
         }
       } else {
         debugPrint('Settings Page - No PocketBase user in AuthBloc');
+        if (!mounted) return;
         setState(() {
           _isAdmin = false;
           _userName = 'User';
@@ -144,6 +152,7 @@ class _SettingsPageState extends State<SettingsPage> {
       }
     } catch (e) {
       debugPrint('Error checking user status: $e');
+      if (!mounted) return;
       setState(() {
         _isAdmin = false;
         _userName = 'User';
@@ -223,6 +232,35 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 24),
 
+            // Quick Actions - 2 Column Layout
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.sp),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _QuickActionButton(
+                      icon: Icons.qr_code,
+                      label: 'Check-in',
+                      onTap: () {
+                        context.router.push(const UserQRCodePageRouter());
+                      },
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: _QuickActionButton(
+                      icon: Icons.event_available,
+                      label: 'My Attendance',
+                      onTap: () {
+                        context.router.push(const UserAttendanceHistoryPageRouter());
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
             // Monthly Dues Section
             BlocBuilder<ProfileCubit, ProfileState>(
               builder: (context, profileState) {
@@ -266,28 +304,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         themeProvider.toggleTheme();
                       },
                     );
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // My Attendance (All Users)
-                _buildSettingsCard(
-                  icon: Icons.event_available,
-                  title: 'My Attendance',
-                  subtitle: 'View your attendance history',
-                  onTap: () {
-                    context.router.push(const UserAttendanceHistoryPageRouter());
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Scan QR Code (All Users)
-                _buildSettingsCard(
-                  icon: Icons.qr_code_scanner,
-                  title: 'Check-in',
-                  subtitle: 'Scan QR code to mark attendance',
-                  onTap: () {
-                    context.router.push(const QRScannerPageRouter());
                   },
                 ),
                 const SizedBox(height: 16),
@@ -529,6 +545,53 @@ class _SettingsPageState extends State<SettingsPage> {
                 Icons.arrow_forward_ios,
                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                 size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickActionButton extends StatelessWidget {
+  const _QuickActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Card(
+      elevation: 2,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 16.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 32.sp,
+                color: isDark ? theme.colorScheme.primary : theme.colorScheme.secondary,
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                label,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),

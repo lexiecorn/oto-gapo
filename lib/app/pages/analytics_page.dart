@@ -137,8 +137,25 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
   Widget _buildBody(ThemeData theme) {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(
+                theme.primaryColor,
+              ),
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              'Loading analytics...',
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: theme.textTheme.bodyMedium?.color,
+              ),
+            ),
+          ],
+        ),
       );
     }
 

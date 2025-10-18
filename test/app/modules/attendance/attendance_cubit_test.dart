@@ -32,21 +32,18 @@ void main() {
     });
 
     group('loadMeetingAttendance', () {
-      final mockAttendance = RecordModel(
-        id: 'attendance_id',
-        collectionId: 'attendance',
-        collectionName: 'attendance',
-        created: '2025-01-01T00:00:00Z',
-        updated: '2025-01-01T00:00:00Z',
-        data: {
-          'userId': 'user_123',
-          'memberNumber': 'OTO-001',
-          'memberName': 'Test User',
-          'meetingId': 'meeting_123',
-          'meetingDate': '2025-01-20',
-          'status': 'present',
-        },
-      );
+      final mockAttendance = MockRecordModel();
+      when(() => mockAttendance.id).thenReturn('attendance_id');
+      when(() => mockAttendance.collectionId).thenReturn('attendance');
+      when(() => mockAttendance.collectionName).thenReturn('attendance');
+      when(() => mockAttendance.data).thenReturn({
+        'userId': 'user_123',
+        'memberNumber': 'OTO-001',
+        'memberName': 'Test User',
+        'meetingId': 'meeting_123',
+        'meetingDate': '2025-01-20',
+        'status': 'present',
+      });
 
       blocTest<AttendanceCubit, AttendanceState>(
         'emits loading then loaded with attendance records',
@@ -79,22 +76,19 @@ void main() {
     });
 
     group('markAttendance', () {
-      final mockRecord = RecordModel(
-        id: 'new_attendance_id',
-        collectionId: 'attendance',
-        collectionName: 'attendance',
-        created: '2025-01-01T00:00:00Z',
-        updated: '2025-01-01T00:00:00Z',
-        data: {
-          'userId': 'user_123',
-          'memberNumber': 'OTO-001',
-          'memberName': 'Test User',
-          'meetingId': 'meeting_123',
-          'meetingDate': '2025-01-20',
-          'status': 'present',
-          'checkInMethod': 'qr_scan',
-        },
-      );
+      final mockRecord = MockRecordModel();
+      when(() => mockRecord.id).thenReturn('new_attendance_id');
+      when(() => mockRecord.collectionId).thenReturn('attendance');
+      when(() => mockRecord.collectionName).thenReturn('attendance');
+      when(() => mockRecord.data).thenReturn({
+        'userId': 'user_123',
+        'memberNumber': 'OTO-001',
+        'memberName': 'Test User',
+        'meetingId': 'meeting_123',
+        'meetingDate': '2025-01-20',
+        'status': 'present',
+        'checkInMethod': 'qr_scan',
+      });
 
       blocTest<AttendanceCubit, AttendanceState>(
         'marks attendance successfully',
@@ -179,22 +173,19 @@ void main() {
     });
 
     group('loadAttendanceSummary', () {
-      final mockSummary = RecordModel(
-        id: 'summary_id',
-        collectionId: 'attendance_summary',
-        collectionName: 'attendance_summary',
-        created: '2025-01-01T00:00:00Z',
-        updated: '2025-01-01T00:00:00Z',
-        data: {
-          'userId': 'user_123',
-          'totalMeetings': 10,
-          'totalPresent': 8,
-          'totalAbsent': 1,
-          'totalLate': 1,
-          'totalExcused': 0,
-          'attendanceRate': 90.0,
-        },
-      );
+      final mockSummary = MockRecordModel();
+      when(() => mockSummary.id).thenReturn('summary_id');
+      when(() => mockSummary.collectionId).thenReturn('attendance_summary');
+      when(() => mockSummary.collectionName).thenReturn('attendance_summary');
+      when(() => mockSummary.data).thenReturn({
+        'userId': 'user_123',
+        'totalMeetings': 10,
+        'totalPresent': 8,
+        'totalAbsent': 1,
+        'totalLate': 1,
+        'totalExcused': 0,
+        'attendanceRate': 90.0,
+      });
 
       blocTest<AttendanceCubit, AttendanceState>(
         'loads summary successfully',
@@ -216,4 +207,3 @@ void main() {
     });
   });
 }
-

@@ -82,12 +82,27 @@ class _MeetingsListPageState extends State<MeetingsListPage> with SingleTickerPr
             },
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Upcoming'),
-            Tab(text: 'Past'),
-          ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              textTheme: Theme.of(context).textTheme.copyWith(
+                    labelLarge: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).brightness == Brightness.light ? Colors.black87 : Colors.white,
+                        ),
+                  ),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Theme.of(context).brightness == Brightness.light ? Colors.black87 : Colors.white,
+              unselectedLabelColor: Theme.of(context).brightness == Brightness.light ? Colors.black54 : Colors.white70,
+              indicatorColor: Theme.of(context).brightness == Brightness.light ? Colors.black87 : Colors.white,
+              tabs: const [
+                Tab(text: 'Upcoming'),
+                Tab(text: 'Past'),
+              ],
+            ),
+          ),
         ),
       ),
       body: BlocBuilder<meeting_cubit.MeetingCubit, meeting_cubit.MeetingState>(
