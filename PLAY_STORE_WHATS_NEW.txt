@@ -1,20 +1,15 @@
-🎉 Welcome to Otogapo v1.0.0!
+🎉 What's New in v1.0.0+6!
 
-This is our initial release bringing you a complete vehicle association management solution.
+✨ New Features:
+• Meeting management - schedule & track meetings
+• QR code check-in for quick attendance
+• Real-time attendance tracking & statistics
+• Personal attendance history
+• Export reports to CSV
+• Admin tools for manual marking
 
-✨ What's Included:
-• Secure authentication with Google Sign-In
-• Complete member profile management
-• Vehicle registration and tracking
-• Monthly dues payment tracking
-• Association announcements
-• Admin dashboard for association managers
-• Gallery management for homepage carousel
-• Modern, intuitive interface
+🐛 Improvements:
+• Better stability & performance
+• Improved error handling
 
-🚗 Perfect for vehicle association members and administrators!
-
-📝 Note: This is our first production release. We welcome your feedback to make Otogapo even better!
-
-💬 Questions or feedback? Contact us through the app or email support@otogapo.com
-
+Thank you for using Otogapo!

@@ -1,13 +1,15 @@
-🎉 NEW: Meeting & Attendance Management!
+🎉 What's New in v1.0.0+6!
 
-✅ Create & schedule meetings
-✅ QR code check-in for fast attendance
-✅ Track attendance history & stats
-✅ Export attendance reports to CSV
-✅ Admin tools for manual marking
-✅ Real-time attendance analytics
+✨ New Features:
+• Meeting management - schedule & track meetings
+• QR code check-in for quick attendance
+• Real-time attendance tracking & statistics
+• Personal attendance history
+• Export reports to CSV
+• Admin tools for manual marking
 
-Perfect for managing club events! 🚗💨
+🐛 Improvements:
+• Better stability & performance
+• Improved error handling
 
-Update now to enjoy the new features!
-
+Thank you for using Otogapo!

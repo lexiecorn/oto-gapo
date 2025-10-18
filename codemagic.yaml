@@ -149,7 +149,13 @@ workflows:
           flutter build appbundle \
             --release \
             --target lib/main_production.dart \
-            --flavor production
+            --flavor production \
+            --no-tree-shake-icons -v
+      
+      - name: List .aab files
+        script: |
+          echo "🔍 Listing AAB files..."
+          find build/app/outputs -name "*.aab" || echo "No .aab files found"
       
       - name: Build Android APK
         script: |
@@ -157,11 +163,12 @@ workflows:
           flutter build apk \
             --release \
             --target lib/main_production.dart \
-            --flavor production
+            --flavor production \
+            --no-tree-shake-icons
     
     artifacts:
-      - build/app/outputs/bundle/productionRelease/*.aab
-      - build/app/outputs/flutter-apk/app-production-release.apk
+      - build/app/outputs/**/*.aab
+      - build/app/outputs/flutter-apk/*.apk
       - build/app/outputs/mapping/productionRelease/mapping.txt
     
     publishing:
