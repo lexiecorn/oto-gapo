@@ -19,6 +19,11 @@ class AttendanceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    // Validate profile image URL
+    final hasValidImage = attendance.profileImage != null &&
+        attendance.profileImage!.isNotEmpty &&
+        (attendance.profileImage!.startsWith('http://') || attendance.profileImage!.startsWith('https://'));
+
     return Card(
       elevation: 1,
       margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
@@ -32,8 +37,8 @@ class AttendanceCard extends StatelessWidget {
               // Profile Image or Icon
               CircleAvatar(
                 radius: 24.r,
-                backgroundImage: attendance.profileImage != null ? NetworkImage(attendance.profileImage!) : null,
-                child: attendance.profileImage == null ? Icon(Icons.person, size: 24.sp) : null,
+                backgroundImage: hasValidImage ? NetworkImage(attendance.profileImage!) : null,
+                child: !hasValidImage ? Icon(Icons.person, size: 24.sp) : null,
               ),
               SizedBox(width: 12.w),
 
@@ -158,12 +163,12 @@ class _StatusChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14.sp, color: textColor),
+          Icon(icon, size: 12.sp, color: textColor),
           SizedBox(width: 4.w),
           Text(
             status.displayName,
             style: TextStyle(
-              fontSize: 12.sp,
+              fontSize: 11.sp,
               fontWeight: FontWeight.w600,
               color: textColor,
             ),
@@ -189,12 +194,19 @@ class AttendanceMemberItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    // Validate profile image URL
+    final hasValidImage = attendance.profileImage != null &&
+        attendance.profileImage!.isNotEmpty &&
+        (attendance.profileImage!.startsWith('http://') || attendance.profileImage!.startsWith('https://'));
+
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
       child: ExpansionTile(
+        shape: const Border(),
+        collapsedShape: const Border(),
         leading: CircleAvatar(
-          backgroundImage: attendance.profileImage != null ? NetworkImage(attendance.profileImage!) : null,
-          child: attendance.profileImage == null ? const Icon(Icons.person) : null,
+          backgroundImage: hasValidImage ? NetworkImage(attendance.profileImage!) : null,
+          child: !hasValidImage ? const Icon(Icons.person) : null,
         ),
         title: Text(
           attendance.memberName,
@@ -223,7 +235,12 @@ class AttendanceMemberItem extends StatelessWidget {
                   children: AttendanceStatus.values.map((status) {
                     final isSelected = status == attendance.status;
                     return ActionChip(
-                      label: Text(status.displayName),
+                      label: Text(
+                        status.displayName,
+                        style: TextStyle(fontSize: 12.sp),
+                      ),
+                      labelPadding: EdgeInsets.symmetric(horizontal: 4.w),
+                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                       backgroundColor: isSelected ? theme.colorScheme.primaryContainer : null,
                       side: isSelected ? BorderSide(color: theme.colorScheme.primary) : null,
                       onPressed: () => onStatusChanged(status),

@@ -13,6 +13,17 @@ import 'package:otogapo/models/meeting.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+/// Extension to convert strings to proper case (title case)
+extension StringExtension on String {
+  String toProperCase() {
+    if (isEmpty) return this;
+    return split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
+  }
+}
+
 @RoutePage(name: 'MeetingDetailsPageRouter')
 class MeetingDetailsPage extends StatefulWidget {
   const MeetingDetailsPage({
@@ -163,8 +174,11 @@ class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        meeting.title,
-                        style: Theme.of(context).textTheme.headlineSmall,
+                        meeting.title.toProperCase(),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontSize: 20.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       SizedBox(height: 8.h),
                       _InfoRow(
@@ -346,7 +360,8 @@ class _StatChip extends StatelessWidget {
       children: [
         Text(
           value.toString(),
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontSize: 24.sp,
                 color: color,
                 fontWeight: FontWeight.bold,
               ),

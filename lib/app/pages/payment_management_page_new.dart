@@ -38,11 +38,25 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
 
   Future<void> _loadUsers() async {
     try {
+      print('=== Loading all users ===');
       final pocketBaseService = PocketBaseService();
       final users = await pocketBaseService.getAllUsers();
+      print('Total users loaded: ${users.length}');
+
+      final activeUsers = users.where((user) => user.data['isActive'] == true).toList();
+      print('Active users: ${activeUsers.length}');
+      
+      // Log a few user IDs for debugging
+      if (activeUsers.isNotEmpty) {
+        print('Sample user IDs:');
+        for (var i = 0; i < activeUsers.length.clamp(0, 3); i++) {
+          final user = activeUsers[i];
+          print('  - ${user.data['email']}: ${user.id}');
+        }
+      }
 
       setState(() {
-        _users = users.where((user) => user.data['isActive'] == true).toList();
+        _users = activeUsers;
       });
     } catch (e) {
       print('Error loading users: $e');
@@ -432,6 +446,12 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
               ),
             ),
             onTap: () {
+              print('=== User card tapped ===');
+              print('User ID: $userId');
+              print('User name: $userName');
+              print('Member number: $memberNumber');
+              print('User data keys: ${userData.keys.toList()}');
+              
               _showPaymentDialog(
                 userId: userId,
                 userName: userName,
@@ -485,25 +505,54 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
     super.dispose();
   }
 
+  String? _errorMessage;
+
   Future<void> _loadUserPayments() async {
     try {
+      print('=== Loading payments for user ${widget.userId} ===');
+      print('User name: ${widget.userName}');
+      
       final pocketBaseService = PocketBaseService();
-
-      // Get user to find join date
-      final userRecord = await pocketBaseService.getUser(widget.userId);
-      if (userRecord == null) {
+      
+      // Ensure authentication before attempting to get user
+      print('Ensuring authentication...');
+      try {
+        await pocketBaseService.pb.collection('users').getList(perPage: 1);
+        print('Authentication confirmed');
+      } catch (authError) {
+        print('Authentication check failed: $authError');
         if (mounted) {
           setState(() {
+            _errorMessage = 'Authentication error. Please try logging out and back in.';
             _isLoading = false;
           });
         }
         return;
       }
 
-      final joinedDateString = userRecord.data['joinedDate'] as String?;
-      if (joinedDateString == null) {
+      // Get user to find join date
+      print('Fetching user record for ID: ${widget.userId}');
+      final userRecord = await pocketBaseService.getUser(widget.userId);
+      if (userRecord == null) {
+        print('Error: User record not found for userId: ${widget.userId}');
+        print('This user may have been deleted or the ID is incorrect');
         if (mounted) {
           setState(() {
+            _errorMessage = 'User record not found (ID: ${widget.userId.substring(0, 8)}...). The user may have been deleted.';
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+      
+      print('User record found: ${userRecord.data['email']}');
+
+      final joinedDateString = userRecord.data['joinedDate'] as String?;
+      if (joinedDateString == null || joinedDateString.isEmpty) {
+        print('Error: User ${widget.userId} has no joinedDate field');
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'User join date is not set. Please contact an administrator to update the user profile.';
             _isLoading = false;
           });
         }
@@ -511,7 +560,10 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
       }
 
       final joinedDate = DateTime.parse(joinedDateString);
+      print('Loading payments for user ${widget.userId}, joined: $joinedDateString');
+
       final expectedMonths = pocketBaseService.getExpectedMonths(joinedDate);
+      print('Expected months from join date: ${expectedMonths.length} months');
 
       // Add next 3 months for advance payments
       final now = DateTime.now();
@@ -523,22 +575,40 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
         }
       }
 
+      print('Total available months (including future): ${expectedMonths.length}');
+
       // Get all transactions for the user
       final transactions = await pocketBaseService.getPaymentTransactions(widget.userId);
+      print('Found ${transactions.length} existing payment transactions');
+
       final transactionMap = {for (var t in transactions) t.month: t};
+
+      if (expectedMonths.isEmpty) {
+        print('Warning: No expected months generated for user ${widget.userId}');
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'No payment months available for this user. This may indicate an issue with the join date.';
+            _isLoading = false;
+          });
+        }
+        return;
+      }
 
       if (mounted) {
         setState(() {
           _availableMonths = expectedMonths;
           _transactions = transactionMap;
           _selectedMonths = {widget.initialMonth}; // Pre-select the initial month
+          _errorMessage = null;
           _isLoading = false;
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Error loading user payments: $e');
+      print('Stack trace: $stackTrace');
       if (mounted) {
         setState(() {
+          _errorMessage = 'Failed to load payment information: ${e.toString()}';
           _isLoading = false;
         });
       }
@@ -660,7 +730,86 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
               Expanded(
                 child: Center(child: const CircularProgressIndicator()),
               )
-            else ...[
+            else if (_errorMessage != null) ...[
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24.w),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 48.sp,
+                          color: Colors.orange,
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'Unable to Load Months',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          _errorMessage!,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        SizedBox(height: 24.h),
+                        ElevatedButton.icon(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                          label: const Text('Close'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ] else if (_availableMonths.isEmpty) ...[
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24.w),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.calendar_today_outlined,
+                          size: 48.sp,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'No Months Available',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          'There are no payment months available for this user.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ] else ...[
               // Month selection list
               Expanded(
                 child: ListView(

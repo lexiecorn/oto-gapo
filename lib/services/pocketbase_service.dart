@@ -249,12 +249,32 @@ class PocketBaseService {
   // Get user data
   Future<RecordModel?> getUser(String userId) async {
     try {
+      // Try to get the user directly first
       return await pb.collection('users').getOne(userId);
     } catch (e) {
       // Handle 404 errors gracefully - user might not exist
       if (e.toString().contains('404') || e.toString().contains('not found')) {
-        print('User $userId not found in getUser method');
-        return null;
+        print('User $userId not found in getUser method - attempting getList fallback');
+        
+        // Fallback: Try using getList with filter for admin access
+        // This helps when getOne has stricter permissions than getList
+        try {
+          final result = await pb.collection('users').getList(
+            filter: 'id = "$userId"',
+            perPage: 1,
+          );
+          
+          if (result.items.isNotEmpty) {
+            print('User $userId found via getList fallback');
+            return result.items.first;
+          }
+          
+          print('User $userId not found even with getList fallback');
+          return null;
+        } catch (fallbackError) {
+          print('Fallback getList also failed: $fallbackError');
+          return null;
+        }
       }
       print('Error getting user $userId: $e');
       rethrow;
