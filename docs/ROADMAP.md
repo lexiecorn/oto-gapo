@@ -35,12 +35,62 @@
 - ✅ As a user, I can check in to meetings via QR scan
 
 **Implementation Details:**
+
 - Backend: PocketBase collections (meetings, attendance, attendance_summary)
 - Repository: packages/attendance_repository
 - State Management: MeetingCubit, AttendanceCubit
 - UI: 7 pages, 3 widgets, 7 routes
 - Features: QR generation/scanning, CSV export, real-time stats
 - Documentation: See docs/ATTENDANCE_IMPLEMENTATION.md
+
+---
+
+**Feature Name**: Version Update Notifications & Force Update
+**Priority**: P1
+**Status**: Planned
+**Target Release**: v1.3.0
+**Description**: Implement an app version management system that can notify users about new versions and enforce mandatory updates when critical fixes are deployed.
+
+**User Stories**:
+
+- As an admin, I want to configure version requirements in the backend so that I can control which versions are supported
+- As an admin, I want to mark certain updates as "force update" so users must upgrade before continuing
+- As a user, I want to be notified when a new version is available so I can stay up-to-date
+- As a user, I want to see what's new in the latest version so I can understand the benefits of updating
+- As a user, I want to easily update the app when prompted
+- As a user, if an update is mandatory, I should be guided to update before accessing the app
+
+**Technical Notes**:
+
+- **Backend**:
+  - Store version configuration in PocketBase (min_version, current_version, force_update flag, release_notes)
+  - API endpoint to check version compatibility
+  - Admin interface to manage version settings
+- **Frontend**:
+  - Version check on app launch and resume
+  - Dialog/modal for update notifications (optional vs force)
+  - Link to app store (Play Store/App Store) for updates
+  - Display release notes in update dialog
+  - Block app usage if force update is required
+- **Package**: Current app version from `package_info_plus`
+- **Dependencies**:
+  - `package_info_plus` (already in use)
+  - PocketBase collection for version management
+  - Optional: `url_launcher` for app store links (already in use)
+- **Estimated Effort**: Medium
+
+**Implementation Checklist**:
+
+- [ ] Create PocketBase collection for version management
+- [ ] Add version check service/repository
+- [ ] Implement version comparison logic
+- [ ] Create update dialog UI (optional vs mandatory)
+- [ ] Add app store deep links
+- [ ] Add version check on app startup
+- [ ] Add version check on app resume
+- [ ] Add admin UI for version management
+- [ ] Write tests for version comparison logic
+- [ ] Update documentation
 
 ### P2 - Medium Priority
 

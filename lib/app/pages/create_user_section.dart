@@ -429,18 +429,30 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Select Image Source'),
+            title: Text(
+              'Select Image Source',
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
                   leading: const Icon(Icons.photo_library),
-                  title: const Text('Gallery'),
+                  title: Text(
+                    'Gallery',
+                    style: TextStyle(fontSize: 14.sp),
+                  ),
                   onTap: () => Navigator.of(context).pop(ImageSource.gallery),
                 ),
                 ListTile(
                   leading: const Icon(Icons.camera_alt),
-                  title: const Text('Camera'),
+                  title: Text(
+                    'Camera',
+                    style: TextStyle(fontSize: 14.sp),
+                  ),
                   onTap: () => Navigator.of(context).pop(ImageSource.camera),
                 ),
               ],
@@ -712,7 +724,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       print('Creating PocketBase user with email: $email');
       final pocketBaseService = PocketBaseService();
 
-      // Create user in PocketBase
+      // Step 1: Create user first with empty vehicle (will be linked later)
+      // Note: This requires the 'vehicle' field to be optional in PocketBase schema
       final userRecord = await pocketBaseService.createUser(
         email: email,
         password: password,
@@ -720,6 +733,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         lastName: lastName,
         additionalData: {
           'joinedDate': DateTime.now().toIso8601String(),
+          // Don't include vehicle yet - will be added after vehicle creation
         },
       );
 
@@ -818,88 +832,56 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       await pocketBaseService.updateUser(uid, userData);
       print('PocketBase user updated successfully');
 
-      // Create vehicle record if vehicle data is provided
-      if (vehicleMake.isNotEmpty || vehicleModel.isNotEmpty || vehiclePlateNumber.isNotEmpty) {
-        print('Creating vehicle record for user: $uid');
-        try {
-          final vehiclePhotosUrls = [
-            ...vehiclePhotos,
-            if (carImage1Url != null) carImage1Url,
-            if (carImage2Url != null) carImage2Url,
-            if (carImage3Url != null) carImage3Url,
-            if (carImage4Url != null) carImage4Url,
-          ].where((url) => url.isNotEmpty).toList();
+      // Step 2: Create vehicle record with the new user ID
+      String? vehicleId;
+      print('Creating vehicle record for user: $uid');
+      try {
+        final vehiclePhotosUrls = [
+          ...vehiclePhotos,
+          if (carImage1Url != null) carImage1Url,
+          if (carImage2Url != null) carImage2Url,
+          if (carImage3Url != null) carImage3Url,
+          if (carImage4Url != null) carImage4Url,
+        ].where((url) => url.isNotEmpty).toList();
 
-          await pocketBaseService.createVehicle(
-            userId: uid,
-            color: vehicleColor,
-            make: vehicleMake,
-            model: vehicleModel,
-            plateNumber: vehiclePlateNumber,
-            type: vehicleType,
-            year: vehicleYear,
-            primaryPhoto: mainCarImageUrl ?? vehiclePrimaryPhoto,
-            photos: vehiclePhotosUrls.isNotEmpty ? vehiclePhotosUrls : null,
-          );
-          print('Vehicle record created successfully');
-        } catch (e) {
-          print('Error creating vehicle record: $e');
-          // Continue even if vehicle creation fails
-        }
+        final vehicleRecord = await pocketBaseService.createVehicle(
+          userId: uid,
+          color: vehicleColor.isNotEmpty ? vehicleColor : 'Unknown',
+          make: vehicleMake.isNotEmpty ? vehicleMake : 'Unknown',
+          model: vehicleModel.isNotEmpty ? vehicleModel : 'Unknown',
+          plateNumber: vehiclePlateNumber.isNotEmpty ? vehiclePlateNumber : 'PENDING',
+          type: vehicleType,
+          year: vehicleYear > 0 ? vehicleYear : DateTime.now().year,
+          primaryPhoto: mainCarImageUrl ?? (vehiclePrimaryPhoto.isNotEmpty ? vehiclePrimaryPhoto : null),
+          photos: vehiclePhotosUrls.isNotEmpty ? vehiclePhotosUrls : null,
+        );
+        vehicleId = vehicleRecord.id;
+        print('Vehicle record created successfully with ID: $vehicleId');
+
+        // Step 3: Update user with vehicle reference
+        await pocketBaseService.updateUser(uid, {'vehicle': vehicleId});
+        print('User updated with vehicle reference');
+      } catch (e) {
+        print('Error creating vehicle record: $e');
+        // Continue even if vehicle creation fails - user is still created
       }
 
-      setState(() {
-        _isCreatingUser = false;
-        _createUserMessage = 'User created successfully! PocketBase user created with ID: $uid';
-        _newEmailController.clear();
-        _newPasswordController.clear();
-        _newFirstNameController.clear();
-        _newLastNameController.clear();
-        _ageController.clear();
-        _birthplaceController.clear();
-        _bloodTypeController.clear();
-        _civilStatusController.clear();
-        _contactNumberController.clear();
-        _dateOfBirthController.clear();
-        _driversLicenseExpirationDateController.clear();
-        _driversLicenseNumberController.clear();
-        _driversLicenseRestrictionCodeController.clear();
-        _emergencyContactNameController.clear();
-        _emergencyContactNumberController.clear();
-        _isActiveController.clear();
-        _isAdminController.clear();
-        _memberNumberController.clear();
-        _membershipTypeController.clear();
-        _middleNameController.clear();
-        _nationalityController.clear();
-        _profileImageController.clear();
-        _religionController.clear();
-        _spouseContactNumberController.clear();
-        _spouseNameController.clear();
-        _vehicleColorController.clear();
-        _vehicleModelController.clear();
-        _vehiclePhotosController.text = '';
-        _vehiclePlateNumberController.clear();
-        _vehiclePrimaryPhotoController.clear();
-        _vehicleTypeController.clear();
-        _selectedVehicleType = 'Sedan'; // Reset to default
-        _selectedVehicleYear = null;
-        _selectedVehicleMake = null;
-        // Clear profile image variables
-        _selectedProfileImage = null;
-        _uploadedImageUrl = null;
-        // Clear car image variables
-        _selectedMainCarImage = null;
-        _selectedCarImage1 = null;
-        _selectedCarImage2 = null;
-        _selectedCarImage3 = null;
-        _selectedCarImage4 = null;
-        _uploadedMainCarImageUrl = null;
-        _uploadedCarImage1Url = null;
-        _uploadedCarImage2Url = null;
-        _uploadedCarImage3Url = null;
-        _uploadedCarImage4Url = null;
-      });
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('User created successfully! ID: $uid'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+
+      // Navigate back to user list after a brief delay
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      if (mounted) {
+        Navigator.of(context).pop(true); // Return true to indicate success
+      }
     } catch (e) {
       // Handle PocketBase errors
       var errorMessage = 'Error creating user: ';
@@ -2373,6 +2355,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   ElevatedButton(
                     onPressed: () async {
                       final now = DateTime.now();
+                      final theme = Theme.of(context);
                       final picked = await showDatePicker(
                         context: context,
                         initialDate: DateTime(now.year),
@@ -2381,6 +2364,27 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         helpText: 'Select Vehicle Year',
                         fieldLabelText: 'Vehicle Year',
                         fieldHintText: 'Year',
+                        builder: (context, child) {
+                          return Theme(
+                            data: theme.copyWith(
+                              textTheme: theme.textTheme.copyWith(
+                                headlineLarge: theme.textTheme.headlineLarge?.copyWith(fontSize: 24.sp),
+                                headlineMedium: theme.textTheme.headlineMedium?.copyWith(fontSize: 20.sp),
+                                headlineSmall: theme.textTheme.headlineSmall?.copyWith(fontSize: 18.sp),
+                                titleLarge: theme.textTheme.titleLarge?.copyWith(fontSize: 16.sp),
+                                titleMedium: theme.textTheme.titleMedium?.copyWith(fontSize: 14.sp),
+                                titleSmall: theme.textTheme.titleSmall?.copyWith(fontSize: 12.sp),
+                                bodyLarge: theme.textTheme.bodyLarge?.copyWith(fontSize: 14.sp),
+                                bodyMedium: theme.textTheme.bodyMedium?.copyWith(fontSize: 13.sp),
+                                bodySmall: theme.textTheme.bodySmall?.copyWith(fontSize: 12.sp),
+                                labelLarge: theme.textTheme.labelLarge?.copyWith(fontSize: 14.sp),
+                                labelMedium: theme.textTheme.labelMedium?.copyWith(fontSize: 12.sp),
+                                labelSmall: theme.textTheme.labelSmall?.copyWith(fontSize: 11.sp),
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
                       );
                       if (picked != null) {
                         setState(() {

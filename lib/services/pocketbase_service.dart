@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:http/http.dart' show MultipartFile;
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:otogapo/models/monthly_dues.dart';
 import 'package:otogapo/models/payment_analytics.dart';
@@ -131,7 +134,111 @@ class PocketBaseService {
 
   // Update user data
   Future<RecordModel> updateUser(String userId, Map<String, dynamic> data) async {
-    return pb.collection('users').update(userId, body: data);
+    await _ensureAuthenticated();
+
+    // Separate file uploads from regular data updates
+    final fileFields = <String, File>{};
+    final regularData = <String, dynamic>{};
+
+    for (final entry in data.entries) {
+      if (entry.value is File) {
+        fileFields[entry.key] = entry.value as File;
+      } else {
+        regularData[entry.key] = entry.value;
+      }
+    }
+
+    print('PocketBaseService - Updating user $userId');
+    print('PocketBaseService - Regular data keys: ${regularData.keys.toList()}');
+    print('PocketBaseService - File fields: ${fileFields.keys.toList()}');
+
+    try {
+      RecordModel result;
+
+      // First update regular data if any
+      if (regularData.isNotEmpty) {
+        result = await pb.collection('users').update(userId, body: regularData);
+        print('PocketBaseService - Regular data updated successfully');
+      } else {
+        result = await pb.collection('users').getOne(userId);
+      }
+
+      // Handle file uploads using separate method
+      if (fileFields.isNotEmpty) {
+        for (final entry in fileFields.entries) {
+          final fieldName = entry.key;
+          final file = entry.value;
+
+          print('PocketBaseService - Uploading file for field: $fieldName');
+          print('PocketBaseService - File path: ${file.path}');
+
+          // Upload file using dedicated method
+          result = await _uploadUserFile(userId, fieldName, file);
+
+          print('PocketBaseService - File $fieldName uploaded successfully');
+        }
+      }
+
+      print('PocketBaseService - User updated successfully: ${result.id}');
+      return result;
+    } catch (e) {
+      print('PocketBaseService - Error updating user: $e');
+      print('PocketBaseService - Error type: ${e.runtimeType}');
+      if (e.toString().contains('MultipartFile')) {
+        print('PocketBaseService - MultipartFile conversion issue detected');
+      }
+      rethrow;
+    }
+  }
+
+  // Upload file for user
+  Future<RecordModel> _uploadUserFile(String userId, String fieldName, File file) async {
+    try {
+      print('PocketBaseService - Starting file upload for field: $fieldName');
+
+      // Read file bytes
+      final fileBytes = await file.readAsBytes();
+      print('PocketBaseService - File size: ${fileBytes.length} bytes');
+
+      // Create multipart request manually
+      final request = http.MultipartRequest(
+        'PATCH',
+        Uri.parse('${pb.baseUrl}/api/collections/users/records/$userId'),
+      );
+
+      // Add authorization header
+      final token = pb.authStore.token;
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // Add the file
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          fieldName,
+          fileBytes,
+          filename: file.path.split('/').last,
+        ),
+      );
+
+      print('PocketBaseService - Sending multipart request');
+
+      // Send the request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('PocketBaseService - Response status: ${response.statusCode}');
+      print('PocketBaseService - Response body: ${response.body}');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final responseData = json.decode(response.body) as Map<String, dynamic>;
+        return RecordModel.fromJson(responseData);
+      } else {
+        throw Exception('File upload failed: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('PocketBaseService - Error uploading file for field $fieldName: $e');
+      print('PocketBaseService - Error type: ${e.runtimeType}');
+      rethrow;
+    }
   }
 
   // Delete user

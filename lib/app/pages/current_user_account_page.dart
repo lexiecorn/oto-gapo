@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 
 class CurrentUserAccountPage extends StatefulWidget {
   const CurrentUserAccountPage({super.key});
@@ -17,6 +21,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
   bool _isLoading = true;
   Map<String, dynamic>? _userData;
   String? _profileImageUrl;
+  final ImagePicker _imagePicker = ImagePicker();
+  bool _isUploadingImage = false;
 
   @override
   void initState() {
@@ -63,6 +69,119 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _showImageSourceDialog() async {
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Choose Image Source',
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: 8.sp),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.camera_alt, size: 24.sp),
+                title: Text(
+                  'Camera',
+                  style: TextStyle(fontSize: 14.sp),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickAndUploadProfileImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.photo_library, size: 24.sp),
+                title: Text(
+                  'Gallery',
+                  style: TextStyle(fontSize: 14.sp),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickAndUploadProfileImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickAndUploadProfileImage(ImageSource source) async {
+    try {
+      setState(() {
+        _isUploadingImage = true;
+      });
+
+      // Pick image
+      final pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null) {
+        setState(() {
+          _isUploadingImage = false;
+        });
+        return;
+      }
+
+      final imageFile = File(pickedFile.path);
+
+      // Get current user ID
+      final authState = context.read<AuthBloc>().state;
+      if (authState.user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final userId = authState.user!.id;
+
+      // Upload image to PocketBase
+      final pocketBaseService = PocketBaseService();
+      await pocketBaseService.updateUser(
+        userId,
+        {'profileImage': imageFile},
+      );
+
+      // Reload user data to get new image URL
+      await _loadCurrentUserData();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile image updated successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error uploading profile image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating profile image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingImage = false;
+        });
+      }
     }
   }
 
@@ -246,6 +365,54 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
   }
 
   Widget _buildProfileAvatar() {
+    return Stack(
+      children: [
+        // Avatar
+        _isUploadingImage
+            ? CircleAvatar(
+                radius: 50.sp,
+                backgroundColor: Theme.of(context).primaryColor,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                ),
+              )
+            : _buildAvatarImage(),
+        // Edit button
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: GestureDetector(
+            onTap: _isUploadingImage ? null : _showImageSourceDialog,
+            child: Container(
+              padding: EdgeInsets.all(8.sp),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Theme.of(context).primaryColor,
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.camera_alt,
+                size: 20.sp,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAvatarImage() {
     // Show asset image
     if (_profileImageUrl != null && _profileImageUrl!.startsWith('assets/')) {
       return CircleAvatar(

@@ -4,6 +4,33 @@
 
 OtoGapo uses a hybrid backend approach combining Firebase for authentication and PocketBase for data management. This document provides comprehensive API documentation for all services and endpoints.
 
+## Recent Updates
+
+### File Upload Migration (Latest)
+
+**Migration from Firebase Storage to PocketBase**
+
+The application has been fully migrated from Firebase Storage to PocketBase for all file uploads and storage operations:
+
+- **Profile Images**: Now stored in PocketBase with direct HTTP multipart requests
+- **Car Images**: All vehicle photos managed through PocketBase
+- **Gallery Images**: Homepage carousel images stored in PocketBase
+- **File URLs**: Constructed using PocketBase file serving endpoints
+
+**Key Changes:**
+
+1. **Removed Firebase Storage Dependencies**: No longer uses `firebase_storage` package
+2. **Direct HTTP Uploads**: Files uploaded using `http.MultipartRequest` to avoid JSON serialization issues
+3. **PocketBase File URLs**: Images served via `{pocketbaseUrl}/api/files/{collection}/{recordId}/{filename}`
+4. **Enhanced Error Handling**: Comprehensive debugging and error reporting for file operations
+
+**Benefits:**
+
+- **Unified Backend**: Single backend for all data and file operations
+- **Better Performance**: Direct file serving without Firebase overhead
+- **Simplified Architecture**: Reduced complexity with one backend system
+- **Cost Efficiency**: No Firebase Storage usage costs
+
 ## Table of Contents
 
 - [Authentication Services](#authentication-services)
@@ -155,7 +182,7 @@ Future<RecordModel> createUserWithFirebaseUid({
 #### Update User
 
 ```dart
-// Update user data
+// Update user data (handles both regular data and file uploads)
 Future<RecordModel> updateUser(String userId, Map<String, dynamic> data)
 
 // Update user profile with detailed information
@@ -188,6 +215,42 @@ Future<RecordModel> updateUserProfile({
   String? joinedDate
 })
 ```
+
+#### File Upload Support
+
+The `updateUser` method now supports file uploads for profile images and car images:
+
+```dart
+// Upload profile image
+final result = await pocketBaseService.updateUser(userId, {
+  'profileImage': File('/path/to/image.jpg'),
+  'updatedAt': DateTime.now().toIso8601String(),
+});
+
+// Upload car images
+final result = await pocketBaseService.updateUser(userId, {
+  'carImage1': File('/path/to/car1.jpg'),
+  'carImage2': File('/path/to/car2.jpg'),
+  'carImagemain': File('/path/to/main_car.jpg'),
+  'updatedAt': DateTime.now().toIso8601String(),
+});
+```
+
+**File Upload Implementation:**
+
+The service automatically handles file uploads using direct HTTP multipart requests to avoid JSON serialization issues:
+
+1. **Separates file uploads from regular data** - Files and regular data are processed separately
+2. **Uses direct HTTP requests** - Bypasses PocketBase client JSON serialization for files
+3. **Proper multipart handling** - Uses `http.MultipartRequest` for file uploads
+4. **Authentication preserved** - Maintains PocketBase authentication tokens
+5. **Error handling** - Comprehensive error reporting and debugging
+
+**Supported File Fields:**
+
+- `profileImage` - User profile picture
+- `carImage1`, `carImage2`, `carImage3`, `carImage4` - Car photos
+- `carImagemain` - Primary car photo
 
 ### User Profile Fields
 

@@ -301,10 +301,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
 ### Data Sources
 
-1. **Firebase** - Authentication and cloud services
-2. **PocketBase** - Primary data management
+1. **Firebase** - Authentication only
+2. **PocketBase** - Primary data management and file storage
 3. **Local Storage** - Offline data and caching
-4. **HTTP Client** - API communications
+4. **HTTP Client** - API communications and file uploads
 
 ### PocketBase Collections
 
@@ -358,6 +358,131 @@ The app uses PocketBase (https://pb.lexserver.org/) for data management with the
 UI → BLoC → Repository → Data Source
 UI ← BLoC ← Repository ← Data Source
 ```
+
+### File Upload Architecture
+
+The application uses a sophisticated file upload system that handles both regular data and file uploads separately to avoid JSON serialization issues:
+
+#### File Upload Flow
+
+```
+User Action (Image Pick) → File Selection → PocketBaseService.updateUser()
+                                                      ↓
+                                              Separate File/Data Processing
+                                                      ↓
+                                    Regular Data → PocketBase Client API
+                                    File Data → Direct HTTP Multipart Request
+                                                      ↓
+                                              PocketBase File Storage
+                                                      ↓
+                                              Construct File URLs
+                                                      ↓
+                                              Update UI with New Images
+```
+
+#### Implementation Details
+
+**1. File Upload Separation**
+
+```dart
+// PocketBaseService.updateUser() method
+Future<RecordModel> updateUser(String userId, Map<String, dynamic> data) async {
+  // Separate file uploads from regular data
+  final fileFields = <String, File>{};
+  final regularData = <String, dynamic>{};
+
+  for (final entry in data.entries) {
+    if (entry.value is File) {
+      fileFields[entry.key] = entry.value as File;
+    } else {
+      regularData[entry.key] = entry.value;
+    }
+  }
+
+  // Process regular data first
+  if (regularData.isNotEmpty) {
+    result = await pb.collection('users').update(userId, body: regularData);
+  }
+
+  // Process file uploads separately
+  if (fileFields.isNotEmpty) {
+    for (final entry in fileFields.entries) {
+      result = await _uploadUserFile(userId, entry.key, entry.value);
+    }
+  }
+}
+```
+
+**2. Direct HTTP File Upload**
+
+```dart
+Future<RecordModel> _uploadUserFile(String userId, String fieldName, File file) async {
+  // Create multipart request manually
+  final request = http.MultipartRequest(
+    'PATCH',
+    Uri.parse('${pb.baseUrl}/api/collections/users/records/$userId'),
+  );
+
+  // Add authentication
+  final token = pb.authStore.token;
+  request.headers['Authorization'] = 'Bearer $token';
+
+  // Add the file
+  request.files.add(
+    http.MultipartFile.fromBytes(
+      fieldName,
+      await file.readAsBytes(),
+      filename: file.path.split('/').last,
+    ),
+  );
+
+  // Send request and handle response
+  final streamedResponse = await request.send();
+  final response = await http.Response.fromStream(streamedResponse);
+
+  if (response.statusCode >= 200 && response.statusCode < 300) {
+    final responseData = json.decode(response.body) as Map<String, dynamic>;
+    return RecordModel.fromJson(responseData);
+  } else {
+    throw Exception('File upload failed: ${response.statusCode}');
+  }
+}
+```
+
+**3. File URL Construction**
+
+```dart
+// Construct PocketBase file URLs
+String getPocketBaseImageUrl(String filename, String userId) {
+  final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+  return '$pocketbaseUrl/api/files/users/$userId/$filename';
+}
+```
+
+#### Supported File Types
+
+- **Profile Images**: `profileImage` field
+- **Car Images**: `carImage1`, `carImage2`, `carImage3`, `carImage4`, `carImagemain`
+- **Gallery Images**: `image` field in `gallery_images` collection
+
+#### Error Handling
+
+The file upload system includes comprehensive error handling:
+
+1. **File Validation**: Checks file existence and size
+2. **Network Errors**: Handles connection issues gracefully
+3. **Authentication**: Ensures proper PocketBase authentication
+4. **Response Validation**: Verifies successful upload responses
+5. **Debug Logging**: Extensive logging for troubleshooting
+
+#### Benefits of This Architecture
+
+1. **No JSON Serialization Issues**: Files bypass PocketBase client JSON conversion
+2. **Direct Control**: Full control over HTTP request structure
+3. **Better Performance**: Optimized file upload process
+4. **Unified Backend**: Single backend for all data and files
+5. **Cost Efficiency**: No Firebase Storage costs
+6. **Simplified Maintenance**: Single backend system to manage
 
 ## Presentation Layer
 

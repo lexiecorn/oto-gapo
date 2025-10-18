@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
@@ -76,8 +76,23 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
     }
 
-    if (_editedData['profile_image'] != null && _editedData['profile_image'].toString().isNotEmpty) {
-      _profileImageUrlFuture = _getDownloadUrlFromGsUri(_editedData['profile_image'].toString());
+    // Check for profile image in multiple possible field names
+    String? profileImageValue;
+    if (_editedData['profileImage'] != null && _editedData['profileImage'].toString().isNotEmpty) {
+      profileImageValue = _editedData['profileImage'].toString();
+    } else if (_editedData['profile_image'] != null && _editedData['profile_image'].toString().isNotEmpty) {
+      profileImageValue = _editedData['profile_image'].toString();
+    }
+
+    if (profileImageValue != null) {
+      if (profileImageValue.startsWith('http')) {
+        // It's already a full URL
+        _profileImageUrlFuture = Future.value(profileImageValue);
+      } else {
+        // It's a PocketBase filename, construct the URL
+        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        _profileImageUrlFuture = Future.value('$pocketbaseUrl/api/files/users/${_editedData['id']}/$profileImageValue');
+      }
     }
 
     // Ensure createdAt and updatedAt fields exist for backward compatibility
@@ -96,42 +111,6 @@ class _UserDetailPageState extends State<UserDetailPage> {
     }
   }
 
-  Future<String?> _getDownloadUrlFromGsUri(String gsUri) async {
-    try {
-      if (gsUri.startsWith('gs://')) {
-        // Use a more direct approach to avoid 404 logging
-        final ref = FirebaseStorage.instance.refFromURL(gsUri);
-
-        // Try to get the download URL directly, but catch 404s silently
-        try {
-          return await ref.getDownloadURL();
-        } catch (e) {
-          // Silently handle 404 errors without logging
-          final errorStr = e.toString().toLowerCase();
-          if (errorStr.contains('not found') ||
-              errorStr.contains('404') ||
-              errorStr.contains('object does not exist') ||
-              errorStr.contains('no object exists')) {
-            return null; // Return null for missing files without logging
-          }
-          // Re-throw actual errors
-          rethrow;
-        }
-      }
-      return gsUri; // It's already an HTTPS URL
-    } catch (e) {
-      // Only log non-404 errors
-      final errorStr = e.toString().toLowerCase();
-      if (!errorStr.contains('not found') &&
-          !errorStr.contains('404') &&
-          !errorStr.contains('object does not exist') &&
-          !errorStr.contains('no object exists')) {
-        print('Error getting download URL for $gsUri: $e');
-      }
-      return null; // Return null for any error
-    }
-  }
-
   Future<void> _pickAndUploadImage() async {
     try {
       setState(() {
@@ -143,18 +122,27 @@ class _UserDetailPageState extends State<UserDetailPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Select Image Source'),
+            title: const Text(
+              'Select Image Source',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
                   leading: const Icon(Icons.photo_library),
-                  title: const Text('Gallery'),
+                  title: const Text(
+                    'Gallery',
+                    style: TextStyle(fontSize: 14),
+                  ),
                   onTap: () => Navigator.of(context).pop(ImageSource.gallery),
                 ),
                 ListTile(
                   leading: const Icon(Icons.camera_alt),
-                  title: const Text('Camera'),
+                  title: const Text(
+                    'Camera',
+                    style: TextStyle(fontSize: 14),
+                  ),
                   onTap: () => Navigator.of(context).pop(ImageSource.camera),
                 ),
               ],
@@ -185,32 +173,45 @@ class _UserDetailPageState extends State<UserDetailPage> {
         return;
       }
 
-      // Upload to Firebase Storage
+      // Upload to PocketBase
       final userId = _editedData['id'] as String?;
       if (userId == null) {
         throw Exception('User ID not found in user data');
       }
-      final storageRef = FirebaseStorage.instance.ref().child('users/$userId/images/profile.png');
 
       final file = File(pickedFile.path);
-      await storageRef.putFile(file);
 
-      // Get the download URL
-      final downloadUrl = await storageRef.getDownloadURL();
-      final gsUri = 'gs://${storageRef.bucket}/${storageRef.fullPath}';
+      // Upload file to PocketBase
+      print('UserDetailPage - Starting profile image upload for user: $userId');
+      print('UserDetailPage - File path: ${file.path}');
+      print('UserDetailPage - File size: ${await file.length()} bytes');
 
-      // Update the user data
-      setState(() {
-        _editedData['profile_image'] = gsUri;
-        _profileImageUrlFuture = Future.value(downloadUrl);
-      });
-
-      // Update PocketBase
       final pocketBaseService = PocketBaseService();
-      await pocketBaseService.updateUser(userId, {
-        'profile_image': gsUri,
+      final result = await pocketBaseService.updateUser(userId, {
+        'profileImage': file,
         'updatedAt': DateTime.now().toIso8601String(),
       });
+
+      print('UserDetailPage - PocketBase update result: ${result.data}');
+
+      // Get the profile image URL from the result
+      final profileImageUrl = result.data['profileImage'] as String?;
+      print('UserDetailPage - Profile image URL from result: $profileImageUrl');
+
+      if (profileImageUrl != null) {
+        // Construct the full URL
+        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        final fullImageUrl = '$pocketbaseUrl/api/files/users/$userId/$profileImageUrl';
+        print('UserDetailPage - Full image URL: $fullImageUrl');
+
+        // Update the user data
+        setState(() {
+          _editedData['profileImage'] = profileImageUrl;
+          _profileImageUrlFuture = Future.value(fullImageUrl);
+        });
+      } else {
+        print('UserDetailPage - Warning: No profile image URL returned from PocketBase');
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -221,11 +222,16 @@ class _UserDetailPageState extends State<UserDetailPage> {
         );
       }
     } catch (e) {
+      print('UserDetailPage - Error updating profile image: $e');
+      print('UserDetailPage - Error type: ${e.runtimeType}');
+      print('UserDetailPage - Error details: ${e.toString()}');
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error updating profile image: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
@@ -245,18 +251,27 @@ class _UserDetailPageState extends State<UserDetailPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Select Image Source'),
+            title: const Text(
+              'Select Image Source',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
                   leading: const Icon(Icons.photo_library),
-                  title: const Text('Gallery'),
+                  title: const Text(
+                    'Gallery',
+                    style: TextStyle(fontSize: 14),
+                  ),
                   onTap: () => Navigator.of(context).pop(ImageSource.gallery),
                 ),
                 ListTile(
                   leading: const Icon(Icons.camera_alt),
-                  title: const Text('Camera'),
+                  title: const Text(
+                    'Camera',
+                    style: TextStyle(fontSize: 14),
+                  ),
                   onTap: () => Navigator.of(context).pop(ImageSource.camera),
                 ),
               ],
@@ -322,74 +337,63 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
       print('Uploading car image $imageName for user $userId');
 
-      // Upload to Firebase Storage
-      final storageRef = FirebaseStorage.instance.ref().child('users/$userId/images/cars/$imageName.png');
-
-      // Upload the file with metadata
-      final uploadTask = storageRef.putFile(
-        selectedImage,
-        SettableMetadata(
-          contentType: 'image/png',
-          customMetadata: {
-            'uploadedAt': DateTime.now().toIso8601String(),
-            'imageName': imageName,
-            'userId': userId,
-          },
-        ),
-      );
-
-      // Wait for upload to complete
-      final snapshot = await uploadTask;
-      print('Upload completed for $imageName. Bytes transferred: ${snapshot.bytesTransferred}');
-
-      // Get the download URL
-      final downloadUrl = await storageRef.getDownloadURL();
-      print('Download URL for $imageName: $downloadUrl');
-
-      // Get the gs:// URI
-      final gsUri = 'gs://${storageRef.bucket}/${storageRef.fullPath}';
-      print('GS URI for $imageName: $gsUri');
-
-      // Update the corresponding URL variable
-      switch (imageName) {
-        case 'main':
-          setState(() {
-            _uploadedMainCarImageUrl = gsUri;
-          });
-        case '1':
-          setState(() {
-            _uploadedCarImage1Url = gsUri;
-          });
-        case '2':
-          setState(() {
-            _uploadedCarImage2Url = gsUri;
-          });
-        case '3':
-          setState(() {
-            _uploadedCarImage3Url = gsUri;
-          });
-        case '4':
-          setState(() {
-            _uploadedCarImage4Url = gsUri;
-          });
-      }
-
-      setState(() {
-        _isUploadingCarImage = false;
+      // Upload to PocketBase
+      final pocketBaseService = PocketBaseService();
+      final result = await pocketBaseService.updateUser(userId, {
+        'carImage$imageName': selectedImage,
+        'updatedAt': DateTime.now().toIso8601String(),
       });
 
-      // Show success message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Car image $imageName uploaded successfully!'),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
+      // Get the car image URL from the result
+      final carImageUrl = result.data['carImage$imageName'] as String?;
+      if (carImageUrl != null) {
+        // Construct the full URL
+        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        final fullImageUrl = '$pocketbaseUrl/api/files/users/$userId/$carImageUrl';
 
-      return gsUri;
+        // Update the corresponding URL variable
+        switch (imageName) {
+          case 'main':
+            setState(() {
+              _uploadedMainCarImageUrl = fullImageUrl;
+            });
+          case '1':
+            setState(() {
+              _uploadedCarImage1Url = fullImageUrl;
+            });
+          case '2':
+            setState(() {
+              _uploadedCarImage2Url = fullImageUrl;
+            });
+          case '3':
+            setState(() {
+              _uploadedCarImage3Url = fullImageUrl;
+            });
+          case '4':
+            setState(() {
+              _uploadedCarImage4Url = fullImageUrl;
+            });
+        }
+
+        setState(() {
+          _isUploadingCarImage = false;
+        });
+
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Car image $imageName uploaded successfully!'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+
+        return fullImageUrl;
+      } else {
+        throw Exception('Failed to get car image URL from PocketBase');
+      }
     } catch (e) {
       print('Error uploading car image $imageName: $e');
       setState(() {
@@ -486,7 +490,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 Center(
                   child: Stack(
                     children: [
-                      if (_editedData['profile_image'] != null)
+                      if ((_editedData['profileImage'] != null && _editedData['profileImage'].toString().isNotEmpty) ||
+                          (_editedData['profile_image'] != null && _editedData['profile_image'].toString().isNotEmpty))
                         FutureBuilder<String?>(
                           future: _profileImageUrlFuture,
                           builder: (context, snapshot) {
@@ -780,7 +785,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                           selectedDate != null
                               ? '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}'
                               : 'Select Date',
-                          style: const TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 14),
                         ),
                       ),
                       ElevatedButton(
@@ -867,6 +872,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: validValue,
+                    style: const TextStyle(fontSize: 14, color: Colors.black),
                     items: dropdownOptions
                         .map(
                           (option) => DropdownMenuItem(
@@ -909,6 +915,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 Expanded(
                   child: DropdownButtonFormField<bool>(
                     value: (_editedData[field] as bool?) ?? false,
+                    style: const TextStyle(fontSize: 14, color: Colors.black),
                     items: const [
                       DropdownMenuItem(value: true, child: Text('Yes')),
                       DropdownMenuItem(value: false, child: Text('No')),
@@ -946,6 +953,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   child: TextFormField(
                     initialValue: _editedData[field]?.toString() ?? '',
                     keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+                    style: const TextStyle(fontSize: 14),
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1073,35 +1081,59 @@ class _UserDetailPageState extends State<UserDetailPage> {
           // Convert any remaining Timestamp objects to ISO strings
           _convertTimestampsToIso(updateData);
 
-          // Update vehicle data with new car images if uploaded (single object; supports legacy list)
-          if (updateData['vehicle'] != null) {
+          // Handle vehicle data - always remove first, then add back only if valid
+          print('Debug: Vehicle data before processing: ${updateData['vehicle']}');
+
+          // Always remove vehicle field first to avoid validation errors
+          updateData.remove('vehicle');
+
+          // Check if we have valid vehicle data to include
+          if (_editedData['vehicle'] != null) {
             Map<String, dynamic>? vehicle;
-            if (updateData['vehicle'] is Map<String, dynamic>) {
-              vehicle = Map<String, dynamic>.from(updateData['vehicle'] as Map<String, dynamic>);
-            } else if (updateData['vehicle'] is List && (updateData['vehicle'] as List).isNotEmpty) {
-              final vehicleList = updateData['vehicle'] as List;
+            if (_editedData['vehicle'] is Map<String, dynamic>) {
+              vehicle = Map<String, dynamic>.from(_editedData['vehicle'] as Map<String, dynamic>);
+            } else if (_editedData['vehicle'] is List && (_editedData['vehicle'] as List).isNotEmpty) {
+              final vehicleList = _editedData['vehicle'] as List;
               vehicle = Map<String, dynamic>.from(vehicleList[0] as Map<String, dynamic>);
             }
 
             if (vehicle != null) {
-              final existingPhotos = List<String>.from((vehicle['photos'] as List<dynamic>?) ?? []);
+              // Check if vehicle has required fields before including it
+              final hasRequiredFields = vehicle['make'] != null && vehicle['model'] != null && vehicle['year'] != null;
 
-              // Add new car images to photos array
-              if (carImage1Url != null) existingPhotos.add(carImage1Url);
-              if (carImage2Url != null) existingPhotos.add(carImage2Url);
-              if (carImage3Url != null) existingPhotos.add(carImage3Url);
-              if (carImage4Url != null) existingPhotos.add(carImage4Url);
+              print('Debug: Vehicle has required fields: $hasRequiredFields');
+              print('Debug: Vehicle make: ${vehicle['make']}, model: ${vehicle['model']}, year: ${vehicle['year']}');
 
-              // Update primary photo if main car image was uploaded
-              if (mainCarImageUrl != null) {
-                vehicle['primaryPhoto'] = mainCarImageUrl;
+              if (hasRequiredFields) {
+                final existingPhotos = List<String>.from((vehicle['photos'] as List<dynamic>?) ?? []);
+
+                // Add new car images to photos array
+                if (carImage1Url != null) existingPhotos.add(carImage1Url);
+                if (carImage2Url != null) existingPhotos.add(carImage2Url);
+                if (carImage3Url != null) existingPhotos.add(carImage3Url);
+                if (carImage4Url != null) existingPhotos.add(carImage4Url);
+
+                // Update primary photo if main car image was uploaded
+                if (mainCarImageUrl != null) {
+                  vehicle['primaryPhoto'] = mainCarImageUrl;
+                }
+
+                vehicle['photos'] = existingPhotos;
+                // Store as single object
+                updateData['vehicle'] = vehicle;
+                print('Debug: Added valid vehicle to updateData');
+              } else {
+                print('Debug: Vehicle missing required fields, not including in update');
               }
-
-              vehicle['photos'] = existingPhotos;
-              // Store as single object
-              updateData['vehicle'] = vehicle;
+            } else {
+              print('Debug: Vehicle is null, not including in update');
             }
+          } else {
+            print('Debug: No vehicle data in _editedData');
           }
+
+          print('Debug: Final updateData before sending to PocketBase: ${updateData.keys.toList()}');
+          print('Debug: Vehicle field in final data: ${updateData['vehicle']}');
 
           // Update user in PocketBase
           final pocketBaseService = PocketBaseService();
@@ -1271,75 +1303,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
   Future<void> _deleteUserStorageData(String userId) async {
     try {
-      final storage = FirebaseStorage.instance;
-
-      // Delete profile image
-      try {
-        final profileImageRef = storage.ref().child('users/$userId/images/profile.png');
-        await profileImageRef.delete();
-        print('Profile image deleted successfully');
-      } catch (e) {
-        // Check if it's a "not found" error (expected for missing files)
-        if (e.toString().contains('object-not-found') ||
-            e.toString().contains('404') ||
-            e.toString().contains('Object does not exist')) {
-          print('Profile image not found (expected for new users)');
-        } else {
-          print('Unexpected error deleting profile image: $e');
-        }
-      }
-
-      // Delete car images
-      try {
-        // Delete main car image
-        final mainCarImageRef = storage.ref().child('users/$userId/images/cars/main.png');
-        await mainCarImageRef.delete();
-        print('Main car image deleted successfully');
-      } catch (e) {
-        if (e.toString().contains('object-not-found') ||
-            e.toString().contains('404') ||
-            e.toString().contains('Object does not exist')) {
-          print('Main car image not found (expected for users without car images)');
-        } else {
-          print('Unexpected error deleting main car image: $e');
-        }
-      }
-
-      // Delete additional car images (1, 2, 3, 4)
-      for (var i = 1; i <= 4; i++) {
-        try {
-          final carImageRef = storage.ref().child('users/$userId/images/cars/$i.png');
-          await carImageRef.delete();
-          print('Car image $i deleted successfully');
-        } catch (e) {
-          if (e.toString().contains('object-not-found') ||
-              e.toString().contains('404') ||
-              e.toString().contains('Object does not exist')) {
-            print('Car image $i not found (expected for users with fewer than $i car images)');
-          } else {
-            print('Unexpected error deleting car image $i: $e');
-          }
-        }
-      }
-
-      // Delete the entire user folder (this will delete any other files in the user's folder)
-      try {
-        final userFolderRef = storage.ref().child('users/$userId');
-        await userFolderRef.delete();
-        print('User folder deleted successfully');
-      } catch (e) {
-        if (e.toString().contains('object-not-found') ||
-            e.toString().contains('404') ||
-            e.toString().contains('Object does not exist')) {
-          print('User folder not found (expected for users without any uploaded files)');
-        } else {
-          print('Unexpected error deleting user folder: $e');
-        }
-      }
+      // Since we're using PocketBase, file deletion is handled automatically
+      // when the user record is deleted from PocketBase
+      print('File deletion handled by PocketBase when user record is deleted');
     } catch (e) {
       print('Error in storage deletion process: $e');
-      // Don't throw the error here, as we still want to delete the Firestore document
-      // even if storage deletion fails
+      // Don't throw the error here, as we still want to delete the user record
+      // even if file deletion fails
     }
   }
 
@@ -1402,37 +1372,42 @@ class _UserDetailPageState extends State<UserDetailPage> {
           displayValue =
               '${value.day}/${value.month}/${value.year} ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
         }
-      } else if (value is String && value.contains('T')) {
-        final date = DateTime.parse(value);
-        // Format for createdAt and updatedAt fields
-        if (label == 'Created At' || label == 'Updated At') {
-          final months = [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December',
-          ];
-          final month = months[date.month - 1];
-          final day = date.day;
-          final year = date.year;
-          final hour = date.hour;
-          final minute = date.minute;
-          final period = hour >= 12 ? 'PM' : 'AM';
-          final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-          final displayMinute = minute.toString().padLeft(2, '0');
+      } else if (value is String && _isIsoDateString(value)) {
+        try {
+          final date = DateTime.parse(value);
+          // Format for createdAt and updatedAt fields
+          if (label == 'Created At' || label == 'Updated At') {
+            final months = [
+              'January',
+              'February',
+              'March',
+              'April',
+              'May',
+              'June',
+              'July',
+              'August',
+              'September',
+              'October',
+              'November',
+              'December',
+            ];
+            final month = months[date.month - 1];
+            final day = date.day;
+            final year = date.year;
+            final hour = date.hour;
+            final minute = date.minute;
+            final period = hour >= 12 ? 'PM' : 'AM';
+            final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+            final displayMinute = minute.toString().padLeft(2, '0');
 
-          displayValue = '$month $day, $year $displayHour:$displayMinute $period';
-        } else {
-          displayValue =
-              '${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+            displayValue = '$month $day, $year $displayHour:$displayMinute $period';
+          } else {
+            displayValue =
+                '${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+          }
+        } catch (e) {
+          // If parsing fails, just display as string
+          displayValue = value.toString();
         }
       } else if (value is bool) {
         displayValue = value ? 'Yes' : 'No';
@@ -1466,7 +1441,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
           Expanded(
             child: isImageField && hasValidUrl
                 ? FutureBuilder<String?>(
-                    future: _getDownloadUrlFromGsUri(value),
+                    future: _getPocketBaseImageUrl(value),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
@@ -1532,7 +1507,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   )
                 : Text(
                     displayValue,
-                    style: const TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 14),
                   ),
           ),
         ],
@@ -1702,14 +1677,19 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 selectedImage = _selectedCarImage4; // 4th car image, separate from main
             }
 
-            // If no locally selected image, try to load from Firebase Storage
+            // If no locally selected image, try to load from PocketBase
             if (selectedImage == null) {
               final userId = _editedData['id'] as String?;
               if (userId != null) {
-                final gsUri = 'gs://otogapo-dev.appspot.com/users/$userId/images/cars/$imageNumber.png';
+                final carImageData = _editedData['carImage$imageNumber'] as String?;
+                String? imageUrl;
+                if (carImageData != null && carImageData.isNotEmpty) {
+                  final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+                  imageUrl = '$pocketbaseUrl/api/files/users/$userId/$carImageData';
+                }
 
                 return FutureBuilder<String?>(
-                  future: _getDownloadUrlFromGsUri(gsUri),
+                  future: Future.value(imageUrl),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Container(
@@ -2180,11 +2160,16 @@ class _UserDetailPageState extends State<UserDetailPage> {
               return _buildCarImagePlaceholder(imageNumber, 'No user ID', Colors.grey);
             }
 
-            // Create gs:// URI for the car image
-            final gsUri = 'gs://otogapo-dev.appspot.com/users/$userId/images/cars/$imageNumber.png';
+            // Get car image from PocketBase
+            final carImageData = _editedData['carImage$imageNumber'] as String?;
+            String? imageUrl;
+            if (carImageData != null && carImageData.isNotEmpty) {
+              final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+              imageUrl = '$pocketbaseUrl/api/files/users/$userId/$carImageData';
+            }
 
             return FutureBuilder<String?>(
-              future: _getDownloadUrlFromGsUri(gsUri),
+              future: Future.value(imageUrl),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Container(
@@ -2427,8 +2412,15 @@ class _UserDetailPageState extends State<UserDetailPage> {
     if (userId == null) {
       throw Exception('User ID not found in user data');
     }
-    final gsUri = 'gs://otogapo-dev.appspot.com/users/$userId/images/cars/main.png';
-    return _getDownloadUrlFromGsUri(gsUri);
+
+    // Check if user has car image data
+    final carImageData = _editedData['carImagemain'] as String?;
+    if (carImageData != null && carImageData.isNotEmpty) {
+      final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+      return '$pocketbaseUrl/api/files/users/$userId/$carImageData';
+    }
+
+    return null;
   }
 
   Future<bool> _checkCarImageExists(String imageName) async {
@@ -2438,11 +2430,9 @@ class _UserDetailPageState extends State<UserDetailPage> {
         return false;
       }
 
-      final storageRef = FirebaseStorage.instance.ref().child('users/$userId/images/cars/$imageName.png');
-
-      // Try to get metadata to check if file exists
-      await storageRef.getMetadata();
-      return true;
+      // Check if car image data exists in user data
+      final carImageData = _editedData['carImage$imageName'] as String?;
+      return carImageData != null && carImageData.isNotEmpty;
     } catch (e) {
       // File doesn't exist or other error
       return false;
@@ -2461,9 +2451,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
         if (exists) {
           try {
-            final storageRef = FirebaseStorage.instance.ref().child('users/$userId/images/cars/$imageName.png');
-            final downloadUrl = await storageRef.getDownloadURL();
-            print('Car image $imageName download URL: $downloadUrl');
+            final carImageData = _editedData['carImage$imageName'] as String?;
+            if (carImageData != null) {
+              final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+              final downloadUrl = '$pocketbaseUrl/api/files/users/$userId/$carImageData';
+              print('Car image $imageName download URL: $downloadUrl');
+            }
           } catch (e) {
             print('Error getting download URL for $imageName: $e');
           }
@@ -2471,6 +2464,17 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
     }
     print('=== End Debug ===');
+  }
+
+  /// Helper method to check if a string is a valid ISO 8601 date string
+  bool _isIsoDateString(String value) {
+    // Check if the string matches ISO 8601 date format pattern
+    // Format: YYYY-MM-DDTHH:MM:SS or variations with timezone
+    final isoDateRegex = RegExp(
+      r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}',
+      caseSensitive: false,
+    );
+    return isoDateRegex.hasMatch(value);
   }
 
   void _convertTimestampsToIso(Map<String, dynamic> data) {
@@ -2489,5 +2493,21 @@ class _UserDetailPageState extends State<UserDetailPage> {
         }
       }
     });
+  }
+
+  Future<String?> _getPocketBaseImageUrl(String value) async {
+    try {
+      if (value.startsWith('http')) {
+        // It's already a full URL
+        return value;
+      } else {
+        // It's a PocketBase filename, construct the URL
+        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        return '$pocketbaseUrl/api/files/users/${_editedData['id']}/$value';
+      }
+    } catch (e) {
+      print('Error getting PocketBase image URL for $value: $e');
+      return null;
+    }
   }
 }

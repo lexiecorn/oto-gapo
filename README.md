@@ -463,6 +463,34 @@ The project supports two CI/CD platforms:
 
 See [Deployment Guide](./docs/DEPLOYMENT.md) for detailed comparison and setup instructions.
 
+## 📚 Documentation
+
+### Architecture & Development
+
+- [Architecture Documentation](./docs/ARCHITECTURE.md) - Complete system architecture overview
+- [API Documentation](./docs/API_DOCUMENTATION.md) - Comprehensive API reference
+- [Developer Guide](./docs/DEVELOPER_GUIDE.md) - Development setup and workflows
+- [File Upload Fixes](./docs/FILE_UPLOAD_FIXES.md) - File upload system documentation
+
+### Deployment & Operations
+
+- [Deployment Guide](./docs/DEPLOYMENT.md) - Production deployment instructions
+- [Docker Deployment](./DOCKER_DEPLOYMENT.md) - Containerized deployment setup
+- [Web Deployment](./docs/WEB_DEPLOYMENT.md) - Web platform deployment
+- [Release Checklist](./docs/RELEASE_CHECKLIST.md) - Pre-release verification steps
+
+### Features & Systems
+
+- [Payment System](./docs/PAYMENT_SYSTEM.md) - Payment tracking implementation
+- [Attendance System](./docs/ATTENDANCE_IMPLEMENTATION.md) - Meeting attendance features
+- [Gallery Management](./docs/ARCHITECTURE.md#gallery-management-system) - Image carousel system
+
+### CI/CD & Quality
+
+- [Codemagic Setup](./docs/CODEMAGIC_SETUP.md) - Codemagic CI/CD configuration
+- [Testing Summary](./test/TESTING_SUMMARY.md) - Test coverage and strategies
+- [Play Store Setup](./docs/PLAY_STORE_SETUP.md) - Android app store deployment
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
