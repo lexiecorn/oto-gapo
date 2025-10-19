@@ -10,6 +10,7 @@ This directory contains PocketBase schema and sample data files for the OtoGapo 
 - **`pocketbase_announcements_schema.json`** - Announcements collection schema
 - **`pocketbase_app_data_schema.json`** - Application data collection schema
 - **`pocketbase_collections_import.json`** - Complete collection import file
+- **`social_feed_collections_schema.json`** - Social feed collections (v1.3.0)
 
 ### Sample Data Files
 
@@ -42,11 +43,16 @@ For more details on PocketBase setup and configuration, see:
 
 - [docs/POCKETBASE_ATTENDANCE_SETUP.md](../docs/POCKETBASE_ATTENDANCE_SETUP.md)
 - [docs/POCKETBASE_PERMISSIONS_SETUP.md](../docs/POCKETBASE_PERMISSIONS_SETUP.md)
+- [docs/SOCIAL_FEED_SCHEMA.md](../docs/SOCIAL_FEED_SCHEMA.md) - **NEW**
+- [docs/SOCIAL_FEED_IMPLEMENTATION.md](../docs/SOCIAL_FEED_IMPLEMENTATION.md) - **NEW**
+- [docs/SOCIAL_FEED_MODERATION_GUIDE.md](../docs/SOCIAL_FEED_MODERATION_GUIDE.md) - **NEW**
 - [docs/API_DOCUMENTATION.md](../docs/API_DOCUMENTATION.md)
 
 ## Collections Overview
 
 The OtoGapo application uses the following PocketBase collections:
+
+### Core Collections
 
 - **users** - Member information and profiles
 - **monthly_dues** - Payment tracking (legacy)
@@ -54,9 +60,20 @@ The OtoGapo application uses the following PocketBase collections:
 - **gallery_images** - Homepage carousel images
 - **Announcements** - Association announcements
 - **app_data** - Application configuration
+
+### Attendance Collections
+
 - **meetings** - Meeting schedules
 - **attendance** - Attendance records
 - **attendance_summary** - User attendance statistics
+
+### Social Feed Collections (NEW - v1.3.0)
+
+- **posts** - User posts with images and captions
+- **post_reactions** - User reactions (like, love, wow, haha, sad, angry)
+- **post_comments** - Comments with @mentions and #hashtags
+- **post_reports** - Content reports for moderation
+- **user_bans** - Admin bans for users who violate guidelines
 
 ## Notes
 

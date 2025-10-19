@@ -1,0 +1,427 @@
+{
+  "collections": [
+    {
+      "name": "posts",
+      "type": "base",
+      "schema": [
+        {
+          "name": "user_id",
+          "type": "relation",
+          "required": true,
+          "options": {
+            "collectionId": "users",
+            "cascadeDelete": false,
+            "minSelect": null,
+            "maxSelect": 1,
+            "displayFields": ["firstName", "lastName", "memberNumber"]
+          }
+        },
+        {
+          "name": "caption",
+          "type": "text",
+          "required": false,
+          "options": {
+            "min": null,
+            "max": 2000,
+            "pattern": ""
+          }
+        },
+        {
+          "name": "image",
+          "type": "file",
+          "required": true,
+          "options": {
+            "maxSelect": 1,
+            "maxSize": 1048576,
+            "mimeTypes": ["image/jpeg", "image/png", "image/webp"],
+            "thumbs": ["200x200", "400x400", "800x800"]
+          }
+        },
+        {
+          "name": "image_width",
+          "type": "number",
+          "required": false,
+          "options": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "image_height",
+          "type": "number",
+          "required": false,
+          "options": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "hashtags",
+          "type": "json",
+          "required": false,
+          "options": {}
+        },
+        {
+          "name": "mentions",
+          "type": "json",
+          "required": false,
+          "options": {}
+        },
+        {
+          "name": "likes_count",
+          "type": "number",
+          "required": false,
+          "options": {
+            "min": 0,
+            "max": null
+          }
+        },
+        {
+          "name": "comments_count",
+          "type": "number",
+          "required": false,
+          "options": {
+            "min": 0,
+            "max": null
+          }
+        },
+        {
+          "name": "is_active",
+          "type": "bool",
+          "required": false,
+          "options": {}
+        },
+        {
+          "name": "is_hidden_by_admin",
+          "type": "bool",
+          "required": false,
+          "options": {}
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_posts_user ON posts(user_id)",
+        "CREATE INDEX idx_posts_created ON posts(created)",
+        "CREATE INDEX idx_posts_active ON posts(is_active, is_hidden_by_admin)"
+      ],
+      "listRule": "@request.auth.id != '' && is_active = true && is_hidden_by_admin = false",
+      "viewRule": "@request.auth.id != '' && is_active = true && is_hidden_by_admin = false",
+      "createRule": "@request.auth.id != '' && @request.auth.id = user_id",
+      "updateRule": "@request.auth.id = user_id",
+      "deleteRule": "@request.auth.id = user_id || (@request.auth.id != '' && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2))"
+    },
+    {
+      "name": "post_reactions",
+      "type": "base",
+      "schema": [
+        {
+          "name": "post_id",
+          "type": "relation",
+          "required": true,
+          "options": {
+            "collectionId": "posts",
+            "cascadeDelete": true,
+            "minSelect": null,
+            "maxSelect": 1,
+            "displayFields": []
+          }
+        },
+        {
+          "name": "user_id",
+          "type": "relation",
+          "required": true,
+          "options": {
+            "collectionId": "users",
+            "cascadeDelete": false,
+            "minSelect": null,
+            "maxSelect": 1,
+            "displayFields": ["firstName", "lastName"]
+          }
+        },
+        {
+          "name": "reaction_type",
+          "type": "select",
+          "required": true,
+          "options": {
+            "maxSelect": 1,
+            "values": ["like", "love", "wow", "haha", "sad", "angry"]
+          }
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_post_reactions_unique ON post_reactions(post_id, user_id)",
+        "CREATE INDEX idx_post_reactions_post ON post_reactions(post_id)",
+        "CREATE INDEX idx_post_reactions_user ON post_reactions(user_id)"
+      ],
+      "listRule": "@request.auth.id != ''",
+      "viewRule": "@request.auth.id != ''",
+      "createRule": "@request.auth.id != '' && @request.auth.id = user_id",
+      "updateRule": "@request.auth.id = user_id",
+      "deleteRule": "@request.auth.id = user_id"
+    },
+    {
+      "name": "post_comments",
+      "type": "base",
+      "schema": [
+        {
+          "name": "post_id",
+          "type": "relation",
+          "required": true,
+          "options": {
+            "collectionId": "posts",
+            "cascadeDelete": true,
+            "minSelect": null,
+            "maxSelect": 1,
+            "displayFields": []
+          }
+        },
+        {
+          "name": "user_id",
+          "type": "relation",
+          "required": true,
+          "options": {
+            "collectionId": "users",
+            "cascadeDelete": false,
+            "minSelect": null,
+            "maxSelect": 1,
+            "displayFields": ["firstName", "lastName", "profileImage"]
+          }
+        },
+        {
+          "name": "comment_text",
+          "type": "text",
+          "required": true,
+          "options": {
+            "min": 1,
+            "max": 500,
+            "pattern": ""
+          }
+        },
+        {
+          "name": "mentions",
+          "type": "json",
+          "required": false,
+          "options": {}
+        },
+        {
+          "name": "hashtags",
+          "type": "json",
+          "required": false,
+          "options": {}
+        },
+        {
+          "name": "is_active",
+          "type": "bool",
+          "required": false,
+          "options": {}
+        },
+        {
+          "name": "is_hidden_by_admin",
+          "type": "bool",
+          "required": false,
+          "options": {}
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_post_comments_post ON post_comments(post_id)",
+        "CREATE INDEX idx_post_comments_user ON post_comments(user_id)",
+        "CREATE INDEX idx_post_comments_active ON post_comments(is_active, is_hidden_by_admin)"
+      ],
+      "listRule": "@request.auth.id != '' && is_active = true && is_hidden_by_admin = false",
+      "viewRule": "@request.auth.id != '' && is_active = true && is_hidden_by_admin = false",
+      "createRule": "@request.auth.id != '' && @request.auth.id = user_id",
+      "updateRule": "@request.auth.id = user_id",
+      "deleteRule": "@request.auth.id = user_id || (@request.auth.id != '' && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2))"
+    },
+    {
+      "name": "post_reports",
+      "type": "base",
+      "schema": [
+        {
+          "name": "post_id",
+          "type": "relation",
+          "required": false,
+          "options": {
+            "collectionId": "posts",
+            "cascadeDelete": true,
+            "minSelect": null,
+            "maxSelect": 1,
+            "displayFields": []
+          }
+        },
+        {
+          "name": "comment_id",
+          "type": "relation",
+          "required": false,
+          "options": {
+            "collectionId": "post_comments",
+            "cascadeDelete": true,
+            "minSelect": null,
+            "maxSelect": 1,
+            "displayFields": []
+          }
+        },
+        {
+          "name": "reported_by",
+          "type": "relation",
+          "required": true,
+          "options": {
+            "collectionId": "users",
+            "cascadeDelete": false,
+            "minSelect": null,
+            "maxSelect": 1,
+            "displayFields": ["firstName", "lastName", "memberNumber"]
+          }
+        },
+        {
+          "name": "report_reason",
+          "type": "select",
+          "required": true,
+          "options": {
+            "maxSelect": 1,
+            "values": ["spam", "inappropriate", "harassment", "other"]
+          }
+        },
+        {
+          "name": "report_details",
+          "type": "text",
+          "required": false,
+          "options": {
+            "min": null,
+            "max": 500,
+            "pattern": ""
+          }
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "options": {
+            "maxSelect": 1,
+            "values": ["pending", "reviewed", "resolved", "dismissed"]
+          }
+        },
+        {
+          "name": "reviewed_by",
+          "type": "relation",
+          "required": false,
+          "options": {
+            "collectionId": "users",
+            "cascadeDelete": false,
+            "minSelect": null,
+            "maxSelect": 1,
+            "displayFields": ["firstName", "lastName"]
+          }
+        },
+        {
+          "name": "reviewed_at",
+          "type": "date",
+          "required": false,
+          "options": {
+            "min": "",
+            "max": ""
+          }
+        },
+        {
+          "name": "admin_notes",
+          "type": "text",
+          "required": false,
+          "options": {
+            "min": null,
+            "max": 1000,
+            "pattern": ""
+          }
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_post_reports_status ON post_reports(status)",
+        "CREATE INDEX idx_post_reports_reporter ON post_reports(reported_by)"
+      ],
+      "listRule": "@request.auth.id != '' && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2)",
+      "viewRule": "@request.auth.id != '' && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2)",
+      "createRule": "@request.auth.id != '' && @request.auth.id = reported_by",
+      "updateRule": "@request.auth.id != '' && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2)",
+      "deleteRule": "@request.auth.id != '' && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2)"
+    },
+    {
+      "name": "user_bans",
+      "type": "base",
+      "schema": [
+        {
+          "name": "user_id",
+          "type": "relation",
+          "required": true,
+          "options": {
+            "collectionId": "users",
+            "cascadeDelete": false,
+            "minSelect": null,
+            "maxSelect": 1,
+            "displayFields": ["firstName", "lastName", "memberNumber"]
+          }
+        },
+        {
+          "name": "banned_by",
+          "type": "relation",
+          "required": true,
+          "options": {
+            "collectionId": "users",
+            "cascadeDelete": false,
+            "minSelect": null,
+            "maxSelect": 1,
+            "displayFields": ["firstName", "lastName"]
+          }
+        },
+        {
+          "name": "ban_reason",
+          "type": "text",
+          "required": true,
+          "options": {
+            "min": 1,
+            "max": 500,
+            "pattern": ""
+          }
+        },
+        {
+          "name": "ban_type",
+          "type": "select",
+          "required": true,
+          "options": {
+            "maxSelect": 1,
+            "values": ["post", "comment", "all"]
+          }
+        },
+        {
+          "name": "is_permanent",
+          "type": "bool",
+          "required": false,
+          "options": {}
+        },
+        {
+          "name": "ban_expires_at",
+          "type": "date",
+          "required": false,
+          "options": {
+            "min": "",
+            "max": ""
+          }
+        },
+        {
+          "name": "is_active",
+          "type": "bool",
+          "required": false,
+          "options": {}
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_user_bans_user ON user_bans(user_id)",
+        "CREATE INDEX idx_user_bans_active ON user_bans(is_active)",
+        "CREATE INDEX idx_user_bans_type ON user_bans(ban_type)"
+      ],
+      "listRule": "@request.auth.id != '' && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2)",
+      "viewRule": "@request.auth.id != '' && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2)",
+      "createRule": "@request.auth.id != '' && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2)",
+      "updateRule": "@request.auth.id != '' && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2)",
+      "deleteRule": "@request.auth.id != '' && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2)"
+    }
+  ]
+}
+

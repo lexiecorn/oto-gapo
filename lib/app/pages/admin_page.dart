@@ -219,6 +219,14 @@ class _AdminPageState extends State<AdminPage> {
                       );
                     },
                   ),
+                  _buildAdminCard(
+                    icon: Icons.feed,
+                    title: 'Social Feed Moderation',
+                    subtitle: 'Manage posts & reports',
+                    onTap: () {
+                      context.router.push(const SocialFeedModerationPageRouter());
+                    },
+                  ),
                 ],
               ),
             ),

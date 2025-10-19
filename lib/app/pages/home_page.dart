@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/profile/profile_page.dart';
 import 'package:otogapo/app/pages/home_body.dart';
 import 'package:otogapo/app/pages/settings_page.dart';
+import 'package:otogapo/app/pages/social_feed_page.dart';
 
 @RoutePage(
   name: 'HomePageRouter',
@@ -27,18 +28,21 @@ class HomePageState extends State<HomePage> {
       child: const HomeBody(),
     ),
     const ProfilePage(),
+    const SocialFeedPage(),
     const SettingsPage(),
   ];
 
   final List<String> _pageTitles = [
     'OTOGAPO',
     'Profile',
+    'Social Feed',
     'Settings',
   ];
 
   final List<IconData> _pageIcons = [
     Icons.home_rounded,
     Icons.person_rounded,
+    Icons.photo_library_rounded,
     Icons.settings_rounded,
   ];
 
@@ -59,7 +63,7 @@ class HomePageState extends State<HomePage> {
         // ,
         appBar: AppBar(
           title: Text(
-            _selectedIndex == 2 ? 'Settings' : _pageTitles.elementAt(_selectedIndex),
+            _pageTitles.elementAt(_selectedIndex),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
@@ -69,7 +73,7 @@ class HomePageState extends State<HomePage> {
           centerTitle: true,
           backgroundColor: Colors.black,
           elevation: 0,
-          actions: _selectedIndex == 2
+          actions: _selectedIndex == 3
               ? [
                   IconButton(
                     icon: const Icon(Icons.refresh, color: Colors.white),

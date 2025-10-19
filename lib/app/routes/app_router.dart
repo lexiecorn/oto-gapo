@@ -67,5 +67,30 @@ class AppRouter extends $AppRouter {
           page: UserAttendanceHistoryPageRouter.page,
           path: '/attendance/history',
         ),
+        // Social Feed routes
+        AutoRoute(
+          page: SocialFeedPageRouter.page,
+          path: '/social-feed',
+        ),
+        AutoRoute(
+          page: CreatePostPageRouter.page,
+          path: '/social-feed/create',
+        ),
+        AutoRoute(
+          page: PostDetailPageRouter.page,
+          path: '/social-feed/post/:postId',
+        ),
+        AutoRoute(
+          page: UserPostsPageRouter.page,
+          path: '/social-feed/user/:userId',
+        ),
+        AutoRoute(
+          page: HashtagPostsPageRouter.page,
+          path: '/social-feed/hashtag/:hashtag',
+        ),
+        AutoRoute(
+          page: SocialFeedModerationPageRouter.page,
+          path: '/social-feed/moderation',
+        ),
       ];
 }

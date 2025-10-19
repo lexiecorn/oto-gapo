@@ -1,0 +1,372 @@
+import 'dart:io';
+
+import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
+import 'package:otogapo/models/post.dart';
+import 'package:otogapo/models/post_reaction.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo/utils/image_compression_utils.dart';
+import 'package:otogapo/utils/text_parsing_utils.dart';
+
+part 'feed_state.dart';
+
+/// Cubit for managing social feed state
+class FeedCubit extends Cubit<FeedState> {
+  FeedCubit({
+    required this.pocketBaseService,
+    required this.currentUserId,
+  }) : super(const FeedState());
+
+  final PocketBaseService pocketBaseService;
+  final String currentUserId;
+
+  /// Load feed posts with pagination
+  Future<void> loadFeed({
+    int page = 1,
+    bool refresh = false,
+  }) async {
+    try {
+      if (refresh || page == 1) {
+        emit(state.copyWith(status: FeedStatus.loading));
+      } else {
+        emit(state.copyWith(status: FeedStatus.loadingMore));
+      }
+
+      final result = await pocketBaseService.getPosts(
+        page: page,
+        perPage: 20,
+      );
+
+      final posts = result.items.map((record) => Post.fromRecord(record)).toList();
+
+      if (refresh || page == 1) {
+        emit(
+          state.copyWith(
+            status: FeedStatus.loaded,
+            posts: posts,
+            currentPage: page,
+            hasMore: result.page < result.totalPages,
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            status: FeedStatus.loaded,
+            posts: [...state.posts, ...posts],
+            currentPage: page,
+            hasMore: result.page < result.totalPages,
+          ),
+        );
+      }
+
+      // Load user reactions for these posts
+      await _loadUserReactions(posts.map((p) => p.id).toList());
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: FeedStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  /// Load more posts (pagination)
+  Future<void> loadMore() async {
+    if (!state.hasMore || state.status == FeedStatus.loadingMore) {
+      return;
+    }
+
+    await loadFeed(page: state.currentPage + 1);
+  }
+
+  /// Load posts for a specific user
+  Future<void> loadUserPosts(String userId, {int page = 1}) async {
+    try {
+      if (page == 1) {
+        emit(state.copyWith(status: FeedStatus.loading));
+      } else {
+        emit(state.copyWith(status: FeedStatus.loadingMore));
+      }
+
+      final result = await pocketBaseService.getUserPosts(
+        userId: userId,
+        page: page,
+        perPage: 20,
+      );
+
+      final posts = result.items.map((record) => Post.fromRecord(record)).toList();
+
+      if (page == 1) {
+        emit(
+          state.copyWith(
+            status: FeedStatus.loaded,
+            posts: posts,
+            currentPage: page,
+            hasMore: result.page < result.totalPages,
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            status: FeedStatus.loaded,
+            posts: [...state.posts, ...posts],
+            currentPage: page,
+            hasMore: result.page < result.totalPages,
+          ),
+        );
+      }
+
+      // Load user reactions
+      await _loadUserReactions(posts.map((p) => p.id).toList());
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: FeedStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  /// Load posts by hashtag
+  Future<void> loadHashtagPosts(String hashtag, {int page = 1}) async {
+    try {
+      if (page == 1) {
+        emit(state.copyWith(status: FeedStatus.loading));
+      } else {
+        emit(state.copyWith(status: FeedStatus.loadingMore));
+      }
+
+      // Create filter for hashtag
+      final filter = 'hashtags ~ "$hashtag"';
+
+      final result = await pocketBaseService.getPosts(
+        page: page,
+        perPage: 20,
+        filter: filter,
+      );
+
+      final posts = result.items.map((record) => Post.fromRecord(record)).toList();
+
+      if (page == 1) {
+        emit(
+          state.copyWith(
+            status: FeedStatus.loaded,
+            posts: posts,
+            currentPage: page,
+            hasMore: result.page < result.totalPages,
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            status: FeedStatus.loaded,
+            posts: [...state.posts, ...posts],
+            currentPage: page,
+            hasMore: result.page < result.totalPages,
+          ),
+        );
+      }
+
+      // Load user reactions
+      await _loadUserReactions(posts.map((p) => p.id).toList());
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: FeedStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  /// Create a new post
+  Future<void> createPost(String caption, File? imageFile) async {
+    try {
+      // Check if user is banned
+      final ban = await pocketBaseService.checkUserBan(currentUserId, banType: 'post');
+      if (ban != null) {
+        throw Exception('You are banned from creating posts');
+      }
+
+      File? compressedImage;
+      int imageWidth = 0;
+      int imageHeight = 0;
+
+      // Compress image if provided
+      if (imageFile != null) {
+        compressedImage = await ImageCompressionUtils.compressForSocialFeed(imageFile);
+        final dimensions = await ImageCompressionUtils.getImageDimensions(compressedImage);
+        imageWidth = dimensions['width']!;
+        imageHeight = dimensions['height']!;
+      }
+
+      // Extract mentions and hashtags
+      final mentions = TextParsingUtils.extractMentions(caption);
+      final hashtags = TextParsingUtils.extractHashtags(caption);
+
+      // Create post
+      final record = await pocketBaseService.createPost(
+        userId: currentUserId,
+        imageFile: compressedImage,
+        caption: caption.isNotEmpty ? caption : null,
+        imageWidth: imageWidth,
+        imageHeight: imageHeight,
+        hashtags: hashtags,
+        mentions: mentions,
+      );
+
+      final newPost = Post.fromRecord(record);
+
+      // Add to feed
+      emit(
+        state.copyWith(
+          posts: [newPost, ...state.posts],
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: FeedStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+      rethrow;
+    }
+  }
+
+  /// Delete a post
+  Future<void> deletePost(String postId) async {
+    try {
+      await pocketBaseService.deletePost(postId);
+
+      // Remove from feed
+      final updatedPosts = state.posts.where((p) => p.id != postId).toList();
+      emit(state.copyWith(posts: updatedPosts));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: FeedStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+      rethrow;
+    }
+  }
+
+  /// Toggle reaction on a post
+  Future<void> toggleReaction(String postId, ReactionType type) async {
+    try {
+      final currentReaction = state.userReactions[postId];
+
+      if (currentReaction?.reactionType == type) {
+        // Same reaction, remove it
+        await pocketBaseService.removeReaction(
+          postId: postId,
+          userId: currentUserId,
+        );
+
+        // Update local state
+        final updatedReactions = Map<String, PostReaction?>.from(state.userReactions);
+        updatedReactions[postId] = null;
+
+        emit(state.copyWith(userReactions: updatedReactions));
+
+        // Decrement count
+        _updatePostReactionCount(postId, -1);
+      } else {
+        // Different reaction or new reaction
+        final record = await pocketBaseService.addReaction(
+          postId: postId,
+          userId: currentUserId,
+          reactionType: type.value,
+        );
+
+        final reaction = PostReaction.fromRecord(record);
+
+        // Update local state
+        final updatedReactions = Map<String, PostReaction?>.from(state.userReactions);
+        updatedReactions[postId] = reaction;
+
+        emit(state.copyWith(userReactions: updatedReactions));
+
+        // Update count (only if it was a new reaction)
+        if (currentReaction == null) {
+          _updatePostReactionCount(postId, 1);
+        }
+      }
+    } catch (e) {
+      print('Error toggling reaction: $e');
+      rethrow;
+    }
+  }
+
+  /// Load user reactions for posts
+  Future<void> _loadUserReactions(List<String> postIds) async {
+    try {
+      final reactions = <String, PostReaction?>{};
+
+      for (final postId in postIds) {
+        final reaction = await pocketBaseService.getUserReaction(postId, currentUserId);
+        if (reaction != null) {
+          reactions[postId] = PostReaction.fromRecord(reaction);
+        } else {
+          reactions[postId] = null;
+        }
+      }
+
+      final updatedReactions = Map<String, PostReaction?>.from(state.userReactions);
+      updatedReactions.addAll(reactions);
+
+      emit(state.copyWith(userReactions: updatedReactions));
+    } catch (e) {
+      print('Error loading user reactions: $e');
+    }
+  }
+
+  /// Update post reaction count locally
+  void _updatePostReactionCount(String postId, int delta) {
+    final postIndex = state.posts.indexWhere((p) => p.id == postId);
+    if (postIndex != -1) {
+      final post = state.posts[postIndex];
+      final updatedPost = post.copyWith(
+        likesCount: post.likesCount + delta,
+      );
+
+      final updatedPosts = List<Post>.from(state.posts);
+      updatedPosts[postIndex] = updatedPost;
+
+      emit(state.copyWith(posts: updatedPosts));
+    }
+  }
+
+  /// Refresh a single post
+  Future<void> refreshPost(String postId) async {
+    try {
+      final record = await pocketBaseService.getPost(postId);
+      final updatedPost = Post.fromRecord(record);
+
+      final postIndex = state.posts.indexWhere((p) => p.id == postId);
+      if (postIndex != -1) {
+        final updatedPosts = List<Post>.from(state.posts);
+        updatedPosts[postIndex] = updatedPost;
+
+        emit(state.copyWith(posts: updatedPosts));
+      }
+    } catch (e) {
+      print('Error refreshing post: $e');
+    }
+  }
+
+  /// Load reactions for a post (for detail view)
+  Future<void> loadReactions(String postId) async {
+    try {
+      await pocketBaseService.getReactions(postId);
+      // This data can be used in the UI if needed
+      // For now, we just load it to ensure it's fresh
+    } catch (e) {
+      print('Error loading reactions: $e');
+    }
+  }
+}

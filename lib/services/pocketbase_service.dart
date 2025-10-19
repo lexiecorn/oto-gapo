@@ -202,7 +202,7 @@ class PocketBaseService {
       // Create multipart request manually
       final request = http.MultipartRequest(
         'PATCH',
-        Uri.parse('${pb.baseUrl}/api/collections/users/records/$userId'),
+        Uri.parse('${pb.baseURL}/api/collections/users/records/$userId'),
       );
 
       // Add authorization header
@@ -1026,7 +1026,7 @@ class PocketBaseService {
       // Create multipart request manually
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('${pb.baseUrl}/api/collections/gallery_images/records'),
+        Uri.parse('${pb.baseURL}/api/collections/gallery_images/records'),
       );
 
       // Add authorization header
@@ -1099,7 +1099,7 @@ class PocketBaseService {
         // Create multipart request manually
         final request = http.MultipartRequest(
           'PATCH',
-          Uri.parse('${pb.baseUrl}/api/collections/gallery_images/records/$imageId'),
+          Uri.parse('${pb.baseURL}/api/collections/gallery_images/records/$imageId'),
         );
 
         // Add authorization header
@@ -1198,7 +1198,7 @@ class PocketBaseService {
   }
 
   /// Get base URL for PocketBase
-  String get baseUrl => pb.baseUrl;
+  String get baseUrl => pb.baseURL;
 
   /// Get image URL from PocketBase
   String getGalleryImageUrl(RecordModel record, {String? thumb}) {
@@ -1207,7 +1207,7 @@ class PocketBaseService {
       return '';
     }
 
-    final baseUrl = pb.baseUrl;
+    final baseUrl = pb.baseURL;
     final collectionId = record.collectionId;
     final recordId = record.id;
 
@@ -1790,5 +1790,717 @@ class PocketBaseService {
       print('Error calculating user analytics: $e');
       return PaymentAnalytics.empty();
     }
+  }
+
+  // ========================================================================
+  // Social Feed Methods
+  // ========================================================================
+
+  /// Create a new post with optional image
+  Future<RecordModel> createPost({
+    required String userId,
+    File? imageFile,
+    String? caption,
+    required int imageWidth,
+    required int imageHeight,
+    required List<String> hashtags,
+    required List<String> mentions,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+      print('PocketBaseService - Creating post for user: $userId');
+
+      // If image provided, use multipart; otherwise use regular JSON
+      if (imageFile != null) {
+        // Read file bytes
+        final fileBytes = await imageFile.readAsBytes();
+        print('PocketBaseService - Image file size: ${fileBytes.length} bytes');
+
+        // Create multipart request
+        final request = http.MultipartRequest(
+          'POST',
+          Uri.parse('${pb.baseURL}/api/collections/posts/records'),
+        );
+
+        // Add authorization header
+        final token = pb.authStore.token;
+        request.headers['Authorization'] = 'Bearer $token';
+
+        // Add the image file
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'image',
+            fileBytes,
+            filename: imageFile.path.split('/').last,
+          ),
+        );
+
+        // Add other fields
+        request.fields['user_id'] = userId;
+        if (caption != null && caption.isNotEmpty) {
+          request.fields['caption'] = caption;
+        }
+        request.fields['image_width'] = imageWidth.toString();
+        request.fields['image_height'] = imageHeight.toString();
+        request.fields['hashtags'] = jsonEncode(hashtags);
+        request.fields['mentions'] = jsonEncode(mentions);
+        request.fields['likes_count'] = '0';
+        request.fields['comments_count'] = '0';
+        request.fields['is_active'] = 'true';
+        request.fields['is_hidden_by_admin'] = 'false';
+
+        print('PocketBaseService - Sending post creation request');
+
+        // Send the request
+        final streamedResponse = await request.send();
+        final response = await http.Response.fromStream(streamedResponse);
+
+        print('PocketBaseService - Post creation response status: ${response.statusCode}');
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          final responseData = json.decode(response.body) as Map<String, dynamic>;
+          return RecordModel.fromJson(responseData);
+        } else {
+          throw Exception('Post creation failed: ${response.statusCode} - ${response.body}');
+        }
+      } else {
+        // Text-only post
+        final record = await pb.collection('posts').create(
+          body: {
+            'user_id': userId,
+            'caption': caption ?? '',
+            'hashtags': hashtags,
+            'mentions': mentions,
+            'likes_count': 0,
+            'comments_count': 0,
+            'is_active': true,
+            'is_hidden_by_admin': false,
+          },
+        );
+
+        // Fetch the created record with expanded user data
+        return await pb.collection('posts').getOne(record.id, expand: 'user_id');
+      }
+    } catch (e) {
+      print('Error creating post: $e');
+      rethrow;
+    }
+  }
+
+  /// Update post caption
+  Future<RecordModel> updatePost({
+    required String postId,
+    String? caption,
+    List<String>? hashtags,
+    List<String>? mentions,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      final data = <String, dynamic>{};
+      if (caption != null) {
+        data['caption'] = caption;
+      }
+      if (hashtags != null) {
+        data['hashtags'] = hashtags;
+      }
+      if (mentions != null) {
+        data['mentions'] = mentions;
+      }
+
+      return await pb.collection('posts').update(postId, body: data);
+    } catch (e) {
+      print('Error updating post: $e');
+      rethrow;
+    }
+  }
+
+  /// Soft delete a post
+  Future<void> deletePost(String postId) async {
+    try {
+      await _ensureAuthenticated();
+      await pb.collection('posts').update(postId, body: {'is_active': false});
+    } catch (e) {
+      print('Error deleting post: $e');
+      rethrow;
+    }
+  }
+
+  /// Hide or unhide a post (admin only)
+  Future<void> hidePost(String postId, bool hide) async {
+    try {
+      await _ensureAuthenticated();
+      await pb.collection('posts').update(postId, body: {'is_hidden_by_admin': hide});
+    } catch (e) {
+      print('Error hiding/unhiding post: $e');
+      rethrow;
+    }
+  }
+
+  /// Get posts with pagination
+  Future<ResultList<RecordModel>> getPosts({
+    int page = 1,
+    int perPage = 20,
+    String? filter,
+    String? sort,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      final defaultFilter = 'is_active = true && is_hidden_by_admin = false';
+      final combinedFilter = filter != null ? '$defaultFilter && $filter' : defaultFilter;
+
+      return await pb.collection('posts').getList(
+            page: page,
+            perPage: perPage,
+            filter: combinedFilter,
+            sort: sort ?? '-created',
+            expand: 'user_id',
+          );
+    } catch (e) {
+      print('Error getting posts: $e');
+      rethrow;
+    }
+  }
+
+  /// Get posts for a specific user
+  Future<ResultList<RecordModel>> getUserPosts({
+    required String userId,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      return await getPosts(
+        page: page,
+        perPage: perPage,
+        filter: 'user_id = "$userId"',
+      );
+    } catch (e) {
+      print('Error getting user posts: $e');
+      rethrow;
+    }
+  }
+
+  /// Get a single post
+  Future<RecordModel> getPost(String postId) async {
+    try {
+      await _ensureAuthenticated();
+      return await pb.collection('posts').getOne(postId, expand: 'user_id');
+    } catch (e) {
+      print('Error getting post: $e');
+      rethrow;
+    }
+  }
+
+  /// Add or update a reaction to a post
+  Future<RecordModel> addReaction({
+    required String postId,
+    required String userId,
+    required String reactionType,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      // Check if user already has a reaction for this post
+      final existing = await pb.collection('post_reactions').getList(
+            filter: 'post_id = "$postId" && user_id = "$userId"',
+            perPage: 1,
+          );
+
+      RecordModel result;
+      if (existing.items.isNotEmpty) {
+        // Update existing reaction
+        result = await pb.collection('post_reactions').update(
+          existing.items.first.id,
+          body: {'reaction_type': reactionType},
+        );
+      } else {
+        // Create new reaction
+        result = await pb.collection('post_reactions').create(
+          body: {
+            'post_id': postId,
+            'user_id': userId,
+            'reaction_type': reactionType,
+          },
+        );
+
+        // Increment post likes_count
+        await _updatePostReactionCount(postId);
+      }
+
+      return result;
+    } catch (e) {
+      print('Error adding reaction: $e');
+      rethrow;
+    }
+  }
+
+  /// Remove a reaction from a post
+  Future<void> removeReaction({
+    required String postId,
+    required String userId,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      final existing = await pb.collection('post_reactions').getList(
+            filter: 'post_id = "$postId" && user_id = "$userId"',
+            perPage: 1,
+          );
+
+      if (existing.items.isNotEmpty) {
+        await pb.collection('post_reactions').delete(existing.items.first.id);
+
+        // Decrement post likes_count
+        await _updatePostReactionCount(postId);
+      }
+    } catch (e) {
+      print('Error removing reaction: $e');
+      rethrow;
+    }
+  }
+
+  /// Get all reactions for a post
+  Future<List<RecordModel>> getReactions(String postId) async {
+    try {
+      await _ensureAuthenticated();
+
+      final result = await pb.collection('post_reactions').getList(
+            filter: 'post_id = "$postId"',
+            expand: 'user_id',
+            perPage: 500,
+          );
+
+      return result.items;
+    } catch (e) {
+      print('Error getting reactions: $e');
+      return [];
+    }
+  }
+
+  /// Get user's reaction to a post
+  Future<RecordModel?> getUserReaction(String postId, String userId) async {
+    try {
+      await _ensureAuthenticated();
+
+      final result = await pb.collection('post_reactions').getList(
+            filter: 'post_id = "$postId" && user_id = "$userId"',
+            perPage: 1,
+          );
+
+      return result.items.isNotEmpty ? result.items.first : null;
+    } catch (e) {
+      print('Error getting user reaction: $e');
+      return null;
+    }
+  }
+
+  /// Update post reaction count
+  Future<void> _updatePostReactionCount(String postId) async {
+    try {
+      final reactions = await pb.collection('post_reactions').getList(
+            filter: 'post_id = "$postId"',
+            perPage: 1,
+          );
+
+      await pb.collection('posts').update(
+        postId,
+        body: {'likes_count': reactions.totalItems},
+      );
+    } catch (e) {
+      print('Error updating post reaction count: $e');
+    }
+  }
+
+  /// Add a comment to a post
+  Future<RecordModel> addComment({
+    required String postId,
+    required String userId,
+    required String commentText,
+    required List<String> mentions,
+    required List<String> hashtags,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      final result = await pb.collection('post_comments').create(
+        body: {
+          'post_id': postId,
+          'user_id': userId,
+          'comment_text': commentText,
+          'mentions': mentions,
+          'hashtags': hashtags,
+          'is_active': true,
+          'is_hidden_by_admin': false,
+        },
+      );
+
+      // Increment post comments_count
+      await _updatePostCommentCount(postId);
+
+      return result;
+    } catch (e) {
+      print('Error adding comment: $e');
+      rethrow;
+    }
+  }
+
+  /// Update a comment (within 5 minutes)
+  Future<RecordModel> updateComment({
+    required String commentId,
+    required String commentText,
+    required List<String> mentions,
+    required List<String> hashtags,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      return await pb.collection('post_comments').update(
+        commentId,
+        body: {
+          'comment_text': commentText,
+          'mentions': mentions,
+          'hashtags': hashtags,
+        },
+      );
+    } catch (e) {
+      print('Error updating comment: $e');
+      rethrow;
+    }
+  }
+
+  /// Soft delete a comment
+  Future<void> deleteComment(String commentId) async {
+    try {
+      await _ensureAuthenticated();
+
+      // Get comment to update post count
+      final comment = await pb.collection('post_comments').getOne(commentId);
+      final postId = comment.data['post_id'] as String;
+
+      await pb.collection('post_comments').update(
+        commentId,
+        body: {'is_active': false},
+      );
+
+      // Decrement post comments_count
+      await _updatePostCommentCount(postId);
+    } catch (e) {
+      print('Error deleting comment: $e');
+      rethrow;
+    }
+  }
+
+  /// Hide or unhide a comment (admin only)
+  Future<void> hideComment(String commentId, bool hide) async {
+    try {
+      await _ensureAuthenticated();
+      await pb.collection('post_comments').update(
+        commentId,
+        body: {'is_hidden_by_admin': hide},
+      );
+    } catch (e) {
+      print('Error hiding/unhiding comment: $e');
+      rethrow;
+    }
+  }
+
+  /// Get comments for a post
+  Future<ResultList<RecordModel>> getComments({
+    required String postId,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      return await pb.collection('post_comments').getList(
+            page: page,
+            perPage: perPage,
+            filter: 'post_id = "$postId" && is_active = true && is_hidden_by_admin = false',
+            sort: '-created',
+            expand: 'user_id',
+          );
+    } catch (e) {
+      print('Error getting comments: $e');
+      rethrow;
+    }
+  }
+
+  /// Update post comment count
+  Future<void> _updatePostCommentCount(String postId) async {
+    try {
+      final comments = await pb.collection('post_comments').getList(
+            filter: 'post_id = "$postId" && is_active = true',
+            perPage: 1,
+          );
+
+      await pb.collection('posts').update(
+        postId,
+        body: {'comments_count': comments.totalItems},
+      );
+    } catch (e) {
+      print('Error updating post comment count: $e');
+    }
+  }
+
+  /// Report a post
+  Future<RecordModel> reportPost({
+    required String postId,
+    required String userId,
+    required String reportReason,
+    String? reportDetails,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      return await pb.collection('post_reports').create(
+        body: {
+          'post_id': postId,
+          'reported_by': userId,
+          'report_reason': reportReason,
+          'report_details': reportDetails ?? '',
+          'status': 'pending',
+        },
+      );
+    } catch (e) {
+      print('Error reporting post: $e');
+      rethrow;
+    }
+  }
+
+  /// Report a comment
+  Future<RecordModel> reportComment({
+    required String commentId,
+    required String userId,
+    required String reportReason,
+    String? reportDetails,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      return await pb.collection('post_reports').create(
+        body: {
+          'comment_id': commentId,
+          'reported_by': userId,
+          'report_reason': reportReason,
+          'report_details': reportDetails ?? '',
+          'status': 'pending',
+        },
+      );
+    } catch (e) {
+      print('Error reporting comment: $e');
+      rethrow;
+    }
+  }
+
+  /// Get reports (admin only)
+  Future<ResultList<RecordModel>> getReports({
+    String? status,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      String? filter;
+      if (status != null) {
+        filter = 'status = "$status"';
+      }
+
+      return await pb.collection('post_reports').getList(
+            page: page,
+            perPage: perPage,
+            filter: filter,
+            sort: '-created',
+            expand: 'reported_by,reviewed_by,post_id,comment_id',
+          );
+    } catch (e) {
+      print('Error getting reports: $e');
+      rethrow;
+    }
+  }
+
+  /// Update report status (admin only)
+  Future<RecordModel> updateReportStatus({
+    required String reportId,
+    required String status,
+    required String reviewedBy,
+    String? adminNotes,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      return await pb.collection('post_reports').update(
+        reportId,
+        body: {
+          'status': status,
+          'reviewed_by': reviewedBy,
+          'reviewed_at': DateTime.now().toIso8601String(),
+          'admin_notes': adminNotes ?? '',
+        },
+      );
+    } catch (e) {
+      print('Error updating report status: $e');
+      rethrow;
+    }
+  }
+
+  /// Ban a user (admin only)
+  Future<RecordModel> banUser({
+    required String userId,
+    required String bannedBy,
+    required String banReason,
+    required String banType,
+    bool isPermanent = false,
+    DateTime? banExpiresAt,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      return await pb.collection('user_bans').create(
+        body: {
+          'user_id': userId,
+          'banned_by': bannedBy,
+          'ban_reason': banReason,
+          'ban_type': banType,
+          'is_permanent': isPermanent,
+          'ban_expires_at': banExpiresAt?.toIso8601String(),
+          'is_active': true,
+        },
+      );
+    } catch (e) {
+      print('Error banning user: $e');
+      rethrow;
+    }
+  }
+
+  /// Unban a user (admin only)
+  Future<void> unbanUser(String userId) async {
+    try {
+      await _ensureAuthenticated();
+
+      final bans = await pb.collection('user_bans').getList(
+            filter: 'user_id = "$userId" && is_active = true',
+          );
+
+      for (final ban in bans.items) {
+        await pb.collection('user_bans').update(
+          ban.id,
+          body: {'is_active': false},
+        );
+      }
+    } catch (e) {
+      print('Error unbanning user: $e');
+      rethrow;
+    }
+  }
+
+  /// Check if a user is banned
+  Future<RecordModel?> checkUserBan(String userId, {String? banType}) async {
+    try {
+      await _ensureAuthenticated();
+
+      String filter = 'user_id = "$userId" && is_active = true';
+      if (banType != null) {
+        filter += ' && (ban_type = "$banType" || ban_type = "all")';
+      }
+
+      final result = await pb.collection('user_bans').getList(
+            filter: filter,
+            perPage: 1,
+            sort: '-created',
+          );
+
+      if (result.items.isEmpty) return null;
+
+      final ban = result.items.first;
+      final isPermanent = ban.data['is_permanent'] as bool? ?? false;
+
+      if (!isPermanent) {
+        final expiresAt = ban.data['ban_expires_at'] as String?;
+        if (expiresAt != null) {
+          final expiryDate = DateTime.parse(expiresAt);
+          if (DateTime.now().isAfter(expiryDate)) {
+            // Ban expired, deactivate it
+            await pb.collection('user_bans').update(
+              ban.id,
+              body: {'is_active': false},
+            );
+            return null;
+          }
+        }
+      }
+
+      return ban;
+    } catch (e) {
+      print('Error checking user ban: $e');
+      return null;
+    }
+  }
+
+  /// Get user ban history
+  Future<List<RecordModel>> getUserBans(String userId) async {
+    try {
+      await _ensureAuthenticated();
+
+      final result = await pb.collection('user_bans').getList(
+            filter: 'user_id = "$userId"',
+            sort: '-created',
+            expand: 'banned_by',
+          );
+
+      return result.items;
+    } catch (e) {
+      print('Error getting user bans: $e');
+      return [];
+    }
+  }
+
+  /// Get all bans (admin only)
+  Future<ResultList<RecordModel>> getAllBans({
+    bool? isActive,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      String? filter;
+      if (isActive != null) {
+        filter = 'is_active = $isActive';
+      }
+
+      return await pb.collection('user_bans').getList(
+            page: page,
+            perPage: perPage,
+            filter: filter,
+            sort: '-created',
+            expand: 'user_id,banned_by',
+          );
+    } catch (e) {
+      print('Error getting all bans: $e');
+      rethrow;
+    }
+  }
+
+  /// Get post image URL
+  String getPostImageUrl(RecordModel post, {String? thumb}) {
+    final filename = post.data['image'] as String?;
+    if (filename == null || filename.isEmpty) {
+      return '';
+    }
+
+    final baseUrl = pb.baseURL;
+    final collectionId = post.collectionId;
+    final recordId = post.id;
+
+    if (thumb != null && thumb.isNotEmpty) {
+      return '$baseUrl/api/files/$collectionId/$recordId/$filename?thumb=$thumb';
+    }
+
+    return '$baseUrl/api/files/$collectionId/$recordId/$filename';
   }
 }

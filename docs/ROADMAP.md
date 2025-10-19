@@ -17,6 +17,71 @@
 
 <!-- Features planned for upcoming releases -->
 
+**Feature Name**: Social Feed (Instagram/Facebook-like Member Posts) 🚧 **IN PROGRESS**
+**Priority**: P1
+**Status**: In Progress (Phases 1-7 Complete, Testing & Docs Pending)
+**Target Release**: v1.3.0
+**Started**: January 2025
+**Description**: A comprehensive social media wall where members can create posts with images, react with multiple emotions, comment with @mentions and #hashtags, and admins can fully moderate content.
+
+**User Stories - IMPLEMENTED**:
+
+- ✅ As a member, I can create posts with photos and captions
+- ✅ As a member, I can react to posts with 6 emotion types (like, love, wow, haha, sad, angry)
+- ✅ As a member, I can comment on posts
+- ✅ As a member, I can use @mentions and #hashtags in posts and comments
+- ✅ As a member, I can view a feed of posts from all members
+- ✅ As a member, I can view my own posts in a grid
+- ✅ As a member, I can view posts by hashtag
+- ✅ As a member, I can delete my own posts and comments
+- ✅ As a member, I can report inappropriate content
+- ✅ As an admin, I can review content reports
+- ✅ As an admin, I can hide or delete inappropriate content
+- ✅ As an admin, I can ban users (temporary or permanent)
+- ✅ As an admin, I can unban users
+- ✅ As an admin, I can view ban history
+
+**Implementation Details**:
+
+- **Backend**: 5 PocketBase collections (posts, post_reactions, post_comments, post_reports, user_bans)
+- **Models**: 5 Dart models with proper fromRecord serialization
+- **Services**: 30+ methods in PocketBaseService
+- **State Management**: 3 Cubits (FeedCubit, CommentCubit, ModerationCubit)
+- **UI**: 6 pages, 3 reusable widgets
+- **Routing**: 6 new routes with auto_route
+- **Features**:
+  - Image compression (<1MB, 720p max)
+  - Multiple reaction types (6 emotions)
+  - @mentions and #hashtags with tappable links
+  - Infinite scroll with pagination
+  - Pull-to-refresh
+  - Full-screen image viewer
+  - Admin moderation dashboard
+  - User ban system (temp/permanent)
+  - Report management
+  - Soft deletes for content recovery
+- **Documentation**: Schema guide, implementation guide, moderation guide
+
+**Remaining Tasks**:
+
+- [ ] Unit tests for utilities and models
+- [ ] Widget tests for components
+- [ ] Integration tests for key flows
+- [ ] User acceptance testing
+- [ ] Performance optimization review
+- [ ] Final documentation review
+
+**Technical Stack**:
+
+- Image compression: flutter_image_compress, image packages
+- Image caching: cached_network_image
+- Image viewing: photo_view
+- Text parsing: Custom regex-based utilities
+- Timestamps: timeago package
+- State: BLoC/Cubit pattern
+
+---
+
 **Feature Name**: Attendance Management ✅ **COMPLETED**
 **Priority**: P1
 **Status**: Complete
@@ -589,25 +654,11 @@
 
 <!-- Feature ideas and wishlist items -->
 
-**Feature Name**: Social Feed (Instagram-like Member Posts)
-**Priority**: P3
-**Status**: Planned
-**Target Release**: TBD
-**Description**: Implement a social feed feature where members can create posts with images, captions, and interact through likes and comments, similar to Instagram. This creates a community engagement platform within the app.
+**Note**: Social Feed feature moved to P1 (In Progress) as of January 2025.
 
-**User Stories**:
+**Previous Planning Notes** (Feature has been moved to P1 and is now in progress):
 
-- As a member, I want to create posts with photos and captions so I can share moments with the community
-- As a member, I want to see a feed of posts from other members so I can stay connected
-- As a member, I want to like posts to show appreciation
-- As a member, I want to comment on posts to engage in conversations
-- As a member, I want to edit or delete my own posts
-- As a member, I want to view my profile with all my posts
-- As a member, I want to view other members' profiles and their posts
-- As an admin, I want to moderate posts and remove inappropriate content
-- As a member, I want to receive notifications when someone likes or comments on my posts
-
-**Technical Notes**:
+**Technical Notes** (Implemented):
 
 - **Database Schema** (PocketBase collections):
   - **posts** collection:
