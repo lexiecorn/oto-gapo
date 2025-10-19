@@ -47,6 +47,7 @@ All markdown documentation has been organized into the `docs/` directory:
 - `DEPLOYMENT.md` - Main deployment guide
 - `DOCKER_DEPLOYMENT.md` - Docker containerized deployment
 - `WEB_DEPLOYMENT.md` - Web platform deployment
+- `BACKEND_UPDATE_GUIDE.md` - Quick backend update instructions
 - `QUICK_START.md` - Quick start guide
 
 #### Features
@@ -146,11 +147,15 @@ Build and deployment automation:
 
 - `build_production.sh` - Production build
 - `bump_version.sh` - Version management
-- `deploy_docker.sh` - Docker deployment
+- `deploy_docker.sh` - Docker deployment (initial/full)
+- `update_backend.sh` - Quick backend updates
 - `fix_lints.sh` / `fix_lints.ps1` - Linting fixes
 - `generate_release_notes.sh` - Release notes generation
 - `renew_ssl.sh` - SSL renewal for Docker
 - `setup_github_secrets.sh` - GitHub secrets setup
+- `README.md` - Scripts documentation and usage
+
+See `scripts/README.md` for detailed usage instructions.
 
 ## Packages Directory
 

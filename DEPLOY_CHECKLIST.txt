@@ -1,0 +1,122 @@
+================================================================================
+                    DEPLOYMENT CHECKLIST
+================================================================================
+
+PART 1: ON YOUR WINDOWS MACHINE (f:\madmonkey2\oto-gapo)
+================================================================================
+
+  [ ] 1. Make your code changes
+
+  [ ] 2. Test locally:
+         flutter run -d chrome --target lib/main_production.dart
+
+  [ ] 3. Stage changes:
+         git add .
+
+  [ ] 4. Commit changes:
+         git commit -m "Your descriptive message"
+
+  [ ] 5. Push to GitHub:
+         git push origin main
+
+  ✅ CODE IS NOW ON GITHUB!
+
+
+PART 2: ON YOUR SERVER (via SSH)
+================================================================================
+
+  [ ] 6. SSH to server:
+         ssh your-user@your-server-ip
+
+  [ ] 7. Navigate to project:
+         cd /opt/otogapo
+
+  [ ] 8. Pull latest code from GitHub:
+         git pull origin main    <--- DON'T SKIP THIS!
+
+  [ ] 9. Build Docker image with no cache:
+         docker build --no-cache -t otogapo-web:latest .
+
+  ✅ IMAGE IS NOW BUILT!
+
+
+PART 3: IN PORTAINER (via Browser)
+================================================================================
+
+  [ ] 10. Open Portainer dashboard in browser
+
+  [ ] 11. Go to "otogapo stack"
+
+  [ ] 12. Click "Editor" tab
+
+  [ ] 13. Click "Update the stack" button
+
+  [ ] 14. ⚠️ CRITICAL: Do NOT turn on "Re-pull image" (leave it OFF)
+
+  [ ] 15. Click "Update"
+
+  ✅ APP IS NOW DEPLOYED!
+
+
+ALTERNATIVE: USE AUTOMATED SCRIPT (Bypasses Portainer UI)
+================================================================================
+
+  If you prefer command-line only, after step 7, run:
+  
+         ./scripts/update_backend.sh
+
+  This script automatically does steps 8-15:
+  - git pull origin main
+  - docker build --no-cache
+  - docker-compose down/up (instead of Portainer UI)
+  - health checks
+
+
+VERIFICATION
+================================================================================
+
+  In Portainer:
+  [ ] Check "Containers" page
+  [ ] Container "otogapo" should be green (running)
+  [ ] Click container → "Logs" to view output
+  [ ] Check creation time (should be recent)
+
+  In Browser:
+  [ ] Visit: https://otogapo.lexserver.org
+  [ ] Clear cache if needed: Ctrl+Shift+R (or Cmd+Shift+R on Mac)
+  [ ] Verify your changes are visible
+  [ ] Check browser console for errors (F12)
+
+
+REMEMBER: THE COMPLETE FLOW
+================================================================================
+
+  Windows → GitHub → Server (SSH) → Portainer (Browser)
+   (push)            (pull+build)      (deploy)
+
+  If you skip "git push origin main" on Windows,
+  the server won't see your changes!
+
+  If you turn ON "Re-pull image" in Portainer,
+  it will try to pull from Docker Hub (which will fail)!
+
+
+================================================================================
+Quick Reference Commands:
+
+Windows:  
+  git add . && git commit -m "message" && git push origin main
+
+Server SSH:
+  ssh user@server
+  cd /opt/otogapo
+  git pull origin main
+  docker build --no-cache -t otogapo-web:latest .
+
+Portainer:
+  Stacks → otogapo → Editor → Update the stack (Re-pull OFF) → Update
+
+Alternative (bypasses Portainer):
+  ./scripts/update_backend.sh
+================================================================================
+
