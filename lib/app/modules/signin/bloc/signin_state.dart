@@ -6,6 +6,6 @@ enum SigninStatus { initial, submitting, success, error }
 class SigninState with _$SigninState {
   const factory SigninState({
     @Default(SigninStatus.initial) SigninStatus? signinStatus,
-    @Default(FirebaseAuthApiFailure()) FirebaseAuthApiFailure error,
+    AuthFailure? error,
   }) = _SigninState;
 }

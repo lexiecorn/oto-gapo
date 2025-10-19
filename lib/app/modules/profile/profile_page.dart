@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,8 +22,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin {
-  final FirebaseStorage storage = FirebaseStorage.instance;
-  late Reference storageRef;
+  // Removed Firebase Storage - now using PocketBase for file storage
   String userProfile = '';
 
   final ScrollController _announcementScrolllController = ScrollController();
@@ -388,7 +386,7 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     return IdCard(
       imagePath: imagePath,
       name: '${state.user.firstName} ${state.user.lastName}',
-      dob: state.user.birthDate != null ? DateFormat('MMM dd, yyyy').format(state.user.birthDate!.toDate()) : 'N/A',
+      dob: state.user.birthDate != null ? DateFormat('MMM dd, yyyy').format(state.user.birthDate!) : 'N/A',
       idNumber: state.user.memberNumber,
       membersNum: state.user.memberNumber,
       car: state.vehicles.isNotEmpty ? state.vehicles.first.make : 'No Vehicle',

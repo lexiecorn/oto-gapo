@@ -1,0 +1,198 @@
+---
+alwaysApply: false
+description: Quick reference to project documentation
+---
+
+## Documentation Reference Guide
+
+All project documentation is organized in the `docs/` directory. Use these references when working on specific features or systems.
+
+### Quick Links
+
+**Getting Started:**
+
+- `README.md` - Project overview and setup
+- `docs/QUICK_START.md` - Quick start guide
+- `docs/DEVELOPER_GUIDE.md` - Development workflows and best practices
+
+**Architecture & API:**
+
+- `docs/ARCHITECTURE.md` - Complete system architecture
+- `docs/API_DOCUMENTATION.md` - Comprehensive API reference
+- `docs/PROJECT_ORGANIZATION.md` - Project structure guide
+
+### Feature-Specific Documentation
+
+**Attendance System:**
+
+- `docs/ATTENDANCE_IMPLEMENTATION.md` - Implementation details
+- `docs/ATTENDANCE_SCHEMA.md` - Database schema
+- `docs/MARK_ATTENDANCE_QR_FEATURE.md` - QR code functionality
+- `docs/POCKETBASE_ATTENDANCE_SETUP.md` - Backend setup
+- Package: `packages/attendance_repository/`
+
+**Payment System:**
+
+- `docs/PAYMENT_SYSTEM.md` - Payment tracking implementation
+- `docs/PAYMENT_DIALOG_DEBUG_GUIDE.md` - Debugging payment flows
+- Collections: `monthly_dues`, `payment_transactions`
+
+**Authentication:**
+
+- `docs/API_DOCUMENTATION.md` - Auth API reference
+- Package: `packages/authentication_repository/`
+- See also: `03-flavors-and-firebase.mdc` for Firebase setup
+
+**State Management:**
+
+- `docs/ARCHITECTURE.md` - State management patterns
+- See also: `04-state-management.mdc` for BLoC/Cubit guidelines
+
+### Deployment & Operations
+
+**General Deployment:**
+
+- `docs/DEPLOYMENT.md` - Main deployment guide
+- `docs/RELEASE_CHECKLIST.md` - Pre-release verification
+- `docs/RELEASE_NOTES.md` - Release notes
+
+**Docker Deployment:**
+
+- `docs/DOCKER_DEPLOYMENT.md` - Complete Docker guide
+- `docker-compose.yml` - Service orchestration
+- `Dockerfile` - Image definition
+
+**Web Deployment:**
+
+- `docs/WEB_DEPLOYMENT.md` - Web-specific deployment
+- `web/` - Web platform files
+
+**Play Store:**
+
+- `docs/PLAY_STORE_SETUP.md` - Initial setup
+- `docs/UPLOAD_TO_PLAY_STORE_GUIDE.md` - Upload process
+- `docs/QUICK_UPLOAD_CHECKLIST.md` - Quick checklist
+- `docs/play-store/` - Store assets and descriptions
+
+### CI/CD & Testing
+
+**CI/CD:**
+
+- `docs/CODEMAGIC_SETUP.md` - Codemagic configuration
+- `docs/CODEMAGIC_MIGRATION.md` - Migration guide
+- `docs/CI_CD_VERIFICATION.md` - Verification steps
+- `codemagic.yaml` - Codemagic config file
+
+**Testing:**
+
+- `test/TESTING_SUMMARY.md` - Test coverage
+- See also: `10-testing.mdc` for testing rules
+
+### Backend & Data
+
+**PocketBase:**
+
+- `docs/API_DOCUMENTATION.md` - PocketBase API methods
+- `docs/POCKETBASE_PERMISSIONS_SETUP.md` - Security setup
+- `pocketbase/` - Schemas and sample data
+- `pocketbase/README.md` - Import instructions
+
+**Collections:**
+
+```
+- users                  # Member profiles
+- monthly_dues           # Payment tracking (legacy)
+- payment_transactions   # Modern payment system
+- gallery_images         # Homepage carousel
+- Announcements          # Association announcements
+- app_data              # App configuration
+- meetings              # Meeting schedules
+- attendance            # Attendance records
+- attendance_summary    # Attendance statistics
+```
+
+### Package Documentation
+
+**Local Packages:**
+
+- `packages/attendance_repository/README.md` - Attendance management
+- `packages/authentication_repository/README.md` - Auth services
+- `packages/local_storage/README.md` - Local data storage
+- `packages/otogapo_core/README.md` - UI components and theme
+
+### Configuration Files
+
+**Environment Setup:**
+
+- `env.template` - Environment variables template
+- `lib/main_*.dart` - Flavor entry points
+- `docs/DEVELOPER_GUIDE.md` - Setup instructions
+
+**PocketBase Configuration:**
+
+- PocketBase URL configured per flavor via `FlavorConfig.instance.variables['pocketbaseUrl']`
+- Set in: `lib/main_development.dart`, `lib/main_staging.dart`, `lib/main_production.dart`
+
+**Firebase:**
+
+- `firebase.json` - Firebase configuration
+- `firestore.rules` - Security rules
+- `firestore.indexes.json` - Database indexes
+
+### Scripts
+
+Build and deployment scripts in `scripts/`:
+
+- `deploy_docker.sh` - Docker deployment
+- `build_production.sh` - Production build
+- `bump_version.sh` - Version management
+- `generate_release_notes.sh` - Release notes
+- `renew_ssl.sh` - SSL renewal
+
+### Troubleshooting
+
+**Common Issues:**
+
+- `docs/FILE_UPLOAD_FIXES.md` - File upload problems
+- `docs/PAYMENT_DIALOG_DEBUG_GUIDE.md` - Payment debugging
+- `docs/USERS_COLLECTION_PERMISSIONS_FIX.md` - Permission issues
+- `docs/DOCKER_DEPLOYMENT.md` - Docker troubleshooting
+
+**Build Issues:**
+
+- `docs/LOCAL_BUILD_TESTING.md` - Local build testing
+- `docs/16KB_PAGE_SIZE_IMPLEMENTATION.md` - Android 16KB page size
+- `docs/16KB_QUICK_START.md` - Quick 16KB setup
+
+### When to Reference Documentation
+
+1. **Before implementing a feature**: Check if similar functionality exists
+2. **When modifying APIs**: Update `docs/API_DOCUMENTATION.md`
+3. **When changing architecture**: Update `docs/ARCHITECTURE.md`
+4. **When adding dependencies**: Update relevant package README
+5. **Before deployment**: Review `docs/DEPLOYMENT.md` and checklists
+6. **When fixing bugs**: Check troubleshooting guides
+7. **After major changes**: Update `CHANGELOG.md`
+
+### Documentation Maintenance
+
+**When making changes:**
+
+1. Check `docs/PROJECT_ORGANIZATION.md` for structure
+2. Update relevant documentation files
+3. Update cross-references if needed
+4. Follow `09-documentation-updates.mdc` policy
+
+**Adding new features:**
+
+1. Document in appropriate `docs/*.md` file
+2. Add to `README.md` feature list
+3. Update `docs/ARCHITECTURE.md` if architectural
+4. Create package README if new package
+
+### See Also
+
+- `docs/PROJECT_ORGANIZATION.md` - Complete directory structure
+- `docs/DOCUMENTATION_STATUS.md` - Documentation completeness
+- `docs/ROADMAP.md` - Future plans
+- `docs/NEXT_STEPS.md` - Immediate priorities

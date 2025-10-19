@@ -22,6 +22,9 @@ description: Require documentation updates for code changes
   - `docs/DEVELOPER_GUIDE.md` - for development setup, workflows, or tooling changes
   - `README.md` - for project overview, quick start, or major feature changes
   - Package-level `README.md` files in `packages/` - for package-specific changes
+  - `docs/PROJECT_ORGANIZATION.md` - when adding new documentation or restructuring
+  - Feature-specific docs (e.g., `docs/ATTENDANCE_*.md`, `docs/PAYMENT_*.md`)
+  - `pocketbase/README.md` - when adding/modifying PocketBase collections
 
 - **Documentation update workflow**:
 

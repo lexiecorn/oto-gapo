@@ -1,18 +1,15 @@
 import 'package:authentication_repository/authentication_repository.dart' as my_auth_repo;
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:authentication_repository/src/profile_failure.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 ///Profile Repository
 class ProfileRepository {
   ///
   ProfileRepository({
-    required this.firebaseFirestore,
     required this.pocketBaseAuth,
   });
 
   ///
-  final FirebaseFirestore firebaseFirestore;
   final PocketBaseAuthRepository pocketBaseAuth;
 
   /// Get User Profile from PocketBase (authenticated user)
@@ -84,12 +81,11 @@ class ProfileRepository {
 
       // Handle date field conversion - PocketBase returns dates as ISO strings
       if (userData['birthDate'] != null && userData['birthDate'] is String) {
-        userData['birthDate'] = Timestamp.fromDate(DateTime.parse(userData['birthDate'] as String));
+        userData['birthDate'] = DateTime.parse(userData['birthDate'] as String);
       }
 
       if (userData['driversLicenseExpirationDate'] != null && userData['driversLicenseExpirationDate'] is String) {
-        userData['driversLicenseExpirationDate'] =
-            Timestamp.fromDate(DateTime.parse(userData['driversLicenseExpirationDate'] as String));
+        userData['driversLicenseExpirationDate'] = DateTime.parse(userData['driversLicenseExpirationDate'] as String);
       }
 
       // Remove legacy fields if they exist
@@ -222,12 +218,11 @@ class ProfileRepository {
 
       // Handle date field conversion - PocketBase returns dates as ISO strings
       if (userData['birthDate'] != null && userData['birthDate'] is String) {
-        userData['birthDate'] = Timestamp.fromDate(DateTime.parse(userData['birthDate'] as String));
+        userData['birthDate'] = DateTime.parse(userData['birthDate'] as String);
       }
 
       if (userData['driversLicenseExpirationDate'] != null && userData['driversLicenseExpirationDate'] is String) {
-        userData['driversLicenseExpirationDate'] =
-            Timestamp.fromDate(DateTime.parse(userData['driversLicenseExpirationDate'] as String));
+        userData['driversLicenseExpirationDate'] = DateTime.parse(userData['driversLicenseExpirationDate'] as String);
       }
 
       // Remove legacy fields if they exist

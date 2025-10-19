@@ -8,11 +8,9 @@ part 'signin_state.dart';
 
 class SigninCubit extends Cubit<SigninState> {
   SigninCubit({
-    required this.authRepository,
     required this.pocketBaseAuth,
   }) : super(const SigninState());
 
-  final AuthRepository authRepository;
   final PocketBaseAuthRepository pocketBaseAuth;
 
   /// Sign in with Google using PocketBase native OAuth
@@ -31,7 +29,7 @@ class SigninCubit extends Cubit<SigninState> {
       emit(
         state.copyWith(
           signinStatus: SigninStatus.error,
-          error: FirebaseAuthApiFailure(friendly, 'Google Sign‑In Failed', ''),
+          error: AuthFailure(message: friendly, code: 'Google Sign‑In Failed', plugin: ''),
         ),
       );
     } catch (e) {
@@ -39,46 +37,16 @@ class SigninCubit extends Cubit<SigninState> {
       emit(
         state.copyWith(
           signinStatus: SigninStatus.error,
-          error: const FirebaseAuthApiFailure(
-            'Google Sign‑In failed. Please try again or use Email Sign‑In. If the problem persists, contact the administrator.',
-            'Google Sign‑In Failed',
-            'pocketbase_google_oauth',
+          error: AuthFailure(
+            message: 'Google Sign‑In failed. Please try again or use Email Sign‑In. If the problem persists, contact the administrator.',
+            code: 'Google Sign‑In Failed',
+            plugin: 'pocketbase_google_oauth',
           ),
         ),
       );
     }
   }
 
-  // Keep the old Firebase method as fallback if needed
-  Future<void> signinWithGoogle({required String idToken, String? displayName}) async {
-    emit(state.copyWith(signinStatus: SigninStatus.submitting));
-    try {
-      await authRepository.signInWithGoogle(idToken: idToken, displayName: displayName); // Call your repository method
-      emit(state.copyWith(signinStatus: SigninStatus.success));
-    } on AuthFailure catch (e) {
-      log('signinWithGoogle cubit error: ${e.message}');
-      emit(
-        state.copyWith(
-          signinStatus: SigninStatus.error,
-          error: FirebaseAuthApiFailure(e.message.toString(), e.code, e.plugin),
-        ),
-      );
-    } on FirebaseAuthApiFailure catch (e) {
-      emit(state.copyWith(signinStatus: SigninStatus.error, error: e));
-    } catch (e) {
-      log('signinWithGoogle cubit unknown error: $e');
-      emit(
-        state.copyWith(
-          signinStatus: SigninStatus.error,
-          error: const FirebaseAuthApiFailure(
-            'Unknown Authentication error',
-            'Authentication error',
-            'google_sign_in',
-          ),
-        ),
-      );
-    }
-  }
 
   Future<void> signin({
     required String email,
@@ -101,7 +69,7 @@ class SigninCubit extends Cubit<SigninState> {
       emit(
         state.copyWith(
           signinStatus: SigninStatus.error,
-          error: FirebaseAuthApiFailure(friendly, 'Invalid User', ''),
+          error: AuthFailure(message: friendly, code: 'Invalid User', plugin: ''),
         ),
       );
     } catch (e) {
@@ -109,10 +77,10 @@ class SigninCubit extends Cubit<SigninState> {
       emit(
         state.copyWith(
           signinStatus: SigninStatus.error,
-          error: const FirebaseAuthApiFailure(
-            'Sign in failed. Please check your email and password, or contact the administrator.',
-            'authentication_error',
-            'pocketbase_auth',
+          error: AuthFailure(
+            message: 'Sign in failed. Please check your email and password, or contact the administrator.',
+            code: 'authentication_error',
+            plugin: 'pocketbase_auth',
           ),
         ),
       );

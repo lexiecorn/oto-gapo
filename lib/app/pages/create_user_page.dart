@@ -114,9 +114,10 @@ class CreateUserPage extends StatelessWidget {
                   .animate()
                   .fadeIn(delay: const Duration(milliseconds: 200), duration: const Duration(milliseconds: 600))
                   .slideY(
-                      begin: -0.2,
-                      delay: const Duration(milliseconds: 200),
-                      duration: const Duration(milliseconds: 600),),
+                    begin: -0.2,
+                    delay: const Duration(milliseconds: 200),
+                    duration: const Duration(milliseconds: 600),
+                  ),
             ),
           ),
         ],
@@ -128,7 +129,7 @@ class CreateUserPage extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: isDark ? colorScheme.surface : Colors.white,

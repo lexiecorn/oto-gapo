@@ -17,7 +17,7 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$SigninState {
   SigninStatus? get signinStatus => throw _privateConstructorUsedError;
-  FirebaseAuthApiFailure get error => throw _privateConstructorUsedError;
+  AuthFailure? get error => throw _privateConstructorUsedError;
 
   /// Create a copy of SigninState
   /// with the given fields replaced by the non-null parameter values.
@@ -32,7 +32,7 @@ abstract class $SigninStateCopyWith<$Res> {
           SigninState value, $Res Function(SigninState) then) =
       _$SigninStateCopyWithImpl<$Res, SigninState>;
   @useResult
-  $Res call({SigninStatus? signinStatus, FirebaseAuthApiFailure error});
+  $Res call({SigninStatus? signinStatus, AuthFailure? error});
 }
 
 /// @nodoc
@@ -51,17 +51,17 @@ class _$SigninStateCopyWithImpl<$Res, $Val extends SigninState>
   @override
   $Res call({
     Object? signinStatus = freezed,
-    Object? error = null,
+    Object? error = freezed,
   }) {
     return _then(_value.copyWith(
       signinStatus: freezed == signinStatus
           ? _value.signinStatus
           : signinStatus // ignore: cast_nullable_to_non_nullable
               as SigninStatus?,
-      error: null == error
+      error: freezed == error
           ? _value.error
           : error // ignore: cast_nullable_to_non_nullable
-              as FirebaseAuthApiFailure,
+              as AuthFailure?,
     ) as $Val);
   }
 }
@@ -74,7 +74,7 @@ abstract class _$$SigninStateImplCopyWith<$Res>
       __$$SigninStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({SigninStatus? signinStatus, FirebaseAuthApiFailure error});
+  $Res call({SigninStatus? signinStatus, AuthFailure? error});
 }
 
 /// @nodoc
@@ -91,17 +91,17 @@ class __$$SigninStateImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? signinStatus = freezed,
-    Object? error = null,
+    Object? error = freezed,
   }) {
     return _then(_$SigninStateImpl(
       signinStatus: freezed == signinStatus
           ? _value.signinStatus
           : signinStatus // ignore: cast_nullable_to_non_nullable
               as SigninStatus?,
-      error: null == error
+      error: freezed == error
           ? _value.error
           : error // ignore: cast_nullable_to_non_nullable
-              as FirebaseAuthApiFailure,
+              as AuthFailure?,
     ));
   }
 }
@@ -110,15 +110,13 @@ class __$$SigninStateImplCopyWithImpl<$Res>
 
 class _$SigninStateImpl implements _SigninState {
   const _$SigninStateImpl(
-      {this.signinStatus = SigninStatus.initial,
-      this.error = const FirebaseAuthApiFailure()});
+      {this.signinStatus = SigninStatus.initial, this.error});
 
   @override
   @JsonKey()
   final SigninStatus? signinStatus;
   @override
-  @JsonKey()
-  final FirebaseAuthApiFailure error;
+  final AuthFailure? error;
 
   @override
   String toString() {
@@ -150,12 +148,12 @@ class _$SigninStateImpl implements _SigninState {
 abstract class _SigninState implements SigninState {
   const factory _SigninState(
       {final SigninStatus? signinStatus,
-      final FirebaseAuthApiFailure error}) = _$SigninStateImpl;
+      final AuthFailure? error}) = _$SigninStateImpl;
 
   @override
   SigninStatus? get signinStatus;
   @override
-  FirebaseAuthApiFailure get error;
+  AuthFailure? get error;
 
   /// Create a copy of SigninState
   /// with the given fields replaced by the non-null parameter values.

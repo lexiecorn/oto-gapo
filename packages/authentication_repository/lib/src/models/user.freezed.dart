@@ -28,18 +28,13 @@ mixin _$User {
   String get gender => throw _privateConstructorUsedError;
   String get memberNumber => throw _privateConstructorUsedError;
   String get civilStatus => throw _privateConstructorUsedError;
-  @JsonKey(
-      fromJson: TimestampConverter.fromJsonNullable,
-      toJson: TimestampConverter.toJsonNullable)
-  Timestamp? get birthDate => throw _privateConstructorUsedError;
+  DateTime? get birthDate => throw _privateConstructorUsedError;
   num? get age => throw _privateConstructorUsedError;
   String get nationality => throw _privateConstructorUsedError;
   String? get emergencyContactNumber =>
       throw _privateConstructorUsedError; // Driver's License information
   String? get driversLicenseNumber => throw _privateConstructorUsedError;
-  @JsonKey(
-      fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
-  Timestamp get driversLicenseExpirationDate =>
+  DateTime get driversLicenseExpirationDate =>
       throw _privateConstructorUsedError;
   String? get driversLicenseRestrictionCode =>
       throw _privateConstructorUsedError; // Contact information
@@ -83,18 +78,12 @@ abstract class $UserCopyWith<$Res> {
       String gender,
       String memberNumber,
       String civilStatus,
-      @JsonKey(
-          fromJson: TimestampConverter.fromJsonNullable,
-          toJson: TimestampConverter.toJsonNullable)
-      Timestamp? birthDate,
+      DateTime? birthDate,
       num? age,
       String nationality,
       String? emergencyContactNumber,
       String? driversLicenseNumber,
-      @JsonKey(
-          fromJson: TimestampConverter.fromJson,
-          toJson: TimestampConverter.toJson)
-      Timestamp driversLicenseExpirationDate,
+      DateTime driversLicenseExpirationDate,
       String? driversLicenseRestrictionCode,
       String contactNumber,
       String? bloodType,
@@ -176,7 +165,7 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
       birthDate: freezed == birthDate
           ? _value.birthDate
           : birthDate // ignore: cast_nullable_to_non_nullable
-              as Timestamp?,
+              as DateTime?,
       age: freezed == age
           ? _value.age
           : age // ignore: cast_nullable_to_non_nullable
@@ -196,7 +185,7 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
       driversLicenseExpirationDate: null == driversLicenseExpirationDate
           ? _value.driversLicenseExpirationDate
           : driversLicenseExpirationDate // ignore: cast_nullable_to_non_nullable
-              as Timestamp,
+              as DateTime,
       driversLicenseRestrictionCode: freezed == driversLicenseRestrictionCode
           ? _value.driversLicenseRestrictionCode
           : driversLicenseRestrictionCode // ignore: cast_nullable_to_non_nullable
@@ -252,18 +241,12 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
       String gender,
       String memberNumber,
       String civilStatus,
-      @JsonKey(
-          fromJson: TimestampConverter.fromJsonNullable,
-          toJson: TimestampConverter.toJsonNullable)
-      Timestamp? birthDate,
+      DateTime? birthDate,
       num? age,
       String nationality,
       String? emergencyContactNumber,
       String? driversLicenseNumber,
-      @JsonKey(
-          fromJson: TimestampConverter.fromJson,
-          toJson: TimestampConverter.toJson)
-      Timestamp driversLicenseExpirationDate,
+      DateTime driversLicenseExpirationDate,
       String? driversLicenseRestrictionCode,
       String contactNumber,
       String? bloodType,
@@ -342,7 +325,7 @@ class __$$UserImplCopyWithImpl<$Res>
       birthDate: freezed == birthDate
           ? _value.birthDate
           : birthDate // ignore: cast_nullable_to_non_nullable
-              as Timestamp?,
+              as DateTime?,
       age: freezed == age
           ? _value.age
           : age // ignore: cast_nullable_to_non_nullable
@@ -362,7 +345,7 @@ class __$$UserImplCopyWithImpl<$Res>
       driversLicenseExpirationDate: null == driversLicenseExpirationDate
           ? _value.driversLicenseExpirationDate
           : driversLicenseExpirationDate // ignore: cast_nullable_to_non_nullable
-              as Timestamp,
+              as DateTime,
       driversLicenseRestrictionCode: freezed == driversLicenseRestrictionCode
           ? _value.driversLicenseRestrictionCode
           : driversLicenseRestrictionCode // ignore: cast_nullable_to_non_nullable
@@ -414,17 +397,11 @@ class _$UserImpl implements _User {
       required this.gender,
       required this.memberNumber,
       required this.civilStatus,
-      @JsonKey(
-          fromJson: TimestampConverter.fromJsonNullable,
-          toJson: TimestampConverter.toJsonNullable)
       this.birthDate,
       this.age,
       required this.nationality,
       this.emergencyContactNumber,
       this.driversLicenseNumber,
-      @JsonKey(
-          fromJson: TimestampConverter.fromJson,
-          toJson: TimestampConverter.toJson)
       required this.driversLicenseExpirationDate,
       this.driversLicenseRestrictionCode,
       required this.contactNumber,
@@ -455,10 +432,7 @@ class _$UserImpl implements _User {
   @override
   final String civilStatus;
   @override
-  @JsonKey(
-      fromJson: TimestampConverter.fromJsonNullable,
-      toJson: TimestampConverter.toJsonNullable)
-  final Timestamp? birthDate;
+  final DateTime? birthDate;
   @override
   final num? age;
   @override
@@ -469,9 +443,7 @@ class _$UserImpl implements _User {
   @override
   final String? driversLicenseNumber;
   @override
-  @JsonKey(
-      fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
-  final Timestamp driversLicenseExpirationDate;
+  final DateTime driversLicenseExpirationDate;
   @override
   final String? driversLicenseRestrictionCode;
 // Contact information
@@ -611,18 +583,12 @@ abstract class _User implements User {
       required final String gender,
       required final String memberNumber,
       required final String civilStatus,
-      @JsonKey(
-          fromJson: TimestampConverter.fromJsonNullable,
-          toJson: TimestampConverter.toJsonNullable)
-      final Timestamp? birthDate,
+      final DateTime? birthDate,
       final num? age,
       required final String nationality,
       final String? emergencyContactNumber,
       final String? driversLicenseNumber,
-      @JsonKey(
-          fromJson: TimestampConverter.fromJson,
-          toJson: TimestampConverter.toJson)
-      required final Timestamp driversLicenseExpirationDate,
+      required final DateTime driversLicenseExpirationDate,
       final String? driversLicenseRestrictionCode,
       required final String contactNumber,
       final String? bloodType,
@@ -650,10 +616,7 @@ abstract class _User implements User {
   @override
   String get civilStatus;
   @override
-  @JsonKey(
-      fromJson: TimestampConverter.fromJsonNullable,
-      toJson: TimestampConverter.toJsonNullable)
-  Timestamp? get birthDate;
+  DateTime? get birthDate;
   @override
   num? get age;
   @override
@@ -663,9 +626,7 @@ abstract class _User implements User {
   @override
   String? get driversLicenseNumber;
   @override
-  @JsonKey(
-      fromJson: TimestampConverter.fromJson, toJson: TimestampConverter.toJson)
-  Timestamp get driversLicenseExpirationDate;
+  DateTime get driversLicenseExpirationDate;
   @override
   String? get driversLicenseRestrictionCode; // Contact information
   @override

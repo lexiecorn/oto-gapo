@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
@@ -8,7 +7,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/app.dart';
 import 'package:otogapo/app/core/logging.dart';
 import 'package:otogapo/bootstrap.dart';
-import 'package:otogapo/firebase_options_dev.dart';
 
 Future<void> main() async {
   await runZonedGuarded(() async {
@@ -16,20 +14,6 @@ Future<void> main() async {
 
     // Initialize logging configuration
     AppLogging.init();
-
-    // Initialize Firebase only if not already initialized
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    } catch (e) {
-      // Firebase already initialized, continue
-      if (e.toString().contains('duplicate-app')) {
-        print('Firebase already initialized, continuing...');
-      } else {
-        rethrow;
-      }
-    }
 
     await bootstrap(
       (

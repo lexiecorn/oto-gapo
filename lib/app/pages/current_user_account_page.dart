@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
@@ -566,9 +565,7 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
     if (date == null) return 'N/A';
 
     try {
-      if (date is Timestamp) {
-        return DateFormat('MMM dd, yyyy').format(date.toDate());
-      } else if (date is DateTime) {
+      if (date is DateTime) {
         return DateFormat('MMM dd, yyyy').format(date);
       } else {
         return date.toString();

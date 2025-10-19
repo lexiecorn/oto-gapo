@@ -1,4 +1,3 @@
-import 'package:cloud_firestore_platform_interface/src/timestamp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -25,7 +24,7 @@ class IdCard extends StatefulWidget {
   final String car;
   final String membersNum;
   final String licenseNum;
-  final Timestamp? licenseNumExpr;
+  final DateTime? licenseNumExpr;
   final String? restrictionCode;
   final String? emergencyContact;
 
@@ -59,34 +58,42 @@ class _IdCardState extends State<IdCard> with TickerProviderStateMixin {
     _scaleAnimation = Tween<double>(
       begin: 0.8,
       end: 1,
-    ).animate(CurvedAnimation(
-      parent: _cardAnimationController,
-      curve: const Interval(0, 0.8, curve: Curves.easeOutBack),
-    ),);
+    ).animate(
+      CurvedAnimation(
+        parent: _cardAnimationController,
+        curve: const Interval(0, 0.8, curve: Curves.easeOutBack),
+      ),
+    );
 
     _shadowAnimation = Tween<double>(
       begin: 0,
       end: 1,
-    ).animate(CurvedAnimation(
-      parent: _cardAnimationController,
-      curve: const Interval(0.4, 1, curve: Curves.easeOut),
-    ),);
+    ).animate(
+      CurvedAnimation(
+        parent: _cardAnimationController,
+        curve: const Interval(0.4, 1, curve: Curves.easeOut),
+      ),
+    );
 
     _fadeAnimation = Tween<double>(
       begin: 0,
       end: 1,
-    ).animate(CurvedAnimation(
-      parent: _cardAnimationController,
-      curve: const Interval(0.2, 0.6, curve: Curves.easeOut),
-    ),);
+    ).animate(
+      CurvedAnimation(
+        parent: _cardAnimationController,
+        curve: const Interval(0.2, 0.6, curve: Curves.easeOut),
+      ),
+    );
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _cardAnimationController,
-      curve: const Interval(0.3, 0.8, curve: Curves.easeOutCubic),
-    ),);
+    ).animate(
+      CurvedAnimation(
+        parent: _cardAnimationController,
+        curve: const Interval(0.3, 0.8, curve: Curves.easeOutCubic),
+      ),
+    );
 
     // Start the initial animation
     _cardAnimationController.forward();

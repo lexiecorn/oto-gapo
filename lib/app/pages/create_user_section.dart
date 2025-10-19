@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -40,10 +39,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   final TextEditingController _driversLicenseRestrictionCodeController = TextEditingController();
   final TextEditingController _emergencyContactNameController = TextEditingController();
   final TextEditingController _emergencyContactNumberController = TextEditingController();
-  final TextEditingController _isActiveController = TextEditingController();
   bool _isActive = true;
   bool _isAdmin = false;
-  final TextEditingController _isAdminController = TextEditingController();
   final TextEditingController _memberNumberController = TextEditingController();
   final TextEditingController _membershipTypeController = TextEditingController();
   String? _selectedMembershipType = '3'; // Default to Member
@@ -68,14 +65,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   String? _selectedVehicleMake;
   List<String> _vehicleModels = [];
   String? _selectedVehicleModel;
-  bool _isLoadingVehicleModels = false;
-  bool _isLoadingVehicleMakes = false;
   bool _showSuggestions = false;
   bool _showManualModelEntry = false;
   final TextEditingController _vehicleMakeController = TextEditingController();
   final FocusNode _vehicleMakeFocusNode = FocusNode();
   Color _selectedVehicleColor = Colors.black;
-  String? _message;
 
   // Debounce timer for vehicle make search
   Timer? _debounceTimer;
@@ -84,7 +78,6 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   final ImagePicker _imagePicker = ImagePicker();
   File? _selectedProfileImage;
   bool _isUploadingImage = false;
-  String? _uploadedImageUrl;
 
   // Car image upload variables
   File? _selectedMainCarImage;
@@ -93,11 +86,6 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   File? _selectedCarImage3;
   File? _selectedCarImage4;
   bool _isUploadingCarImage = false;
-  String? _uploadedMainCarImageUrl;
-  String? _uploadedCarImage1Url;
-  String? _uploadedCarImage2Url;
-  String? _uploadedCarImage3Url;
-  String? _uploadedCarImage4Url;
 
   // Helper method to create consistent TextField styling
   InputDecoration _buildInputDecoration({
@@ -192,10 +180,6 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   }
 
   Future<void> _fetchVehicleMakes() async {
-    setState(() {
-      _isLoadingVehicleMakes = true;
-    });
-
     try {
       final response = await http.get(Uri.parse('https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json'));
 
@@ -206,7 +190,6 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
         setState(() {
           _vehicleMakes = makes;
-          _isLoadingVehicleMakes = false;
           if (!_vehicleMakes.contains(_selectedVehicleMake)) {
             _selectedVehicleMake = null;
           }
@@ -258,7 +241,6 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         setState(() {
           _vehicleMakes = fallbackMakes;
           _selectedVehicleMake = null;
-          _isLoadingVehicleMakes = false;
         });
       }
     } catch (e) {
@@ -308,7 +290,6 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       setState(() {
         _vehicleMakes = fallbackMakes;
         _selectedVehicleMake = null;
-        _isLoadingVehicleMakes = false;
       });
     }
   }
@@ -326,7 +307,6 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       _selectedVehicleMake = make;
       _selectedVehicleModel = null;
       _vehicleModels = [];
-      _isLoadingVehicleModels = make != null;
       _showSuggestions = false;
       _showManualModelEntry = false;
     });
@@ -342,12 +322,10 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         final models = await fetchModelsForMake(make);
         setState(() {
           _vehicleModels = models;
-          _isLoadingVehicleModels = false;
         });
       } catch (e) {
         setState(() {
           _vehicleModels = [];
-          _isLoadingVehicleModels = false;
         });
       }
     }
@@ -504,34 +482,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     }
   }
 
+  // Removed Firebase Storage upload - now using PocketBase file upload
   Future<String?> _uploadProfileImageToStorage(String userId) async {
-    if (_selectedProfileImage == null) return null;
-
-    try {
-      setState(() {
-        _isUploadingImage = true;
-      });
-
-      // Upload to Firebase Storage
-      final storageRef = FirebaseStorage.instance.ref().child('users/$userId/images/profile.png');
-
-      await storageRef.putFile(_selectedProfileImage!);
-
-      // Get the gs:// URI
-      final gsUri = 'gs://${storageRef.bucket}/${storageRef.fullPath}';
-
-      setState(() {
-        _uploadedImageUrl = gsUri;
-        _isUploadingImage = false;
-      });
-
-      return gsUri;
-    } catch (e) {
-      setState(() {
-        _isUploadingImage = false;
-      });
-      throw Exception('Error uploading profile image: $e');
-    }
+    // This function is now handled by PocketBase during user creation
+    // Images are uploaded directly via PocketBase's file upload API
+    return null;
   }
 
   Future<File?> _pickCarImage() async {
@@ -599,73 +554,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     }
   }
 
+  // Removed Firebase Storage upload - now using PocketBase file upload
   Future<String?> _uploadCarImageToStorage(String userId, String imageName) async {
-    File? selectedImage;
-
-    // Determine which image to upload based on imageName
-    switch (imageName) {
-      case 'main':
-        selectedImage = _selectedMainCarImage;
-      case '1':
-        selectedImage = _selectedCarImage1;
-      case '2':
-        selectedImage = _selectedCarImage2;
-      case '3':
-        selectedImage = _selectedCarImage3;
-      case '4':
-        selectedImage = _selectedCarImage4;
-    }
-
-    if (selectedImage == null) return null;
-
-    try {
-      setState(() {
-        _isUploadingCarImage = true;
-      });
-
-      // Upload to Firebase Storage
-      final storageRef = FirebaseStorage.instance.ref().child('users/$userId/images/cars/$imageName.png');
-
-      await storageRef.putFile(selectedImage);
-
-      // Get the gs:// URI
-      final gsUri = 'gs://${storageRef.bucket}/${storageRef.fullPath}';
-
-      // Update the corresponding URL variable
-      switch (imageName) {
-        case 'main':
-          setState(() {
-            _uploadedMainCarImageUrl = gsUri;
-          });
-        case '1':
-          setState(() {
-            _uploadedCarImage1Url = gsUri;
-          });
-        case '2':
-          setState(() {
-            _uploadedCarImage2Url = gsUri;
-          });
-        case '3':
-          setState(() {
-            _uploadedCarImage3Url = gsUri;
-          });
-        case '4':
-          setState(() {
-            _uploadedCarImage4Url = gsUri;
-          });
-      }
-
-      setState(() {
-        _isUploadingCarImage = false;
-      });
-
-      return gsUri;
-    } catch (e) {
-      setState(() {
-        _isUploadingCarImage = false;
-      });
-      throw Exception('Error uploading car image: $e');
-    }
+    // This function is now handled by PocketBase during vehicle creation
+    // Images are uploaded directly via PocketBase's file upload API
+    return null;
   }
 
   Future<void> _createUser() async {
@@ -675,7 +568,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     final lastName = _newLastNameController.text.trim();
     // Additional fields
     final age = _ageController.text.trim();
-    final birthplace = _birthplaceController.text.trim();
+    // Note: birthplace field is stored as date of birth in PocketBase schema
     final bloodType = _bloodTypeController.text.trim();
     final civilStatus = _civilStatusController.text.trim();
     final contactNumber = _contactNumberController.text.trim();
@@ -1013,7 +906,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       final randomFirstName = _getRandomItem(_testFirstNames);
       final randomLastName = _getRandomItem(_testLastNames);
       final randomMiddleName = _getRandomItem(_testMiddleNames);
-      final randomBirthplace = _getRandomItem(_testBirthplaces);
+      // Note: birthplace is stored as date of birth in PocketBase schema
       final randomBloodType = _getRandomItem(_testBloodTypes);
       final randomCivilStatus = _getRandomItem(_testCivilStatus);
       final randomReligion = _getRandomItem(_testReligions);
@@ -1105,19 +998,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       print('Test user creation completed successfully for ID: $uid');
     } catch (e) {
       // Handle PocketBase errors for test users
-      var errorMessage = 'Error creating test user: ';
-      if (e.toString().contains('email') && e.toString().contains('already')) {
-        errorMessage += 'An account already exists for that email.';
-      } else if (e.toString().contains('password')) {
-        errorMessage += 'The password provided is too weak.';
-      } else if (e.toString().contains('email')) {
-        errorMessage += 'The email address is invalid.';
-      } else {
-        errorMessage += e.toString();
-      }
-
       print('PocketBase error for test user: $e');
-      // For test users, we might want to continue with a different email or handle differently
+      // For test users, we continue with a different email on next attempt
     }
   }
 
@@ -1490,7 +1372,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 for (var i = 0; i < 10; i++) {
                   await _createRandomTestUser(selectedMake);
                   // Small delay between creations
-                  await Future.delayed(const Duration(milliseconds: 500));
+                  await Future<void>.delayed(const Duration(milliseconds: 500));
                 }
 
                 ScaffoldMessenger.of(context).showSnackBar(

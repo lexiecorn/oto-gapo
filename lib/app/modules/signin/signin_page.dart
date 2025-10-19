@@ -72,9 +72,9 @@ class SigninPageState extends State<SigninPage> {
             if (state.signinStatus == SigninStatus.error) {
               errorDialog(
                 context,
-                state.error.message,
-                state.error.code,
-                state.error.plugin,
+                state.error?.message ?? 'An error occurred',
+                state.error?.code ?? 'Error',
+                state.error?.plugin ?? '',
               );
             } else if (state.signinStatus == SigninStatus.success) {
               // Navigate to splash page which will handle auth state transition

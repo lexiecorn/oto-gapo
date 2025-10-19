@@ -1,7 +1,6 @@
 import 'package:attendance_repository/attendance_repository.dart';
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -49,7 +48,6 @@ class App extends StatelessWidget {
             RepositoryProvider<PocketBaseAuthRepository>.value(value: _pocketBaseAuthRepository),
             RepositoryProvider<ProfileRepository>(
               create: (context) => ProfileRepository(
-                firebaseFirestore: FirebaseFirestore.instance,
                 pocketBaseAuth: context.read<PocketBaseAuthRepository>(),
               ),
             ),
@@ -93,7 +91,6 @@ class App extends StatelessWidget {
               ),
               BlocProvider<SigninCubit>(
                 create: (context) => SigninCubit(
-                  authRepository: context.read<AuthRepository>(),
                   pocketBaseAuth: context.read<PocketBaseAuthRepository>(),
                 ),
               ),

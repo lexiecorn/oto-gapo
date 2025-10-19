@@ -14,13 +14,15 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
       gender: json['gender'] as String,
       memberNumber: json['memberNumber'] as String,
       civilStatus: json['civilStatus'] as String,
-      birthDate: TimestampConverter.fromJsonNullable(json['birthDate']),
+      birthDate: json['birthDate'] == null
+          ? null
+          : DateTime.parse(json['birthDate'] as String),
       age: json['age'] as num?,
       nationality: json['nationality'] as String,
       emergencyContactNumber: json['emergencyContactNumber'] as String?,
       driversLicenseNumber: json['driversLicenseNumber'] as String?,
       driversLicenseExpirationDate:
-          TimestampConverter.fromJson(json['driversLicenseExpirationDate']),
+          DateTime.parse(json['driversLicenseExpirationDate'] as String),
       driversLicenseRestrictionCode:
           json['driversLicenseRestrictionCode'] as String?,
       contactNumber: json['contactNumber'] as String,
@@ -42,13 +44,13 @@ Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
       'gender': instance.gender,
       'memberNumber': instance.memberNumber,
       'civilStatus': instance.civilStatus,
-      'birthDate': TimestampConverter.toJsonNullable(instance.birthDate),
+      'birthDate': instance.birthDate?.toIso8601String(),
       'age': instance.age,
       'nationality': instance.nationality,
       'emergencyContactNumber': instance.emergencyContactNumber,
       'driversLicenseNumber': instance.driversLicenseNumber,
       'driversLicenseExpirationDate':
-          TimestampConverter.toJson(instance.driversLicenseExpirationDate),
+          instance.driversLicenseExpirationDate.toIso8601String(),
       'driversLicenseRestrictionCode': instance.driversLicenseRestrictionCode,
       'contactNumber': instance.contactNumber,
       'bloodType': instance.bloodType,

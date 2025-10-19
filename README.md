@@ -538,14 +538,16 @@ See [Deployment Guide](./docs/DEPLOYMENT.md) for detailed comparison and setup i
 - [Architecture Documentation](./docs/ARCHITECTURE.md) - Complete system architecture overview
 - [API Documentation](./docs/API_DOCUMENTATION.md) - Comprehensive API reference
 - [Developer Guide](./docs/DEVELOPER_GUIDE.md) - Development setup and workflows
-- [File Upload Fixes](./docs/FILE_UPLOAD_FIXES.md) - File upload system documentation
+- [Project Organization](./docs/PROJECT_ORGANIZATION.md) - File structure and organization
+- [Cursor Rules Guide](./docs/CURSOR_RULES_GUIDE.md) - AI assistant rules and conventions
 
 ### Deployment & Operations
 
 - [Deployment Guide](./docs/DEPLOYMENT.md) - Production deployment instructions
-- [Docker Deployment](./DOCKER_DEPLOYMENT.md) - Containerized deployment setup
+- [Docker Deployment](./docs/DOCKER_DEPLOYMENT.md) - Containerized deployment setup
 - [Web Deployment](./docs/WEB_DEPLOYMENT.md) - Web platform deployment
 - [Release Checklist](./docs/RELEASE_CHECKLIST.md) - Pre-release verification steps
+- [Quick Start Guide](./docs/QUICK_START.md) - Get started quickly
 
 ### Features & Systems
 
@@ -558,6 +560,12 @@ See [Deployment Guide](./docs/DEPLOYMENT.md) for detailed comparison and setup i
 - [Codemagic Setup](./docs/CODEMAGIC_SETUP.md) - Codemagic CI/CD configuration
 - [Testing Summary](./test/TESTING_SUMMARY.md) - Test coverage and strategies
 - [Play Store Setup](./docs/PLAY_STORE_SETUP.md) - Android app store deployment
+- [Play Store Upload Guide](./docs/UPLOAD_TO_PLAY_STORE_GUIDE.md) - Step-by-step upload instructions
+
+### Configuration & Data
+
+- [PocketBase Schemas](./pocketbase/) - Database schemas and sample data
+- [Play Store Assets](./docs/play-store/) - Store listing descriptions and release notes
 
 ## 📄 License
 

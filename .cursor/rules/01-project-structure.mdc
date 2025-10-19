@@ -40,7 +40,21 @@ Use this map to navigate the app quickly.
   - Initialized in flavor mains using `firebase_core` with options from `lib/firebase_options_*.dart`.
 
 - **Assets & Layout**:
+
   - `pubspec.yaml` registers `assets/`, `assets/images/`, `assets/icons/`.
   - `flutter_screenutil` is used in `AppView` and pages for responsive sizing.
 
-Cross-reference files as needed while exploring the codebase.
+- **Documentation**:
+
+  - All docs organized in `docs/` directory
+  - PocketBase schemas in `pocketbase/` directory
+  - Play Store assets in `docs/play-store/` directory
+  - See `11-documentation-reference.mdc` for complete documentation guide
+
+- **Local Packages** (`packages/`):
+  - `attendance_repository` - Meeting and attendance management
+  - `authentication_repository` - Firebase and PocketBase auth
+  - `local_storage` - Hive-based local storage
+  - `otogapo_core` - Shared UI theme and components
+
+Cross-reference files as needed while exploring the codebase. For comprehensive documentation, see `docs/PROJECT_ORGANIZATION.md`.

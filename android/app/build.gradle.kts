@@ -5,7 +5,7 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services")
+    // Removed: id("com.google.gms.google-services") - no longer using Firebase
 }
 
 val localProperties = Properties().apply {
@@ -106,17 +106,9 @@ android {
     // Ensure native libraries use 16 KB page alignment for Android 15+ requirements
     // This is required for Google Play Store compliance starting Nov 1, 2025
     // See: https://developer.android.com/guide/practices/page-alignment
-    packagingOptions {
+    packaging {
         jniLibs {
             // Use modern packaging to ensure proper alignment for 16 KB page sizes
-            useLegacyPackaging = false
-        }
-    }
-    
-    // Additional configuration for 16 KB page size support
-    packaging {
-        // Ensure proper alignment for native libraries
-        jniLibs {
             useLegacyPackaging = false
         }
     }
@@ -124,6 +116,50 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// Workaround for Flutter not finding output files (.apk and .aab)
+// Copy the outputs to where Flutter expects them
+tasks.whenTaskAdded {
+    // Handle app bundle tasks (bundleXxxYyy)
+    if (name.startsWith("bundle")) {
+        doLast {
+            val variantName = name.removePrefix("bundle")
+            val bundleDir = file("$buildDir/outputs/bundle/$variantName")
+            val targetDir = file("${project.rootDir}/../build/app/outputs/bundle/$variantName")
+            if (bundleDir.exists()) {
+                targetDir.mkdirs()
+                copy {
+                    from(bundleDir)
+                    into(targetDir)
+                }
+                println("✓ Copied .aab to: $targetDir")
+            }
+        }
+    }
+    
+    // Handle APK assembly tasks (assembleXxxYyy)
+    if (name.startsWith("assemble") && !name.contains("Test")) {
+        doLast {
+            // APKs are in apk/<flavor>/<buildType>/ structure
+            val apkOutputDir = file("$buildDir/outputs/apk")
+            val targetDir = file("${project.rootDir}/../build/app/outputs/flutter-apk")
+            
+            if (apkOutputDir.exists()) {
+                targetDir.mkdirs()
+                // Copy all APK files from all subdirectories
+                apkOutputDir.walk()
+                    .filter { it.extension == "apk" }
+                    .forEach { apkFile ->
+                        copy {
+                            from(apkFile)
+                            into(targetDir)
+                        }
+                    }
+                println("✓ Copied .apk files to: $targetDir")
+            }
+        }
+    }
 }
 
 dependencies {
