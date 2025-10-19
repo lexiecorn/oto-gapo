@@ -79,13 +79,21 @@ class ProfileRepository {
         userData['profile_image'] = userData['profileImage'];
       }
 
-      // Handle date field conversion - PocketBase returns dates as ISO strings
-      if (userData['birthDate'] != null && userData['birthDate'] is String) {
-        userData['birthDate'] = DateTime.parse(userData['birthDate'] as String);
+      // Handle date field conversion - PocketBase can return dates as ISO strings or DateTime objects
+      // The User.fromJson expects dates as ISO strings, so convert DateTime objects to strings
+      if (userData['birthDate'] != null) {
+        if (userData['birthDate'] is DateTime) {
+          userData['birthDate'] = (userData['birthDate'] as DateTime).toIso8601String();
+        }
+        // If it's already a String, leave it as is (will be parsed by fromJson)
       }
 
-      if (userData['driversLicenseExpirationDate'] != null && userData['driversLicenseExpirationDate'] is String) {
-        userData['driversLicenseExpirationDate'] = DateTime.parse(userData['driversLicenseExpirationDate'] as String);
+      if (userData['driversLicenseExpirationDate'] != null) {
+        if (userData['driversLicenseExpirationDate'] is DateTime) {
+          userData['driversLicenseExpirationDate'] =
+              (userData['driversLicenseExpirationDate'] as DateTime).toIso8601String();
+        }
+        // If it's already a String, leave it as is (will be parsed by fromJson)
       }
 
       // Remove legacy fields if they exist
@@ -216,13 +224,21 @@ class ProfileRepository {
         userData['profile_image'] = userData['profileImage'];
       }
 
-      // Handle date field conversion - PocketBase returns dates as ISO strings
-      if (userData['birthDate'] != null && userData['birthDate'] is String) {
-        userData['birthDate'] = DateTime.parse(userData['birthDate'] as String);
+      // Handle date field conversion - PocketBase can return dates as ISO strings or DateTime objects
+      // The User.fromJson expects dates as ISO strings, so convert DateTime objects to strings
+      if (userData['birthDate'] != null) {
+        if (userData['birthDate'] is DateTime) {
+          userData['birthDate'] = (userData['birthDate'] as DateTime).toIso8601String();
+        }
+        // If it's already a String, leave it as is (will be parsed by fromJson)
       }
 
-      if (userData['driversLicenseExpirationDate'] != null && userData['driversLicenseExpirationDate'] is String) {
-        userData['driversLicenseExpirationDate'] = DateTime.parse(userData['driversLicenseExpirationDate'] as String);
+      if (userData['driversLicenseExpirationDate'] != null) {
+        if (userData['driversLicenseExpirationDate'] is DateTime) {
+          userData['driversLicenseExpirationDate'] =
+              (userData['driversLicenseExpirationDate'] as DateTime).toIso8601String();
+        }
+        // If it's already a String, leave it as is (will be parsed by fromJson)
       }
 
       // Remove legacy fields if they exist

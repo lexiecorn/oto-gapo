@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
-import 'package:http/http.dart' show MultipartFile;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:otogapo/models/monthly_dues.dart';
@@ -255,20 +254,20 @@ class PocketBaseService {
       // Handle 404 errors gracefully - user might not exist
       if (e.toString().contains('404') || e.toString().contains('not found')) {
         print('User $userId not found in getUser method - attempting getList fallback');
-        
+
         // Fallback: Try using getList with filter for admin access
         // This helps when getOne has stricter permissions than getList
         try {
           final result = await pb.collection('users').getList(
-            filter: 'id = "$userId"',
-            perPage: 1,
-          );
-          
+                filter: 'id = "$userId"',
+                perPage: 1,
+              );
+
           if (result.items.isNotEmpty) {
             print('User $userId found via getList fallback');
             return result.items.first;
           }
-          
+
           print('User $userId not found even with getList fallback');
           return null;
         } catch (fallbackError) {
@@ -1017,23 +1016,62 @@ class PocketBaseService {
   }) async {
     try {
       await _ensureAuthenticated();
-      final body = <String, dynamic>{
-        'image': await MultipartFile.fromPath('image', imageFilePath),
-        'uploaded_by': uploadedBy,
-        'display_order': displayOrder,
-        'is_active': isActive,
-      };
+      print('PocketBaseService - Creating gallery image from: $imageFilePath');
+
+      // Read file bytes
+      final file = File(imageFilePath);
+      final fileBytes = await file.readAsBytes();
+      print('PocketBaseService - Gallery image file size: ${fileBytes.length} bytes');
+
+      // Create multipart request manually
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${pb.baseUrl}/api/collections/gallery_images/records'),
+      );
+
+      // Add authorization header
+      final token = pb.authStore.token;
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // Add the file
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'image',
+          fileBytes,
+          filename: file.path.split('/').last,
+        ),
+      );
+
+      // Add other fields
+      request.fields['uploaded_by'] = uploadedBy;
+      request.fields['display_order'] = displayOrder.toString();
+      request.fields['is_active'] = isActive.toString();
 
       if (title != null && title.isNotEmpty) {
-        body['title'] = title;
+        request.fields['title'] = title;
       }
       if (description != null && description.isNotEmpty) {
-        body['description'] = description;
+        request.fields['description'] = description;
       }
 
-      return await pb.collection('gallery_images').create(body: body);
+      print('PocketBaseService - Sending gallery image creation request');
+
+      // Send the request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('PocketBaseService - Gallery image creation response status: ${response.statusCode}');
+      print('PocketBaseService - Gallery image creation response body: ${response.body}');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final responseData = json.decode(response.body) as Map<String, dynamic>;
+        return RecordModel.fromJson(responseData);
+      } else {
+        throw Exception('Gallery image creation failed: ${response.statusCode} - ${response.body}');
+      }
     } catch (e) {
       print('Error creating gallery image: $e');
+      print('Error type: ${e.runtimeType}');
       rethrow;
     }
   }
@@ -1049,27 +1087,86 @@ class PocketBaseService {
   }) async {
     try {
       await _ensureAuthenticated();
-      final body = <String, dynamic>{};
+      print('PocketBaseService - Updating gallery image: $imageId');
 
+      // If there's a file to upload, use multipart request
       if (imageFilePath != null) {
-        body['image'] = await MultipartFile.fromPath('image', imageFilePath);
-      }
-      if (title != null) {
-        body['title'] = title;
-      }
-      if (description != null) {
-        body['description'] = description;
-      }
-      if (displayOrder != null) {
-        body['display_order'] = displayOrder;
-      }
-      if (isActive != null) {
-        body['is_active'] = isActive;
-      }
+        // Read file bytes
+        final file = File(imageFilePath);
+        final fileBytes = await file.readAsBytes();
+        print('PocketBaseService - Gallery image update file size: ${fileBytes.length} bytes');
 
-      return await pb.collection('gallery_images').update(imageId, body: body);
+        // Create multipart request manually
+        final request = http.MultipartRequest(
+          'PATCH',
+          Uri.parse('${pb.baseUrl}/api/collections/gallery_images/records/$imageId'),
+        );
+
+        // Add authorization header
+        final token = pb.authStore.token;
+        request.headers['Authorization'] = 'Bearer $token';
+
+        // Add the file
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'image',
+            fileBytes,
+            filename: file.path.split('/').last,
+          ),
+        );
+
+        // Add other fields
+        if (title != null) {
+          request.fields['title'] = title;
+        }
+        if (description != null) {
+          request.fields['description'] = description;
+        }
+        if (displayOrder != null) {
+          request.fields['display_order'] = displayOrder.toString();
+        }
+        if (isActive != null) {
+          request.fields['is_active'] = isActive.toString();
+        }
+
+        print('PocketBaseService - Sending gallery image update request with file');
+
+        // Send the request
+        final streamedResponse = await request.send();
+        final response = await http.Response.fromStream(streamedResponse);
+
+        print('PocketBaseService - Gallery image update response status: ${response.statusCode}');
+        print('PocketBaseService - Gallery image update response body: ${response.body}');
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          final responseData = json.decode(response.body) as Map<String, dynamic>;
+          return RecordModel.fromJson(responseData);
+        } else {
+          throw Exception('Gallery image update failed: ${response.statusCode} - ${response.body}');
+        }
+      } else {
+        // No file upload, use regular PocketBase update
+        final body = <String, dynamic>{};
+
+        if (title != null) {
+          body['title'] = title;
+        }
+        if (description != null) {
+          body['description'] = description;
+        }
+        if (displayOrder != null) {
+          body['display_order'] = displayOrder;
+        }
+        if (isActive != null) {
+          body['is_active'] = isActive;
+        }
+
+        print('PocketBaseService - Updating gallery image metadata only');
+        return await pb.collection('gallery_images').update(imageId, body: body);
+      }
     } catch (e) {
       print('Error updating gallery image: $e');
+      print('Error type: ${e.runtimeType}');
       rethrow;
     }
   }
