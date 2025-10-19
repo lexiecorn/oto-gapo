@@ -468,6 +468,123 @@
 
 ---
 
+**Feature Name**: Announcement Management
+**Priority**: P2
+**Status**: Planned
+**Target Release**: TBD
+**Description**: Implement an announcement management system where admins can create, edit, and manage announcements that are visible to all members on the main Otogapo page. This provides a centralized way to communicate important information, events, and updates to the community.
+
+**User Stories**:
+
+- As an admin, I want to create announcements so I can communicate important information to all members
+- As an admin, I want to edit or delete announcements so I can keep information current and accurate
+- As an admin, I want to schedule announcements to be published at a specific date/time
+- As an admin, I want to pin important announcements to keep them at the top of the list
+- As an admin, I want to set announcement priority or categories (urgent, general, event, etc.)
+- As a member, I want to see announcements on the main Otogapo page so I stay informed
+- As a member, I want to see the most recent and important announcements first
+- As a member, I want to read the full details of an announcement
+
+**Technical Notes**:
+
+- **Database Schema** (PocketBase collection):
+  - **announcements** collection (already exists):
+    - `id` (auto)
+    - `title` (text)
+    - `content` (text, rich text support)
+    - `author_id` (relation to users)
+    - `created_at` (datetime)
+    - `updated_at` (datetime)
+    - `published_at` (datetime, for scheduled publishing)
+    - `is_published` (boolean)
+    - `is_pinned` (boolean, for sticky announcements)
+    - `priority` (text: normal, important, urgent)
+    - `category` (text: general, event, maintenance, etc.)
+    - `expires_at` (datetime, optional, for temporary announcements)
+- **Backend**:
+  - PocketBase collection for announcements (already configured)
+  - Admin-only endpoints for create, update, delete operations
+  - Public read access for published announcements
+  - Filtering by published status and date ranges
+  - Sorting by pinned status and date
+- **Frontend**:
+  - **Main Otogapo Page**: Display announcements list with title and preview
+  - **Admin Panel**: Full CRUD interface for managing announcements
+  - **Announcement Detail View**: Full content view with formatting
+  - **Create/Edit Form**: Rich text editor for content, title, priority, category, scheduling
+  - Pull-to-refresh for latest announcements
+  - Pagination or infinite scroll for announcement history
+- **Admin Interface Features**:
+  - List view of all announcements (published and draft)
+  - Create new announcement button
+  - Edit/delete actions for existing announcements
+  - Publish/unpublish toggle
+  - Pin/unpin toggle
+  - Preview before publishing
+  - Status indicators (draft, published, scheduled, expired)
+- **Member Interface Features**:
+  - Announcement cards on main page
+  - Visual indicators for priority (colors, icons)
+  - Pinned announcements at the top
+  - Expandable content or tap to view full details
+  - Timestamp display (e.g., "Posted 2 hours ago")
+- **Additional Features**:
+  - Rich text formatting (bold, italic, lists, links)
+  - Optional: Attach images or files to announcements
+  - Optional: Push notifications for urgent announcements
+  - Optional: Mark announcements as read
+  - Optional: Comment or react to announcements
+- **Dependencies**:
+  - PocketBase collection for announcements (already exists)
+  - Rich text editor package (e.g., `flutter_quill`, `html_editor_enhanced`)
+  - Admin authentication and authorization
+  - Local storage for caching (already available)
+- **Estimated Effort**: Small-Medium
+
+**Implementation Checklist**:
+
+- [ ] Review and update existing PocketBase announcements collection schema
+- [ ] Configure collection permissions (admin write, all read)
+- [ ] Create announcements repository with CRUD operations
+- [ ] Implement admin panel UI for announcement management
+- [ ] Create announcement list widget for Otogapo main page
+- [ ] Build announcement detail screen
+- [ ] Implement rich text editor for content
+- [ ] Add filtering and sorting logic (pinned, priority, date)
+- [ ] Implement publish/unpublish functionality
+- [ ] Add pin/unpin functionality
+- [ ] Create priority and category selection
+- [ ] Implement scheduling for future publication
+- [ ] Add expiration logic for temporary announcements
+- [ ] Implement pull-to-refresh for announcements list
+- [ ] Add pagination or infinite scroll
+- [ ] Create status indicators for admin view
+- [ ] Add preview functionality before publishing
+- [ ] Implement local caching for announcements
+- [ ] Add error handling and offline support
+- [ ] Write tests for announcements repository
+- [ ] Test admin CRUD operations
+- [ ] Test member view and filtering
+- [ ] Update documentation with announcement management guide
+- [ ] Create admin guide for creating effective announcements
+
+**Prerequisites**:
+
+- PocketBase backend operational
+- Admin authentication and role management
+- Main Otogapo page structure implemented
+
+**Use Cases**:
+
+- Weekly meeting announcements
+- Special event notifications
+- Policy updates and reminders
+- Emergency or urgent communications
+- Community news and updates
+- Holiday greetings and celebrations
+
+---
+
 ### P3 - Backlog/Ideas
 
 <!-- Feature ideas and wishlist items -->

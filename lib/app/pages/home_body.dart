@@ -131,9 +131,12 @@ class HomeBodyState extends State<HomeBody> {
               // Carousel occupies a fixed height
               Container(
                 color: Colors.black,
-                height: 220.h,
+                height: 290.h,
                 child: const CarouselViewFromPocketbase(),
               ),
+
+              // Vertical spacing between gallery and announcements
+              SizedBox(height: 16.h),
 
               // Announcements Widget takes the remaining space
               Expanded(

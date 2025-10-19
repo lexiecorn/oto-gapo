@@ -119,7 +119,7 @@ class _CarouselViewFromPocketbaseState extends State<CarouselViewFromPocketbase>
 
     return CarouselSlider(
       options: CarouselOptions(
-        height: 150,
+        height: 250,
         autoPlay: true,
         enlargeCenterPage: true,
         aspectRatio: 1 / 1,
@@ -136,7 +136,7 @@ class _CarouselViewFromPocketbaseState extends State<CarouselViewFromPocketbase>
                 OpstechExtendedImageNetwork(
                   img: imageUrl,
                   width: 90.sw,
-                  height: 200.h,
+                  height: 300.h,
                   borderrRadius: 15.r,
                   border: Border.all(
                     color: Colors.white.withOpacity(.1),
