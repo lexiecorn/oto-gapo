@@ -54,7 +54,7 @@ The app follows a clean architecture pattern with:
   - Payment history and statistics
   - Advance payment support
 
-- **Attendance Management** ✨ **NEW**
+- **Attendance Management**
 
   - Meeting creation and management
   - QR code-based check-in system
@@ -64,6 +64,18 @@ The app follows a clean architecture pattern with:
   - Personal attendance history
   - Attendance rate tracking
 
+- **Social Feed** ✨ **NEW in v1.0.0+10**
+
+  - Instagram/Facebook-style social media wall
+  - Share posts with images and captions
+  - 6 reaction types (like, love, wow, haha, sad, angry)
+  - Comments with @mentions and #hashtags
+  - Browse posts by user or hashtag
+  - Report inappropriate content
+  - Admin moderation dashboard
+  - Automatic image compression (720p, <1MB)
+  - Real-time feed updates with pull-to-refresh
+
 - **Admin Features**
 
   - User management dashboard
@@ -72,6 +84,7 @@ The app follows a clean architecture pattern with:
   - Announcement creation and management
   - Member statistics and reports
   - Gallery management for homepage carousel
+  - Social feed moderation (reports, bans, content hiding)
 
 - **Profile Management**
   - Personal information management
@@ -101,6 +114,9 @@ The app follows a clean architecture pattern with:
 - **QR Code**: `qr_flutter`, `mobile_scanner`
 - **Data Export**: `csv`, `share_plus`
 - **Charts**: `fl_chart`
+- **Image Processing**: `image`, `flutter_image_compress`, `cached_network_image`
+- **Media Viewing**: `photo_view`
+- **Utilities**: `timeago`, `path_provider`
 
 ### Development Tools
 
@@ -199,7 +215,8 @@ lib/
 │   │   ├── signin/              # Sign-in functionality
 │   │   ├── signup/              # Sign-up functionality
 │   │   ├── meetings/            # Meeting management (Cubit)
-│   │   └── attendance/          # Attendance tracking (Cubit)
+│   │   ├── attendance/          # Attendance tracking (Cubit)
+│   │   └── social_feed/         # Social feed (FeedCubit, CommentCubit, ModerationCubit)
 │   ├── pages/                   # UI pages/screens
 │   │   ├── meetings_list_page.dart
 │   │   ├── create_meeting_page.dart
@@ -208,12 +225,21 @@ lib/
 │   │   ├── qr_scanner_page.dart
 │   │   ├── mark_attendance_page.dart
 │   │   ├── user_attendance_history_page.dart
+│   │   ├── social_feed_page.dart          # Main social feed
+│   │   ├── create_post_page.dart          # Create new post
+│   │   ├── post_detail_page.dart          # Post with comments
+│   │   ├── user_posts_page.dart           # User's posts grid
+│   │   ├── hashtag_posts_page.dart        # Posts by hashtag
+│   │   ├── social_feed_moderation_page.dart  # Admin moderation
 │   │   └── ...
 │   ├── routes/                  # Navigation routing
 │   ├── view/                    # App shell and main views
 │   └── widgets/                 # Reusable UI components
 │       ├── meeting_card.dart
 │       ├── attendance_card.dart
+│       ├── post_card_widget.dart         # Social feed post card
+│       ├── reaction_picker_widget.dart   # Reaction selector
+│       ├── report_dialog_widget.dart     # Report content
 │       └── ...
 ├── bootstrap.dart               # App initialization
 ├── main_development.dart        # Development entry point
@@ -223,6 +249,11 @@ lib/
 │   ├── meeting.dart            # Meeting model
 │   ├── attendance.dart         # Attendance model
 │   ├── attendance_summary.dart # Attendance summary
+│   ├── post.dart               # Social feed post
+│   ├── post_reaction.dart      # Post reactions
+│   ├── post_comment.dart       # Post comments
+│   ├── post_report.dart        # Content reports
+│   ├── user_ban.dart           # User bans
 │   └── ...
 ├── providers/                  # Provider classes
 ├── services/                   # Service classes
@@ -265,6 +296,11 @@ The app uses PocketBase for backend services with the following collections:
 - `gallery_images` - Homepage carousel images
 - `Announcements` - Association announcements
 - `app_data` - Application configuration
+- `posts` - Social feed posts with images
+- `post_reactions` - Post reactions (like, love, wow, haha, sad, angry)
+- `post_comments` - Comments with mentions and hashtags
+- `post_reports` - Content reports for moderation
+- `user_bans` - Admin bans (temporary or permanent)
 
 #### PocketBase URL Configuration
 
@@ -553,6 +589,9 @@ See [Deployment Guide](./docs/DEPLOYMENT.md) for detailed comparison and setup i
 
 - [Payment System](./docs/PAYMENT_SYSTEM.md) - Payment tracking implementation
 - [Attendance System](./docs/ATTENDANCE_IMPLEMENTATION.md) - Meeting attendance features
+- [Social Feed System](./docs/SOCIAL_FEED_IMPLEMENTATION.md) - Social media wall implementation
+- [Social Feed Schema](./docs/SOCIAL_FEED_SCHEMA.md) - PocketBase schema for social feed
+- [Social Feed Progress](./docs/SOCIAL_FEED_IMPLEMENTATION_PROGRESS.md) - Implementation progress tracker
 - [Gallery Management](./docs/ARCHITECTURE.md#gallery-management-system) - Image carousel system
 
 ### CI/CD & Quality
@@ -581,11 +620,24 @@ For support and questions:
 
 ## 🔄 Version History
 
+- **v1.0.0+10** - Social Feed Release
+
+  - Social media wall (Instagram/Facebook-style)
+  - Post creation with image upload
+  - 6 reaction types (like, love, wow, haha, sad, angry)
+  - Comments with @mentions and #hashtags
+  - User posts and hashtag filtering
+  - Admin moderation dashboard
+  - Content reporting and banning system
+  - Automatic image compression
+  - UI improvements to dialogs and menus
+
 - **v1.0.0+1** - Initial release with core functionality
   - User authentication and management
   - Payment tracking system
   - Admin dashboard
   - Profile management
+  - Attendance management with QR codes
 
 ---
 

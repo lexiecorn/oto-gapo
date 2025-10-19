@@ -17,98 +17,7 @@
 
 <!-- Features planned for upcoming releases -->
 
-**Feature Name**: Social Feed (Instagram/Facebook-like Member Posts) 🚧 **IN PROGRESS**
-**Priority**: P1
-**Status**: In Progress (Phases 1-7 Complete, Testing & Docs Pending)
-**Target Release**: v1.3.0
-**Started**: January 2025
-**Description**: A comprehensive social media wall where members can create posts with images, react with multiple emotions, comment with @mentions and #hashtags, and admins can fully moderate content.
-
-**User Stories - IMPLEMENTED**:
-
-- ✅ As a member, I can create posts with photos and captions
-- ✅ As a member, I can react to posts with 6 emotion types (like, love, wow, haha, sad, angry)
-- ✅ As a member, I can comment on posts
-- ✅ As a member, I can use @mentions and #hashtags in posts and comments
-- ✅ As a member, I can view a feed of posts from all members
-- ✅ As a member, I can view my own posts in a grid
-- ✅ As a member, I can view posts by hashtag
-- ✅ As a member, I can delete my own posts and comments
-- ✅ As a member, I can report inappropriate content
-- ✅ As an admin, I can review content reports
-- ✅ As an admin, I can hide or delete inappropriate content
-- ✅ As an admin, I can ban users (temporary or permanent)
-- ✅ As an admin, I can unban users
-- ✅ As an admin, I can view ban history
-
-**Implementation Details**:
-
-- **Backend**: 5 PocketBase collections (posts, post_reactions, post_comments, post_reports, user_bans)
-- **Models**: 5 Dart models with proper fromRecord serialization
-- **Services**: 30+ methods in PocketBaseService
-- **State Management**: 3 Cubits (FeedCubit, CommentCubit, ModerationCubit)
-- **UI**: 6 pages, 3 reusable widgets
-- **Routing**: 6 new routes with auto_route
-- **Features**:
-  - Image compression (<1MB, 720p max)
-  - Multiple reaction types (6 emotions)
-  - @mentions and #hashtags with tappable links
-  - Infinite scroll with pagination
-  - Pull-to-refresh
-  - Full-screen image viewer
-  - Admin moderation dashboard
-  - User ban system (temp/permanent)
-  - Report management
-  - Soft deletes for content recovery
-- **Documentation**: Schema guide, implementation guide, moderation guide
-
-**Remaining Tasks**:
-
-- [ ] Unit tests for utilities and models
-- [ ] Widget tests for components
-- [ ] Integration tests for key flows
-- [ ] User acceptance testing
-- [ ] Performance optimization review
-- [ ] Final documentation review
-
-**Technical Stack**:
-
-- Image compression: flutter_image_compress, image packages
-- Image caching: cached_network_image
-- Image viewing: photo_view
-- Text parsing: Custom regex-based utilities
-- Timestamps: timeago package
-- State: BLoC/Cubit pattern
-
----
-
-**Feature Name**: Attendance Management ✅ **COMPLETED**
-**Priority**: P1
-**Status**: Complete
-**Target Release**: v1.2.0
-**Completed**: January 2025
-**Description**: Complete attendance management system with QR check-in, meeting management, and reporting
-**User Stories - IMPLEMENTED**:
-
-- ✅ As an admin, I can create, edit, and delete meetings
-- ✅ As an admin, I can generate QR codes for meetings
-- ✅ As an admin, I can mark member attendance manually
-- ✅ As an admin, I can view attendance history and statistics
-- ✅ As an admin, I can export attendance data to CSV
-- ✅ As an admin, during meetings, members can scan QR code to check in
-- ✅ As a user, I can view my attendance history and summary
-- ✅ As a user, I can check in to meetings via QR scan
-
-**Implementation Details:**
-
-- Backend: PocketBase collections (meetings, attendance, attendance_summary)
-- Repository: packages/attendance_repository
-- State Management: MeetingCubit, AttendanceCubit
-- UI: 7 pages, 3 widgets, 7 routes
-- Features: QR generation/scanning, CSV export, real-time stats
-- Documentation: See docs/ATTENDANCE_IMPLEMENTATION.md
-
----
+**Note**: Social Feed (v1.0.0+10) and Attendance Management have been completed and moved to the Feature Archive.
 
 **Feature Name**: Version Update Notifications & Force Update
 **Priority**: P1
@@ -654,9 +563,75 @@
 
 <!-- Feature ideas and wishlist items -->
 
-**Note**: Social Feed feature moved to P1 (In Progress) as of January 2025.
+**Note**: Social Feed feature was completed and released in v1.0.0+10 (October 2025). See P1 section or Feature Archive for details.
 
-**Previous Planning Notes** (Feature has been moved to P1 and is now in progress):
+---
+
+## 🗂️ Feature Archive
+
+Completed features are moved here for historical reference.
+
+### Completed Features
+
+---
+
+**Feature Name**: Attendance Management  
+**Priority**: P1  
+**Status**: ✅ Complete  
+**Target Release**: v1.2.0  
+**Completed**: January 2025
+
+**Summary**: Complete attendance management system with QR check-in, meeting management, and reporting.
+
+**Key Features Implemented**:
+
+- Meeting creation, editing, and deletion (admin)
+- QR code generation for meetings
+- Manual attendance marking by admins
+- Member QR check-in
+- Attendance history and statistics
+- CSV export for reports
+- Personal attendance history for users
+
+**Documentation**:
+
+- [Attendance Implementation Guide](./ATTENDANCE_IMPLEMENTATION.md)
+- [Attendance Schema](./ATTENDANCE_SCHEMA.md)
+
+---
+
+**Feature Name**: Social Feed (Instagram/Facebook-like Member Posts)  
+**Priority**: P1  
+**Status**: ✅ Complete (Released in v1.0.0+10)  
+**Target Release**: v1.0.0+10  
+**Started**: January 2025  
+**Completed**: October 2025  
+**Progress**: 75-80% complete (Phases 1-7 done, testing pending)
+
+**Summary**: A comprehensive social media wall where members can create posts with images, react with multiple emotions, comment with @mentions and #hashtags, and admins can fully moderate content.
+
+**Key Features Implemented**:
+
+- Post creation with image upload and compression
+- 6 reaction types (like, love, wow, haha, sad, angry)
+- Comments with @mentions and #hashtags
+- User posts grid and hashtag filtering
+- Admin moderation dashboard
+- Content reporting and banning system
+- Real-time feed updates with pull-to-refresh
+
+**Documentation**:
+
+- [Implementation Guide](./SOCIAL_FEED_IMPLEMENTATION.md)
+- [Schema Documentation](./SOCIAL_FEED_SCHEMA.md)
+- [Moderation Guide](./SOCIAL_FEED_MODERATION_GUIDE.md)
+- [Implementation Progress](./SOCIAL_FEED_IMPLEMENTATION_PROGRESS.md)
+
+---
+
+### Historical Planning Notes for Social Feed
+
+**Previous Planning Notes** (Feature has been completed as of October 2025):
 
 **Technical Notes** (Implemented):
 
@@ -814,12 +789,6 @@ Use this template when adding new features:
 
 - **Estimated Effort**: Small | Medium | Large
 
-  ***
+---
 
-## 🗂️ Feature Archive
-
-Completed features are moved here for historical reference.
-
-### Version History
-
-<!-- Completed features organized by version -->
+_Last Updated: October 2025_
