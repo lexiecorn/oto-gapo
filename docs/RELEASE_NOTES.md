@@ -2,6 +2,89 @@
 
 ---
 
+## v1.0.0+10 (Build 10) - October 19, 2025
+
+**Release Date**: October 19, 2025  
+**Build Number**: 10  
+**Version**: 1.0.0+10  
+**Release Type**: UI/UX Improvement Update
+
+---
+
+### 🎨 UI/UX Improvements: Social Feed Enhancement
+
+This release focuses on improving the user interface of the social feed feature, making dialogs and menus more readable and visually consistent.
+
+---
+
+### 📱 For Google Play Store (What's New - 417 characters)
+
+```
+🎉 What's New in v1.0.0+10!
+
+✨ UI Improvements:
+• Improved text sizes in social feed menus
+• Better readability for delete & report dialogs
+• Optimized bottom sheet menu layouts
+• Enhanced post action menu visibility
+
+🐛 Bug Fixes:
+• Fixed oversized text in confirmation dialogs
+• Improved dialog button text sizing
+• Better visual hierarchy in menus
+
+Thank you for using Otogapo!
+```
+
+---
+
+### ✨ UI/UX Improvements
+
+#### Social Feed Dialogs
+
+- ✅ Optimized text sizes in delete post confirmation dialog
+- ✅ Improved text sizes in delete comment confirmation dialog
+- ✅ Enhanced readability of report content dialog
+- ✅ Better text sizing in moderation dialogs
+- ✅ Fixed oversized text in ban user dialog
+
+#### Bottom Sheet Menus
+
+- ✅ Reduced text size for "Delete Post" menu item (now 16.sp)
+- ✅ Reduced text size for "Report Post" menu item (now 16.sp)
+- ✅ Reduced text size for "Edit Comment" menu item (now 16.sp)
+- ✅ Reduced text size for "Delete Comment" menu item (now 16.sp)
+- ✅ Reduced text size for "Cancel" button in all menus (now 16.sp)
+
+#### Dialog Text Consistency
+
+- ✅ Dialog titles now use 18.sp for better hierarchy
+- ✅ Dialog content text uses 14.sp for readability
+- ✅ Dialog buttons use 14.sp for consistent action sizes
+- ✅ TextField hints and inputs use 14.sp
+
+### 🐛 Bug Fixes
+
+- ✅ Fixed overly large text in social feed bottom sheets
+- ✅ Removed unused imports in post detail page
+- ✅ Cleaned up unused static methods in report dialog widget
+
+### 📝 Files Modified
+
+- `lib/app/pages/social_feed_page.dart` - Fixed post options menu text sizes
+- `lib/app/pages/post_detail_page.dart` - Fixed comment options menu and removed unused imports
+- `lib/app/pages/social_feed_moderation_page.dart` - Fixed all moderation dialog text sizes
+- `lib/app/widgets/report_dialog_widget.dart` - Fixed action button text sizes and cleaned up code
+
+### 🎯 User Experience Impact
+
+- **Improved Readability**: All social feed dialogs now have consistent, properly-sized text
+- **Better Visual Hierarchy**: Clear distinction between titles, content, and actions
+- **Consistent Design**: All bottom sheets and dialogs follow the same sizing standards
+- **Enhanced Usability**: Easier to read and interact with social feed features
+
+---
+
 ## v1.0.0+6 (Build 6) - October 18, 2025
 
 **Release Date**: October 18, 2025  

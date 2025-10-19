@@ -319,22 +319,37 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
               if (isOwner) ...[
                 ListTile(
                   leading: const Icon(Icons.delete),
-                  title: const Text('Delete Post'),
+                  title: Text(
+                    'Delete Post',
+                    style: TextStyle(fontSize: 16.sp),
+                  ),
                   onTap: () async {
                     Navigator.pop(context);
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: const Text('Delete Post'),
-                        content: const Text('Are you sure you want to delete this post?'),
+                        title: Text(
+                          'Delete Post',
+                          style: TextStyle(fontSize: 18.sp),
+                        ),
+                        content: Text(
+                          'Are you sure you want to delete this post?',
+                          style: TextStyle(fontSize: 14.sp),
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel'),
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(fontSize: 14.sp),
+                            ),
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
-                            child: const Text('Delete'),
+                            child: Text(
+                              'Delete',
+                              style: TextStyle(fontSize: 14.sp),
+                            ),
                           ),
                         ],
                       ),
@@ -354,7 +369,10 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
               if (!isOwner && !isAdmin)
                 ListTile(
                   leading: const Icon(Icons.flag),
-                  title: const Text('Report Post'),
+                  title: Text(
+                    'Report Post',
+                    style: TextStyle(fontSize: 16.sp),
+                  ),
                   onTap: () async {
                     Navigator.pop(context);
                     final result = await showDialog<Map<String, dynamic>>(
@@ -391,7 +409,10 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
                 ),
               ListTile(
                 leading: const Icon(Icons.cancel),
-                title: const Text('Cancel'),
+                title: Text(
+                  'Cancel',
+                  style: TextStyle(fontSize: 16.sp),
+                ),
                 onTap: () => Navigator.pop(context),
               ),
             ],

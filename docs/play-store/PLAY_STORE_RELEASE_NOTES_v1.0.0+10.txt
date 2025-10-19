@@ -1,0 +1,89 @@
+RELEASE NOTES - Otogapo v1.0.0+10
+=====================================
+
+Version: 1.0.0+10
+Build: 10
+Release Date: October 19, 2025
+Release Type: UI/UX Improvement Update
+
+WHAT'S NEW (Play Store Format - 417 chars)
+==========================================
+
+🎉 What's New in v1.0.0+10!
+
+✨ UI Improvements:
+• Improved text sizes in social feed menus
+• Better readability for delete & report dialogs
+• Optimized bottom sheet menu layouts
+• Enhanced post action menu visibility
+
+🐛 Bug Fixes:
+• Fixed oversized text in confirmation dialogs
+• Improved dialog button text sizing
+• Better visual hierarchy in menus
+
+Thank you for using Otogapo!
+
+
+DETAILED CHANGES
+================
+
+UI/UX Improvements
+------------------
+✓ Social Feed Dialogs
+  - Optimized text sizes in delete post confirmation dialog
+  - Improved text sizes in delete comment confirmation dialog
+  - Enhanced readability of report content dialog
+  - Better text sizing in moderation dialogs
+  - Fixed oversized text in ban user dialog
+
+✓ Bottom Sheet Menus
+  - Reduced text size for "Delete Post" menu item (16.sp)
+  - Reduced text size for "Report Post" menu item (16.sp)
+  - Reduced text size for "Edit Comment" menu item (16.sp)
+  - Reduced text size for "Delete Comment" menu item (16.sp)
+  - Reduced text size for "Cancel" button in all menus (16.sp)
+
+✓ Dialog Text Consistency
+  - Dialog titles now use 18.sp for better hierarchy
+  - Dialog content text uses 14.sp for readability
+  - Dialog buttons use 14.sp for consistent action sizes
+  - TextField hints and inputs use 14.sp
+
+Bug Fixes
+---------
+✓ Fixed overly large text in social feed bottom sheets
+✓ Removed unused imports in post detail page
+✓ Cleaned up unused static methods in report dialog widget
+
+Files Modified
+--------------
+• lib/app/pages/social_feed_page.dart
+• lib/app/pages/post_detail_page.dart
+• lib/app/pages/social_feed_moderation_page.dart
+• lib/app/widgets/report_dialog_widget.dart
+
+User Experience Impact
+---------------------
+• Improved Readability: All social feed dialogs now have consistent, properly-sized text
+• Better Visual Hierarchy: Clear distinction between titles, content, and actions
+• Consistent Design: All bottom sheets and dialogs follow the same sizing standards
+• Enhanced Usability: Easier to read and interact with social feed features
+
+Build Information
+-----------------
+AAB Location: build/app/outputs/bundle/ProductionRelease/app-production-release.aab
+AAB Size: 56.5MB
+Build Time: ~181 seconds
+Flutter Version: Latest stable
+Target Platform: Android (Production)
+
+Upload Instructions
+-------------------
+1. Navigate to Google Play Console
+2. Select Otogapo app
+3. Go to Production → Releases → Create new release
+4. Upload app-production-release.aab
+5. Add release notes from "What's New" section above
+6. Review and roll out to production
+

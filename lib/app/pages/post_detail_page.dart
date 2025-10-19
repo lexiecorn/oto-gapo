@@ -8,11 +8,9 @@ import 'package:otogapo/app/modules/social_feed/bloc/comment_cubit.dart';
 import 'package:otogapo/app/modules/social_feed/bloc/feed_cubit.dart';
 import 'package:otogapo/models/post.dart';
 import 'package:otogapo/models/post_comment.dart';
-import 'package:otogapo/models/post_reaction.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:otogapo/utils/text_parsing_utils.dart';
 import 'package:photo_view/photo_view.dart';
-import 'package:pocketbase/pocketbase.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 @RoutePage(name: 'PostDetailPageRouter')
@@ -410,7 +408,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
               if (comment.canEdit)
                 ListTile(
                   leading: const Icon(Icons.edit),
-                  title: const Text('Edit Comment'),
+                  title: Text(
+                    'Edit Comment',
+                    style: TextStyle(fontSize: 16.sp),
+                  ),
                   onTap: () {
                     Navigator.pop(context);
                     // TODO: Show edit dialog
@@ -423,24 +424,37 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 ),
               ListTile(
                 leading: const Icon(Icons.delete),
-                title: const Text('Delete Comment'),
+                title: Text(
+                  'Delete Comment',
+                  style: TextStyle(fontSize: 16.sp),
+                ),
                 onTap: () async {
                   Navigator.pop(context);
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: const Text('Delete Comment'),
-                      content: const Text(
+                      title: Text(
+                        'Delete Comment',
+                        style: TextStyle(fontSize: 18.sp),
+                      ),
+                      content: Text(
                         'Are you sure you want to delete this comment?',
+                        style: TextStyle(fontSize: 14.sp),
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Cancel'),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(fontSize: 14.sp),
+                          ),
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Delete'),
+                          child: Text(
+                            'Delete',
+                            style: TextStyle(fontSize: 14.sp),
+                          ),
                         ),
                       ],
                     ),
@@ -458,7 +472,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.cancel),
-                title: const Text('Cancel'),
+                title: Text(
+                  'Cancel',
+                  style: TextStyle(fontSize: 16.sp),
+                ),
                 onTap: () => Navigator.pop(context),
               ),
             ],

@@ -79,9 +79,10 @@ class _ReportDialogWidgetState extends State<ReportDialogWidget> {
               controller: _detailsController,
               maxLines: 3,
               maxLength: 500,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Provide more information...',
-                border: OutlineInputBorder(),
+                hintStyle: TextStyle(fontSize: 14.sp),
+                border: const OutlineInputBorder(),
               ),
               style: TextStyle(fontSize: 14.sp),
             ),
@@ -91,7 +92,10 @@ class _ReportDialogWidgetState extends State<ReportDialogWidget> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(
+            'Cancel',
+            style: TextStyle(fontSize: 14.sp),
+          ),
         ),
         ElevatedButton(
           onPressed: () {
@@ -100,20 +104,12 @@ class _ReportDialogWidgetState extends State<ReportDialogWidget> {
               'details': _detailsController.text.trim(),
             });
           },
-          child: const Text('Submit Report'),
+          child: Text(
+            'Submit Report',
+            style: TextStyle(fontSize: 14.sp),
+          ),
         ),
       ],
-    );
-  }
-
-  /// Show report dialog and return the result
-  static Future<Map<String, dynamic>?> show(
-    BuildContext context, {
-    bool isPost = true,
-  }) async {
-    return showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (context) => ReportDialogWidget(isPost: isPost),
     );
   }
 }

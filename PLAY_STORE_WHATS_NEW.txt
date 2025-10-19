@@ -1,0 +1,15 @@
+🎉 What's New in v1.0.0+10!
+
+✨ UI Improvements:
+• Improved text sizes in social feed menus
+• Better readability for delete & report dialogs
+• Optimized bottom sheet menu layouts
+• Enhanced post action menu visibility
+
+🐛 Bug Fixes:
+• Fixed oversized text in confirmation dialogs
+• Improved dialog button text sizing
+• Better visual hierarchy in menus
+
+Thank you for using Otogapo!
+

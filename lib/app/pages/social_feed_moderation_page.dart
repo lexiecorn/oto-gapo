@@ -65,6 +65,9 @@ class _SocialFeedModerationPageState extends State<SocialFeedModerationPage> wit
           centerTitle: true,
           bottom: TabBar(
             controller: _tabController,
+            labelColor: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.blue,
+            unselectedLabelColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey[600],
+            indicatorColor: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.blue,
             tabs: const [
               Tab(text: 'Reports', icon: Icon(Icons.flag)),
               Tab(text: 'Hidden', icon: Icon(Icons.visibility_off)),
@@ -171,32 +174,65 @@ class _SocialFeedModerationPageState extends State<SocialFeedModerationPage> wit
                       // Action buttons
                       Wrap(
                         spacing: 8.w,
+                        runSpacing: 8.h,
                         children: [
-                          ElevatedButton.icon(
-                            onPressed: () => _hideReportedContent(report),
-                            icon: const Icon(Icons.visibility_off, size: 16),
-                            label: const Text('Hide'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
+                          SizedBox(
+                            height: 36.h,
+                            child: ElevatedButton.icon(
+                              onPressed: () => _hideReportedContent(report),
+                              icon: Icon(Icons.visibility_off, size: 16.sp),
+                              label: const Text('Hide'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12.w,
+                                  vertical: 8.h,
+                                ),
+                              ),
                             ),
                           ),
-                          ElevatedButton.icon(
-                            onPressed: () => _deleteReportedContent(report),
-                            icon: const Icon(Icons.delete, size: 16),
-                            label: const Text('Delete'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
+                          SizedBox(
+                            height: 36.h,
+                            child: ElevatedButton.icon(
+                              onPressed: () => _deleteReportedContent(report),
+                              icon: Icon(Icons.delete, size: 16.sp),
+                              label: const Text('Delete'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12.w,
+                                  vertical: 8.h,
+                                ),
+                              ),
                             ),
                           ),
-                          OutlinedButton.icon(
-                            onPressed: () => _dismissReport(report),
-                            icon: const Icon(Icons.check, size: 16),
-                            label: const Text('Dismiss'),
+                          SizedBox(
+                            height: 36.h,
+                            child: OutlinedButton.icon(
+                              onPressed: () => _dismissReport(report),
+                              icon: Icon(Icons.check, size: 16.sp),
+                              label: const Text('Dismiss'),
+                              style: OutlinedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12.w,
+                                  vertical: 8.h,
+                                ),
+                              ),
+                            ),
                           ),
-                          OutlinedButton.icon(
-                            onPressed: () => _banReporter(report),
-                            icon: const Icon(Icons.block, size: 16),
-                            label: const Text('Ban User'),
+                          SizedBox(
+                            height: 36.h,
+                            child: OutlinedButton.icon(
+                              onPressed: () => _banReporter(report),
+                              icon: Icon(Icons.block, size: 16.sp),
+                              label: const Text('Ban User'),
+                              style: OutlinedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12.w,
+                                  vertical: 8.h,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -373,17 +409,29 @@ class _SocialFeedModerationPageState extends State<SocialFeedModerationPage> wit
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Content'),
-        content: const Text('Are you sure? This action cannot be undone.'),
+        title: Text(
+          'Delete Content',
+          style: TextStyle(fontSize: 18.sp),
+        ),
+        content: Text(
+          'Are you sure? This action cannot be undone.',
+          style: TextStyle(fontSize: 14.sp),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: TextStyle(fontSize: 14.sp),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(
+              'Delete',
+              style: TextStyle(fontSize: 14.sp),
+            ),
           ),
         ],
       ),
@@ -488,16 +536,28 @@ class _SocialFeedModerationPageState extends State<SocialFeedModerationPage> wit
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Unban User'),
-        content: const Text('Are you sure you want to unban this user?'),
+        title: Text(
+          'Unban User',
+          style: TextStyle(fontSize: 18.sp),
+        ),
+        content: Text(
+          'Are you sure you want to unban this user?',
+          style: TextStyle(fontSize: 14.sp),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: TextStyle(fontSize: 14.sp),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Unban'),
+            child: Text(
+              'Unban',
+              style: TextStyle(fontSize: 14.sp),
+            ),
           ),
         ],
       ),
@@ -547,79 +607,114 @@ class _BanUserDialogState extends State<_BanUserDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Ban ${widget.userName}'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Ban Type:'),
-            ...BanType.values.map((type) {
-              return RadioListTile<BanType>(
-                title: Text(type.displayName),
-                value: type,
-                groupValue: _selectedBanType,
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedBanType = value;
-                    });
-                  }
-                },
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-              );
-            }),
-            SizedBox(height: 16.h),
-            const Text('Reason:'),
-            SizedBox(height: 8.h),
-            TextField(
-              controller: _reasonController,
-              decoration: const InputDecoration(
-                hintText: 'Ban reason...',
-                border: OutlineInputBorder(),
+      title: Text(
+        'Ban ${widget.userName}',
+        style: TextStyle(fontSize: 18.sp),
+      ),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Ban Type:',
+                style: TextStyle(fontSize: 14.sp),
               ),
-              maxLines: 2,
-            ),
-            SizedBox(height: 16.h),
-            CheckboxListTile(
-              title: const Text('Permanent ban'),
-              value: _isPermanent,
-              onChanged: (value) {
-                setState(() {
-                  _isPermanent = value ?? false;
-                });
-              },
-              contentPadding: EdgeInsets.zero,
-            ),
-            if (!_isPermanent) ...[
-              const Text('Duration (days):'),
-              Slider(
-                value: _durationDays.toDouble(),
-                min: 1,
-                max: 90,
-                divisions: 89,
-                label: '$_durationDays days',
+              ...BanType.values.map((type) {
+                return RadioListTile<BanType>(
+                  title: Text(
+                    type.displayName,
+                    style: TextStyle(fontSize: 14.sp),
+                  ),
+                  value: type,
+                  groupValue: _selectedBanType,
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedBanType = value;
+                      });
+                    }
+                  },
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                );
+              }),
+              SizedBox(height: 16.h),
+              Text(
+                'Reason:',
+                style: TextStyle(fontSize: 14.sp),
+              ),
+              SizedBox(height: 8.h),
+              TextField(
+                controller: _reasonController,
+                decoration: InputDecoration(
+                  hintText: 'Ban reason...',
+                  hintStyle: TextStyle(fontSize: 14.sp),
+                  border: const OutlineInputBorder(),
+                ),
+                style: TextStyle(fontSize: 14.sp),
+                maxLines: 2,
+              ),
+              SizedBox(height: 16.h),
+              CheckboxListTile(
+                title: Text(
+                  'Permanent ban',
+                  style: TextStyle(fontSize: 14.sp),
+                ),
+                value: _isPermanent,
                 onChanged: (value) {
                   setState(() {
-                    _durationDays = value.toInt();
+                    _isPermanent = value ?? false;
                   });
                 },
+                contentPadding: EdgeInsets.zero,
               ),
+              if (!_isPermanent) ...[
+                Text(
+                  'Duration (days):',
+                  style: TextStyle(fontSize: 14.sp),
+                ),
+                Slider(
+                  value: _durationDays.toDouble(),
+                  min: 1,
+                  max: 90,
+                  divisions: 89,
+                  label: '$_durationDays days',
+                  onChanged: (value) {
+                    setState(() {
+                      _durationDays = value.toInt();
+                    });
+                  },
+                ),
+                Text(
+                  '$_durationDays days',
+                  style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(
+            'Cancel',
+            style: TextStyle(fontSize: 14.sp),
+          ),
         ),
         ElevatedButton(
           onPressed: () {
             if (_reasonController.text.trim().isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Please provide a reason')),
+                SnackBar(
+                  content: Text(
+                    'Please provide a reason',
+                    style: TextStyle(fontSize: 14.sp),
+                  ),
+                ),
               );
               return;
             }
@@ -631,7 +726,10 @@ class _BanUserDialogState extends State<_BanUserDialog> {
             });
           },
           style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-          child: const Text('Ban User'),
+          child: Text(
+            'Ban User',
+            style: TextStyle(fontSize: 14.sp),
+          ),
         ),
       ],
     );
