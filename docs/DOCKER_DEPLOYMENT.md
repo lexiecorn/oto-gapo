@@ -222,6 +222,221 @@ docker-compose down
 docker-compose up -d
 ```
 
+### Updating Your Locally Built Docker App (Portainer Workflow)
+
+This workflow is designed for updating the application when you build the Docker image locally on your server and manage containers via Portainer. This is the recommended approach when you have direct server access and want full control over the build process.
+
+#### Prerequisites
+
+- SSH access to your server
+- Docker installed on the server
+- Application code cloned to server (typically at `/opt/otogapo`)
+- Portainer installed and accessible via web interface
+- Existing stack deployed in Portainer named `otogapo`
+
+#### Step 1: Get the Latest Code
+
+**Location:** On your server (via SSH)
+
+1. Navigate to your project directory:
+
+   ```bash
+   cd /opt/otogapo
+   ```
+
+2. Pull the latest changes from your Git repository (usually the main branch):
+
+   ```bash
+   git pull origin main
+   ```
+
+   This ensures your server has the newest code before building.
+
+#### Step 2: Rebuild the Docker Image
+
+**Location:** On your server (via SSH)
+
+1. Make sure you are still in the `/opt/otogapo` directory.
+
+2. Run the docker build command to create a new image tagged as `latest` using the updated code:
+
+   ```bash
+   docker build -t otogapo-web:latest .
+   ```
+
+3. Wait for the build process to complete successfully. You should see output indicating:
+   - Flutter dependencies being installed
+   - Web app being built
+   - Nginx configuration being applied
+   - Image being tagged successfully
+
+**Note:** This builds the image locally on your server. The image is not pushed to a registry, so it's only available on this server.
+
+#### Step 3: Redeploy Using Portainer
+
+**Location:** Portainer Web Interface
+
+1. Log in to Portainer at your configured URL (e.g., `https://lexserver.org:9443`).
+
+2. Go to the **Stacks** menu from the left sidebar.
+
+3. Click on your **otogapo** stack from the list.
+
+4. Click the **Editor** tab at the top.
+
+5. **You do not need to change any text in the editor.** The existing `docker-compose.yml` configuration is fine.
+
+6. Scroll down and click the **Update the stack** button.
+
+7. **CRITICAL STEP:** In the confirmation pop-up window, locate the **"Re-pull image"** toggle switch.
+
+   - **Ensure this toggle is turned OFF** (disabled).
+   - This tells Portainer to use the image you just built locally (`otogapo-web:latest`).
+   - If this toggle is ON, Portainer will try to pull the image from a Docker registry, which will fail since your image is local-only.
+
+8. Click the **Update** button to confirm.
+
+9. Portainer will now:
+   - Stop the old container(s)
+   - Remove the old container(s)
+   - Start new container(s) using the fresh `otogapo-web:latest` image
+   - Deploy the latest version of your application
+
+#### Step 4: Verify the Deployment
+
+**Location:** Web browser or server
+
+1. **Check Portainer Container Status:**
+
+   - In Portainer, go to **Containers**
+   - Verify the `otogapo-web` container shows as "running" with a green status
+   - Check the creation time to confirm it's a newly created container
+
+2. **Check Application Logs:**
+
+   - Click on the `otogapo-web` container
+   - Click **Logs** to view recent output
+   - Look for any errors or warnings
+
+3. **Test the Application:**
+
+   - Open your application URL in a browser (e.g., `https://otogapo.lexserver.org`)
+   - Verify the application loads correctly
+   - Test key features to ensure everything works
+   - Check that your recent changes are visible
+
+4. **Server-Side Verification (Optional):**
+
+   ```bash
+   # Check running containers
+   docker ps
+
+   # View container logs
+   docker logs otogapo-web
+
+   # Check image was built recently
+   docker images | grep otogapo-web
+   ```
+
+#### Quick Reference Command Summary
+
+```bash
+# Full update workflow (command-line version)
+cd /opt/otogapo
+git pull origin main
+docker build -t otogapo-web:latest .
+
+# Then update via Portainer UI with "Re-pull image" OFF
+```
+
+#### Troubleshooting
+
+**Issue:** Portainer shows "Image not found" error
+
+**Solution:** Make sure you built the image with the exact tag name used in your `docker-compose.yml`:
+
+```bash
+docker build -t otogapo-web:latest .
+```
+
+**Issue:** Changes not visible after deployment
+
+**Solution:**
+
+1. Clear your browser cache
+2. Verify the container was actually recreated (check creation time in Portainer)
+3. Check if you pulled the correct branch: `git branch` and `git log -1`
+
+**Issue:** Application fails to start after update
+
+**Solution:**
+
+1. Check container logs in Portainer for error messages
+2. Verify the build completed successfully without errors
+3. Check if environment variables are still correct in the stack configuration
+4. Roll back by deploying the previous image if needed
+
+**Issue:** "Re-pull image" toggle not visible
+
+**Solution:**
+
+- Ensure you're on the **Editor** tab when clicking "Update the stack"
+- The toggle appears in the confirmation dialog, not in the main editor
+- Update Portainer if you're using a very old version
+
+#### Benefits of This Workflow
+
+- **Full Control:** Build exactly what's on your server, no surprise registry pulls
+- **Faster Deployment:** No need to push/pull from Docker registries
+- **No Registry Required:** Works without Docker Hub or other registry services
+- **Easy Testing:** Test builds locally before deploying
+- **Cost Effective:** No bandwidth costs for image transfers
+- **Transparent:** You see exactly what's being built
+
+#### Alternative: One-Command Update Script
+
+For even faster updates, you can create a script that combines steps 1 and 2:
+
+```bash
+# Create the script
+cat > /opt/otogapo/update_local.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "========================================="
+echo "Updating Oto Gapo Local Build"
+echo "========================================="
+
+cd /opt/otogapo
+
+echo "📥 Pulling latest code..."
+git pull origin main
+
+echo "🔨 Building Docker image..."
+docker build -t otogapo-web:latest .
+
+echo "✅ Build complete!"
+echo ""
+echo "Next steps:"
+echo "1. Open Portainer web interface"
+echo "2. Go to Stacks → otogapo → Editor"
+echo "3. Click 'Update the stack'"
+echo "4. Ensure 'Re-pull image' is OFF"
+echo "5. Click 'Update'"
+echo ""
+EOF
+
+chmod +x /opt/otogapo/update_local.sh
+```
+
+Then run it whenever you need to update:
+
+```bash
+/opt/otogapo/update_local.sh
+```
+
+This script automates steps 1 and 2, then reminds you to complete step 3 in Portainer.
+
 ### Environment-Specific Builds
 
 To deploy different environments, modify the Dockerfile build command:
