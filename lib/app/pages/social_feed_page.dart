@@ -200,16 +200,20 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
                     currentUserId: currentUserId,
                     userReaction: userReaction,
                     onReactionTap: () => _showReactionPicker(context, post.id),
-                    onCommentTap: () {
-                      context.router.push(PostDetailPageRouter(postId: post.id));
+                    onCommentTap: () async {
+                      await context.router.push(PostDetailPageRouter(postId: post.id));
+                      // Refresh post after returning from detail page
+                      _feedCubit.refreshPost(post.id);
                     },
                     onUserTap: () {
                       context.router.push(
                         UserPostsPageRouter(userId: post.userId),
                       );
                     },
-                    onImageTap: () {
-                      context.router.push(PostDetailPageRouter(postId: post.id));
+                    onImageTap: () async {
+                      await context.router.push(PostDetailPageRouter(postId: post.id));
+                      // Refresh post after returning from detail page
+                      _feedCubit.refreshPost(post.id);
                     },
                     onHashtagTap: (hashtag) {
                       context.router.push(

@@ -52,11 +52,12 @@ class FeedState extends Equatable {
   @override
   List<Object?> get props => [
         status,
-        posts,
+        posts.length,
+        posts.map((p) => '${p.id}-${p.likesCount}-${p.commentsCount}').join(','),
         currentPage,
         hasMore,
         errorMessage,
         selectedPost,
-        userReactions,
+        userReactions.toString(), // Convert to string to force comparison
       ];
 }

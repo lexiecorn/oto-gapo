@@ -2012,10 +2012,15 @@ class PocketBaseService {
       RecordModel result;
       if (existing.items.isNotEmpty) {
         // Update existing reaction
-        result = await pb.collection('post_reactions').update(
+        await pb.collection('post_reactions').update(
           existing.items.first.id,
           body: {'reaction_type': reactionType},
         );
+        // Fetch updated record with expanded user data
+        result = await pb.collection('post_reactions').getOne(
+              existing.items.first.id,
+              expand: 'user_id',
+            );
       } else {
         // Create new reaction
         result = await pb.collection('post_reactions').create(
@@ -2088,6 +2093,7 @@ class PocketBaseService {
       final result = await pb.collection('post_reactions').getList(
             filter: 'post_id = "$postId" && user_id = "$userId"',
             perPage: 1,
+            expand: 'user_id',
           );
 
       return result.items.isNotEmpty ? result.items.first : null;

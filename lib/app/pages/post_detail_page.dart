@@ -92,6 +92,15 @@ class _PostDetailPageState extends State<PostDetailPage> {
       await _commentCubit.addComment(widget.postId, commentText);
       _commentController.clear();
 
+      // Update local post comment count immediately
+      if (_post != null) {
+        setState(() {
+          _post = _post!.copyWith(
+            commentsCount: _post!.commentsCount + 1,
+          );
+        });
+      }
+
       // Refresh post to update comment count
       await _feedCubit.refreshPost(widget.postId);
     } catch (e) {

@@ -259,24 +259,45 @@ class FeedCubit extends Cubit<FeedState> {
   Future<void> toggleReaction(String postId, ReactionType type) async {
     try {
       final currentReaction = state.userReactions[postId];
+      print('FeedCubit - Current reaction: ${currentReaction?.reactionType.value}');
+      print('FeedCubit - New reaction type: ${type.value}');
 
       if (currentReaction?.reactionType == type) {
         // Same reaction, remove it
+        print('FeedCubit - Removing reaction');
         await pocketBaseService.removeReaction(
           postId: postId,
           userId: currentUserId,
         );
 
-        // Update local state
+        // Update local state - remove reaction
         final updatedReactions = Map<String, PostReaction?>.from(state.userReactions);
         updatedReactions[postId] = null;
 
-        emit(state.copyWith(userReactions: updatedReactions));
-
         // Decrement count
-        _updatePostReactionCount(postId, -1);
+        final postIndex = state.posts.indexWhere((p) => p.id == postId);
+        List<Post> updatedPosts = List<Post>.from(state.posts);
+        if (postIndex != -1) {
+          updatedPosts[postIndex] = updatedPosts[postIndex].copyWith(
+            likesCount: updatedPosts[postIndex].likesCount - 1,
+          );
+        }
+
+        print('FeedCubit - Emitting state with no reaction');
+
+        // Force a complete state update by creating entirely new state
+        emit(FeedState(
+          status: state.status,
+          posts: updatedPosts,
+          currentPage: state.currentPage,
+          hasMore: state.hasMore,
+          errorMessage: state.errorMessage,
+          selectedPost: state.selectedPost,
+          userReactions: updatedReactions,
+        ));
       } else {
         // Different reaction or new reaction
+        print('FeedCubit - Adding/updating reaction to ${type.value}');
         final record = await pocketBaseService.addReaction(
           postId: postId,
           userId: currentUserId,
@@ -284,18 +305,36 @@ class FeedCubit extends Cubit<FeedState> {
         );
 
         final reaction = PostReaction.fromRecord(record);
+        print('FeedCubit - Got reaction from record: ${reaction.reactionType.value}');
 
-        // Update local state
+        // Update local state with new reaction
         final updatedReactions = Map<String, PostReaction?>.from(state.userReactions);
         updatedReactions[postId] = reaction;
 
-        emit(state.copyWith(userReactions: updatedReactions));
-
-        // Update count (only if it was a new reaction)
-        if (currentReaction == null) {
-          _updatePostReactionCount(postId, 1);
+        // Update count (only if it was a new reaction, not changing)
+        final postIndex = state.posts.indexWhere((p) => p.id == postId);
+        List<Post> updatedPosts = List<Post>.from(state.posts);
+        if (postIndex != -1 && currentReaction == null) {
+          updatedPosts[postIndex] = updatedPosts[postIndex].copyWith(
+            likesCount: updatedPosts[postIndex].likesCount + 1,
+          );
         }
+
+        print('FeedCubit - Emitting state with reaction: ${reaction.reactionType.value}');
+
+        // Force a complete state update by creating entirely new state
+        emit(FeedState(
+          status: state.status,
+          posts: updatedPosts,
+          currentPage: state.currentPage,
+          hasMore: state.hasMore,
+          errorMessage: state.errorMessage,
+          selectedPost: state.selectedPost,
+          userReactions: updatedReactions,
+        ));
       }
+
+      print('FeedCubit - State after toggle: ${state.userReactions[postId]?.reactionType.value}');
     } catch (e) {
       print('Error toggling reaction: $e');
       rethrow;
@@ -352,7 +391,16 @@ class FeedCubit extends Cubit<FeedState> {
         final updatedPosts = List<Post>.from(state.posts);
         updatedPosts[postIndex] = updatedPost;
 
-        emit(state.copyWith(posts: updatedPosts));
+        // Force a complete state update
+        emit(FeedState(
+          status: state.status,
+          posts: updatedPosts,
+          currentPage: state.currentPage,
+          hasMore: state.hasMore,
+          errorMessage: state.errorMessage,
+          selectedPost: state.selectedPost,
+          userReactions: state.userReactions,
+        ));
       }
     } catch (e) {
       print('Error refreshing post: $e');

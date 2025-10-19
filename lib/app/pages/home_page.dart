@@ -19,7 +19,7 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 2; // Changed from 0 to 2 to default to Social Feed
   static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   final List<Widget> _widgetOptions = <Widget>[
     Container(
@@ -40,10 +40,17 @@ class HomePageState extends State<HomePage> {
   ];
 
   final List<IconData> _pageIcons = [
-    Icons.home_rounded,
+    Icons.tire_repair,
     Icons.person_rounded,
-    Icons.photo_library_rounded,
+    Icons.dynamic_feed_rounded,
     Icons.settings_rounded,
+  ];
+
+  final List<String> _pageLabels = [
+    'Otogapo',
+    'Profile',
+    'Feed',
+    'Settings',
   ];
 
   void _onItemTapped(int index) {
@@ -115,20 +122,20 @@ class HomePageState extends State<HomePage> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 30,
+              offset: const Offset(0, -10),
             ),
           ],
           borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(20),
+            top: Radius.circular(24),
           ),
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(
                 _pageIcons.length,
                 _buildNavItem,
@@ -154,29 +161,54 @@ class HomePageState extends State<HomePage> {
         ],
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.amber[600] : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
+          curve: Curves.easeInOutCubic,
+          padding: EdgeInsets.symmetric(
+            horizontal: isSelected ? 20.w : 12.w,
+            vertical: 10.h,
           ),
-          child: Column(
+          decoration: BoxDecoration(
+            gradient: isSelected
+                ? LinearGradient(
+                    colors: [
+                      Colors.amber[700]!,
+                      Colors.amber[500]!,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: isSelected ? null : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.amber[300]!.withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 _pageIcons[index],
                 color: isSelected ? Colors.white : Colors.grey[600],
-                size: 24,
+                size: isSelected ? 26 : 24,
               ),
-              const SizedBox(height: 4),
-              Text(
-                _pageTitles[index],
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.grey[600],
-                  fontSize: 12.sp,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              if (isSelected) ...[
+                SizedBox(width: 8.w),
+                Text(
+                  _pageLabels[index],
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
