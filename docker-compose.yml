@@ -1,55 +1,12 @@
-services:
-  # Flutter Web Application
-  otogapo-web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: otogapo-web
-    restart: unless-stopped
-    networks:
-      - otogapo-network
-    healthcheck:
-      test:
-        ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+version: "3.8"
 
-  # Nginx Reverse Proxy with SSL
-  nginx-proxy:
-    image: nginx:alpine
-    container_name: otogapo-nginx-proxy
+services:
+  otogapo:
+    # Use the image you built locally
+    image: otogapo-web:latest
+    container_name: otogapo
     restart: unless-stopped
     ports:
-      - "80:80"
+      # Expose your app on port 8089 on the server
+      # Make sure the internal port (after the colon) matches what your app uses (usually 80)
       - "8089:80"
-      - "443:443"
-    volumes:
-      - ./nginx/proxy.conf:/etc/nginx/conf.d/proxy.conf:ro
-      - ./certbot/conf:/etc/letsencrypt:ro
-      - ./certbot/www:/var/www/certbot:ro
-      - ./nginx/ssl-params.conf:/etc/nginx/ssl-params.conf:ro
-    networks:
-      - otogapo-network
-    depends_on:
-      - otogapo-web
-    command: '/bin/sh -c ''while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
-
-  # Certbot for SSL Certificate Management
-  certbot:
-    image: certbot/certbot
-    container_name: otogapo-certbot
-    restart: unless-stopped
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
-
-networks:
-  otogapo-network:
-    driver: bridge
-
-volumes:
-  certbot-conf:
-  certbot-www:
