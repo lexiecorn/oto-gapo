@@ -2509,4 +2509,461 @@ class PocketBaseService {
 
     return '$baseUrl/api/files/$collectionId/$recordId/$filename';
   }
+
+  // ============================================================
+  // SEARCH API METHODS
+  // ============================================================
+
+  /// Search posts with filters
+  Future<ResultList<RecordModel>> searchPosts({
+    required String query,
+    Map<String, dynamic>? filters,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      // Build filter string
+      final filterParts = <String>[];
+
+      // Text search in content
+      if (query.isNotEmpty) {
+        filterParts.add('(content ~ "$query")');
+      }
+
+      // Date filters
+      if (filters != null) {
+        if (filters['dateFrom'] != null) {
+          filterParts.add('created >= "${filters['dateFrom']}"');
+        }
+        if (filters['dateTo'] != null) {
+          filterParts.add('created <= "${filters['dateTo']}"');
+        }
+
+        // Author filter
+        if (filters['authorId'] != null) {
+          filterParts.add('author_id = "${filters['authorId']}"');
+        }
+
+        // Hashtag filter
+        if (filters['hashtags'] != null && (filters['hashtags'] as List).isNotEmpty) {
+          final hashtags = filters['hashtags'] as List<String>;
+          final hashtagFilters = hashtags.map((tag) => 'content ~ "#$tag"').join(' || ');
+          filterParts.add('($hashtagFilters)');
+        }
+      }
+
+      final filterString = filterParts.isNotEmpty ? filterParts.join(' && ') : '';
+
+      print('PocketBaseService - Search posts with filter: $filterString');
+
+      return await pb.collection('posts').getList(
+            page: page,
+            perPage: perPage,
+            filter: filterString,
+            sort: '-created',
+            expand: 'author_id',
+          );
+    } catch (e) {
+      print('PocketBaseService - Error searching posts: $e');
+      rethrow;
+    }
+  }
+
+  /// Search users
+  Future<ResultList<RecordModel>> searchUsers({
+    required String query,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      final filterParts = <String>[
+        '(firstName ~ "$query" || lastName ~ "$query" || email ~ "$query" || memberNumber ~ "$query")',
+      ];
+
+      final filterString = filterParts.join(' && ');
+
+      print('PocketBaseService - Search users with filter: $filterString');
+
+      return await pb.collection('users').getList(
+            page: page,
+            perPage: perPage,
+            filter: filterString,
+            sort: 'firstName,lastName',
+          );
+    } catch (e) {
+      print('PocketBaseService - Error searching users: $e');
+      rethrow;
+    }
+  }
+
+  // ============================================================
+  // CALENDAR API METHODS
+  // ============================================================
+
+  /// Get monthly attendance for a user
+  Future<Map<DateTime, dynamic>> getMonthlyAttendance({
+    required String userId,
+    required DateTime month,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      final startDate = DateTime(month.year, month.month);
+      final endDate = DateTime(month.year, month.month + 1);
+
+      final result = await pb.collection('attendance').getList(
+            filter:
+                'userId = "$userId" && meetingDate >= "${startDate.toIso8601String()}" && meetingDate < "${endDate.toIso8601String()}"',
+            perPage: 100,
+            sort: 'meetingDate',
+          );
+
+      final attendanceMap = <DateTime, dynamic>{};
+      for (final record in result.items) {
+        final dateStr = record.data['meetingDate'] as String?;
+        if (dateStr != null) {
+          final date = DateTime.parse(dateStr);
+          final normalizedDate = DateTime(date.year, date.month, date.day);
+          attendanceMap[normalizedDate] = record; // Store full RecordModel
+        }
+      }
+
+      print('PocketBaseService - Loaded ${attendanceMap.length} attendance records for ${month.year}-${month.month}');
+      return attendanceMap;
+    } catch (e) {
+      print('PocketBaseService - Error loading monthly attendance: $e');
+      rethrow;
+    }
+  }
+
+  /// Get attendance streak for a user
+  Future<dynamic> getAttendanceStreak(String userId) async {
+    try {
+      await _ensureAuthenticated();
+
+      // Get all attendance records for user, sorted by date
+      final result = await pb.collection('attendance').getList(
+            filter: 'userId = "$userId" && status = "present"',
+            perPage: 500,
+            sort: '-meetingDate',
+          );
+
+      if (result.items.isEmpty) {
+        return {
+          'currentStreak': 0,
+          'longestStreak': 0,
+          'lastAttendanceDate': null,
+        };
+      }
+
+      int currentStreak = 0;
+      int longestStreak = 0;
+      int tempStreak = 1;
+      DateTime? lastDate;
+      DateTime? lastAttendanceDate;
+
+      for (var i = 0; i < result.items.length; i++) {
+        final dateStr = result.items[i].data['meetingDate'] as String?;
+        if (dateStr == null) continue;
+
+        final date = DateTime.parse(dateStr);
+
+        if (i == 0) {
+          lastDate = date;
+          lastAttendanceDate = date;
+          currentStreak = 1;
+          continue;
+        }
+
+        // Check if consecutive
+        final daysDifference = lastDate!.difference(date).inDays;
+
+        if (daysDifference <= 7) {
+          // Consider within a week as consecutive for meetings
+          tempStreak++;
+          if (i == 1) currentStreak = tempStreak;
+        } else {
+          longestStreak = tempStreak > longestStreak ? tempStreak : longestStreak;
+          tempStreak = 1;
+        }
+
+        lastDate = date;
+      }
+
+      longestStreak = tempStreak > longestStreak ? tempStreak : longestStreak;
+
+      return {
+        'currentStreak': currentStreak,
+        'longestStreak': longestStreak,
+        'lastAttendanceDate': lastAttendanceDate?.toIso8601String(),
+      };
+    } catch (e) {
+      print('PocketBaseService - Error calculating attendance streak: $e');
+      return {
+        'currentStreak': 0,
+        'longestStreak': 0,
+        'lastAttendanceDate': null,
+      };
+    }
+  }
+
+  // ============================================================
+  // ADMIN ANALYTICS API METHODS
+  // ============================================================
+
+  /// Get admin dashboard statistics
+  Future<dynamic> getAdminDashboardStats() async {
+    try {
+      await _ensureAuthenticated();
+
+      // Get total users
+      final usersResult = await pb.collection('users').getList(perPage: 1);
+      final totalUsers = usersResult.totalItems;
+
+      // Get active today (users who posted or reacted today)
+      final today = DateTime.now();
+      final startOfDay = DateTime(today.year, today.month, today.day);
+      final activeResult = await pb.collection('posts').getList(
+            filter: 'created >= "${startOfDay.toIso8601String()}"',
+            perPage: 1,
+          );
+      final activeToday = activeResult.totalItems;
+
+      // Get meetings stats
+      final meetingsResult = await pb.collection('meetings').getList(perPage: 1);
+      final totalMeetings = meetingsResult.totalItems;
+
+      final upcomingResult = await pb.collection('meetings').getList(
+            filter: 'meetingDate >= "${DateTime.now().toIso8601String()}" && status = "scheduled"',
+            perPage: 1,
+          );
+      final upcomingMeetings = upcomingResult.totalItems;
+
+      // Get payment stats
+      final pendingPaymentsResult = await pb.collection('monthly_dues').getList(
+            filter: 'isPaid = false',
+            perPage: 1,
+          );
+      final pendingPayments = pendingPaymentsResult.totalItems;
+
+      // Calculate total revenue
+      final paidResult = await pb.collection('monthly_dues').getList(
+            filter: 'isPaid = true',
+            perPage: 500,
+          );
+      double totalRevenue = 0;
+      for (final record in paidResult.items) {
+        final amount = record.data['amount'] as num? ?? 0;
+        totalRevenue += amount.toDouble();
+      }
+
+      // Calculate average attendance
+      final attendanceResult = await pb.collection('meetings').getList(
+            filter: 'status = "completed"',
+            perPage: 100,
+          );
+      double totalAttendanceRate = 0;
+      int completedMeetings = 0;
+      for (final record in attendanceResult.items) {
+        final present = record.data['presentCount'] as int? ?? 0;
+        final absent = record.data['absentCount'] as int? ?? 0;
+        final total = present + absent;
+        if (total > 0) {
+          totalAttendanceRate += (present / total) * 100;
+          completedMeetings++;
+        }
+      }
+      final averageAttendance = completedMeetings > 0 ? totalAttendanceRate / completedMeetings : 0;
+
+      return {
+        'totalUsers': totalUsers,
+        'activeToday': activeToday,
+        'totalMeetings': totalMeetings,
+        'upcomingMeetings': upcomingMeetings,
+        'pendingPayments': pendingPayments,
+        'totalRevenue': totalRevenue,
+        'averageAttendance': averageAttendance,
+      };
+    } catch (e) {
+      print('PocketBaseService - Error loading dashboard stats: $e');
+      rethrow;
+    }
+  }
+
+  /// Get user growth data for charts
+  Future<List<dynamic>> getUserGrowthData(String period) async {
+    try {
+      await _ensureAuthenticated();
+
+      final now = DateTime.now();
+      DateTime startDate;
+      String groupBy;
+
+      switch (period) {
+        case 'week':
+          startDate = now.subtract(const Duration(days: 7));
+          groupBy = 'day';
+          break;
+        case 'year':
+          startDate = DateTime(now.year - 1, now.month, now.day);
+          groupBy = 'month';
+          break;
+        case 'month':
+        default:
+          startDate = DateTime(now.year, now.month - 1, now.day);
+          groupBy = 'day';
+          break;
+      }
+
+      final users = await pb.collection('users').getList(
+            filter: 'created >= "${startDate.toIso8601String()}"',
+            perPage: 500,
+            sort: 'created',
+          );
+
+      // Group by period
+      final dataMap = <String, int>{};
+      for (final user in users.items) {
+        final createdStr = user.data['created'] as String?;
+        if (createdStr != null) {
+          final created = DateTime.parse(createdStr);
+          String key;
+          if (groupBy == 'day') {
+            key =
+                '${created.year}-${created.month.toString().padLeft(2, '0')}-${created.day.toString().padLeft(2, '0')}';
+          } else {
+            key = '${created.year}-${created.month.toString().padLeft(2, '0')}';
+          }
+          dataMap[key] = (dataMap[key] ?? 0) + 1;
+        }
+      }
+
+      // Convert to chart data
+      return dataMap.entries.map((entry) {
+        return {
+          'label': entry.key,
+          'value': entry.value.toDouble(),
+        };
+      }).toList();
+    } catch (e) {
+      print('PocketBaseService - Error loading user growth data: $e');
+      return [];
+    }
+  }
+
+  /// Get attendance stats data for charts
+  Future<List<dynamic>> getAttendanceStatsData(String period) async {
+    try {
+      await _ensureAuthenticated();
+
+      final now = DateTime.now();
+      DateTime startDate;
+
+      switch (period) {
+        case 'week':
+          startDate = now.subtract(const Duration(days: 7));
+          break;
+        case 'year':
+          startDate = DateTime(now.year - 1, now.month, now.day);
+          break;
+        case 'month':
+        default:
+          startDate = DateTime(now.year, now.month - 1, now.day);
+          break;
+      }
+
+      final meetings = await pb.collection('meetings').getList(
+            filter: 'meetingDate >= "${startDate.toIso8601String()}" && status = "completed"',
+            perPage: 100,
+            sort: 'meetingDate',
+          );
+
+      return meetings.items.map((meeting) {
+        final date = meeting.data['meetingDate'] as String? ?? '';
+        final present = meeting.data['presentCount'] as int? ?? 0;
+        final absent = meeting.data['absentCount'] as int? ?? 0;
+        final total = present + absent;
+        final rate = total > 0 ? (present / total) * 100 : 0;
+
+        return {
+          'label': date.split('T')[0],
+          'value': rate,
+        };
+      }).toList();
+    } catch (e) {
+      print('PocketBaseService - Error loading attendance stats data: $e');
+      return [];
+    }
+  }
+
+  /// Get revenue data for charts
+  Future<List<dynamic>> getRevenueData(String period) async {
+    try {
+      await _ensureAuthenticated();
+
+      final now = DateTime.now();
+      DateTime startDate;
+
+      switch (period) {
+        case 'week':
+          startDate = now.subtract(const Duration(days: 7));
+          break;
+        case 'year':
+          startDate = DateTime(now.year - 1, now.month, now.day);
+          break;
+        case 'month':
+        default:
+          startDate = DateTime(now.year, now.month - 1, now.day);
+          break;
+      }
+
+      final payments = await pb.collection('monthly_dues').getList(
+            filter: 'isPaid = true && paidDate >= "${startDate.toIso8601String()}"',
+            perPage: 500,
+            sort: 'paidDate',
+          );
+
+      // Group by date
+      final dataMap = <String, double>{};
+      for (final payment in payments.items) {
+        final paidDateStr = payment.data['paidDate'] as String?;
+        final amount = payment.data['amount'] as num? ?? 0;
+        if (paidDateStr != null) {
+          final paidDate = DateTime.parse(paidDateStr);
+          final key =
+              '${paidDate.year}-${paidDate.month.toString().padLeft(2, '0')}-${paidDate.day.toString().padLeft(2, '0')}';
+          dataMap[key] = (dataMap[key] ?? 0) + amount.toDouble();
+        }
+      }
+
+      return dataMap.entries.map((entry) {
+        return {
+          'label': entry.key,
+          'value': entry.value,
+        };
+      }).toList();
+    } catch (e) {
+      print('PocketBaseService - Error loading revenue data: $e');
+      return [];
+    }
+  }
+
+  // ============================================================
+  // OFFLINE SYNC METHODS
+  // ============================================================
+
+  /// Sync pending offline actions
+  Future<void> syncPendingActions(List<dynamic> actions) async {
+    await _ensureAuthenticated();
+
+    for (final action in actions) {
+      // Action processing is handled by SyncService
+      // This method is a placeholder for any additional sync logic
+      print('PocketBaseService - Syncing action: ${action['type']}');
+    }
+  }
 }
