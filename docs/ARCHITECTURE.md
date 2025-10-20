@@ -159,6 +159,11 @@ App
 ├── ProfileCubit (Profile management state)
 ├── MeetingCubit (Meeting management state)
 ├── AttendanceCubit (Attendance tracking state)
+├── ConnectivityCubit (Network connectivity and sync state)
+├── SearchCubit (Search functionality state)
+├── CalendarCubit (Attendance calendar state)
+├── ProfileProgressCubit (Profile completion tracking)
+├── AdminAnalyticsCubit (Admin dashboard analytics)
 └── ThemeProvider (Theme state)
 ```
 
@@ -1442,6 +1447,176 @@ git pull origin main
 - Quick rollback: `docker-compose down && docker-compose up -d <previous-tag>`
 
 For detailed deployment instructions, see [Docker Deployment Guide](../DOCKER_DEPLOYMENT.md).
+
+## Offline Support Architecture
+
+### Overview
+
+The application includes comprehensive offline support allowing users to continue using the app without internet connectivity.
+
+### Components
+
+**1. ConnectivityService**
+
+- Monitors network connectivity using `connectivity_plus`
+- Provides real-time connectivity status stream
+- Singleton pattern for consistent monitoring
+
+**2. SyncService**
+
+- Queues offline actions using Hive
+- Auto-syncs when connectivity restored
+- Retry logic with max 3 attempts
+- Persistent storage of pending actions
+
+**3. ConnectivityCubit**
+
+- Exposes connectivity state to UI
+- Tracks pending action count
+- Triggers manual sync
+- Shows sync status (idle, pending, syncing, synced)
+
+### Offline Capabilities
+
+**What Works Offline**:
+
+- View cached posts (last 100)
+- View cached meetings
+- View user profile
+- Queue reactions and comments
+- Queue profile updates
+- Navigate between pages
+
+**What Requires Online**:
+
+- Initial authentication
+- Image uploads
+- Server-side search
+- Real-time updates
+- New data fetching
+
+### Sync Strategy
+
+**Priority Order**:
+
+1. Profile updates
+2. Post reactions/comments
+3. Attendance marking
+4. New posts
+5. User settings
+
+**Conflict Resolution**: Server wins, user notified of conflicts
+
+### UI Indicators
+
+- **ConnectivityBanner**: Sliding banner showing status
+- **Navigation Badge**: Red dot on Settings when pending actions
+- **Manual Sync**: Tap banner to trigger sync
+
+See [Offline Support Documentation](./OFFLINE_SUPPORT.md) for detailed information.
+
+## Animation System
+
+### Animation Packages
+
+1. **flutter_animate**: Widget-level animations
+2. **flutter_staggered_animations**: List/grid animations
+3. **shimmer**: Loading skeleton screens
+
+### Animation Patterns
+
+**Entry Animations**:
+
+- Page entry: Fade + Slide (400ms)
+- List items: Staggered slide (375ms)
+- Cards: Scale (300ms)
+
+**Loading States**:
+
+- Skeleton loaders with shimmer
+- Circular progress indicators
+- Loading placeholders
+
+**Micro-interactions**:
+
+- Button press: Scale (150ms)
+- Navigation: Haptic feedback
+- Badges: Pulsing animation
+
+**Success States**:
+
+- Completion: Elastic scale (500ms)
+- Streaks: Fire icon shimmer + shake
+
+See [Animations Guide](./ANIMATIONS_GUIDE.md) for complete documentation.
+
+## Advanced Features
+
+### Search System
+
+**SearchCubit**: Manages search state and history
+
+- Server-side post search with filters
+- User search by name, email, member number
+- Recent searches persistence
+- Search history management
+
+**Filters**:
+
+- Date range
+- Author
+- Hashtags
+
+**Implementation**: `lib/app/modules/search/`
+
+### Attendance Calendar
+
+**CalendarCubit**: Manages calendar state
+
+- Monthly attendance view
+- Color-coded attendance status
+- Streak calculation
+- Monthly statistics
+
+**Features**:
+
+- Visual calendar with table_calendar
+- Attendance streaks with fire icon
+- Monthly stats (present, late, absent, excused)
+- Date selection with details
+
+**Implementation**: `lib/app/pages/attendance_calendar_page.dart`
+
+### Profile Progress Tracking
+
+**ProfileProgressCubit**: Tracks profile completion
+
+- Calculates completion percentage
+- Identifies missing fields
+- Generates suggestions
+- Priority-based recommendations
+
+**Display**: Progress card with suggestions on profile page
+
+**Implementation**: `lib/app/modules/profile_progress/`
+
+### Admin Analytics Dashboard
+
+**AdminAnalyticsCubit**: Provides dashboard analytics
+
+- Real-time statistics
+- User growth charts
+- Attendance trends
+- Revenue tracking
+
+**Dashboard Stats**:
+
+- Total users
+- Active today
+- Pending payments
+- Average attendance rate
+
+**Implementation**: `lib/app/modules/admin_analytics/`
 
 ## Scalability Considerations
 

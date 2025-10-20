@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/social_feed/bloc/feed_cubit.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
@@ -90,16 +91,33 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
           preferredSize: Size.fromHeight(80.h),
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 8.h),
-            child: TabBar(
-              controller: _tabController,
-              labelColor: Colors.blue,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: Colors.grey.shade300,
-              indicatorWeight: 2,
-              dividerColor: Colors.grey.shade200,
-              tabs: const [
-                Tab(text: 'Feed', icon: Icon(Icons.home)),
-                Tab(text: 'My Posts', icon: Icon(Icons.person)),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TabBar(
+                    controller: _tabController,
+                    labelColor: Colors.blue,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: Colors.grey.shade300,
+                    indicatorWeight: 2,
+                    dividerColor: Colors.grey.shade200,
+                    tabs: const [
+                      Tab(text: 'Feed', icon: Icon(Icons.home)),
+                      Tab(text: 'My Posts', icon: Icon(Icons.person)),
+                    ],
+                  ),
+                ),
+                // Search Icon
+                Hero(
+                  tag: 'search_bar',
+                  child: IconButton(
+                    icon: const Icon(Icons.search, color: Colors.blue),
+                    onPressed: () {
+                      context.router.push(const SearchPageRouter());
+                    },
+                    tooltip: 'Search Posts',
+                  ),
+                ),
               ],
             ),
           ),
@@ -179,56 +197,67 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
 
             return RefreshIndicator(
               onRefresh: () => _feedCubit.loadFeed(refresh: true),
-              child: ListView.builder(
-                controller: _scrollController,
-                itemCount: state.hasMore ? state.posts.length + 1 : state.posts.length,
-                itemBuilder: (context, index) {
-                  if (index >= state.posts.length) {
-                    return Padding(
-                      padding: EdgeInsets.all(16.h),
-                      child: const Center(
-                        child: CircularProgressIndicator(),
+              child: AnimationLimiter(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  itemCount: state.hasMore ? state.posts.length + 1 : state.posts.length,
+                  itemBuilder: (context, index) {
+                    if (index >= state.posts.length) {
+                      return Padding(
+                        padding: EdgeInsets.all(16.h),
+                        child: const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+
+                    final post = state.posts[index];
+                    final userReaction = state.userReactions[post.id];
+
+                    return AnimationConfiguration.staggeredList(
+                      position: index,
+                      duration: const Duration(milliseconds: 375),
+                      child: SlideAnimation(
+                        verticalOffset: 50.0,
+                        child: FadeInAnimation(
+                          child: PostCardWidget(
+                            post: post,
+                            currentUserId: currentUserId,
+                            userReaction: userReaction,
+                            onReactionTap: () => _showReactionPicker(context, post.id),
+                            onCommentTap: () async {
+                              await context.router.push(PostDetailPageRouter(postId: post.id));
+                              // Refresh post after returning from detail page
+                              _feedCubit.refreshPost(post.id);
+                            },
+                            onUserTap: () {
+                              context.router.push(
+                                UserPostsPageRouter(userId: post.userId),
+                              );
+                            },
+                            onImageTap: () async {
+                              await context.router.push(PostDetailPageRouter(postId: post.id));
+                              // Refresh post after returning from detail page
+                              _feedCubit.refreshPost(post.id);
+                            },
+                            onHashtagTap: (hashtag) {
+                              context.router.push(
+                                HashtagPostsPageRouter(hashtag: hashtag),
+                              );
+                            },
+                            onMentionTap: (mention) {
+                              // TODO: Navigate to user profile
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Mentioned: @$mention')),
+                              );
+                            },
+                            onMoreTap: () => _showPostOptions(context, post),
+                          ),
+                        ),
                       ),
                     );
-                  }
-
-                  final post = state.posts[index];
-                  final userReaction = state.userReactions[post.id];
-
-                  return PostCardWidget(
-                    post: post,
-                    currentUserId: currentUserId,
-                    userReaction: userReaction,
-                    onReactionTap: () => _showReactionPicker(context, post.id),
-                    onCommentTap: () async {
-                      await context.router.push(PostDetailPageRouter(postId: post.id));
-                      // Refresh post after returning from detail page
-                      _feedCubit.refreshPost(post.id);
-                    },
-                    onUserTap: () {
-                      context.router.push(
-                        UserPostsPageRouter(userId: post.userId),
-                      );
-                    },
-                    onImageTap: () async {
-                      await context.router.push(PostDetailPageRouter(postId: post.id));
-                      // Refresh post after returning from detail page
-                      _feedCubit.refreshPost(post.id);
-                    },
-                    onHashtagTap: (hashtag) {
-                      context.router.push(
-                        HashtagPostsPageRouter(hashtag: hashtag),
-                      );
-                    },
-                    onMentionTap: (mention) {
-                      // TODO: Navigate to user profile
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Mentioned: @$mention')),
-                      );
-                    },
-                    onMoreTap: () => _showPostOptions(context, post),
-                  );
-                },
+                  },
+                ),
               ),
             );
           },
@@ -300,6 +329,42 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
 
     if (result != null) {
       await feedCubit.toggleReaction(postId, result);
+    }
+  }
+
+  Future<void> _showReportDialog(BuildContext context, String postId) async {
+    final authState = context.read<AuthBloc>().state;
+    final currentUserId = authState.user?.id ?? '';
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => const ReportDialogWidget(isPost: true),
+    );
+
+    if (result != null && context.mounted) {
+      final pocketBaseService = PocketBaseService();
+      try {
+        await pocketBaseService.reportPost(
+          postId: postId,
+          userId: currentUserId,
+          reportReason: (result['reason'] as ReportReason).value,
+          reportDetails: result['details'] as String?,
+        );
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Post reported successfully'),
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e')),
+          );
+        }
+      }
     }
   }
 
@@ -375,36 +440,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
                   ),
                   onTap: () async {
                     Navigator.pop(context);
-                    final result = await showDialog<Map<String, dynamic>>(
-                      context: context,
-                      builder: (context) => const ReportDialogWidget(isPost: true),
-                    );
-
-                    if (result != null && context.mounted) {
-                      final pocketBaseService = PocketBaseService();
-                      try {
-                        await pocketBaseService.reportPost(
-                          postId: post.id,
-                          userId: currentUserId,
-                          reportReason: (result['reason'] as ReportReason).value,
-                          reportDetails: result['details'] as String?,
-                        );
-
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Post reported successfully'),
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error: $e')),
-                          );
-                        }
-                      }
-                    }
+                    await _showReportDialog(context, post.id);
                   },
                 ),
               ListTile(

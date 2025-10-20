@@ -13,9 +13,9 @@ class ProfileCompletionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileProgressCubit, ProfileProgressState>(
       builder: (context, state) {
-        // Hide if fully completed
+        // Hide completely if fully completed
         if (state.isFullyCompleted) {
-          return _buildCompletedCard(context);
+          return const SizedBox.shrink();
         }
 
         return Card(
@@ -116,61 +116,6 @@ class ProfileCompletionCard extends StatelessWidget {
             );
       },
     );
-  }
-
-  Widget _buildCompletedCard(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.all(16.sp),
-      elevation: 2,
-      color: Colors.green.shade50,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(20.sp),
-        child: Row(
-          children: [
-            Icon(
-              Icons.check_circle,
-              color: Colors.green,
-              size: 32.sp,
-            )
-                .animate(
-                  onPlay: (controller) => controller.forward(),
-                )
-                .scale(
-                  duration: 500.ms,
-                  begin: const Offset(0, 0),
-                  end: const Offset(1, 1),
-                  curve: Curves.elasticOut,
-                ),
-            SizedBox(width: 16.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Profile Complete!',
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green.shade700,
-                    ),
-                  ),
-                  Text(
-                    'Your profile is 100% complete',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: Colors.green.shade600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    ).animate().fadeIn(duration: 400.ms);
   }
 
   Widget _buildSuggestionItem(

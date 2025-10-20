@@ -1,11 +1,17 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:otogapo/app/modules/connectivity/bloc/connectivity_cubit.dart';
+import 'package:otogapo/app/modules/connectivity/bloc/connectivity_state.dart';
 import 'package:otogapo/app/modules/profile/profile_page.dart';
 import 'package:otogapo/app/pages/home_body.dart';
 import 'package:otogapo/app/pages/settings_page.dart';
 import 'package:otogapo/app/pages/social_feed_page.dart';
+import 'package:otogapo/app/widgets/connectivity_banner.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @RoutePage(
   name: 'HomePageRouter',
@@ -21,6 +27,14 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   int _selectedIndex = 2; // Changed from 0 to 2 to default to Social Feed
   static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+  static const String _lastTabKey = 'last_selected_tab';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLastSelectedTab();
+  }
+
   final List<Widget> _widgetOptions = <Widget>[
     Container(
       width: double.infinity,
@@ -53,10 +67,31 @@ class HomePageState extends State<HomePage> {
     'Settings',
   ];
 
+  Future<void> _loadLastSelectedTab() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastTab = prefs.getInt(_lastTabKey);
+    if (lastTab != null && lastTab != _selectedIndex) {
+      setState(() {
+        _selectedIndex = lastTab;
+      });
+    }
+  }
+
+  Future<void> _saveLastSelectedTab(int index) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_lastTabKey, index);
+  }
+
   void _onItemTapped(int index) {
+    // Add haptic feedback
+    HapticFeedback.lightImpact();
+
     setState(() {
       _selectedIndex = index;
     });
+
+    // Save selected tab
+    _saveLastSelectedTab(index);
   }
 
   @override
@@ -68,34 +103,47 @@ class HomePageState extends State<HomePage> {
         // backgroundColor: Colors.grey.shade100,
         // backgroundColor: Colors.grey.shade100
         // ,
-        appBar: AppBar(
-          title: Text(
-            _pageTitles.elementAt(_selectedIndex),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(kToolbarHeight),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Connectivity Banner
+              const ConnectivityBanner(),
+              // AppBar
+              Flexible(
+                child: AppBar(
+                  title: Text(
+                    _pageTitles.elementAt(_selectedIndex),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  centerTitle: true,
+                  backgroundColor: Colors.black,
+                  elevation: 0,
+                  actions: _selectedIndex == 3
+                      ? [
+                          IconButton(
+                            icon: const Icon(Icons.refresh, color: Colors.white),
+                            onPressed: () {
+                              // Optionally: trigger a refresh in SettingsPage
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.help_outline, color: Colors.white),
+                            onPressed: () {
+                              // Optionally: show help dialog
+                            },
+                          ),
+                        ]
+                      : [],
+                ),
+              ),
+            ],
           ),
-          centerTitle: true,
-          backgroundColor: Colors.black,
-          elevation: 0,
-          actions: _selectedIndex == 3
-              ? [
-                  IconButton(
-                    icon: const Icon(Icons.refresh, color: Colors.white),
-                    onPressed: () {
-                      // Optionally: trigger a refresh in SettingsPage
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.help_outline, color: Colors.white),
-                    onPressed: () {
-                      // Optionally: show help dialog
-                    },
-                  ),
-                ]
-              : [],
         ),
         body: _widgetOptions.elementAt(_selectedIndex),
         bottomNavigationBar: _buildBottomNavigationBar(),
@@ -134,12 +182,16 @@ class HomePageState extends State<HomePage> {
         child: SafeArea(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(
-                _pageIcons.length,
-                _buildNavItem,
-              ),
+            child: BlocBuilder<ConnectivityCubit, ConnectivityState>(
+              builder: (context, connectivityState) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List.generate(
+                    _pageIcons.length,
+                    (index) => _buildNavItem(index, connectivityState),
+                  ),
+                );
+              },
             ),
           ),
         ),
@@ -147,8 +199,10 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildNavItem(int index) {
+  Widget _buildNavItem(int index, ConnectivityState connectivityState) {
     final isSelected = _selectedIndex == index;
+    final showBadge = _shouldShowBadge(index, connectivityState);
+
     return GestureDetector(
       onTap: () => _onItemTapped(index),
       child: Animate(
@@ -189,30 +243,66 @@ class HomePageState extends State<HomePage> {
                   ]
                 : null,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              Icon(
-                _pageIcons[index],
-                color: isSelected ? Colors.white : Colors.grey[600],
-                size: isSelected ? 26 : 24,
-              ),
-              if (isSelected) ...[
-                SizedBox(width: 8.w),
-                Text(
-                  _pageLabels[index],
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _pageIcons[index],
+                    color: isSelected ? Colors.white : Colors.grey[600],
+                    size: isSelected ? 26 : 24,
                   ),
+                  if (isSelected) ...[
+                    SizedBox(width: 8.w),
+                    Text(
+                      _pageLabels[index],
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              // Notification Badge
+              if (showBadge)
+                Positioned(
+                  right: -4,
+                  top: -4,
+                  child: Container(
+                    width: 10.w,
+                    height: 10.h,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  )
+                      .animate(
+                        onPlay: (controller) => controller.repeat(reverse: true),
+                      )
+                      .scale(
+                        duration: 1000.ms,
+                        begin: const Offset(0.8, 0.8),
+                        end: const Offset(1.2, 1.2),
+                      ),
                 ),
-              ],
             ],
           ),
         ),
       ),
     );
+  }
+
+  bool _shouldShowBadge(int index, ConnectivityState connectivityState) {
+    // Show badge on settings if offline or has pending actions
+    if (index == 3 && connectivityState.hasPendingActions) {
+      return true;
+    }
+    // Can add more badge logic here (e.g., unread notifications)
+    return false;
   }
 }

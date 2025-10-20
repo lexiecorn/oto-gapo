@@ -2743,22 +2743,47 @@ class PocketBaseService {
           );
       final upcomingMeetings = upcomingResult.totalItems;
 
-      // Get payment stats
-      final pendingPaymentsResult = await pb.collection('monthly_dues').getList(
-            filter: 'isPaid = false',
-            perPage: 1,
-          );
-      final pendingPayments = pendingPaymentsResult.totalItems;
-
-      // Calculate total revenue
-      final paidResult = await pb.collection('monthly_dues').getList(
-            filter: 'isPaid = true',
-            perPage: 500,
-          );
+      // Get payment stats - try both collections
+      int pendingPayments = 0;
       double totalRevenue = 0;
-      for (final record in paidResult.items) {
-        final amount = record.data['amount'] as num? ?? 0;
-        totalRevenue += amount.toDouble();
+
+      try {
+        final pendingPaymentsResult = await pb.collection('payment_transactions').getList(
+              filter: 'status = "pending"',
+              perPage: 1,
+            );
+        pendingPayments = pendingPaymentsResult.totalItems;
+
+        // Calculate total revenue
+        final paidResult = await pb.collection('payment_transactions').getList(
+              filter: 'status = "paid"',
+              perPage: 500,
+            );
+        for (final record in paidResult.items) {
+          final amount = record.data['amount'] as num? ?? 0;
+          totalRevenue += amount.toDouble();
+        }
+      } catch (e) {
+        // Fallback to monthly_dues if payment_transactions doesn't exist
+        try {
+          final pendingPaymentsResult = await pb.collection('monthly_dues').getList(
+                filter: 'isPaid = false',
+                perPage: 1,
+              );
+          pendingPayments = pendingPaymentsResult.totalItems;
+
+          final paidResult = await pb.collection('monthly_dues').getList(
+                filter: 'isPaid = true',
+                perPage: 500,
+              );
+          for (final record in paidResult.items) {
+            final amount = record.data['amount'] as num? ?? 0;
+            totalRevenue += amount.toDouble();
+          }
+        } catch (e) {
+          // Neither collection exists - set to 0
+          print('PocketBaseService - Payment collections not found: $e');
+        }
       }
 
       // Calculate average attendance
@@ -2921,16 +2946,33 @@ class PocketBaseService {
           break;
       }
 
-      final payments = await pb.collection('monthly_dues').getList(
-            filter: 'isPaid = true && paidDate >= "${startDate.toIso8601String()}"',
-            perPage: 500,
-            sort: 'paidDate',
-          );
+      // Try payment_transactions first, fallback to monthly_dues
+      List<dynamic> payments = [];
+      try {
+        final paymentsResult = await pb.collection('payment_transactions').getList(
+              filter: 'status = "paid" && created >= "${startDate.toIso8601String()}"',
+              perPage: 500,
+              sort: 'created',
+            );
+        payments = paymentsResult.items;
+      } catch (e) {
+        try {
+          final paymentsResult = await pb.collection('monthly_dues').getList(
+                filter: 'isPaid = true && paidDate >= "${startDate.toIso8601String()}"',
+                perPage: 500,
+                sort: 'paidDate',
+              );
+          payments = paymentsResult.items;
+        } catch (e) {
+          print('PocketBaseService - No payment collections found: $e');
+          return [];
+        }
+      }
 
       // Group by date
       final dataMap = <String, double>{};
-      for (final payment in payments.items) {
-        final paidDateStr = payment.data['paidDate'] as String?;
+      for (final payment in payments) {
+        final paidDateStr = payment.data['paidDate'] as String? ?? payment.data['created'] as String?;
         final amount = payment.data['amount'] as num? ?? 0;
         if (paidDateStr != null) {
           final paidDate = DateTime.parse(paidDateStr);

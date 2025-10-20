@@ -5,11 +5,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:authentication_repository/authentication_repository.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
+import 'package:otogapo/app/modules/profile_progress/bloc/profile_progress_cubit.dart';
 import 'package:otogapo/app/pages/car_widget.dart';
 import 'package:otogapo/app/pages/current_user_account_page.dart';
 import 'package:otogapo/app/pages/id_card.dart';
+import 'package:otogapo/app/widgets/profile_completion_card.dart';
 
 @RoutePage(
   name: 'ProfilePageRouter',
@@ -70,6 +73,11 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     }
   }
 
+  void _updateProfileProgress(User user) {
+    // Update profile progress whenever user data changes
+    context.read<ProfileProgressCubit>().calculateCompletion(user);
+  }
+
   @override
   void dispose() {
     _pageAnimationController.dispose();
@@ -116,6 +124,9 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
             return _buildEmptyUserScreen(context, state);
           }
 
+          // Update profile progress
+          _updateProfileProgress(state.user);
+
           return RefreshIndicator(
             onRefresh: () async {
               // Add a subtle animation when refreshing
@@ -135,6 +146,8 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                   bottom: 20,
                 ),
                 children: [
+                  // Profile Completion Card
+                  const ProfileCompletionCard(),
                   // Profile Card with enhanced animation
                   FutureBuilder<Widget>(
                     future: _userProfileCard(state),

@@ -4,15 +4,24 @@ import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:local_storage/local_storage.dart';
+import 'package:otogapo/app/modules/admin_analytics/bloc/admin_analytics_cubit.dart';
 import 'package:otogapo/app/modules/attendance/bloc/attendance_cubit.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
+import 'package:otogapo/app/modules/calendar/bloc/calendar_cubit.dart';
+import 'package:otogapo/app/modules/connectivity/bloc/connectivity_cubit.dart';
 import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
+import 'package:otogapo/app/modules/profile_progress/bloc/profile_progress_cubit.dart';
+import 'package:otogapo/app/modules/search/bloc/search_cubit.dart';
 import 'package:otogapo/app/modules/signin/bloc/signin_cubit.dart';
 import 'package:otogapo/app/modules/signup/signup_cubit.dart';
 import 'package:otogapo/app/routes/app_router.dart';
 import 'package:otogapo/bootstrap.dart';
 import 'package:otogapo/providers/theme_provider.dart';
+import 'package:otogapo/services/connectivity_service.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo/services/sync_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -112,6 +121,32 @@ class App extends StatelessWidget {
               BlocProvider<AttendanceCubit>(
                 create: (context) => AttendanceCubit(
                   attendanceRepository: context.read<AttendanceRepository>(),
+                ),
+              ),
+              // New Cubits for advanced features
+              BlocProvider<ConnectivityCubit>(
+                create: (context) => ConnectivityCubit(
+                  connectivityService: ConnectivityService(),
+                  syncService: SyncService(),
+                ),
+              ),
+              BlocProvider<SearchCubit>(
+                create: (context) => SearchCubit(
+                  pocketBaseService: PocketBaseService(),
+                  localStorage: const LocalStorage(),
+                ),
+              ),
+              BlocProvider<CalendarCubit>(
+                create: (context) => CalendarCubit(
+                  pocketBaseService: PocketBaseService(),
+                ),
+              ),
+              BlocProvider<ProfileProgressCubit>(
+                create: (context) => ProfileProgressCubit(),
+              ),
+              BlocProvider<AdminAnalyticsCubit>(
+                create: (context) => AdminAnalyticsCubit(
+                  pocketBaseService: PocketBaseService(),
                 ),
               ),
             ],

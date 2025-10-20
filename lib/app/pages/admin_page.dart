@@ -1,13 +1,17 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:otogapo/app/modules/auth/auth_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:otogapo/app/modules/admin_analytics/bloc/admin_analytics_cubit.dart';
+import 'package:otogapo/app/modules/admin_analytics/bloc/admin_analytics_state.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/analytics_page.dart';
 import 'package:otogapo/app/pages/gallery_management_page.dart';
 import 'package:otogapo/app/pages/payment_management_page_new.dart';
 import 'package:otogapo/app/pages/user_management_page.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
+import 'package:otogapo/app/widgets/admin_stat_card.dart';
+import 'package:otogapo/app/widgets/skeleton_loader.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 
 class AdminPage extends StatefulWidget {
@@ -19,13 +23,21 @@ class AdminPage extends StatefulWidget {
 
 class _AdminPageState extends State<AdminPage> {
   bool _isLoading = true;
-  Map<String, dynamic>? _currentUserData;
   bool _isAdmin = false;
 
   @override
   void initState() {
     super.initState();
     _loadCurrentUserData();
+    _loadAnalytics();
+  }
+
+  Future<void> _loadAnalytics() async {
+    // Wait a bit for user data to load
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    if (mounted && _isAdmin) {
+      context.read<AdminAnalyticsCubit>().loadDashboardStats();
+    }
   }
 
   Future<void> _loadCurrentUserData() async {
@@ -36,12 +48,6 @@ class _AdminPageState extends State<AdminPage> {
 
       if (profileState.profileStatus == ProfileStatus.loaded && profileUser.uid.isNotEmpty) {
         setState(() {
-          _currentUserData = {
-            'firstName': profileUser.firstName,
-            'lastName': profileUser.lastName,
-            'memberNumber': profileUser.memberNumber,
-            'membership_type': profileUser.membership_type,
-          };
           _isAdmin = (profileUser.membership_type == 1) || (profileUser.membership_type == 2);
           _isLoading = false;
         });
@@ -49,14 +55,13 @@ class _AdminPageState extends State<AdminPage> {
       }
 
       // Fallback: resolve PocketBase user by email
-      final authState = context.read<AuthBloc>().state;
-      if (authState.user != null) {
-        final pocketBaseService = PocketBaseService();
-        final rec = await pocketBaseService.getUserByEmail(authState.user!.data['email'].toString());
-        final userData = rec?.data;
+      final pocketBaseService = PocketBaseService();
+      final authBloc = context.read<ProfileCubit>();
+      final profileUserFallback = authBloc.state.user;
+      
+      if (profileUserFallback.uid.isNotEmpty) {
         setState(() {
-          _currentUserData = userData;
-          _isAdmin = (userData?['membership_type'] == 1) || (userData?['membership_type'] == 2);
+          _isAdmin = (profileUserFallback.membership_type == 1) || (profileUserFallback.membership_type == 2);
           _isLoading = false;
         });
       } else {
@@ -112,47 +117,102 @@ class _AdminPageState extends State<AdminPage> {
       appBar: AppBar(
         title: const Text('Admin Panel'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              context.read<AdminAnalyticsCubit>().refreshAll();
+            },
+            tooltip: 'Refresh Dashboard',
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Admin Information',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (_currentUserData != null) ...[
-                      Text('Name: ${_currentUserData!['firstName'] ?? ''} ${_currentUserData!['lastName'] ?? ''}'),
-                      Text('Email: ${_currentUserData!['email'] ?? ''}'),
-                      Text('Member Number: ${_currentUserData!['memberNumber'] ?? ''}'),
-                      Text('Role: ${_getMembershipTypeText(_currentUserData!['membership_type'])}'),
-                    ],
-                  ],
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await context.read<AdminAnalyticsCubit>().refreshAll();
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Dashboard Statistics
+              BlocBuilder<AdminAnalyticsCubit, AdminAnalyticsState>(
+                builder: (context, analyticsState) {
+                  if (analyticsState.isLoading) {
+                    return SizedBox(
+                      height: 200.h,
+                      child: const SkeletonGrid(itemCount: 4),
+                    );
+                  }
+
+                  if (analyticsState.hasData) {
+                    final stats = analyticsState.dashboardStats;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Dashboard Overview',
+                          style: TextStyle(
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+                        GridView.count(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12.w,
+                          mainAxisSpacing: 12.h,
+                          childAspectRatio: 1.5,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          children: [
+                            AdminStatCard(
+                              title: 'Total Users',
+                              value: stats.totalUsers.toString(),
+                              icon: Icons.people,
+                              color: Colors.blue.shade600,
+                            ),
+                            AdminStatCard(
+                              title: 'Active Today',
+                              value: stats.activeToday.toString(),
+                              icon: Icons.online_prediction,
+                              color: Colors.green.shade600,
+                            ),
+                            AdminStatCard(
+                              title: 'Pending Payments',
+                              value: stats.pendingPayments.toString(),
+                              icon: Icons.payment,
+                              color: Colors.orange.shade600,
+                            ),
+                            AdminStatCard(
+                              title: 'Avg Attendance',
+                              value: '${stats.averageAttendance.toStringAsFixed(1)}%',
+                              icon: Icons.show_chart,
+                              color: Colors.purple.shade600,
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 24.h),
+                      ],
+                    );
+                  }
+
+                  return const SizedBox.shrink();
+                },
+              ),
+
+              const Text(
+                'Admin Functions',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Admin Functions',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: GridView.count(
+              const SizedBox(height: 16),
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
@@ -230,8 +290,9 @@ class _AdminPageState extends State<AdminPage> {
                   ),
                 ],
               ),
-            ),
-          ],
+              SizedBox(height: 20.h),
+            ],
+          ),
         ),
       ),
     );
@@ -287,18 +348,5 @@ class _AdminPageState extends State<AdminPage> {
         ),
       ),
     );
-  }
-
-  String _getMembershipTypeText(dynamic membershipType) {
-    switch (membershipType) {
-      case 1:
-        return 'Super Admin';
-      case 2:
-        return 'Admin';
-      case 3:
-        return 'Member';
-      default:
-        return 'Unknown';
-    }
   }
 }

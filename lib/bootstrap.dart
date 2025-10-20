@@ -21,8 +21,12 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:get_it/get_it.dart';
 import 'package:local_storage/local_storage.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:otogapo/app/routes/app_router.dart';
+import 'package:otogapo/models/cached_data.dart';
+import 'package:otogapo/services/connectivity_service.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo/services/sync_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 /// Global GetIt instance for dependency injection.
@@ -110,16 +114,30 @@ Future<void> bootstrap(
   final pocketBaseService = PocketBaseService();
   // Don't initialize PocketBase immediately - let it initialize when first used
 
+  // Initialize local storage FIRST (initializes Hive)
+  const storage = LocalStorage();
+  await storage.init();
+
+  // Register Hive type adapters for cached data models BEFORE opening boxes
+  Hive.registerAdapter(CachedPostAdapter());
+  Hive.registerAdapter(CachedMeetingAdapter());
+  Hive.registerAdapter(CachedUserProfileAdapter());
+  Hive.registerAdapter(OfflineActionAdapter());
+  Hive.registerAdapter(OfflineActionTypeAdapter());
+
+  // Initialize Connectivity and Sync services AFTER Hive is ready
+  final connectivityService = ConnectivityService();
+  final syncService = SyncService();
+  await syncService.init(); // Initialize sync service with Hive boxes
+
   // Initialized the router.
   getIt
     // Make the dio client available globally.
     ..registerSingleton<AppRouter>(AppRouter())
     ..registerSingleton<Dio>(dio)
-    ..registerSingleton<PocketBaseService>(pocketBaseService);
-
-  const storage = LocalStorage();
-
-  await storage.init();
+    ..registerSingleton<PocketBaseService>(pocketBaseService)
+    ..registerSingleton<ConnectivityService>(connectivityService)
+    ..registerSingleton<SyncService>(syncService);
 
   // Initialize repositories
   final authRepository = AuthRepository(

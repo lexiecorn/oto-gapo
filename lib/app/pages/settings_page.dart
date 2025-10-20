@@ -232,7 +232,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 24),
 
-            // Quick Actions - 2 Column Layout
+            // Quick Actions
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.sp),
               child: Row(
@@ -240,7 +240,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   Expanded(
                     child: _QuickActionButton(
                       icon: Icons.qr_code,
-                      label: 'Check-in',
+                      label: 'My QR Code',
                       onTap: () {
                         context.router.push(const UserQRCodePageRouter());
                       },
@@ -249,10 +249,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   SizedBox(width: 12.w),
                   Expanded(
                     child: _QuickActionButton(
-                      icon: Icons.event_available,
-                      label: 'My Attendance',
+                      icon: Icons.calendar_month,
+                      label: 'Calendar View',
                       onTap: () {
-                        context.router.push(const UserAttendanceHistoryPageRouter());
+                        context.router.push(const AttendanceCalendarPageRouter());
                       },
                     ),
                   ),

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart' as meeting_cubit;
 import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/app/widgets/meeting_card.dart';
@@ -217,28 +218,39 @@ class _MeetingsList extends StatelessWidget {
       onRefresh: () async {
         await context.read<meeting_cubit.MeetingCubit>().loadUpcomingMeetings();
       },
-      child: ListView.builder(
-        controller: scrollController,
-        padding: EdgeInsets.only(top: 8.h, bottom: 80.h),
-        itemCount: state.meetings.length + (state.hasMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == state.meetings.length) {
-            return Padding(
-              padding: EdgeInsets.all(16.w),
-              child: const Center(child: CircularProgressIndicator()),
-            );
-          }
-
-          final meeting = state.meetings[index];
-          return MeetingCard(
-            meeting: meeting,
-            onTap: () {
-              context.router.push(
-                MeetingDetailsPageRouter(meetingId: meeting.id),
+      child: AnimationLimiter(
+        child: ListView.builder(
+          controller: scrollController,
+          padding: EdgeInsets.only(top: 8.h, bottom: 80.h),
+          itemCount: state.meetings.length + (state.hasMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == state.meetings.length) {
+              return Padding(
+                padding: EdgeInsets.all(16.w),
+                child: const Center(child: CircularProgressIndicator()),
               );
-            },
-          );
-        },
+            }
+
+            final meeting = state.meetings[index];
+            return AnimationConfiguration.staggeredList(
+              position: index,
+              duration: const Duration(milliseconds: 375),
+              child: SlideAnimation(
+                verticalOffset: 50.0,
+                child: FadeInAnimation(
+                  child: MeetingCard(
+                    meeting: meeting,
+                    onTap: () {
+                      context.router.push(
+                        MeetingDetailsPageRouter(meetingId: meeting.id),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

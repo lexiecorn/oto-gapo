@@ -16,15 +16,28 @@ class AdminAnalyticsCubit extends Cubit<AdminAnalyticsState> {
     emit(state.copyWith(status: AnalyticsStatus.loading));
 
     try {
-      final stats = await _pocketBaseService.getAdminDashboardStats();
+      final rawStats = await _pocketBaseService.getAdminDashboardStats();
+
+      // Convert dynamic map to DashboardStats
+      final statsMap = rawStats as Map<String, dynamic>;
+      final stats = DashboardStats(
+        totalUsers: statsMap['totalUsers'] as int? ?? 0,
+        activeToday: statsMap['activeToday'] as int? ?? 0,
+        totalMeetings: statsMap['totalMeetings'] as int? ?? 0,
+        upcomingMeetings: statsMap['upcomingMeetings'] as int? ?? 0,
+        pendingPayments: statsMap['pendingPayments'] as int? ?? 0,
+        totalRevenue: (statsMap['totalRevenue'] as num?)?.toDouble() ?? 0.0,
+        averageAttendance: (statsMap['averageAttendance'] as num?)?.toDouble() ?? 0.0,
+      );
 
       emit(
         state.copyWith(
           status: AnalyticsStatus.loaded,
-          dashboardStats: stats as DashboardStats,
+          dashboardStats: stats,
         ),
       );
     } catch (e) {
+      print('AdminAnalyticsCubit - Error loading dashboard stats: $e');
       emit(
         state.copyWith(
           status: AnalyticsStatus.error,
