@@ -240,8 +240,9 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
                                     _feedCubit.refreshPost(post.id);
                                   },
                                   onUserTap: () {
+                                    // Navigate to user's profile page
                                     context.router.push(
-                                      UserPostsPageRouter(userId: post.userId),
+                                      ProfilePageRouter(userId: post.userId),
                                     );
                                   },
                                   onImageTap: () async {

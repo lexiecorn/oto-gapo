@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/social_feed/bloc/comment_cubit.dart';
 import 'package:otogapo/app/modules/social_feed/bloc/feed_cubit.dart';
+import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/models/post.dart';
 import 'package:otogapo/models/post_comment.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
@@ -172,19 +173,25 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   children: [
                     // User header
                     ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: _post!.userProfileImage != null && _post!.userProfileImage!.isNotEmpty
-                            ? CachedNetworkImageProvider(
-                                '${pocketBaseService.baseUrl}/api/files/users/${_post!.userId}/${_post!.userProfileImage}',
-                              )
-                            : null,
-                        child: _post!.userProfileImage == null || _post!.userProfileImage!.isEmpty
-                            ? const Icon(Icons.person)
-                            : null,
+                      leading: GestureDetector(
+                        onTap: () => _navigateToUserProfile(_post!.userId),
+                        child: CircleAvatar(
+                          backgroundImage: _post!.userProfileImage != null && _post!.userProfileImage!.isNotEmpty
+                              ? CachedNetworkImageProvider(
+                                  '${pocketBaseService.baseUrl}/api/files/users/${_post!.userId}/${_post!.userProfileImage}',
+                                )
+                              : null,
+                          child: _post!.userProfileImage == null || _post!.userProfileImage!.isEmpty
+                              ? const Icon(Icons.person)
+                              : null,
+                        ),
                       ),
-                      title: Text(
-                        _post!.userName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      title: GestureDetector(
+                        onTap: () => _navigateToUserProfile(_post!.userId),
+                        child: Text(
+                          _post!.userName,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                       subtitle: Text(timeago.format(_post!.createdAt)),
                     ),
@@ -288,23 +295,29 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             final comment = state.comments[index];
 
                             return ListTile(
-                              leading: CircleAvatar(
-                                radius: 16.r,
-                                backgroundImage:
-                                    comment.userProfileImage != null && comment.userProfileImage!.isNotEmpty
-                                        ? CachedNetworkImageProvider(
-                                            '${pocketBaseService.baseUrl}/api/files/users/${comment.userId}/${comment.userProfileImage}',
-                                          )
-                                        : null,
-                                child: comment.userProfileImage == null || comment.userProfileImage!.isEmpty
-                                    ? Icon(Icons.person, size: 16.sp)
-                                    : null,
+                              leading: GestureDetector(
+                                onTap: () => _navigateToUserProfile(comment.userId),
+                                child: CircleAvatar(
+                                  radius: 16.r,
+                                  backgroundImage:
+                                      comment.userProfileImage != null && comment.userProfileImage!.isNotEmpty
+                                          ? CachedNetworkImageProvider(
+                                              '${pocketBaseService.baseUrl}/api/files/users/${comment.userId}/${comment.userProfileImage}',
+                                            )
+                                          : null,
+                                  child: comment.userProfileImage == null || comment.userProfileImage!.isEmpty
+                                      ? Icon(Icons.person, size: 16.sp)
+                                      : null,
+                                ),
                               ),
-                              title: Text(
-                                comment.userName,
-                                style: TextStyle(
-                                  fontSize: 13.sp,
-                                  fontWeight: FontWeight.bold,
+                              title: GestureDetector(
+                                onTap: () => _navigateToUserProfile(comment.userId),
+                                child: Text(
+                                  comment.userName,
+                                  style: TextStyle(
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               subtitle: Column(
@@ -482,6 +495,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
           ),
         );
       },
+    );
+  }
+
+  void _navigateToUserProfile(String userId) {
+    // Navigate to user's profile page
+    context.router.push(
+      ProfilePageRouter(userId: userId),
     );
   }
 }

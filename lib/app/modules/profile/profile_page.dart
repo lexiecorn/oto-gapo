@@ -18,7 +18,13 @@ import 'package:otogapo/app/widgets/profile_completion_card.dart';
   name: 'ProfilePageRouter',
 )
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  const ProfilePage({
+    this.userId,
+    super.key,
+  });
+
+  /// Optional userId to view another user's profile. If null, shows current user's profile
+  final String? userId;
 
   @override
   ProfilePageState createState() => ProfilePageState();
@@ -64,12 +70,19 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
   }
 
   void _initializeProfile() {
-    final currentAuthUser = context.read<AuthBloc>().state.user;
-    if (currentAuthUser != null) {
-      print('Profile Page - Initializing profile for authenticated user: ${currentAuthUser.id}');
-      context.read<ProfileCubit>().getProfile();
+    if (widget.userId != null) {
+      // Viewing another user's profile
+      print('Profile Page - Loading profile for user: ${widget.userId}');
+      context.read<ProfileCubit>().getProfileByUserId(widget.userId!);
     } else {
-      print('Profile Page - No authenticated user found');
+      // Viewing own profile
+      final currentAuthUser = context.read<AuthBloc>().state.user;
+      if (currentAuthUser != null) {
+        print('Profile Page - Initializing profile for authenticated user: ${currentAuthUser.id}');
+        context.read<ProfileCubit>().getProfile();
+      } else {
+        print('Profile Page - No authenticated user found');
+      }
     }
   }
 
@@ -86,100 +99,127 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 
   @override
   Widget build(BuildContext context) {
+    // Determine if viewing own profile or another user's profile
+    final currentAuthUser = context.read<AuthBloc>().state.user;
+    final isViewingOwnProfile =
+        widget.userId == null || (currentAuthUser != null && widget.userId == currentAuthUser.id);
+
+    // Show AppBar if userId is provided (viewing someone else's profile from social feed)
+    final showAppBar = widget.userId != null;
+
     return Scaffold(
-      body: BlocConsumer<ProfileCubit, ProfileState>(
-        listener: (context, state) {},
-        builder: (context, state) {
-          // Add debugging
-          print('Profile Page - Profile Status: ${state.profileStatus}');
-          print('Profile Page - User Member Number: "${state.user.memberNumber}"');
-          print('Profile Page - User First Name: "${state.user.firstName}"');
-          print('Profile Page - User Last Name: "${state.user.lastName}"');
-          print('Profile Page - User Membership Type: ${state.user.membership_type}');
-          print('Profile Page - User UID: "${state.user.uid}"');
+      appBar: showAppBar
+          ? AppBar(
+              title: const Text('Profile'),
+              centerTitle: true,
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+            )
+          : null,
+      body: SafeArea(
+        child: BlocConsumer<ProfileCubit, ProfileState>(
+          listener: (context, state) {},
+          builder: (context, state) {
+            // Add debugging
+            print('Profile Page - Profile Status: ${state.profileStatus}');
+            print('Profile Page - User Member Number: "${state.user.memberNumber}"');
+            print('Profile Page - User First Name: "${state.user.firstName}"');
+            print('Profile Page - User Last Name: "${state.user.lastName}"');
+            print('Profile Page - User Membership Type: ${state.user.membership_type}');
+            print('Profile Page - User UID: "${state.user.uid}"');
 
-          // Check if the current authenticated user is different from the profile user
-          final currentAuthUser = context.read<AuthBloc>().state.user;
-          if (currentAuthUser != null && state.user.uid.isNotEmpty && state.user.uid != currentAuthUser.id) {
-            print('Profile Page - User mismatch detected!');
-            print('Profile Page - Auth user UID: ${currentAuthUser.id}');
-            print('Profile Page - Profile user UID: ${state.user.uid}');
-            print('Profile Page - Force clearing profile for new user');
-            context.read<ProfileCubit>().forceClear();
-            // Immediately fetch profile without artificial delay
-            context.read<ProfileCubit>().getProfile();
-          }
-
-          if (state.profileStatus == ProfileStatus.initial) {
-            // Show loading screen while initializing
-            return _buildLoadingScreen();
-          } else if (state.profileStatus == ProfileStatus.loading) {
-            return _buildLoadingScreen();
-          } else if (state.profileStatus == ProfileStatus.error) {
-            return _buildErrorScreen();
-          }
-
-          // Debug display for development
-          if (state.user.firstName.isEmpty && state.user.lastName.isEmpty) {
-            return _buildEmptyUserScreen(context, state);
-          }
-
-          // Update profile progress
-          _updateProfileProgress(state.user);
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              // Add a subtle animation when refreshing
-              _pageAnimationController.reset();
-              _pageAnimationController.forward();
-
-              // Refresh the profile data
+            // Only check for mismatch if viewing own profile
+            if (isViewingOwnProfile &&
+                currentAuthUser != null &&
+                state.user.uid.isNotEmpty &&
+                state.user.uid != currentAuthUser.id) {
+              print('Profile Page - User mismatch detected!');
+              print('Profile Page - Auth user UID: ${currentAuthUser.id}');
+              print('Profile Page - Profile user UID: ${state.user.uid}');
+              print('Profile Page - Force clearing profile for new user');
+              context.read<ProfileCubit>().forceClear();
+              // Immediately fetch profile without artificial delay
               context.read<ProfileCubit>().getProfile();
-            },
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: ListView(
-                padding: EdgeInsets.only(
-                  top: 20.sp,
-                  left: 8,
-                  right: 8,
-                  bottom: 20,
-                ),
-                children: [
-                  // Profile Completion Card
-                  const ProfileCompletionCard(),
-                  // Profile Card with enhanced animation
-                  FutureBuilder<Widget>(
-                    future: _userProfileCard(state),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return _buildLoadingCard();
-                      } else if (snapshot.hasError) {
-                        return _buildErrorCard();
-                      } else if (snapshot.hasData) {
-                        return InkWell(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (context) => const CurrentUserAccountPage(),
-                              ),
-                            );
-                          },
-                          child: snapshot.data,
-                        );
-                      } else {
-                        return const SizedBox.shrink();
-                      }
-                    },
+            }
+
+            if (state.profileStatus == ProfileStatus.initial) {
+              // Show loading screen while initializing
+              return _buildLoadingScreen();
+            } else if (state.profileStatus == ProfileStatus.loading) {
+              return _buildLoadingScreen();
+            } else if (state.profileStatus == ProfileStatus.error) {
+              return _buildErrorScreen();
+            }
+
+            // Debug display for development
+            if (state.user.firstName.isEmpty && state.user.lastName.isEmpty) {
+              return _buildEmptyUserScreen(context, state);
+            }
+
+            // Update profile progress
+            _updateProfileProgress(state.user);
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                // Add a subtle animation when refreshing
+                _pageAnimationController.reset();
+                _pageAnimationController.forward();
+
+                // Refresh the profile data
+                if (isViewingOwnProfile) {
+                  context.read<ProfileCubit>().getProfile();
+                } else {
+                  context.read<ProfileCubit>().getProfileByUserId(widget.userId!);
+                }
+              },
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: ListView(
+                  padding: EdgeInsets.only(
+                    top: 20.sp,
+                    left: 8,
+                    right: 8,
+                    bottom: 20,
                   ),
-                  SizedBox(height: 12.sp),
-                  // Car Widget with animation
-                  CarWidget(state: state),
-                ],
+                  children: [
+                    // Profile Completion Card (only show for own profile)
+                    if (isViewingOwnProfile) const ProfileCompletionCard(),
+                    // Profile Card with enhanced animation
+                    FutureBuilder<Widget>(
+                      future: _userProfileCard(state),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return _buildLoadingCard();
+                        } else if (snapshot.hasError) {
+                          return _buildErrorCard();
+                        } else if (snapshot.hasData) {
+                          return InkWell(
+                            // Only allow navigation to account settings for own profile
+                            onTap: isViewingOwnProfile
+                                ? () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (context) => const CurrentUserAccountPage(),
+                                      ),
+                                    );
+                                  }
+                                : null,
+                            child: snapshot.data,
+                          );
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
+                    ),
+                    SizedBox(height: 12.sp),
+                    // Car Widget with animation
+                    CarWidget(state: state),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

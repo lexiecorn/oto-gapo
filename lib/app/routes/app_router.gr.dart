@@ -152,9 +152,14 @@ abstract class $AppRouter extends _i25.RootStackRouter {
       );
     },
     ProfilePageRouter.name: (routeData) {
+      final args = routeData.argsAs<ProfilePageRouterArgs>(
+          orElse: () => const ProfilePageRouterArgs());
       return _i25.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i14.ProfilePage(),
+        child: _i14.ProfilePage(
+          userId: args.userId,
+          key: args.key,
+        ),
       );
     },
     QRScannerPageRouter.name: (routeData) {
@@ -540,16 +545,40 @@ class PostDetailPageRouterArgs {
 
 /// generated route for
 /// [_i14.ProfilePage]
-class ProfilePageRouter extends _i25.PageRouteInfo<void> {
-  const ProfilePageRouter({List<_i25.PageRouteInfo>? children})
-      : super(
+class ProfilePageRouter extends _i25.PageRouteInfo<ProfilePageRouterArgs> {
+  ProfilePageRouter({
+    String? userId,
+    _i26.Key? key,
+    List<_i25.PageRouteInfo>? children,
+  }) : super(
           ProfilePageRouter.name,
+          args: ProfilePageRouterArgs(
+            userId: userId,
+            key: key,
+          ),
           initialChildren: children,
         );
 
   static const String name = 'ProfilePageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i25.PageInfo<ProfilePageRouterArgs> page =
+      _i25.PageInfo<ProfilePageRouterArgs>(name);
+}
+
+class ProfilePageRouterArgs {
+  const ProfilePageRouterArgs({
+    this.userId,
+    this.key,
+  });
+
+  final String? userId;
+
+  final _i26.Key? key;
+
+  @override
+  String toString() {
+    return 'ProfilePageRouterArgs{userId: $userId, key: $key}';
+  }
 }
 
 /// generated route for

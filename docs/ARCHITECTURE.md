@@ -57,7 +57,9 @@ lib/
 │   │   │   └── auth_state.dart  # Authentication states
 │   │   ├── profile/             # Profile management module
 │   │   │   ├── bloc/           # Profile BLoC/Cubit
-│   │   │   └── profile_page.dart # Profile UI
+│   │   │   └── profile_page.dart # Profile UI (supports viewing own/others)
+│   │   ├── social_feed/         # Social feed module
+│   │   │   └── bloc/           # Feed, Comment, Moderation Cubits
 │   │   ├── signin/              # Sign-in module
 │   │   │   ├── bloc/           # Sign-in Cubit
 │   │   │   └── signin_page.dart # Sign-in UI
@@ -65,11 +67,13 @@ lib/
 │   │       ├── signup_cubit.dart # Sign-up Cubit
 │   │       └── signup_page.dart  # Sign-up UI
 │   ├── pages/                   # Application pages/screens
-│   │   ├── home_page.dart      # Main home page
-│   │   ├── home_body.dart      # Home page content with carousel
+│   │   ├── home_page.dart      # Main home page with bottom nav
+│   │   ├── home_body.dart      # Otogapo page (carousel + nav cards)
+│   │   ├── announcements_list_page.dart  # Announcements with search
+│   │   ├── user_list_page.dart # Members list
 │   │   ├── splash_page.dart    # Splash screen
 │   │   ├── admin_page.dart     # Admin dashboard
-│   │   ├── gallery_management_page.dart  # Gallery admin (admin only)
+│   │   ├── social_feed_page.dart  # Social feed
 │   │   ├── settings_page.dart  # Settings page
 │   │   └── ...                 # Other pages
 │   ├── routes/                 # Navigation routing
@@ -79,6 +83,9 @@ lib/
 │   │   └── app.dart           # Main app widget
 │   └── widgets/               # Reusable UI components
 │       ├── carousel_view_from_pocketbase.dart  # Gallery carousel
+│       ├── otogapo_navigation_cards.dart # Otogapo navigation cards
+│       ├── post_card_widget.dart  # Social feed post card
+│       ├── attendance_card.dart   # Attendance list items
 │       └── ...
 ├── bootstrap.dart             # App initialization
 ├── main_development.dart      # Development entry point
@@ -156,14 +163,16 @@ App
 ├── AuthBloc (Global authentication state)
 ├── SigninCubit (Sign-in form state)
 ├── SignupCubit (Sign-up form state)
-├── ProfileCubit (Profile management state)
+├── ProfileCubit (Profile management - own & others' profiles)
 ├── MeetingCubit (Meeting management state)
 ├── AttendanceCubit (Attendance tracking state)
 ├── ConnectivityCubit (Network connectivity and sync state)
-├── SearchCubit (Search functionality state)
 ├── CalendarCubit (Attendance calendar state)
 ├── ProfileProgressCubit (Profile completion tracking)
 ├── AdminAnalyticsCubit (Admin dashboard analytics)
+├── FeedCubit (Social feed state)
+├── CommentCubit (Post comments state)
+├── ModerationCubit (Content moderation state)
 └── ThemeProvider (Theme state)
 ```
 
@@ -278,6 +287,40 @@ AutoRouter.of(context).pushAndClearStack(const HomePageRouter());
 
 // Go back
 AutoRouter.of(context).pop();
+
+// Navigate to user profile (with optional userId)
+context.router.push(ProfilePageRouter(userId: 'user_id_here'));
+
+// Navigate to own profile (from bottom nav)
+context.router.push(const ProfilePageRouter());
+```
+
+### Profile Viewing System
+
+The app supports viewing both your own profile and other users' profiles, similar to Instagram/Facebook:
+
+**ProfilePage** (`lib/app/modules/profile/profile_page.dart`):
+- Accepts optional `userId` parameter
+- `userId == null` → Shows current user's profile (from bottom nav)
+- `userId != null` → Shows specified user's profile (from social feed, comments, etc.)
+- AppBar shown only when viewing others' profiles
+- Profile editing disabled when viewing others
+- Profile completion card hidden when viewing others
+
+**ProfileCubit Methods**:
+- `getProfile()` - Loads current authenticated user's profile
+- `getProfileByUserId(String userId)` - Loads any user's profile by ID
+
+**ProfileRepository Methods**:
+- `getProfile()` - Fetches current user from PocketBase auth store
+- `getProfileByUserId(String userId)` - Fetches any user by ID from users collection
+
+**Usage in Social Feed**:
+```dart
+// Navigate to post author's profile
+onUserTap: () {
+  context.router.push(ProfilePageRouter(userId: post.userId));
+}
 ```
 
 ## Data Layer
@@ -1552,22 +1595,32 @@ See [Animations Guide](./ANIMATIONS_GUIDE.md) for complete documentation.
 
 ## Advanced Features
 
-### Search System
+### Social Feed Profile Navigation
 
-**SearchCubit**: Manages search state and history
+The app implements Instagram/Facebook-style profile viewing:
 
-- Server-side post search with filters
-- User search by name, email, member number
-- Recent searches persistence
-- Search history management
+**Features**:
+- Tap user name or profile photo in posts → view their full profile
+- Tap user name or profile photo in comments → view their full profile
+- Same ProfilePage design for all users
+- Read-only when viewing others, editable for own profile
+- Profile images cached with CachedNetworkImage
+- Smooth navigation with auto_route
 
-**Filters**:
+**Navigation Flow**:
+```
+Social Feed Post
+  ↓ (tap name/photo)
+ProfilePage(userId: 'other_user_id')
+  ↓ (shows AppBar with back button)
+View full profile (ID card, vehicles, info)
+```
 
-- Date range
-- Author
-- Hashtags
-
-**Implementation**: `lib/app/modules/search/`
+**Implementation**:
+- `ProfilePage` with optional `userId` parameter
+- `ProfileCubit.getProfileByUserId()` method
+- `ProfileRepository.getProfileByUserId()` method
+- Profile images in all user lists (members, payments, attendance)
 
 ### Attendance Calendar
 

@@ -57,22 +57,28 @@ class PostCardWidget extends StatelessWidget {
               horizontal: 16.w,
               vertical: 8.h,
             ),
-            leading: CircleAvatar(
-              radius: 20.r,
-              backgroundImage: post.userProfileImage != null && post.userProfileImage!.isNotEmpty
-                  ? CachedNetworkImageProvider(
-                      '${pocketBaseService.baseUrl}/api/files/users/${post.userId}/${post.userProfileImage}',
-                    )
-                  : null,
-              child: post.userProfileImage == null || post.userProfileImage!.isEmpty
-                  ? Icon(Icons.person, size: 20.sp)
-                  : null,
+            leading: GestureDetector(
+              onTap: onUserTap,
+              child: CircleAvatar(
+                radius: 20.r,
+                backgroundImage: post.userProfileImage != null && post.userProfileImage!.isNotEmpty
+                    ? CachedNetworkImageProvider(
+                        '${pocketBaseService.baseUrl}/api/files/users/${post.userId}/${post.userProfileImage}',
+                      )
+                    : null,
+                child: post.userProfileImage == null || post.userProfileImage!.isEmpty
+                    ? Icon(Icons.person, size: 20.sp)
+                    : null,
+              ),
             ),
-            title: Text(
-              post.userName,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14.sp,
+            title: GestureDetector(
+              onTap: onUserTap,
+              child: Text(
+                post.userName,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14.sp,
+                ),
               ),
             ),
             subtitle: Text(
@@ -86,7 +92,6 @@ class PostCardWidget extends StatelessWidget {
               icon: const Icon(Icons.more_vert),
               onPressed: onMoreTap,
             ),
-            onTap: onUserTap,
           ),
 
           // Post image (if available)

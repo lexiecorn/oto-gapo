@@ -50,7 +50,7 @@ class HomePageState extends State<HomePage> {
 
   final List<String> _pageTitles = [
     'OTOGAPO',
-    'Profile',
+    'My Profile',
     'Social Feed',
     'Settings',
   ];
@@ -144,14 +144,20 @@ class HomePageState extends State<HomePage> {
                     // AppBar
                     Flexible(
                       child: AppBar(
-                        title: Text(
-                          _pageTitles.elementAt(_selectedIndex),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        title: _selectedIndex == 0
+                            ? Image.asset(
+                                'assets/images/logo_sm.jpg',
+                                height: 40,
+                                fit: BoxFit.contain,
+                              )
+                            : Text(
+                                _pageTitles.elementAt(_selectedIndex),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                         centerTitle: true,
                         backgroundColor: Colors.black,
                         elevation: 0,
@@ -209,10 +215,10 @@ class HomePageState extends State<HomePage> {
       ],
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Theme.of(context).shadowColor.withOpacity(0.08),
               blurRadius: 30,
               offset: const Offset(0, -10),
             ),

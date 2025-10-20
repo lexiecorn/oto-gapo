@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
@@ -45,7 +47,7 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
 
       final activeUsers = users.where((user) => user.data['isActive'] == true).toList();
       print('Active users: ${activeUsers.length}');
-      
+
       // Log a few user IDs for debugging
       if (activeUsers.isNotEmpty) {
         print('Sample user IDs:');
@@ -415,12 +417,11 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
         return Card(
           margin: EdgeInsets.only(bottom: 8.h),
           child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: statusColor.withOpacity(0.2),
-              child: Text(
-                userName.isNotEmpty ? userName[0].toUpperCase() : '?',
-                style: TextStyle(color: statusColor, fontWeight: FontWeight.bold),
-              ),
+            leading: _buildUserAvatar(
+              userData: userData,
+              userId: userId,
+              userName: userName,
+              statusColor: statusColor,
             ),
             title: Text(
               userName,
@@ -451,7 +452,7 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
               print('User name: $userName');
               print('Member number: $memberNumber');
               print('User data keys: ${userData.keys.toList()}');
-              
+
               _showPaymentDialog(
                 userId: userId,
                 userName: userName,
@@ -462,6 +463,71 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildUserAvatar({
+    required Map<String, dynamic> userData,
+    required String userId,
+    required String userName,
+    required Color statusColor,
+  }) {
+    // Get profile image filename
+    String? profileImageFileName;
+    if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
+      profileImageFileName = userData['profile_image'].toString();
+    } else if (userData['profileImage'] != null && userData['profileImage'].toString().isNotEmpty) {
+      profileImageFileName = userData['profileImage'].toString();
+    }
+
+    // Build profile image URL if we have a filename
+    String? profileImageUrl;
+    if (profileImageFileName != null) {
+      if (profileImageFileName.startsWith('http')) {
+        // It's already a full URL
+        profileImageUrl = profileImageFileName;
+      } else {
+        // It's a PocketBase filename, construct the URL
+        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        profileImageUrl = '$pocketbaseUrl/api/files/users/$userId/$profileImageFileName';
+      }
+    }
+
+    return CircleAvatar(
+      backgroundColor: statusColor.withOpacity(0.2),
+      child: profileImageUrl != null
+          ? ClipOval(
+              child: CachedNetworkImage(
+                imageUrl: profileImageUrl,
+                fit: BoxFit.cover,
+                width: 40.sp,
+                height: 40.sp,
+                placeholder: (context, url) => Center(
+                  child: SizedBox(
+                    width: 20.sp,
+                    height: 20.sp,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: statusColor,
+                    ),
+                  ),
+                ),
+                errorWidget: (context, url, error) => Text(
+                  userName.isNotEmpty ? userName[0].toUpperCase() : '?',
+                  style: TextStyle(
+                    color: statusColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            )
+          : Text(
+              userName.isNotEmpty ? userName[0].toUpperCase() : '?',
+              style: TextStyle(
+                color: statusColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
     );
   }
 }
@@ -511,9 +577,9 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
     try {
       print('=== Loading payments for user ${widget.userId} ===');
       print('User name: ${widget.userName}');
-      
+
       final pocketBaseService = PocketBaseService();
-      
+
       // Ensure authentication before attempting to get user
       print('Ensuring authentication...');
       try {
@@ -538,13 +604,14 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
         print('This user may have been deleted or the ID is incorrect');
         if (mounted) {
           setState(() {
-            _errorMessage = 'User record not found (ID: ${widget.userId.substring(0, 8)}...). The user may have been deleted.';
+            _errorMessage =
+                'User record not found (ID: ${widget.userId.substring(0, 8)}...). The user may have been deleted.';
             _isLoading = false;
           });
         }
         return;
       }
-      
+
       print('User record found: ${userRecord.data['email']}');
 
       final joinedDateString = userRecord.data['joinedDate'] as String?;

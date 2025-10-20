@@ -61,4 +61,38 @@ class ProfileCubit extends Cubit<ProfileState> {
     emit(ProfileState.initial());
     print('ProfileCubit.forceClear - State cleared');
   }
+
+  Future<void> getProfileByUserId(String userId) async {
+    print('ProfileCubit.getProfileByUserId - Starting profile retrieval for userId: $userId');
+    emit(state.copyWith(profileStatus: ProfileStatus.loading));
+
+    try {
+      print('ProfileCubit.getProfileByUserId - Calling profileRepository.getProfileByUserId');
+      final user = await profileRepository.getProfileByUserId(userId);
+      print('ProfileCubit.getProfileByUserId - User loaded successfully');
+
+      // Fetch vehicles for this user
+      print('ProfileCubit.getProfileByUserId - Fetching vehicles for user: ${user.uid}');
+      final vehicles = await profileRepository.getUserVehicles(user.uid);
+      print('ProfileCubit.getProfileByUserId - Found ${vehicles.length} vehicles');
+
+      emit(
+        state.copyWith(
+          profileStatus: ProfileStatus.loaded,
+          user: user,
+          vehicles: vehicles,
+        ),
+      );
+      print('ProfileCubit.getProfileByUserId - State updated to loaded');
+    } on CustomError catch (e) {
+      print('ProfileCubit.getProfileByUserId - CustomError: ${e.message}');
+      emit(
+        state.copyWith(
+          profileStatus: ProfileStatus.error,
+          error: e,
+        ),
+      );
+      print('ProfileCubit.getProfileByUserId - State updated to error');
+    }
+  }
 }

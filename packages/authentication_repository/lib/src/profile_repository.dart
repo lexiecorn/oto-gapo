@@ -257,4 +257,63 @@ class ProfileRepository {
       );
     }
   }
+
+  /// Get a specific user's profile by userId (for viewing other users)
+  Future<my_auth_repo.User> getProfileByUserId(String userId) async {
+    try {
+      print('ProfileRepository.getProfileByUserId - Getting profile for user: $userId');
+
+      // Get the user's profile from PocketBase
+      final userRecord = await pocketBaseAuth.pocketBase.collection('users').getOne(userId);
+      print('ProfileRepository.getProfileByUserId - User found with ID: ${userRecord.id}');
+
+      // Convert to User model
+      final userData = userRecord.data;
+      userData['uid'] = userRecord.id;
+
+      // Apply same data transformations as getProfile
+      if (userData['memberNumber'] != null) {
+        userData['memberNumber'] = userData['memberNumber'].toString();
+      }
+
+      if (userData['contactNumber'] != null && userData['contactNumber'] is! String) {
+        userData['contactNumber'] = userData['contactNumber'].toString();
+      }
+
+      if (userData['emergencyContactNumber'] != null && userData['emergencyContactNumber'] is! String) {
+        userData['emergencyContactNumber'] = userData['emergencyContactNumber'].toString();
+      }
+
+      if (userData['spouseContactNumber'] != null && userData['spouseContactNumber'] is! String) {
+        userData['spouseContactNumber'] = userData['spouseContactNumber'].toString();
+      }
+
+      if (userData['profileImage'] != null && userData['profile_image'] == null) {
+        userData['profile_image'] = userData['profileImage'];
+      }
+
+      if (userData['birthDate'] != null && userData['birthDate'] is DateTime) {
+        userData['birthDate'] = (userData['birthDate'] as DateTime).toIso8601String();
+      }
+
+      if (userData['driversLicenseExpirationDate'] != null && userData['driversLicenseExpirationDate'] is DateTime) {
+        userData['driversLicenseExpirationDate'] =
+            (userData['driversLicenseExpirationDate'] as DateTime).toIso8601String();
+      }
+
+      userData.remove('dateOfBirth');
+      userData.remove('birthplace');
+
+      final user = my_auth_repo.User.fromJson(userData);
+      print('ProfileRepository.getProfileByUserId - Profile loaded successfully');
+      return user;
+    } catch (e) {
+      print('ProfileRepository.getProfileByUserId - Exception: $e');
+      throw ProfileFailure(
+        code: 'Exception',
+        message: e.toString(),
+        plugin: 'flutter_error/server_error',
+      );
+    }
+  }
 }

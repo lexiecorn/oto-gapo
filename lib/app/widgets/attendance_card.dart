@@ -1,6 +1,76 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/models/attendance.dart';
+
+/// Helper function to build profile avatar with image caching
+Widget buildAttendanceProfileAvatar({
+  required BuildContext context,
+  required Attendance attendance,
+  required double radius,
+}) {
+  final theme = Theme.of(context);
+
+  // Get profile image filename
+  String? profileImageFileName = attendance.profileImage;
+
+  // Build profile image URL if we have a filename
+  String? profileImageUrl;
+  if (profileImageFileName != null && profileImageFileName.isNotEmpty) {
+    if (profileImageFileName.startsWith('http')) {
+      // It's already a full URL
+      profileImageUrl = profileImageFileName;
+    } else {
+      // It's a PocketBase filename, construct the URL
+      try {
+        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        // Use userId from attendance if available
+        if (attendance.userId.isNotEmpty) {
+          profileImageUrl = '$pocketbaseUrl/api/files/users/${attendance.userId}/$profileImageFileName';
+        }
+      } catch (e) {
+        // If FlavorConfig is not available, just use null
+        profileImageUrl = null;
+      }
+    }
+  }
+
+  if (profileImageUrl != null) {
+    return CircleAvatar(
+      radius: radius,
+      child: ClipOval(
+        child: CachedNetworkImage(
+          imageUrl: profileImageUrl,
+          fit: BoxFit.cover,
+          width: radius * 2,
+          height: radius * 2,
+          placeholder: (context, url) => Center(
+            child: SizedBox(
+              width: radius,
+              height: radius,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+          ),
+          errorWidget: (context, url, error) => Icon(
+            Icons.person,
+            size: radius,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // No profile image, show default icon
+  return CircleAvatar(
+    radius: radius,
+    child: Icon(Icons.person, size: radius),
+  );
+}
 
 /// Card widget displaying attendance record
 class AttendanceCard extends StatelessWidget {
@@ -19,11 +89,6 @@ class AttendanceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Validate profile image URL
-    final hasValidImage = attendance.profileImage != null &&
-        attendance.profileImage!.isNotEmpty &&
-        (attendance.profileImage!.startsWith('http://') || attendance.profileImage!.startsWith('https://'));
-
     return Card(
       elevation: 1,
       margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
@@ -35,10 +100,10 @@ class AttendanceCard extends StatelessWidget {
           child: Row(
             children: [
               // Profile Image or Icon
-              CircleAvatar(
+              buildAttendanceProfileAvatar(
+                context: context,
+                attendance: attendance,
                 radius: 24.r,
-                backgroundImage: hasValidImage ? NetworkImage(attendance.profileImage!) : null,
-                child: !hasValidImage ? Icon(Icons.person, size: 24.sp) : null,
               ),
               SizedBox(width: 12.w),
 
@@ -194,19 +259,15 @@ class AttendanceMemberItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Validate profile image URL
-    final hasValidImage = attendance.profileImage != null &&
-        attendance.profileImage!.isNotEmpty &&
-        (attendance.profileImage!.startsWith('http://') || attendance.profileImage!.startsWith('https://'));
-
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
       child: ExpansionTile(
         shape: const Border(),
         collapsedShape: const Border(),
-        leading: CircleAvatar(
-          backgroundImage: hasValidImage ? NetworkImage(attendance.profileImage!) : null,
-          child: !hasValidImage ? const Icon(Icons.person) : null,
+        leading: buildAttendanceProfileAvatar(
+          context: context,
+          attendance: attendance,
+          radius: 20.r,
         ),
         title: Text(
           attendance.memberName,
