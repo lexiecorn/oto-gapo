@@ -76,12 +76,12 @@ Portainer (Browser)
 
 ## 📝 Quick Reference
 
-| Step | Location | Command |
-|------|----------|---------|
-| 1 | Windows | `git push origin main` |
-| 2 | Server SSH | `git pull origin main` |
-| 3 | Server SSH | `docker build --no-cache -t otogapo-web:latest .` |
-| 4 | Portainer Browser | Update stack (Re-pull OFF) |
+| Step | Location          | Command                                           |
+| ---- | ----------------- | ------------------------------------------------- |
+| 1    | Windows           | `git push origin main`                            |
+| 2    | Server SSH        | `git pull origin main`                            |
+| 3    | Server SSH        | `docker build --no-cache -t otogapo-web:latest .` |
+| 4    | Portainer Browser | Update stack (Re-pull OFF)                        |
 
 ---
 
@@ -95,6 +95,7 @@ If you want to skip Portainer UI and use command-line only:
 ```
 
 This script:
+
 - Pulls latest code
 - Builds with `--no-cache`
 - Restarts via docker-compose (bypasses Portainer UI)
@@ -119,11 +120,13 @@ This script:
 ## ✅ Verification After Deployment
 
 **In Portainer:**
+
 - Check **Containers** page
 - Container `otogapo` should be green (running)
 - Click container → **Logs** to view output
 
 **In Browser:**
+
 - Visit `https://otogapo.lexserver.org`
 - Clear cache (Ctrl+Shift+R)
 - Verify changes are visible
@@ -133,6 +136,7 @@ This script:
 ## 🆘 Common Issues
 
 ### Changes not visible?
+
 ```bash
 # Make sure you pushed from Windows
 git log origin/main..HEAD  # Should show nothing
@@ -145,6 +149,7 @@ Ctrl+Shift+R (or Cmd+Shift+R)
 ```
 
 ### Build fails?
+
 ```bash
 # Check disk space
 df -h
@@ -157,6 +162,7 @@ docker build --no-cache -t otogapo-web:latest .
 ```
 
 ### Portainer shows old version?
+
 - Make sure you clicked **Update the stack**
 - Make sure **"Re-pull image" was OFF**
 - Check container creation time in Portainer
