@@ -299,7 +299,7 @@ class HomePageState extends State<HomePage> {
                 children: [
                   Icon(
                     _pageIcons[index],
-                    color: isSelected ? Colors.white : Colors.grey[600],
+                    color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                     size: isSelected ? 26 : 24,
                   ),
                   if (isSelected) ...[
