@@ -1,0 +1,15 @@
+🎨 UI/UX Improvements (v1.0.0 Build 11)
+
+✨ What's New:
+• Cleaner profile page - completion card auto-hides when done
+• Improved admin dashboard with better layout
+• Streamlined settings with "My QR Code" for identity verification
+• Fixed dashboard overflow issues
+• Enhanced visual consistency
+
+🐛 Bug Fixes:
+• Resolved layout overflow in admin statistics cards
+• Better space utilization across the app
+
+📱 This update focuses on improving user experience with cleaner interfaces and better design!
+

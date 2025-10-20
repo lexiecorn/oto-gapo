@@ -71,10 +71,15 @@ class AppRouter extends $AppRouter {
           page: AttendanceCalendarPageRouter.page,
           path: '/attendance/calendar',
         ),
-        // Search route
+        // Members route
         AutoRoute(
-          page: SearchPageRouter.page,
-          path: '/search',
+          page: UserListPageRouter.page,
+          path: '/members',
+        ),
+        // Announcements route
+        AutoRoute(
+          page: AnnouncementsListPageRouter.page,
+          path: '/announcements',
         ),
         // Social Feed routes
         AutoRoute(

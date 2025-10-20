@@ -1,10 +1,14 @@
+import 'package:auto_route/auto_route.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/pages/user_detail_page.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 
+@RoutePage(name: 'UserListPageRouter')
 class UserListPage extends StatefulWidget {
   const UserListPage({super.key});
 
@@ -67,6 +71,94 @@ class _UserListPageState extends State<UserListPage> {
       if (word.isEmpty) return word;
       return word[0].toUpperCase() + word.substring(1).toLowerCase();
     }).join(' ');
+  }
+
+  Widget _buildUserAvatar({
+    required Map<String, dynamic> userData,
+    required String userId,
+    required String displayName,
+    required bool isDark,
+    required ColorScheme colorScheme,
+  }) {
+    // Get profile image filename
+    String? profileImageFileName;
+    if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
+      profileImageFileName = userData['profile_image'].toString();
+    } else if (userData['profileImage'] != null && userData['profileImage'].toString().isNotEmpty) {
+      profileImageFileName = userData['profileImage'].toString();
+    }
+
+    // Build profile image URL if we have a filename
+    String? profileImageUrl;
+    if (profileImageFileName != null) {
+      if (profileImageFileName.startsWith('http')) {
+        // It's already a full URL
+        profileImageUrl = profileImageFileName;
+      } else {
+        // It's a PocketBase filename, construct the URL
+        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        profileImageUrl = '$pocketbaseUrl/api/files/users/$userId/$profileImageFileName';
+      }
+    }
+
+    return Container(
+      width: 48.sp,
+      height: 48.sp,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24.sp),
+        border: Border.all(
+          color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey[300]!,
+          width: 1,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24.sp),
+        child: profileImageUrl != null
+            ? CachedNetworkImage(
+                imageUrl: profileImageUrl,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
+                  child: Center(
+                    child: SizedBox(
+                      width: 20.sp,
+                      height: 20.sp,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: isDark ? colorScheme.primary : Colors.blue,
+                      ),
+                    ),
+                  ),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
+                  child: Center(
+                    child: Text(
+                      displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? colorScheme.primary : Colors.blue,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            : Container(
+                color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
+                child: Center(
+                  child: Text(
+                    displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? colorScheme.primary : Colors.blue,
+                    ),
+                  ),
+                ),
+              ),
+      ),
+    );
   }
 
   List<dynamic> _filterUsers(List<dynamic> users) {
@@ -190,24 +282,13 @@ class _UserListPageState extends State<UserListPage> {
             padding: EdgeInsets.all(16.sp),
             child: Row(
               children: [
-                // Avatar
-                Container(
-                  width: 48.sp,
-                  height: 48.sp,
-                  decoration: BoxDecoration(
-                    color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(24.sp),
-                  ),
-                  child: Center(
-                    child: Text(
-                      displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? colorScheme.primary : Colors.blue,
-                      ),
-                    ),
-                  ),
+                // Avatar with Profile Photo
+                _buildUserAvatar(
+                  userData: userData,
+                  userId: user.id.toString(),
+                  displayName: displayName,
+                  isDark: isDark,
+                  colorScheme: colorScheme,
                 ),
                 SizedBox(width: 12.sp),
                 // User Info
@@ -390,8 +471,10 @@ class _UserListPageState extends State<UserListPage> {
                           fontSize: 13.sp,
                           color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[400],
                         ),
-                        prefixIcon: Icon(Icons.search,
-                            color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600],),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600],
+                        ),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(
                           horizontal: 16.sp,

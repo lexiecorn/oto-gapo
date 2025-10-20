@@ -37,6 +37,9 @@ class FeedCubit extends Cubit<FeedState> {
         perPage: 20,
       );
 
+      // Check if cubit is still open after async operation
+      if (isClosed) return;
+
       final posts = result.items.map((record) => Post.fromRecord(record)).toList();
 
       if (refresh || page == 1) {
@@ -62,6 +65,7 @@ class FeedCubit extends Cubit<FeedState> {
       // Load user reactions for these posts
       await _loadUserReactions(posts.map((p) => p.id).toList());
     } catch (e) {
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: FeedStatus.error,
@@ -95,6 +99,9 @@ class FeedCubit extends Cubit<FeedState> {
         perPage: 20,
       );
 
+      // Check if cubit is still open after async operation
+      if (isClosed) return;
+
       final posts = result.items.map((record) => Post.fromRecord(record)).toList();
 
       if (page == 1) {
@@ -120,6 +127,7 @@ class FeedCubit extends Cubit<FeedState> {
       // Load user reactions
       await _loadUserReactions(posts.map((p) => p.id).toList());
     } catch (e) {
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: FeedStatus.error,
@@ -147,6 +155,9 @@ class FeedCubit extends Cubit<FeedState> {
         filter: filter,
       );
 
+      // Check if cubit is still open after async operation
+      if (isClosed) return;
+
       final posts = result.items.map((record) => Post.fromRecord(record)).toList();
 
       if (page == 1) {
@@ -172,6 +183,7 @@ class FeedCubit extends Cubit<FeedState> {
       // Load user reactions
       await _loadUserReactions(posts.map((p) => p.id).toList());
     } catch (e) {
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: FeedStatus.error,
@@ -190,6 +202,9 @@ class FeedCubit extends Cubit<FeedState> {
         throw Exception('You are banned from creating posts');
       }
 
+      // Check if cubit is still open after async operation
+      if (isClosed) return;
+
       File? compressedImage;
       int imageWidth = 0;
       int imageHeight = 0;
@@ -201,6 +216,9 @@ class FeedCubit extends Cubit<FeedState> {
         imageWidth = dimensions['width']!;
         imageHeight = dimensions['height']!;
       }
+
+      // Check if cubit is still open after async operation
+      if (isClosed) return;
 
       // Extract mentions and hashtags
       final mentions = TextParsingUtils.extractMentions(caption);
@@ -217,6 +235,9 @@ class FeedCubit extends Cubit<FeedState> {
         mentions: mentions,
       );
 
+      // Check if cubit is still open after async operation
+      if (isClosed) return;
+
       final newPost = Post.fromRecord(record);
 
       // Add to feed
@@ -226,6 +247,7 @@ class FeedCubit extends Cubit<FeedState> {
         ),
       );
     } catch (e) {
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: FeedStatus.error,
@@ -241,10 +263,14 @@ class FeedCubit extends Cubit<FeedState> {
     try {
       await pocketBaseService.deletePost(postId);
 
+      // Check if cubit is still open after async operation
+      if (isClosed) return;
+
       // Remove from feed
       final updatedPosts = state.posts.where((p) => p.id != postId).toList();
       emit(state.copyWith(posts: updatedPosts));
     } catch (e) {
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: FeedStatus.error,
@@ -269,6 +295,9 @@ class FeedCubit extends Cubit<FeedState> {
           postId: postId,
           userId: currentUserId,
         );
+
+        // Check if cubit is still open after async operation
+        if (isClosed) return;
 
         // Update local state - remove reaction
         final updatedReactions = Map<String, PostReaction?>.from(state.userReactions);
@@ -303,6 +332,9 @@ class FeedCubit extends Cubit<FeedState> {
           userId: currentUserId,
           reactionType: type.value,
         );
+
+        // Check if cubit is still open after async operation
+        if (isClosed) return;
 
         final reaction = PostReaction.fromRecord(record);
         print('FeedCubit - Got reaction from record: ${reaction.reactionType.value}');
@@ -347,6 +379,9 @@ class FeedCubit extends Cubit<FeedState> {
       final reactions = <String, PostReaction?>{};
 
       for (final postId in postIds) {
+        // Check if cubit is still open before each async operation
+        if (isClosed) return;
+
         final reaction = await pocketBaseService.getUserReaction(postId, currentUserId);
         if (reaction != null) {
           reactions[postId] = PostReaction.fromRecord(reaction);
@@ -354,6 +389,9 @@ class FeedCubit extends Cubit<FeedState> {
           reactions[postId] = null;
         }
       }
+
+      // Check if cubit is still open before emitting
+      if (isClosed) return;
 
       final updatedReactions = Map<String, PostReaction?>.from(state.userReactions);
       updatedReactions.addAll(reactions);
@@ -364,26 +402,14 @@ class FeedCubit extends Cubit<FeedState> {
     }
   }
 
-  /// Update post reaction count locally
-  void _updatePostReactionCount(String postId, int delta) {
-    final postIndex = state.posts.indexWhere((p) => p.id == postId);
-    if (postIndex != -1) {
-      final post = state.posts[postIndex];
-      final updatedPost = post.copyWith(
-        likesCount: post.likesCount + delta,
-      );
-
-      final updatedPosts = List<Post>.from(state.posts);
-      updatedPosts[postIndex] = updatedPost;
-
-      emit(state.copyWith(posts: updatedPosts));
-    }
-  }
-
   /// Refresh a single post
   Future<void> refreshPost(String postId) async {
     try {
       final record = await pocketBaseService.getPost(postId);
+
+      // Check if cubit is still open before emitting
+      if (isClosed) return;
+
       final updatedPost = Post.fromRecord(record);
 
       final postIndex = state.posts.indexWhere((p) => p.id == postId);

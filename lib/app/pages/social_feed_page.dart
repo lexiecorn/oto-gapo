@@ -87,180 +87,192 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
     return BlocProvider<FeedCubit>.value(
       value: _feedCubit,
       child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(80.h),
-          child: Container(
-            padding: EdgeInsets.symmetric(vertical: 8.h),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TabBar(
-                    controller: _tabController,
-                    labelColor: Colors.blue,
-                    unselectedLabelColor: Colors.grey,
-                    indicatorColor: Colors.grey.shade300,
-                    indicatorWeight: 2,
-                    dividerColor: Colors.grey.shade200,
-                    tabs: const [
-                      Tab(text: 'Feed', icon: Icon(Icons.home)),
-                      Tab(text: 'My Posts', icon: Icon(Icons.person)),
-                    ],
+        body: Column(
+          children: [
+            // Compact TabBar at top of body
+            Container(
+              padding: EdgeInsets.only(top: 8.h, bottom: 4.h),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                border: Border(
+                  bottom: BorderSide(
+                    color: Colors.grey.shade200,
+                    width: 1,
                   ),
-                ),
-                // Search Icon
-                Hero(
-                  tag: 'search_bar',
-                  child: IconButton(
-                    icon: const Icon(Icons.search, color: Colors.blue),
-                    onPressed: () {
-                      context.router.push(const SearchPageRouter());
-                    },
-                    tooltip: 'Search Posts',
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        body: BlocBuilder<FeedCubit, FeedState>(
-          builder: (context, state) {
-            if (state.status == FeedStatus.loading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (state.status == FeedStatus.error) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64.sp,
-                      color: Colors.red,
-                    ),
-                    SizedBox(height: 16.h),
-                    Text(
-                      'Error loading feed',
-                      style: TextStyle(fontSize: 16.sp),
-                    ),
-                    if (state.errorMessage != null) ...[
-                      SizedBox(height: 8.h),
-                      Text(
-                        state.errorMessage!,
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          color: Colors.grey,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                    SizedBox(height: 16.h),
-                    ElevatedButton(
-                      onPressed: () => _feedCubit.loadFeed(refresh: true),
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            if (state.posts.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.photo_library_outlined,
-                      size: 64.sp,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(height: 16.h),
-                    Text(
-                      'No posts yet',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      'Be the first to share something!',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return RefreshIndicator(
-              onRefresh: () => _feedCubit.loadFeed(refresh: true),
-              child: AnimationLimiter(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  itemCount: state.hasMore ? state.posts.length + 1 : state.posts.length,
-                  itemBuilder: (context, index) {
-                    if (index >= state.posts.length) {
-                      return Padding(
-                        padding: EdgeInsets.all(16.h),
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-
-                    final post = state.posts[index];
-                    final userReaction = state.userReactions[post.id];
-
-                    return AnimationConfiguration.staggeredList(
-                      position: index,
-                      duration: const Duration(milliseconds: 375),
-                      child: SlideAnimation(
-                        verticalOffset: 50.0,
-                        child: FadeInAnimation(
-                          child: PostCardWidget(
-                            post: post,
-                            currentUserId: currentUserId,
-                            userReaction: userReaction,
-                            onReactionTap: () => _showReactionPicker(context, post.id),
-                            onCommentTap: () async {
-                              await context.router.push(PostDetailPageRouter(postId: post.id));
-                              // Refresh post after returning from detail page
-                              _feedCubit.refreshPost(post.id);
-                            },
-                            onUserTap: () {
-                              context.router.push(
-                                UserPostsPageRouter(userId: post.userId),
-                              );
-                            },
-                            onImageTap: () async {
-                              await context.router.push(PostDetailPageRouter(postId: post.id));
-                              // Refresh post after returning from detail page
-                              _feedCubit.refreshPost(post.id);
-                            },
-                            onHashtagTap: (hashtag) {
-                              context.router.push(
-                                HashtagPostsPageRouter(hashtag: hashtag),
-                              );
-                            },
-                            onMentionTap: (mention) {
-                              // TODO: Navigate to user profile
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Mentioned: @$mention')),
-                              );
-                            },
-                            onMoreTap: () => _showPostOptions(context, post),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
                 ),
               ),
-            );
-          },
+              child: TabBar(
+                controller: _tabController,
+                labelColor: Colors.blue,
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: Colors.blue,
+                indicatorWeight: 2,
+                dividerColor: Colors.transparent,
+                labelStyle: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14.sp,
+                ),
+                unselectedLabelStyle: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14.sp,
+                ),
+                tabs: [
+                  Tab(
+                    text: 'Feed',
+                    icon: Icon(Icons.home, size: 24.sp),
+                  ),
+                  Tab(
+                    text: 'My Posts',
+                    icon: Icon(Icons.person, size: 24.sp),
+                  ),
+                ],
+              ),
+            ),
+            // Feed Content
+            Expanded(
+              child: BlocBuilder<FeedCubit, FeedState>(
+                builder: (context, state) {
+                  if (state.status == FeedStatus.loading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (state.status == FeedStatus.error) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 64.sp,
+                            color: Colors.red,
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            'Error loading feed',
+                            style: TextStyle(fontSize: 16.sp),
+                          ),
+                          if (state.errorMessage != null) ...[
+                            SizedBox(height: 8.h),
+                            Text(
+                              state.errorMessage!,
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: Colors.grey,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                          SizedBox(height: 16.h),
+                          ElevatedButton(
+                            onPressed: () => _feedCubit.loadFeed(refresh: true),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (state.posts.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.photo_library_outlined,
+                            size: 64.sp,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            'No posts yet',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          Text(
+                            'Be the first to share something!',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    onRefresh: () => _feedCubit.loadFeed(refresh: true),
+                    child: AnimationLimiter(
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                        itemCount: state.hasMore ? state.posts.length + 1 : state.posts.length,
+                        itemBuilder: (context, index) {
+                          if (index >= state.posts.length) {
+                            return Padding(
+                              padding: EdgeInsets.all(16.h),
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
+
+                          final post = state.posts[index];
+                          final userReaction = state.userReactions[post.id];
+
+                          return AnimationConfiguration.staggeredList(
+                            position: index,
+                            duration: const Duration(milliseconds: 375),
+                            child: SlideAnimation(
+                              verticalOffset: 50.0,
+                              child: FadeInAnimation(
+                                child: PostCardWidget(
+                                  post: post,
+                                  currentUserId: currentUserId,
+                                  userReaction: userReaction,
+                                  onReactionTap: () => _showReactionPicker(context, post.id),
+                                  onCommentTap: () async {
+                                    await context.router.push(PostDetailPageRouter(postId: post.id));
+                                    // Refresh post after returning from detail page
+                                    _feedCubit.refreshPost(post.id);
+                                  },
+                                  onUserTap: () {
+                                    context.router.push(
+                                      UserPostsPageRouter(userId: post.userId),
+                                    );
+                                  },
+                                  onImageTap: () async {
+                                    await context.router.push(PostDetailPageRouter(postId: post.id));
+                                    // Refresh post after returning from detail page
+                                    _feedCubit.refreshPost(post.id);
+                                  },
+                                  onHashtagTap: (hashtag) {
+                                    context.router.push(
+                                      HashtagPostsPageRouter(hashtag: hashtag),
+                                    );
+                                  },
+                                  onMentionTap: (mention) {
+                                    // TODO: Navigate to user profile
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Mentioned: @$mention')),
+                                    );
+                                  },
+                                  onMoreTap: () => _showPostOptions(context, post),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {

@@ -33,6 +33,8 @@ class HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadLastSelectedTab();
+    // Set initial status bar style
+    _updateStatusBarStyle();
   }
 
   final List<Widget> _widgetOptions = <Widget>[
@@ -74,6 +76,8 @@ class HomePageState extends State<HomePage> {
       setState(() {
         _selectedIndex = lastTab;
       });
+      // Update status bar style after loading saved tab
+      _updateStatusBarStyle();
     }
   }
 
@@ -90,8 +94,33 @@ class HomePageState extends State<HomePage> {
       _selectedIndex = index;
     });
 
+    // Update status bar style based on selected tab
+    _updateStatusBarStyle();
+
     // Save selected tab
     _saveLastSelectedTab(index);
+  }
+
+  void _updateStatusBarStyle() {
+    if (_selectedIndex == 2) {
+      // Social Feed: Black status bar with white icons
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Colors.black,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+      );
+    } else {
+      // Other pages: Default system status bar
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Colors.black,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+      );
+    }
   }
 
   @override
@@ -103,49 +132,62 @@ class HomePageState extends State<HomePage> {
         // backgroundColor: Colors.grey.shade100,
         // backgroundColor: Colors.grey.shade100
         // ,
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(kToolbarHeight),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Connectivity Banner
-              const ConnectivityBanner(),
-              // AppBar
-              Flexible(
-                child: AppBar(
-                  title: Text(
-                    _pageTitles.elementAt(_selectedIndex),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+        appBar: _selectedIndex == 2
+            ? null // No AppBar for Social Feed page
+            : PreferredSize(
+                preferredSize: Size.fromHeight(kToolbarHeight),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Connectivity Banner
+                    const ConnectivityBanner(),
+                    // AppBar
+                    Flexible(
+                      child: AppBar(
+                        title: Text(
+                          _pageTitles.elementAt(_selectedIndex),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        centerTitle: true,
+                        backgroundColor: Colors.black,
+                        elevation: 0,
+                        actions: _selectedIndex == 3
+                            ? [
+                                IconButton(
+                                  icon: const Icon(Icons.refresh, color: Colors.white),
+                                  onPressed: () {
+                                    // Optionally: trigger a refresh in SettingsPage
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.help_outline, color: Colors.white),
+                                  onPressed: () {
+                                    // Optionally: show help dialog
+                                  },
+                                ),
+                              ]
+                            : [],
+                      ),
                     ),
-                  ),
-                  centerTitle: true,
-                  backgroundColor: Colors.black,
-                  elevation: 0,
-                  actions: _selectedIndex == 3
-                      ? [
-                          IconButton(
-                            icon: const Icon(Icons.refresh, color: Colors.white),
-                            onPressed: () {
-                              // Optionally: trigger a refresh in SettingsPage
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.help_outline, color: Colors.white),
-                            onPressed: () {
-                              // Optionally: show help dialog
-                            },
-                          ),
-                        ]
-                      : [],
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-        body: _widgetOptions.elementAt(_selectedIndex),
+        body: _selectedIndex == 2
+            ? SafeArea(
+                child: Column(
+                  children: [
+                    // Connectivity Banner for Social Feed (since no AppBar)
+                    const ConnectivityBanner(),
+                    // Social Feed content
+                    Expanded(child: _widgetOptions.elementAt(_selectedIndex)),
+                  ],
+                ),
+              )
+            : _widgetOptions.elementAt(_selectedIndex),
         bottomNavigationBar: _buildBottomNavigationBar(),
       ),
     );

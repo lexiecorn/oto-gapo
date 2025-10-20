@@ -47,7 +47,7 @@ class PostCardWidget extends StatelessWidget {
     }
 
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w),
+      margin: EdgeInsets.only(bottom: 16.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

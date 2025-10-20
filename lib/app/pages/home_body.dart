@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
-import 'package:otogapo/app/pages/announcements.dart';
 import 'package:otogapo/app/widgets/carousel_view_from_pocketbase.dart';
+import 'package:otogapo/app/widgets/otogapo_navigation_cards.dart';
 
 @RoutePage(
   name: 'HomeBodyRouter',
@@ -135,14 +135,13 @@ class HomeBodyState extends State<HomeBody> {
                 child: const CarouselViewFromPocketbase(),
               ),
 
-              // Vertical spacing between gallery and announcements
+              // Vertical spacing between gallery and navigation cards
               SizedBox(height: 16.h),
 
-              // Announcements Widget takes the remaining space
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.sp),
-                  child: const AnnouncementsWidget(),
+              // Navigation Cards take the remaining space
+              const Expanded(
+                child: SingleChildScrollView(
+                  child: OtogapoNavigationCards(),
                 ),
               ),
             ],
