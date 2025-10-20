@@ -559,6 +559,140 @@
 
 ---
 
+**Feature Name**: Vehicle Awards & Trophies
+**Priority**: P2
+**Status**: Planned
+**Target Release**: TBD
+**Description**: Implement a vehicle awards system to showcase achievements and trophies won at oto shows. Members can display their vehicle's accolades on their profile, with each award represented by a trophy icon. Clicking the trophy display opens a detailed list of all awards won by that vehicle.
+
+**User Stories**:
+
+- As a member, I want to display the awards my vehicle has won so I can showcase my achievements
+- As a member, I want to see the number of trophies/awards at a glance on my vehicle profile
+- As a member, I want to click on the trophy display to view detailed information about each award
+- As a member with multiple awards, I want the trophy display to wrap properly to show all my achievements
+- As an admin, I want to add, edit, or remove awards for vehicles so I can maintain accurate records
+- As a visitor viewing a profile, I want to see what awards a vehicle has won to appreciate its accomplishments
+- As a member, I want to add new awards to my vehicle when I win them at oto shows
+
+**Technical Notes**:
+
+- **Database Schema** (PocketBase collection):
+  - **vehicle_awards** collection:
+    - `id` (auto)
+    - `vehicle_id` (relation to vehicles collection)
+    - `award_name` (text, e.g., "Best Modified Car")
+    - `event_name` (text, e.g., "Manila Auto Show 2025")
+    - `event_date` (date)
+    - `category` (text, e.g., "Modified", "Classic", "Best in Show")
+    - `placement` (text, e.g., "1st Place", "Winner", "Champion")
+    - `description` (text, optional additional details)
+    - `award_image_url` (file/url, optional photo of trophy or certificate)
+    - `created_at` (datetime)
+    - `updated_at` (datetime)
+    - `created_by` (relation to users)
+- **Location**: Profile page, in the vehicle section
+- **UI Components**:
+  - **Trophy Display Row**:
+    - Wrap layout showing trophy icons
+    - Trophy count badge (e.g., "🏆 x5")
+    - Tappable to navigate to awards detail page
+    - Compact view showing just trophy count
+  - **Awards Detail Page**:
+    - List of all awards with full details
+    - Each award card shows: name, event, date, placement, category
+    - Optional: Award images/photos
+    - Sort by date (newest first) or placement
+    - Filter by year or event
+- **Frontend Features**:
+  - Trophy icon display with count
+  - Wrapping layout for vehicles with many awards
+  - Awards list screen with detailed information
+  - Add/edit award form for members (with admin approval option)
+  - Admin moderation for award entries
+  - Empty state: "No awards yet" with encouragement message
+- **Permissions**:
+  - Vehicle owner can add awards to their own vehicles
+  - Admins can add/edit/delete any awards
+  - All users can view awards (read-only)
+  - Optional: Require admin approval for new awards
+- **Additional Features**:
+  - Award statistics (total awards, by category, by year)
+  - Leaderboard of most awarded vehicles (optional)
+  - Share awards on social feed (integration with social feed feature)
+  - Award verification system (photo proof requirement)
+  - Export awards as PDF or share externally
+- **UI/UX Considerations**:
+  - Trophy icons should be visually appealing
+  - Awards should be prominently displayed but not overwhelming
+  - Smooth navigation to awards detail page
+  - Mobile-friendly wrap layout for trophy row
+  - Loading states while fetching awards
+  - Animations for trophy display (optional shimmer or pulse effect)
+- **Dependencies**:
+  - Vehicles collection must exist with proper relations
+  - User authentication to determine ownership
+  - Admin role verification for moderation
+  - Image upload for award photos (optional)
+  - Navigation routing to awards detail page
+- **Performance**:
+  - Lazy load award details (only fetch when row is clicked)
+  - Cache awards data locally
+  - Paginate awards list if a vehicle has many awards
+- **Validation**:
+  - Prevent duplicate awards (same event, same category)
+  - Date validation (event date not in future)
+  - Required fields: award_name, event_name, event_date
+- **Future Enhancements**:
+  - Award badges and special recognition on profile
+  - Push notifications when admin approves an award
+  - Award timeline view (chronological history)
+  - Integration with event management system
+  - QR code verification for authentic awards
+  - Award categories with icons (gold/silver/bronze medals)
+- **Estimated Effort**: Small-Medium
+
+**Implementation Checklist**:
+
+- [ ] Create PocketBase vehicle_awards collection
+- [ ] Set up collection permissions (owner + admin write, all read)
+- [ ] Design trophy display UI for profile page
+- [ ] Create awards repository with CRUD operations
+- [ ] Build trophy count display component (wrapping layout)
+- [ ] Implement navigation to awards detail page
+- [ ] Build awards list screen with filtering/sorting
+- [ ] Create add/edit award form
+- [ ] Implement admin moderation interface (optional)
+- [ ] Add award validation logic
+- [ ] Create empty state for vehicles with no awards
+- [ ] Add error handling and loading states
+- [ ] Implement image upload for award photos (optional)
+- [ ] Add award statistics display
+- [ ] Create trophy icons or use emoji (🏆)
+- [ ] Test wrapping behavior with many awards
+- [ ] Test on different screen sizes (responsive)
+- [ ] Write tests for awards repository
+- [ ] Test permissions (owner vs admin vs viewer)
+- [ ] Update documentation with awards feature guide
+- [ ] Create user guide for adding awards
+
+**Prerequisites**:
+
+- Vehicles collection with proper schema
+- User profiles and authentication
+- Profile page with vehicle section implemented
+- Admin role management
+
+**Use Cases**:
+
+- Member wins award at local car show and wants to display it
+- Viewing another member's profile to see their achievements
+- Admin verifying and approving award submissions
+- Member with multiple awards wanting to showcase all trophies
+- Sorting vehicles by most awarded in community
+
+---
+
 ### P3 - Backlog/Ideas
 
 <!-- Feature ideas and wishlist items -->

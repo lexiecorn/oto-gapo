@@ -103,6 +103,17 @@ android {
         }
     }
 
+    // Enable ABI splits to reduce APK size significantly
+    // Google Play will deliver device-specific APKs (e.g., arm64 devices only get arm64 libs)
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            isUniversalApk = false
+        }
+    }
+
     // Ensure native libraries use 16 KB page alignment for Android 15+ requirements
     // This is required for Google Play Store compliance starting Nov 1, 2025
     // See: https://developer.android.com/guide/practices/page-alignment
