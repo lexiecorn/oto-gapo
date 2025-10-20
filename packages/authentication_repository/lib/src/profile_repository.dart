@@ -74,10 +74,8 @@ class ProfileRepository {
       // No need to handle vehicle field in user data anymore
 
       // Handle profile image field mapping
-      // New schema uses 'profileImage' instead of 'profile_image'
-      if (userData['profileImage'] != null && userData['profile_image'] == null) {
-        userData['profile_image'] = userData['profileImage'];
-      }
+      // PocketBase uses 'profileImage' (camelCase), same as Dart model
+      // No conversion needed
 
       // Handle date field conversion - PocketBase can return dates as ISO strings or DateTime objects
       // The User.fromJson expects dates as ISO strings, so convert DateTime objects to strings
@@ -219,10 +217,8 @@ class ProfileRepository {
       // No need to handle vehicle field in user data anymore
 
       // Handle profile image field mapping
-      // New schema uses 'profileImage' instead of 'profile_image'
-      if (userData['profileImage'] != null && userData['profile_image'] == null) {
-        userData['profile_image'] = userData['profileImage'];
-      }
+      // PocketBase uses 'profileImage' (camelCase), same as Dart model
+      // No conversion needed
 
       // Handle date field conversion - PocketBase can return dates as ISO strings or DateTime objects
       // The User.fromJson expects dates as ISO strings, so convert DateTime objects to strings
@@ -288,9 +284,9 @@ class ProfileRepository {
         userData['spouseContactNumber'] = userData['spouseContactNumber'].toString();
       }
 
-      if (userData['profileImage'] != null && userData['profile_image'] == null) {
-        userData['profile_image'] = userData['profileImage'];
-      }
+      // Handle profile image field mapping
+      // PocketBase uses 'profileImage' (camelCase), same as Dart model
+      // No conversion needed
 
       if (userData['birthDate'] != null && userData['birthDate'] is DateTime) {
         userData['birthDate'] = (userData['birthDate'] as DateTime).toIso8601String();

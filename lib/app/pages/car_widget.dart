@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
+import 'package:otogapo/utils/car_logo_helper.dart';
 import 'package:otogapo_core/otogapo_core.dart';
 
 class CarWidget extends StatefulWidget {
@@ -89,6 +90,61 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
     }).join(' ');
   }
 
+  /// Builds the car manufacturer logo widget with fallback handling
+  Widget _buildCarLogo(String make) {
+    final logoUrl = CarLogoHelper.getCarLogoSource(make);
+
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(6),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Image.network(
+          logoUrl,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            // Fallback to car icon if logo fails to load
+            return Icon(
+              Icons.directions_car,
+              size: 20,
+              color: Colors.grey[600],
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    )
+        .animate()
+        .fadeIn(delay: 300.ms, duration: 600.ms)
+        .scale(delay: 350.ms, duration: 400.ms, curve: Curves.easeOutBack);
+  }
+
   Future<List<String>> _getCarImageUrls() async {
     try {
       if (widget.state.vehicles.isEmpty) return [];
@@ -173,22 +229,34 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  widget.state.vehicles.isNotEmpty
-                                      ? _capitalizeCarName(
-                                          '${widget.state.vehicles.first.make} ${widget.state.vehicles.first.model}')
-                                      : 'No Vehicle',
-                                  style: OpstechTextTheme.heading2.copyWith(
-                                    color: Colors.black87,
-                                    fontSize: 22.sp,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
-                                )
-                                    .animate()
-                                    .fadeIn(delay: 400.ms, duration: 600.ms)
-                                    .slideX(begin: -0.3, duration: 600.ms),
+                                // Car name with manufacturer logo
+                                Row(
+                                  children: [
+                                    // Manufacturer logo
+                                    if (widget.state.vehicles.isNotEmpty)
+                                      _buildCarLogo(widget.state.vehicles.first.make),
+                                    if (widget.state.vehicles.isNotEmpty) const SizedBox(width: 8),
+                                    // Car name
+                                    Expanded(
+                                      child: Text(
+                                        widget.state.vehicles.isNotEmpty
+                                            ? _capitalizeCarName(
+                                                '${widget.state.vehicles.first.make} ${widget.state.vehicles.first.model}')
+                                            : 'No Vehicle',
+                                        style: OpstechTextTheme.heading2.copyWith(
+                                          color: Colors.black87,
+                                          fontSize: 22.sp,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 2,
+                                      )
+                                          .animate()
+                                          .fadeIn(delay: 400.ms, duration: 600.ms)
+                                          .slideX(begin: -0.3, duration: 600.ms),
+                                    ),
+                                  ],
+                                ),
                                 const SizedBox(height: 5),
                                 if (widget.state.vehicles.isNotEmpty) ...[
                                   Text(

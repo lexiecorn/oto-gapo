@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -21,8 +22,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   // Controllers for create user form
   final TextEditingController _newEmailController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _newFirstNameController = TextEditingController();
   final TextEditingController _newLastNameController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   // Additional controllers for new fields
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _birthplaceController = TextEditingController();
@@ -67,6 +71,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   String? _selectedVehicleModel;
   bool _showSuggestions = false;
   bool _showManualModelEntry = false;
+  bool _showManualMakeEntry = false;
+  bool _isLoadingModels = false;
   final TextEditingController _vehicleMakeController = TextEditingController();
   final FocusNode _vehicleMakeFocusNode = FocusNode();
   Color _selectedVehicleColor = Colors.black;
@@ -309,6 +315,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       _vehicleModels = [];
       _showSuggestions = false;
       _showManualModelEntry = false;
+      _isLoadingModels = false;
     });
 
     // Update the text controller
@@ -318,14 +325,20 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     _vehicleMakeFocusNode.unfocus();
 
     if (make != null) {
+      setState(() {
+        _isLoadingModels = true;
+      });
+
       try {
         final models = await fetchModelsForMake(make);
         setState(() {
           _vehicleModels = models;
+          _isLoadingModels = false;
         });
       } catch (e) {
         setState(() {
           _vehicleModels = [];
+          _isLoadingModels = false;
         });
       }
     }
@@ -388,6 +401,52 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     });
 
     return filteredMakes;
+  }
+
+  Future<void> _showColorPicker() async {
+    Color pickerColor = _selectedVehicleColor;
+
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Pick Vehicle Color'),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: pickerColor,
+              onColorChanged: (Color color) {
+                pickerColor = color;
+              },
+              pickerAreaHeightPercent: 0.8,
+              enableAlpha: false,
+              displayThumbColor: true,
+              labelTypes: const [],
+              pickerAreaBorderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text('Select'),
+              onPressed: () {
+                setState(() {
+                  _selectedVehicleColor = pickerColor;
+                  // Update the hex text field
+                  final hexColor = pickerColor.value.toRadixString(16).substring(2).toUpperCase();
+                  _vehicleColorController.text = hexColor;
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   String _generateRandomString(int length) {
@@ -482,11 +541,25 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     }
   }
 
-  // Removed Firebase Storage upload - now using PocketBase file upload
+  // Upload profile image to PocketBase
   Future<String?> _uploadProfileImageToStorage(String userId) async {
-    // This function is now handled by PocketBase during user creation
-    // Images are uploaded directly via PocketBase's file upload API
-    return null;
+    if (_selectedProfileImage == null) return null;
+
+    try {
+      print('Uploading profile image for user: $userId');
+      final pocketBaseService = PocketBaseService();
+
+      // Update user with profile image file
+      await pocketBaseService.updateUser(userId, {
+        'profileImage': _selectedProfileImage!,
+      });
+
+      print('Profile image uploaded successfully');
+      return 'uploaded'; // Return success indicator
+    } catch (e) {
+      print('Profile image upload failed: $e');
+      rethrow;
+    }
   }
 
   Future<File?> _pickCarImage() async {
@@ -554,11 +627,56 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     }
   }
 
-  // Removed Firebase Storage upload - now using PocketBase file upload
+  // Upload car image to PocketBase
   Future<String?> _uploadCarImageToStorage(String userId, String imageName) async {
-    // This function is now handled by PocketBase during vehicle creation
-    // Images are uploaded directly via PocketBase's file upload API
-    return null;
+    File? selectedImage;
+
+    // Determine which image to upload based on imageName
+    switch (imageName) {
+      case 'main':
+        selectedImage = _selectedMainCarImage;
+        break;
+      case '1':
+        selectedImage = _selectedCarImage1;
+        break;
+      case '2':
+        selectedImage = _selectedCarImage2;
+        break;
+      case '3':
+        selectedImage = _selectedCarImage3;
+        break;
+      case '4':
+        selectedImage = _selectedCarImage4;
+        break;
+    }
+
+    if (selectedImage == null) return null;
+
+    try {
+      print('Uploading car image $imageName for user: $userId');
+      final pocketBaseService = PocketBaseService();
+
+      // Get the vehicle record for this user first
+      final vehicles = await pocketBaseService.getVehiclesByUser(userId);
+      if (vehicles.isEmpty) {
+        print('No vehicle found for user $userId');
+        return null;
+      }
+
+      final vehicleId = vehicles.first.id;
+
+      // Update vehicle with the image file
+      final fieldName = imageName == 'main' ? 'primaryPhoto' : 'photos';
+      await pocketBaseService.updateVehicle(vehicleId, {
+        fieldName: selectedImage,
+      });
+
+      print('Car image $imageName uploaded successfully');
+      return 'uploaded'; // Return success indicator
+    } catch (e) {
+      print('Car image $imageName upload failed: $e');
+      rethrow;
+    }
   }
 
   Future<void> _createUser() async {
@@ -603,6 +721,22 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     if (email.isEmpty || password.isEmpty || firstName.isEmpty || lastName.isEmpty) {
       setState(
         () => _createUserMessage = 'Please fill in all required fields (email, password, first name, last name).',
+      );
+      return;
+    }
+
+    // Validate password requirements
+    if (password.length < 8) {
+      setState(
+        () => _createUserMessage = 'Password must be at least 8 characters long.',
+      );
+      return;
+    }
+
+    // Validate passwords match
+    if (password != _confirmPasswordController.text.trim()) {
+      setState(
+        () => _createUserMessage = 'Passwords do not match. Please try again.',
       );
       return;
     }
@@ -1253,6 +1387,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   _newEmailController.text =
                       '${randomFirstName.toLowerCase()}.${randomLastName.toLowerCase()}${_generateRandomString(3)}@gmail.com';
                   _newPasswordController.text = 'TestPass123!'; // Strong password (min 8 chars)
+                  _confirmPasswordController.text = 'TestPass123!'; // Match password
 
                   // Age and Birth Info
                   _ageController.text = randomAge.toString();
@@ -1540,11 +1675,119 @@ class _CreateUserSectionState extends State<CreateUserSection> {
               TextField(
                 controller: _newPasswordController,
                 style: _buildTextStyle(),
-                decoration: _buildInputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Password',
-                  hintText: 'Enter your password',
+                  hintText: 'Enter your password (min 8 characters)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.sp),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.sp),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Theme.of(context).colorScheme.outline.withOpacity(0.5)
+                          : Colors.grey.shade300,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.sp),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.blue,
+                      width: 2,
+                    ),
+                  ),
+                  labelStyle: TextStyle(
+                    fontSize: 14.sp,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Theme.of(context).colorScheme.onSurface.withOpacity(0.7)
+                        : Colors.grey[600],
+                  ),
+                  hintStyle: TextStyle(
+                    fontSize: 13.sp,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                        : Colors.grey[400],
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12.sp,
+                    vertical: 12.sp,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6)
+                          : Colors.grey[600],
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
+                obscureText: _obscurePassword,
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _confirmPasswordController,
+                style: _buildTextStyle(),
+                decoration: InputDecoration(
+                  labelText: 'Confirm Password',
+                  hintText: 'Re-enter your password',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.sp),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.sp),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Theme.of(context).colorScheme.outline.withOpacity(0.5)
+                          : Colors.grey.shade300,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.sp),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.blue,
+                      width: 2,
+                    ),
+                  ),
+                  labelStyle: TextStyle(
+                    fontSize: 14.sp,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Theme.of(context).colorScheme.onSurface.withOpacity(0.7)
+                        : Colors.grey[600],
+                  ),
+                  hintStyle: TextStyle(
+                    fontSize: 13.sp,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                        : Colors.grey[400],
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12.sp,
+                    vertical: 12.sp,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6)
+                          : Colors.grey[600],
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                      });
+                    },
+                  ),
+                ),
+                obscureText: _obscureConfirmPassword,
               ),
               const SizedBox(height: 20),
               Row(
@@ -1686,6 +1929,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   ElevatedButton(
                     onPressed: () async {
                       final now = DateTime.now();
+                      final theme = Theme.of(context);
                       final picked = await showDatePicker(
                         context: context,
                         initialDate: _selectedDateOfBirth ?? DateTime(now.year - 18),
@@ -1694,6 +1938,27 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         helpText: 'Select Date of Birth',
                         fieldLabelText: 'Date of Birth',
                         fieldHintText: 'Date',
+                        builder: (context, child) {
+                          return Theme(
+                            data: theme.copyWith(
+                              textTheme: theme.textTheme.copyWith(
+                                headlineLarge: TextStyle(fontSize: 28.sp),
+                                headlineMedium: TextStyle(fontSize: 24.sp),
+                                headlineSmall: TextStyle(fontSize: 20.sp),
+                                titleLarge: TextStyle(fontSize: 18.sp),
+                                titleMedium: TextStyle(fontSize: 16.sp),
+                                titleSmall: TextStyle(fontSize: 14.sp),
+                                bodyLarge: TextStyle(fontSize: 14.sp),
+                                bodyMedium: TextStyle(fontSize: 12.sp),
+                                bodySmall: TextStyle(fontSize: 11.sp),
+                                labelLarge: TextStyle(fontSize: 13.sp),
+                                labelMedium: TextStyle(fontSize: 12.sp),
+                                labelSmall: TextStyle(fontSize: 11.sp),
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
                       );
                       if (picked != null) {
                         setState(() {
@@ -1921,6 +2186,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   ElevatedButton(
                     onPressed: () async {
                       final now = DateTime.now();
+                      final theme = Theme.of(context);
                       final picked = await showDatePicker(
                         context: context,
                         initialDate: _selectedLicenseExpirationDate ?? now,
@@ -1929,6 +2195,27 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         helpText: 'Select License Expiration Date',
                         fieldLabelText: 'License Expiration Date',
                         fieldHintText: 'Date',
+                        builder: (context, child) {
+                          return Theme(
+                            data: theme.copyWith(
+                              textTheme: theme.textTheme.copyWith(
+                                headlineLarge: TextStyle(fontSize: 28.sp),
+                                headlineMedium: TextStyle(fontSize: 24.sp),
+                                headlineSmall: TextStyle(fontSize: 20.sp),
+                                titleLarge: TextStyle(fontSize: 18.sp),
+                                titleMedium: TextStyle(fontSize: 16.sp),
+                                titleSmall: TextStyle(fontSize: 14.sp),
+                                bodyLarge: TextStyle(fontSize: 14.sp),
+                                bodyMedium: TextStyle(fontSize: 12.sp),
+                                bodySmall: TextStyle(fontSize: 11.sp),
+                                labelLarge: TextStyle(fontSize: 13.sp),
+                                labelMedium: TextStyle(fontSize: 12.sp),
+                                labelSmall: TextStyle(fontSize: 11.sp),
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
                       );
                       if (picked != null) {
                         setState(() {
@@ -2062,13 +2349,28 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: _selectedVehicleColor,
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8),
+                  GestureDetector(
+                    onTap: _showColorPicker,
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: _selectedVehicleColor,
+                        border: Border.all(color: Colors.grey, width: 2),
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.palette,
+                        color: _selectedVehicleColor.computeLuminance() > 0.5 ? Colors.black54 : Colors.white54,
+                        size: 24,
+                      ),
                     ),
                   ),
                   // const SizedBox(width: 10),
@@ -2125,12 +2427,105 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                     },
                   ),
                 ),
+              if (_showSuggestions && _getFilteredVehicleMakes().isEmpty && _vehicleMakeController.text.isNotEmpty)
+                Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    Text(
+                      'No results found for "${_vehicleMakeController.text}"',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.orange[700],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _showManualMakeEntry = true;
+                          _showSuggestions = false;
+                          _selectedVehicleMake = _vehicleMakeController.text;
+                        });
+                        _vehicleMakeFocusNode.unfocus();
+                      },
+                      icon: const Icon(Icons.add_circle_outline),
+                      label: const Text('Use custom make instead'),
+                    ),
+                  ],
+                ),
+              if (!_showSuggestions && _selectedVehicleMake == null && !_showManualMakeEntry)
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _showManualMakeEntry = true;
+                    });
+                  },
+                  icon: const Icon(Icons.edit),
+                  label: const Text('Or enter custom vehicle make'),
+                ),
+              if (_showManualMakeEntry && _selectedVehicleMake == null)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _vehicleMakeController,
+                      style: _buildTextStyle(),
+                      decoration: _buildInputDecoration(
+                        labelText: 'Enter Custom Vehicle Make',
+                        hintText: 'Type your custom vehicle make (e.g., Mitsubishi)',
+                        prefixIcon: const Icon(Icons.directions_car),
+                      ),
+                      onChanged: (value) {
+                        // Update selected make in real-time
+                        setState(() {
+                          if (value.isNotEmpty) {
+                            _selectedVehicleMake = value;
+                          }
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _showManualMakeEntry = false;
+                              _vehicleMakeController.clear();
+                              _selectedVehicleMake = null;
+                            });
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: _vehicleMakeController.text.isEmpty
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _selectedVehicleMake = _vehicleMakeController.text.trim();
+                                    _showManualMakeEntry = false;
+                                  });
+                                },
+                          child: const Text('Confirm Make'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               const SizedBox(height: 20),
               if (_selectedVehicleMake != null) ...[
                 Row(
                   children: [
                     Expanded(
-                      child: Text('Selected Make: $_selectedVehicleMake'),
+                      child: Text(
+                        'Selected Make: $_selectedVehicleMake',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                     TextButton(
                       onPressed: () {
@@ -2145,40 +2540,98 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                DropdownButtonFormField<String>(
-                  value: _selectedVehicleModel,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedVehicleModel = value;
-                      _vehicleModelController.text = value ?? '';
-                    });
-                  },
-                  style: _buildDropdownTextStyle(),
-                  decoration: _buildInputDecoration(
-                    labelText: 'Vehicle Model',
-                    hintText: 'Select vehicle model',
-                  ),
-                  items: _vehicleModels.map((model) {
-                    return DropdownMenuItem(
-                      value: model,
-                      child: Text(
-                        model,
-                        style: _buildDropdownTextStyle(),
+                if (_isLoadingModels)
+                  Center(
+                    child: Column(
+                      children: [
+                        const CircularProgressIndicator(),
+                        SizedBox(height: 8.sp),
+                        Text(
+                          'Loading models for $_selectedVehicleMake...',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  )
+                else if (_vehicleModels.isEmpty && !_showManualModelEntry)
+                  Column(
+                    children: [
+                      Text(
+                        'No models found for $_selectedVehicleMake',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Colors.orange[700],
+                        ),
                       ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 10),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _showManualModelEntry = true;
-                    });
-                  },
-                  child: const Text('Or enter custom model'),
-                ),
+                      SizedBox(height: 8.sp),
+                      Text(
+                        'Please enter a custom model below',
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: Colors.grey[600],
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                      SizedBox(height: 12.sp),
+                      TextField(
+                        controller: _vehicleModelController,
+                        style: _buildTextStyle(),
+                        decoration: _buildInputDecoration(
+                          labelText: 'Enter Vehicle Model',
+                          hintText: 'Type your vehicle model',
+                          prefixIcon: const Icon(Icons.edit),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            if (value.isNotEmpty) {
+                              _selectedVehicleModel = value;
+                            }
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  )
+                else ...[
+                  DropdownButtonFormField<String>(
+                    value: _selectedVehicleModel,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedVehicleModel = value;
+                        _vehicleModelController.text = value ?? '';
+                      });
+                    },
+                    style: _buildDropdownTextStyle(),
+                    decoration: _buildInputDecoration(
+                      labelText: 'Vehicle Model',
+                      hintText: 'Select vehicle model',
+                    ),
+                    items: _vehicleModels.map((model) {
+                      return DropdownMenuItem(
+                        value: model,
+                        child: Text(
+                          model,
+                          style: _buildDropdownTextStyle(),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _showManualModelEntry = true;
+                      });
+                    },
+                    child: const Text('Or enter custom model'),
+                  ),
+                ],
               ],
-              if (_showManualModelEntry)
+              if (_showManualModelEntry) ...[
                 TextField(
                   controller: _vehicleModelController,
                   style: _buildTextStyle(),
@@ -2188,7 +2641,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                     prefixIcon: const Icon(Icons.edit),
                   ),
                 ),
-              // const SizedBox(height: 0),
+                const SizedBox(height: 20),
+              ],
               TextField(
                 controller: _vehiclePlateNumberController,
                 style: _buildTextStyle(),

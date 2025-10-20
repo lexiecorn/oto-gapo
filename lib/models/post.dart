@@ -55,10 +55,14 @@ class Post {
         final firstName = userRecord.data['firstName'] as String? ?? '';
         final lastName = userRecord.data['lastName'] as String? ?? '';
         userName = '$firstName $lastName'.trim();
+        if (userName.isEmpty) {
+          userName = 'Unknown User';
+        }
         userProfileImage = userRecord.data['profileImage'] as String?;
       }
     } catch (e) {
       // Expand not available, use default values
+      print('Post.fromRecord - Error getting expanded user: $e');
     }
 
     // Parse hashtags and mentions from JSON

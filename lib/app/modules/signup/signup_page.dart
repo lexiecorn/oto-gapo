@@ -20,6 +20,8 @@ class SignupPageState extends State<SignupPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
   final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   String? _firstName;
   String? _lastName;
   String? _age;
@@ -126,12 +128,22 @@ class SignupPageState extends State<SignupPage> {
                       const SizedBox(height: 20),
                       TextFormField(
                         controller: _passwordController,
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
+                        obscureText: _obscurePassword,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
                           filled: true,
                           labelText: 'Password',
-                          prefixIcon: Icon(Icons.lock),
+                          prefixIcon: const Icon(Icons.lock),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
                         ),
                         validator: (String? value) {
                           if (value == null || value.trim().isEmpty) {
@@ -148,12 +160,22 @@ class SignupPageState extends State<SignupPage> {
                       ),
                       const SizedBox(height: 20),
                       TextFormField(
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
+                        obscureText: _obscureConfirmPassword,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
                           filled: true,
                           labelText: 'Confirm password',
-                          prefixIcon: Icon(Icons.lock),
+                          prefixIcon: const Icon(Icons.lock),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscureConfirmPassword = !_obscureConfirmPassword;
+                              });
+                            },
+                          ),
                         ),
                         validator: (String? value) {
                           if (_passwordController.text != value) {

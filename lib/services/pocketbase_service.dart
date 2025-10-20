@@ -194,48 +194,40 @@ class PocketBaseService {
   Future<RecordModel> _uploadUserFile(String userId, String fieldName, File file) async {
     try {
       print('PocketBaseService - Starting file upload for field: $fieldName');
+      print('PocketBaseService - User ID: $userId');
+      print('PocketBaseService - Base URL: ${pb.baseUrl}');
+      print('PocketBaseService - File path: ${file.path}');
 
       // Read file bytes
       final fileBytes = await file.readAsBytes();
       print('PocketBaseService - File size: ${fileBytes.length} bytes');
 
-      // Create multipart request manually
-      final request = http.MultipartRequest(
-        'PATCH',
-        Uri.parse('${pb.baseURL}/api/collections/users/records/$userId'),
+      // Use PocketBase SDK's update method with files parameter
+      // Files should be passed as a list of http.MultipartFile objects
+      final result = await pb.collection('users').update(
+        userId,
+        files: [
+          http.MultipartFile.fromBytes(
+            fieldName,
+            fileBytes,
+            filename: file.path.split('/').last,
+          ),
+        ],
       );
 
-      // Add authorization header
-      final token = pb.authStore.token;
-      request.headers['Authorization'] = 'Bearer $token';
-
-      // Add the file
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          fieldName,
-          fileBytes,
-          filename: file.path.split('/').last,
-        ),
-      );
-
-      print('PocketBaseService - Sending multipart request');
-
-      // Send the request
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-
-      print('PocketBaseService - Response status: ${response.statusCode}');
-      print('PocketBaseService - Response body: ${response.body}');
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        final responseData = json.decode(response.body) as Map<String, dynamic>;
-        return RecordModel.fromJson(responseData);
-      } else {
-        throw Exception('File upload failed: ${response.statusCode} - ${response.body}');
-      }
+      print('PocketBaseService - File uploaded successfully');
+      return result;
     } catch (e) {
       print('PocketBaseService - Error uploading file for field $fieldName: $e');
       print('PocketBaseService - Error type: ${e.runtimeType}');
+
+      // If we get a permission error, try to provide more helpful information
+      if (e.toString().contains('403') || e.toString().contains('permission')) {
+        print('PocketBaseService - Permission denied. User may not have rights to update this field.');
+        print('PocketBaseService - Ensure PocketBase collection rules allow users to update their own records.');
+        print('PocketBaseService - Current update rule should include: || @request.auth.id = id');
+      }
+
       rethrow;
     }
   }
@@ -334,7 +326,91 @@ class PocketBaseService {
 
   // Update vehicle
   Future<RecordModel> updateVehicle(String vehicleId, Map<String, dynamic> data) async {
-    return pb.collection('vehicles').update(vehicleId, body: data);
+    // Separate file uploads from regular data updates
+    final fileFields = <String, dynamic>{};
+    final regularData = <String, dynamic>{};
+
+    for (final entry in data.entries) {
+      if (entry.value is File || entry.value is List<File>) {
+        fileFields[entry.key] = entry.value;
+      } else {
+        regularData[entry.key] = entry.value;
+      }
+    }
+
+    print('PocketBaseService - Updating vehicle $vehicleId');
+    print('PocketBaseService - Regular data keys: ${regularData.keys.toList()}');
+    print('PocketBaseService - File fields: ${fileFields.keys.toList()}');
+
+    try {
+      RecordModel result;
+
+      // First update regular data if any
+      if (regularData.isNotEmpty) {
+        result = await pb.collection('vehicles').update(vehicleId, body: regularData);
+        print('PocketBaseService - Regular vehicle data updated successfully');
+      } else {
+        result = await pb.collection('vehicles').getOne(vehicleId);
+      }
+
+      // Handle file uploads using files parameter
+      if (fileFields.isNotEmpty) {
+        for (final entry in fileFields.entries) {
+          final fieldName = entry.key;
+          final value = entry.value;
+
+          final multipartFiles = <http.MultipartFile>[];
+
+          if (value is File) {
+            // Single file
+            print('PocketBaseService - Uploading single vehicle file for field: $fieldName');
+            final fileBytes = await value.readAsBytes();
+            print('PocketBaseService - Vehicle file size: ${fileBytes.length} bytes');
+
+            multipartFiles.add(
+              http.MultipartFile.fromBytes(
+                fieldName,
+                fileBytes,
+                filename: value.path.split('/').last,
+              ),
+            );
+          } else if (value is List<File>) {
+            // Multiple files
+            print('PocketBaseService - Uploading ${value.length} vehicle files for field: $fieldName');
+
+            for (final file in value) {
+              final fileBytes = await file.readAsBytes();
+              print('PocketBaseService - Vehicle file size: ${fileBytes.length} bytes');
+
+              multipartFiles.add(
+                http.MultipartFile.fromBytes(
+                  fieldName,
+                  fileBytes,
+                  filename: file.path.split('/').last,
+                ),
+              );
+            }
+          }
+
+          // Use PocketBase SDK's update method with files parameter
+          if (multipartFiles.isNotEmpty) {
+            result = await pb.collection('vehicles').update(
+                  vehicleId,
+                  files: multipartFiles,
+                );
+
+            print('PocketBaseService - Vehicle file(s) for $fieldName uploaded successfully');
+          }
+        }
+      }
+
+      print('PocketBaseService - Vehicle updated successfully: ${result.id}');
+      return result;
+    } catch (e) {
+      print('PocketBaseService - Error updating vehicle: $e');
+      print('PocketBaseService - Error type: ${e.runtimeType}');
+      rethrow;
+    }
   }
 
   // Delete vehicle
@@ -1950,13 +2026,32 @@ class PocketBaseService {
       final defaultFilter = 'is_active = true && is_hidden_by_admin = false';
       final combinedFilter = filter != null ? '$defaultFilter && $filter' : defaultFilter;
 
-      return await pb.collection('posts').getList(
+      final result = await pb.collection('posts').getList(
             page: page,
             perPage: perPage,
             filter: combinedFilter,
             sort: sort ?? '-created',
             expand: 'user_id',
           );
+
+      // Manual user data population if expand failed
+      // This handles cases where list permissions don't allow expand
+      for (final post in result.items) {
+        if (post.expand.isEmpty || !post.expand.containsKey('user_id')) {
+          final userId = post.data['user_id'] as String?;
+          if (userId != null && userId.isNotEmpty) {
+            try {
+              final userRecord = await pb.collection('users').getOne(userId);
+              // Manually set the expand data
+              post.expand['user_id'] = [userRecord];
+            } catch (e) {
+              print('PocketBaseService.getPosts - Error fetching user $userId: $e');
+            }
+          }
+        }
+      }
+
+      return result;
     } catch (e) {
       print('Error getting posts: $e');
       rethrow;

@@ -52,13 +52,23 @@ This allows:
 
 ```javascript
 // Admins can update any user, users can update themselves (with restrictions)
-@request.auth.id != "" && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2) || (@request.auth.id = id && @request.data.isAdmin:isset = false)
+@request.auth.id != "" && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2) || (@request.auth.id = id && (@request.data.isAdmin:isset = false || @request.data.isAdmin:isset != true) && (@request.data.membership_type:isset = false || @request.data.membership_type = @record.membership_type))
 ```
+
+**Alternative simpler rule (recommended for regular users to update their profile):**
+
+```javascript
+// Admins can update any user, users can update their own profile (excluding admin/membership fields)
+@request.auth.id != "" && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2 || @request.auth.id = id)
+```
+
+**Note**: If using the simpler rule, you should handle admin/membership field restrictions in your application code, not in PocketBase rules.
 
 This allows:
 
 - Admins to update any user
-- Regular users to update their own profile (but not make themselves admin)
+- Regular users to update their own profile including **profileImage** field
+- Restrictions on admin/membership fields should be enforced in application logic
 
 #### Delete Rule
 
@@ -323,7 +333,60 @@ final user = await pocketBaseService.getUser(otherUserId); // Returns null or er
 final users = await pocketBaseService.getAllUsers(); // Returns only self or error
 ```
 
+## Profile Image Upload Configuration
+
+### Required Field Setup
+
+Ensure the `users` collection has a `profile_image` field (note: snake_case) configured as:
+
+- **Field Name**: `profile_image` (PocketBase uses snake_case)
+- **Type**: File
+- **Max Select**: 1
+- **Max Size**: 5MB (or as needed)
+- **Allowed Types**: image/jpeg, image/png, image/jpg, image/webp
+
+**Important**: The Dart code uses `profileImage` (camelCase) but PocketBase schema uses `profile_image` (snake_case). The field name conversion is handled automatically by the service layer.
+
+### Update Rule for Profile Images
+
+For regular members to upload their own profile photos, use this Update rule:
+
+```javascript
+@request.auth.id != "" && (@request.auth.membership_type = 1 || @request.auth.membership_type = 2 || @request.auth.id = id)
+```
+
+This allows:
+
+- Admins to update any user's profile image
+- Regular members to update their own profile image
+
+### Testing Profile Image Upload
+
+```dart
+// Test as regular member - should work
+final pocketBaseService = PocketBaseService();
+await pocketBaseService.updateUser(
+  currentUserId,
+  {'profileImage': File('/path/to/image.jpg')},
+);
+
+// Test as admin - should work for any user
+await pocketBaseService.updateUser(
+  otherUserId,
+  {'profileImage': File('/path/to/image.jpg')},
+);
+```
+
 ## Common Issues and Solutions
+
+### Issue: 404 Error when uploading profile image
+
+**Cause**: PocketBase endpoint not found or incorrect URL configuration
+**Solution**:
+
+1. Ensure `pocketbaseUrl` is correctly set in FlavorConfig
+2. Verify the PocketBase server is running and accessible
+3. Check that the file upload is using the PocketBase SDK's built-in `update` method
 
 ### Issue: "User record not found" for admins
 

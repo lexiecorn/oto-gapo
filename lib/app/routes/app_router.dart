@@ -26,10 +26,11 @@ class AppRouter extends $AppRouter {
           path: '/signin',
           page: SigninPageRouter.page,
         ),
-        AutoRoute(
-          page: SignupPageRouter.page,
-          path: '/register',
-        ),
+        // Signup disabled - users are created by admins only
+        // AutoRoute(
+        //   page: SignupPageRouter.page,
+        //   path: '/register',
+        // ),
         AutoRoute(
           page: ProfilePageRouter.page,
           path: '/profile',

@@ -12,7 +12,7 @@ import 'package:otogapo/app/modules/profile_progress/bloc/profile_progress_cubit
 import 'package:otogapo/app/pages/car_widget.dart';
 import 'package:otogapo/app/pages/current_user_account_page.dart';
 import 'package:otogapo/app/pages/id_card.dart';
-import 'package:otogapo/app/widgets/profile_completion_card.dart';
+import 'package:otogapo/app/widgets/profile_completion_card_wrapper.dart';
 
 @RoutePage(
   name: 'ProfilePageRouter',
@@ -182,8 +182,8 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                     bottom: 20,
                   ),
                   children: [
-                    // Profile Completion Card (only show for own profile)
-                    if (isViewingOwnProfile) const ProfileCompletionCard(),
+                    // Profile Completion Card (only show for own profile, once a week)
+                    if (isViewingOwnProfile) const ProfileCompletionCardWrapper(),
                     // Profile Card with enhanced animation
                     FutureBuilder<Widget>(
                       future: _userProfileCard(state),
