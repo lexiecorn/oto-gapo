@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
@@ -9,6 +12,169 @@ import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/modules/profile_progress/bloc/profile_progress_cubit.dart';
 import 'package:otogapo/app/pages/car_widget.dart';
 import 'package:otogapo/app/widgets/profile_completion_card_wrapper.dart';
+import 'package:otogapo_core/otogapo_core.dart';
+
+// Vehicle photos carousel widget with auto-scroll and infinite loop
+class _VehiclePhotosCarousel extends StatefulWidget {
+  const _VehiclePhotosCarousel({required this.state});
+
+  final ProfileState state;
+
+  @override
+  State<_VehiclePhotosCarousel> createState() => _VehiclePhotosCarouselState();
+}
+
+class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
+  late ScrollController _scrollController;
+  late Timer _autoScrollTimer;
+  static const double _scrollSpeed = 30.0; // pixels per second
+  static const Duration _scrollInterval = Duration(milliseconds: 50);
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _startAutoScroll();
+  }
+
+  @override
+  void dispose() {
+    _autoScrollTimer.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _startAutoScroll() {
+    _autoScrollTimer = Timer.periodic(_scrollInterval, (timer) {
+      if (!_scrollController.hasClients) return;
+
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final currentScroll = _scrollController.offset;
+      final nextScroll = currentScroll + (_scrollSpeed * _scrollInterval.inMilliseconds / 1000);
+
+      if (nextScroll >= maxScroll) {
+        // Reset to beginning for infinite scroll
+        _scrollController.jumpTo(0);
+      } else {
+        _scrollController.animateTo(nextScroll, duration: _scrollInterval, curve: Curves.linear);
+      }
+    });
+  }
+
+  List<String> _getPhotoUrls() {
+    if (widget.state.vehicles.isEmpty) return [];
+    final vehicle = widget.state.vehicles.first;
+    final photos = vehicle.photos ?? [];
+    final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+
+    return photos.where((p) => p.isNotEmpty).map((filename) {
+      if (filename.startsWith('http')) {
+        return filename;
+      }
+      return '$pocketbaseUrl/api/files/vehicles/${vehicle.id}/$filename';
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final photoUrls = _getPhotoUrls();
+    if (photoUrls.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Create infinite list by repeating photos
+    final infinitePhotoUrls = List.generate(
+      photoUrls.length * 100, // Repeat 100 times for pseudo-infinite scroll
+      (index) => photoUrls[index % photoUrls.length],
+    );
+
+    return SizedBox(
+      height: 180.h, // Increased height
+      child: ListView.builder(
+        controller: _scrollController,
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 12.h),
+        itemCount: infinitePhotoUrls.length,
+        physics: const ClampingScrollPhysics(), // Smooth scrolling
+        itemBuilder: (context, index) {
+          final actualIndex = index % photoUrls.length;
+          return Container(
+                width: 200.w, // Increased width
+                margin: EdgeInsets.only(right: 12.w),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16.r),
+                  border: Border.all(color: const Color(0xFFE61525).withOpacity(0.3), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark ? Colors.black.withOpacity(0.4) : Colors.grey.withOpacity(0.4),
+                      blurRadius: 12,
+                      spreadRadius: 0,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16.r),
+                  child: OpstechExtendedImageNetwork(
+                    img: infinitePhotoUrls[index],
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
+                ),
+              )
+              .animate()
+              .fadeIn(delay: (200 + (actualIndex * 100)).ms, duration: 600.ms)
+              .slideX(begin: 0.3, delay: (200 + (actualIndex * 100)).ms, duration: 600.ms);
+        },
+      ),
+    );
+  }
+}
+
+// Import the private widget - Fixed container with scrollable content inside
+class _CarWidgetSpecsOnlyFixed extends StatelessWidget {
+  const _CarWidgetSpecsOnlyFixed({required this.state, required this.onRefresh});
+
+  final ProfileState state;
+  final Future<void> Function() onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: isDark ? [Colors.black, Colors.grey.shade900] : [Colors.white, Colors.grey.shade100],
+        ),
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black.withOpacity(0.4) : Colors.grey.withOpacity(0.4),
+            blurRadius: 20,
+            spreadRadius: 0,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.3),
+            blurRadius: 10,
+            spreadRadius: 0,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: RefreshIndicator(
+        onRefresh: onRefresh,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(16.sp),
+          child: CarWidget(state: state),
+        ),
+      ),
+    );
+  }
+}
 
 @RoutePage(name: 'ProfilePageRouter')
 class ProfilePage extends StatefulWidget {
@@ -88,105 +254,94 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
         widget.userId == null || (currentAuthUser != null && widget.userId == currentAuthUser.id);
 
     return Scaffold(
-      body: SafeArea(
-        child: BlocConsumer<ProfileCubit, ProfileState>(
-          listener: (context, state) {},
-          builder: (context, state) {
-            // Add debugging
-            print('Profile Page - Profile Status: ${state.profileStatus}');
-            print('Profile Page - User Member Number: "${state.user.memberNumber}"');
-            print('Profile Page - User First Name: "${state.user.firstName}"');
-            print('Profile Page - User Last Name: "${state.user.lastName}"');
-            print('Profile Page - User Membership Type: ${state.user.membership_type}');
-            print('Profile Page - User UID: "${state.user.uid}"');
+      body: BlocConsumer<ProfileCubit, ProfileState>(
+        listener: (context, state) {},
+        builder: (context, state) {
+          // Add debugging
+          print('Profile Page - Profile Status: ${state.profileStatus}');
+          print('Profile Page - User Member Number: "${state.user.memberNumber}"');
+          print('Profile Page - User First Name: "${state.user.firstName}"');
+          print('Profile Page - User Last Name: "${state.user.lastName}"');
+          print('Profile Page - User Membership Type: ${state.user.membership_type}');
+          print('Profile Page - User UID: "${state.user.uid}"');
 
-            // Only check for mismatch if viewing own profile
-            if (isViewingOwnProfile &&
-                currentAuthUser != null &&
-                state.user.uid.isNotEmpty &&
-                state.user.uid != currentAuthUser.id) {
-              print('Profile Page - User mismatch detected!');
-              print('Profile Page - Auth user UID: ${currentAuthUser.id}');
-              print('Profile Page - Profile user UID: ${state.user.uid}');
-              print('Profile Page - Force clearing profile for new user');
-              context.read<ProfileCubit>().forceClear();
-              // Immediately fetch profile without artificial delay
-              context.read<ProfileCubit>().getProfile();
-            }
+          // Only check for mismatch if viewing own profile
+          if (isViewingOwnProfile &&
+              currentAuthUser != null &&
+              state.user.uid.isNotEmpty &&
+              state.user.uid != currentAuthUser.id) {
+            print('Profile Page - User mismatch detected!');
+            print('Profile Page - Auth user UID: ${currentAuthUser.id}');
+            print('Profile Page - Profile user UID: ${state.user.uid}');
+            print('Profile Page - Force clearing profile for new user');
+            context.read<ProfileCubit>().forceClear();
+            // Immediately fetch profile without artificial delay
+            context.read<ProfileCubit>().getProfile();
+          }
 
-            if (state.profileStatus == ProfileStatus.initial) {
-              // Show loading screen while initializing
-              return _buildLoadingScreen();
-            } else if (state.profileStatus == ProfileStatus.loading) {
-              return _buildLoadingScreen();
-            } else if (state.profileStatus == ProfileStatus.error) {
-              return _buildErrorScreen();
-            }
+          if (state.profileStatus == ProfileStatus.initial) {
+            // Show loading screen while initializing
+            return _buildLoadingScreen();
+          } else if (state.profileStatus == ProfileStatus.loading) {
+            return _buildLoadingScreen();
+          } else if (state.profileStatus == ProfileStatus.error) {
+            return _buildErrorScreen();
+          }
 
-            // Debug display for development
-            if (state.user.firstName.isEmpty && state.user.lastName.isEmpty) {
-              return _buildEmptyUserScreen(context, state);
-            }
+          // Debug display for development
+          if (state.user.firstName.isEmpty && state.user.lastName.isEmpty) {
+            return _buildEmptyUserScreen(context, state);
+          }
 
-            // Update profile progress
-            _updateProfileProgress(state.user);
+          // Update profile progress
+          _updateProfileProgress(state.user);
 
-            return RefreshIndicator(
-              onRefresh: () async {
-                // Add a subtle animation when refreshing
-                _pageAnimationController.reset();
-                _pageAnimationController.forward();
-
-                // Refresh the profile data
-                if (isViewingOwnProfile) {
-                  context.read<ProfileCubit>().getProfile();
-                } else {
-                  context.read<ProfileCubit>().getProfileByUserId(widget.userId!);
-                }
-              },
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: ListView(
-                  padding: EdgeInsets.only(top: 20.sp, left: 8, right: 8, bottom: 20),
-                  children: [
-                    // Profile Completion Card (only show for own profile, once a week)
-                    if (isViewingOwnProfile) const ProfileCompletionCardWrapper(),
-                    // Profile Card with enhanced animation (HIDDEN - user details moved to CarWidget)
-                    // FutureBuilder<Widget>(
-                    //   future: _userProfileCard(state),
-                    //   builder: (context, snapshot) {
-                    //     if (snapshot.connectionState == ConnectionState.waiting) {
-                    //       return _buildLoadingCard();
-                    //     } else if (snapshot.hasError) {
-                    //       return _buildErrorCard();
-                    //     } else if (snapshot.hasData) {
-                    //       return InkWell(
-                    //         // Only allow navigation to account settings for own profile
-                    //         onTap: isViewingOwnProfile
-                    //             ? () {
-                    //                 Navigator.of(context).push(
-                    //                   MaterialPageRoute<void>(
-                    //                     builder: (context) => const CurrentUserAccountPage(),
-                    //                   ),
-                    //                 );
-                    //               }
-                    //             : null,
-                    //         child: snapshot.data,
-                    //       );
-                    //     } else {
-                    //       return const SizedBox.shrink();
-                    //     }
-                    //   },
-                    // ),
-                    // SizedBox(height: 12.sp),
-                    // Car Widget with animation (now includes user details)
-                    CarWidget(state: state),
-                  ],
+          return FadeTransition(
+            opacity: _fadeAnimation,
+            child: Column(
+              children: [
+                // Profile Completion Card (only show for own profile, once a week) - FIXED
+                if (isViewingOwnProfile)
+                  Padding(
+                    padding: EdgeInsets.only(left: 8, right: 8, bottom: 4.h),
+                    child: const ProfileCompletionCardWrapper(),
+                  ),
+                // Hero image card - FIXED AT TOP (no spacing)
+                MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  removeBottom: true,
+                  child: CarWidgetImageCard(state: state),
                 ),
-              ),
-            );
-          },
-        ),
+                SizedBox(height: 12.h),
+                // Vehicle photos carousel - FIXED
+                if (state.vehicles.isNotEmpty) _VehiclePhotosCarousel(state: state),
+                SizedBox(height: 12.h),
+                // Container with scrollable content inside - CONTAINER STAYS FIXED
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                    child: _CarWidgetSpecsOnlyFixed(
+                      state: state,
+                      onRefresh: () async {
+                        // Add a subtle animation when refreshing
+                        _pageAnimationController.reset();
+                        _pageAnimationController.forward();
+
+                        // Refresh the profile data
+                        if (isViewingOwnProfile) {
+                          context.read<ProfileCubit>().getProfile();
+                        } else {
+                          context.read<ProfileCubit>().getProfileByUserId(widget.userId!);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

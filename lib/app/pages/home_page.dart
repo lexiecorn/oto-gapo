@@ -192,15 +192,13 @@ class HomePageState extends State<HomePage> {
                 ),
               ),
         body: _selectedIndex == 1 || _selectedIndex == 2
-            ? SafeArea(
-                child: Column(
-                  children: [
-                    // Connectivity Banner for Profile and Social Feed (since no AppBar)
-                    const ConnectivityBanner(),
-                    // Page content
-                    Expanded(child: _widgetOptions.elementAt(_selectedIndex)),
-                  ],
-                ),
+            ? Stack(
+                children: [
+                  // Page content - starts from top
+                  _widgetOptions.elementAt(_selectedIndex),
+                  // Connectivity Banner overlays on top
+                  Positioned(top: 0, left: 0, right: 0, child: const ConnectivityBanner()),
+                ],
               )
             : _widgetOptions.elementAt(_selectedIndex),
         bottomNavigationBar: _buildBottomNavigationBar(),
