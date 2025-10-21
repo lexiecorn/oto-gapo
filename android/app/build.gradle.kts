@@ -103,14 +103,21 @@ android {
         }
     }
 
-    // Enable ABI splits to reduce APK size significantly
+    // Enable ABI splits ONLY for release builds to reduce APK size significantly
+    // Debug builds use universal APK for compatibility with flutter run / VS Code
     // Google Play will deliver device-specific APKs (e.g., arm64 devices only get arm64 libs)
     splits {
         abi {
-            isEnable = true
+            // Only enable splits for release builds, not debug builds
+            isEnable = gradle.startParameter.taskNames.any { 
+                it.contains("Release") && !it.contains("Debug") 
+            }
             reset()
             include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-            isUniversalApk = false
+            // Universal APK for debug, split APKs for release
+            isUniversalApk = !gradle.startParameter.taskNames.any { 
+                it.contains("Release") && !it.contains("Debug") 
+            }
         }
     }
 

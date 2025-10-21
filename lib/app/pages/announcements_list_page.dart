@@ -1,9 +1,11 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo/utils/announcement_type_helper.dart';
 
 @RoutePage(name: 'AnnouncementsListPageRouter')
 class AnnouncementsListPage extends StatefulWidget {
@@ -24,10 +26,7 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
 
   final List<String> _announcementTypes = [
     'All',
-    'announce',
-    'warning',
-    'notice',
-    'info',
+    ...AnnouncementTypeHelper.allTypes,
   ];
 
   @override
@@ -105,33 +104,28 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
   }
 
   Color _getTypeColor(String type, bool isDark) {
-    switch (type) {
-      case 'announce':
-        return isDark ? Colors.blue[300]! : Colors.blue[600]!;
-      case 'warning':
-        return isDark ? Colors.red[300]! : Colors.red[600]!;
-      case 'notice':
-        return isDark ? Colors.orange[300]! : Colors.orange[600]!;
-      case 'info':
-        return isDark ? Colors.green[300]! : Colors.green[600]!;
-      default:
-        return isDark ? Colors.grey[400]! : Colors.grey[600]!;
-    }
+    return AnnouncementTypeHelper.getTypeColor(type, isDark);
   }
 
   IconData _getTypeIcon(String type) {
-    switch (type) {
-      case 'announce':
-        return Icons.announcement;
-      case 'warning':
-        return Icons.warning_rounded;
-      case 'notice':
-        return Icons.info_rounded;
-      case 'info':
-        return Icons.lightbulb_rounded;
-      default:
-        return Icons.info_rounded;
+    return AnnouncementTypeHelper.getTypeIcon(type);
+  }
+
+  String _buildImageUrl(Map<String, dynamic> announcement, String? thumb) {
+    final imgField = announcement['img'] as String?;
+    if (imgField == null || imgField.isEmpty) return '';
+
+    final baseUrl = PocketBaseService().pb.baseUrl;
+    final collectionId = announcement['collectionId'] as String?;
+    final recordId = announcement['id'] as String?;
+
+    if (collectionId == null || recordId == null) return '';
+
+    if (thumb != null && thumb.isNotEmpty) {
+      return '$baseUrl/api/files/$collectionId/$recordId/$imgField?thumb=$thumb';
     }
+
+    return '$baseUrl/api/files/$collectionId/$recordId/$imgField';
   }
 
   @override
@@ -345,11 +339,12 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
     required ColorScheme colorScheme,
     required int index,
   }) {
-    final type = announcement['type'] as String? ?? 'info';
+    final type = announcement['type'] as String? ?? 'general';
     final title = announcement['title'] as String? ?? 'No Title';
     final content = announcement['content'] as String? ?? 'No content';
     final dateString = announcement['created'] as String?;
     final date = dateString != null ? DateTime.parse(dateString) : null;
+    final imageField = announcement['img'] as String?;
 
     return Card(
       margin: EdgeInsets.only(bottom: 12.h),
@@ -367,18 +362,40 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icon
+              // Icon or Image
               Container(
-                padding: EdgeInsets.all(10.sp),
+                width: 60.w,
+                height: 60.w,
                 decoration: BoxDecoration(
                   color: _getTypeColor(type, isDark).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10.r),
                 ),
-                child: Icon(
-                  _getTypeIcon(type),
-                  size: 20.sp,
-                  color: _getTypeColor(type, isDark),
-                ),
+                child: imageField != null && imageField.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(10.r),
+                        child: CachedNetworkImage(
+                          imageUrl: _buildImageUrl(announcement, '100x100t'),
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Icon(
+                            _getTypeIcon(type),
+                            size: 24.sp,
+                            color: _getTypeColor(type, isDark),
+                          ),
+                          errorWidget: (context, url, error) => Icon(
+                            _getTypeIcon(type),
+                            size: 24.sp,
+                            color: _getTypeColor(type, isDark),
+                          ),
+                        ),
+                      )
+                    : Padding(
+                        padding: EdgeInsets.all(10.sp),
+                        child: Icon(
+                          _getTypeIcon(type),
+                          size: 24.sp,
+                          color: _getTypeColor(type, isDark),
+                        ),
+                      ),
               ),
 
               SizedBox(width: 16.w),
@@ -472,11 +489,13 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
     bool isDark,
     ColorScheme colorScheme,
   ) {
-    final type = announcement['type'] as String? ?? 'info';
+    final type = announcement['type'] as String? ?? 'general';
     final title = announcement['title'] as String? ?? 'No Title';
     final content = announcement['content'] as String? ?? 'No content';
     final dateString = announcement['created'] as String?;
     final date = dateString != null ? DateTime.parse(dateString) : null;
+    final imageField = announcement['img'] as String?;
+    final imageUrl = imageField != null && imageField.isNotEmpty ? _buildImageUrl(announcement, '600x400t') : null;
 
     showDialog<void>(
       context: context,
@@ -486,129 +505,163 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
           borderRadius: BorderRadius.circular(16.r),
         ),
         child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
           padding: EdgeInsets.all(24.sp),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(12.sp),
-                    decoration: BoxDecoration(
-                      color: _getTypeColor(type, isDark).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12.r),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(12.sp),
+                      decoration: BoxDecoration(
+                        color: _getTypeColor(type, isDark).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Icon(
+                        _getTypeIcon(type),
+                        size: 24.sp,
+                        color: _getTypeColor(type, isDark),
+                      ),
                     ),
-                    child: Icon(
-                      _getTypeIcon(type),
-                      size: 24.sp,
-                      color: _getTypeColor(type, isDark),
-                    ),
-                  ),
-                  SizedBox(width: 16.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                            fontSize: 18.sp,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? colorScheme.onSurface : Colors.black87,
-                          ),
-                        ),
-                        SizedBox(height: 4.h),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10.w,
-                            vertical: 4.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _getTypeColor(type, isDark).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          child: Text(
-                            type.toUpperCase(),
+                    SizedBox(width: 16.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
                             style: TextStyle(
-                              fontSize: 11.sp,
+                              fontSize: 18.sp,
                               fontWeight: FontWeight.w600,
-                              color: _getTypeColor(type, isDark),
+                              color: isDark ? colorScheme.onSurface : Colors.black87,
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 4.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getTypeColor(type, isDark).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            child: Text(
+                              type.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w600,
+                                color: _getTypeColor(type, isDark),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 20.h),
+
+                // Image if present
+                if (imageUrl != null) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12.r),
+                    child: CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      placeholder: (context, url) => Container(
+                        height: 200.h,
+                        color: isDark ? Colors.grey[800] : Colors.grey[200],
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              colorScheme.primary,
                             ),
                           ),
                         ),
-                      ],
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        height: 200.h,
+                        color: isDark ? Colors.grey[800] : Colors.grey[200],
+                        child: const Icon(Icons.broken_image, size: 48),
+                      ),
                     ),
                   ),
-                  IconButton(
+                  SizedBox(height: 20.h),
+                ],
+
+                // Content
+                Text(
+                  content,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: isDark ? colorScheme.onSurface.withOpacity(0.9) : Colors.grey[800],
+                    height: 1.5,
+                  ),
+                ),
+
+                SizedBox(height: 20.h),
+
+                // Date
+                Row(
+                  children: [
+                    Icon(
+                      Icons.schedule_rounded,
+                      size: 16.sp,
+                      color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                    ),
+                    SizedBox(width: 8.w),
+                    Text(
+                      date != null ? DateFormat('EEEE, MMMM dd, yyyy • h:mm a').format(date) : 'No date available',
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 24.h),
+
+                // Close button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(
-                      Icons.close_rounded,
-                      color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 16.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: 20.h),
-
-              // Content
-              Text(
-                content,
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: isDark ? colorScheme.onSurface.withOpacity(0.9) : Colors.grey[800],
-                  height: 1.5,
-                ),
-              ),
-
-              SizedBox(height: 20.h),
-
-              // Date
-              Row(
-                children: [
-                  Icon(
-                    Icons.schedule_rounded,
-                    size: 16.sp,
-                    color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
-                  ),
-                  SizedBox(width: 8.w),
-                  Text(
-                    date != null ? DateFormat('EEEE, MMMM dd, yyyy • h:mm a').format(date) : 'No date available',
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: 24.h),
-
-              // Close button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 16.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
-                  child: Text(
-                    'Close',
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w600,
+                    child: Text(
+                      'Close',
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

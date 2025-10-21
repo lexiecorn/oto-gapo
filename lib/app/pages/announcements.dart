@@ -1,9 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo/utils/announcement_type_helper.dart';
 
 class AnnouncementsWidget extends StatefulWidget {
   const AnnouncementsWidget({super.key});
@@ -107,33 +109,28 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
   }
 
   Color _getTypeColor(String type, bool isDark) {
-    switch (type) {
-      case 'announce':
-        return isDark ? Colors.blue[300]! : Colors.blue[600]!;
-      case 'warning':
-        return isDark ? Colors.red[300]! : Colors.red[600]!;
-      case 'notice':
-        return isDark ? Colors.orange[300]! : Colors.orange[600]!;
-      case 'info':
-        return isDark ? Colors.green[300]! : Colors.green[600]!;
-      default:
-        return isDark ? Colors.grey[400]! : Colors.grey[600]!;
-    }
+    return AnnouncementTypeHelper.getTypeColor(type, isDark);
   }
 
   IconData _getTypeIcon(String type) {
-    switch (type) {
-      case 'announce':
-        return Icons.announcement;
-      case 'warning':
-        return Icons.warning_rounded;
-      case 'notice':
-        return Icons.info_rounded;
-      case 'info':
-        return Icons.lightbulb_rounded;
-      default:
-        return Icons.info_rounded;
+    return AnnouncementTypeHelper.getTypeIcon(type);
+  }
+
+  String _buildImageUrl(Map<String, dynamic> announcement, String? thumb) {
+    final imgField = announcement['img'] as String?;
+    if (imgField == null || imgField.isEmpty) return '';
+
+    final baseUrl = PocketBaseService().pb.baseUrl;
+    final collectionId = announcement['collectionId'] as String?;
+    final recordId = announcement['id'] as String?;
+
+    if (collectionId == null || recordId == null) return '';
+
+    if (thumb != null && thumb.isNotEmpty) {
+      return '$baseUrl/api/files/$collectionId/$recordId/$imgField?thumb=$thumb';
     }
+
+    return '$baseUrl/api/files/$collectionId/$recordId/$imgField';
   }
 
   @override
@@ -406,11 +403,12 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
     required bool isLast,
     required int index,
   }) {
-    final type = announcement['type'] as String? ?? 'info';
+    final type = announcement['type'] as String? ?? 'general';
     final title = announcement['title'] as String? ?? 'No Title';
     final content = announcement['content'] as String? ?? 'No content';
     final dateString = announcement['created'] as String?;
     final date = dateString != null ? DateTime.parse(dateString) : null;
+    final imageField = announcement['img'] as String?;
 
     return Container(
       margin: EdgeInsets.only(
@@ -445,18 +443,40 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon
+                // Icon or Image
                 Container(
-                  padding: EdgeInsets.all(10.sp),
+                  width: 50.sp,
+                  height: 50.sp,
                   decoration: BoxDecoration(
                     color: _getTypeColor(type, isDark).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10.sp),
                   ),
-                  child: Icon(
-                    _getTypeIcon(type),
-                    size: 20.sp,
-                    color: _getTypeColor(type, isDark),
-                  ),
+                  child: imageField != null && imageField.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(10.sp),
+                          child: CachedNetworkImage(
+                            imageUrl: _buildImageUrl(announcement, '100x100t'),
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Icon(
+                              _getTypeIcon(type),
+                              size: 20.sp,
+                              color: _getTypeColor(type, isDark),
+                            ),
+                            errorWidget: (context, url, error) => Icon(
+                              _getTypeIcon(type),
+                              size: 20.sp,
+                              color: _getTypeColor(type, isDark),
+                            ),
+                          ),
+                        )
+                      : Padding(
+                          padding: EdgeInsets.all(10.sp),
+                          child: Icon(
+                            _getTypeIcon(type),
+                            size: 20.sp,
+                            color: _getTypeColor(type, isDark),
+                          ),
+                        ),
                 ),
 
                 SizedBox(width: 16.sp),
@@ -544,11 +564,13 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
   }
 
   void _showAnnouncementDetails(Map<String, dynamic> announcement, bool isDark, ColorScheme colorScheme) {
-    final type = announcement['type'] as String? ?? 'info';
+    final type = announcement['type'] as String? ?? 'general';
     final title = announcement['title'] as String? ?? 'No Title';
     final content = announcement['content'] as String? ?? 'No content';
     final dateString = announcement['created'] as String?;
     final date = dateString != null ? DateTime.parse(dateString) : null;
+    final imageField = announcement['img'] as String?;
+    final imageUrl = imageField != null && imageField.isNotEmpty ? _buildImageUrl(announcement, '300x300t') : null;
 
     showDialog<void>(
       context: context,
@@ -621,6 +643,35 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
               ),
 
               SizedBox(height: 20.sp),
+
+              // Image if present
+              if (imageUrl != null) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12.sp),
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    placeholder: (context, url) => Container(
+                      height: 150.sp,
+                      color: isDark ? Colors.grey[800] : Colors.grey[200],
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      height: 150.sp,
+                      color: isDark ? Colors.grey[800] : Colors.grey[200],
+                      child: const Icon(Icons.broken_image, size: 48),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20.sp),
+              ],
 
               // Content
               Text(

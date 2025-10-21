@@ -451,19 +451,187 @@ class PocketBaseService {
     }
   }
 
-  // Create announcement
+  // Create announcement with optional image
   Future<RecordModel> createAnnouncement({
     required String title,
     required String content,
     String? type,
+    String? imageFilePath,
+    bool showOnLogin = false,
+    bool isActive = true,
   }) async {
-    final data = {
-      'title': title,
-      'content': content,
-      'type': type ?? 'general',
-    };
+    await _ensureAuthenticated();
 
-    return pb.collection('Announcements').create(body: data);
+    // If no image, use simple create
+    if (imageFilePath == null || imageFilePath.isEmpty) {
+      final data = {
+        'title': title,
+        'content': content,
+        'type': type ?? 'general',
+        'showOnLogin': showOnLogin,
+        'isActive': isActive,
+      };
+      return pb.collection('Announcements').create(body: data);
+    }
+
+    // With image, use multipart request
+    final file = File(imageFilePath);
+    final fileBytes = await file.readAsBytes();
+
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${pb.baseUrl}/api/collections/Announcements/records'),
+    );
+
+    // Add authorization header
+    final token = pb.authStore.token;
+    request.headers['Authorization'] = token;
+
+    // Add the file
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'img',
+        fileBytes,
+        filename: file.path.split('/').last,
+      ),
+    );
+
+    // Add other fields
+    request.fields['title'] = title;
+    request.fields['content'] = content;
+    request.fields['type'] = type ?? 'general';
+    request.fields['showOnLogin'] = showOnLogin.toString();
+    request.fields['isActive'] = isActive.toString();
+
+    // Send request
+    final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(responseBody) as Map<String, dynamic>;
+      return RecordModel.fromJson(jsonData);
+    } else {
+      throw Exception('Failed to create announcement: $responseBody');
+    }
+  }
+
+  // Update announcement
+  Future<RecordModel> updateAnnouncement({
+    required String announcementId,
+    String? title,
+    String? content,
+    String? type,
+    String? imageFilePath,
+    bool? showOnLogin,
+    bool? isActive,
+  }) async {
+    await _ensureAuthenticated();
+
+    // If no image, use simple update
+    if (imageFilePath == null || imageFilePath.isEmpty) {
+      final data = <String, dynamic>{};
+      if (title != null) data['title'] = title;
+      if (content != null) data['content'] = content;
+      if (type != null) data['type'] = type;
+      if (showOnLogin != null) data['showOnLogin'] = showOnLogin;
+      if (isActive != null) data['isActive'] = isActive;
+      return pb.collection('Announcements').update(announcementId, body: data);
+    }
+
+    // With image, use multipart request
+    final file = File(imageFilePath);
+    final fileBytes = await file.readAsBytes();
+
+    final request = http.MultipartRequest(
+      'PATCH',
+      Uri.parse('${pb.baseUrl}/api/collections/Announcements/records/$announcementId'),
+    );
+
+    // Add authorization header
+    final token = pb.authStore.token;
+    request.headers['Authorization'] = token;
+
+    // Add the file
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'img',
+        fileBytes,
+        filename: file.path.split('/').last,
+      ),
+    );
+
+    // Add other fields
+    if (title != null) request.fields['title'] = title;
+    if (content != null) request.fields['content'] = content;
+    if (type != null) request.fields['type'] = type;
+    if (showOnLogin != null) request.fields['showOnLogin'] = showOnLogin.toString();
+    if (isActive != null) request.fields['isActive'] = isActive.toString();
+
+    // Send request
+    final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(responseBody) as Map<String, dynamic>;
+      return RecordModel.fromJson(jsonData);
+    } else {
+      throw Exception('Failed to update announcement: $responseBody');
+    }
+  }
+
+  // Delete announcement
+  Future<void> deleteAnnouncement(String announcementId) async {
+    await _ensureAuthenticated();
+    await pb.collection('Announcements').delete(announcementId);
+  }
+
+  // Toggle announcement active status
+  Future<RecordModel> toggleAnnouncementActive(String announcementId) async {
+    await _ensureAuthenticated();
+
+    // Get current record
+    final record = await pb.collection('Announcements').getOne(announcementId);
+    final currentActive = record.data['isActive'] as bool? ?? true;
+
+    // Toggle the status
+    return pb.collection('Announcements').update(
+      announcementId,
+      body: {'isActive': !currentActive},
+    );
+  }
+
+  // Get announcement image URL with optional thumbnail size
+  String getAnnouncementImageUrl(
+    RecordModel announcement, {
+    String? thumb,
+  }) {
+    final imgField = announcement.data['img'] as String?;
+    if (imgField == null || imgField.isEmpty) return '';
+
+    final baseUrl = pb.baseUrl;
+    final collectionId = announcement.collectionId;
+    final recordId = announcement.id;
+
+    if (thumb != null && thumb.isNotEmpty) {
+      return '$baseUrl/api/files/$collectionId/$recordId/$imgField?thumb=$thumb';
+    }
+
+    return '$baseUrl/api/files/$collectionId/$recordId/$imgField';
+  }
+
+  // Get announcements that should be shown on login
+  Future<List<RecordModel>> getLoginAnnouncements() async {
+    try {
+      await _ensureAuthenticated();
+      final result = await pb.collection('Announcements').getList(
+            filter: 'showOnLogin = true && isActive = true',
+            sort: '-created',
+          );
+      return result.items;
+    } catch (e) {
+      print('Error getting login announcements: $e');
+      return [];
+    }
   }
 
   // Get app data

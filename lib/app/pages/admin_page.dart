@@ -6,13 +6,13 @@ import 'package:otogapo/app/modules/admin_analytics/bloc/admin_analytics_cubit.d
 import 'package:otogapo/app/modules/admin_analytics/bloc/admin_analytics_state.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/analytics_page.dart';
+import 'package:otogapo/app/pages/announcement_management_page.dart';
 import 'package:otogapo/app/pages/gallery_management_page.dart';
 import 'package:otogapo/app/pages/payment_management_page_new.dart';
 import 'package:otogapo/app/pages/user_management_page.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/app/widgets/admin_stat_card.dart';
 import 'package:otogapo/app/widgets/skeleton_loader.dart';
-import 'package:otogapo/services/pocketbase_service.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -55,10 +55,9 @@ class _AdminPageState extends State<AdminPage> {
       }
 
       // Fallback: resolve PocketBase user by email
-      final pocketBaseService = PocketBaseService();
       final authBloc = context.read<ProfileCubit>();
       final profileUserFallback = authBloc.state.user;
-      
+
       if (profileUserFallback.uid.isNotEmpty) {
         setState(() {
           _isAdmin = (profileUserFallback.membership_type == 1) || (profileUserFallback.membership_type == 2);
@@ -257,6 +256,18 @@ class _AdminPageState extends State<AdminPage> {
                     subtitle: 'Manage meetings',
                     onTap: () {
                       context.router.push(const MeetingsListPageRouter());
+                    },
+                  ),
+                  _buildAdminCard(
+                    icon: Icons.campaign,
+                    title: 'Announcement Management',
+                    subtitle: 'Create & manage announcements',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const AnnouncementManagementPage(),
+                        ),
+                      );
                     },
                   ),
                   _buildAdminCard(
