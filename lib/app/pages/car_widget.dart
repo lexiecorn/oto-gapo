@@ -292,7 +292,7 @@ class _HeroImageCard extends StatelessWidget {
               ? [Colors.black, Colors.grey.shade900, Colors.grey.shade800]
               : [Colors.grey.shade100, Colors.grey.shade200, Colors.grey.shade300],
         ),
-        borderRadius: BorderRadius.zero,
+        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24.r), bottomRight: Radius.circular(24.r)),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 20, spreadRadius: 0, offset: const Offset(0, 4)),
         ],
@@ -301,64 +301,71 @@ class _HeroImageCard extends StatelessWidget {
         children: [
           // Hero car image
           Positioned.fill(
-            child: FutureBuilder<String?>(
-              future: _resolvePrimaryPhotoUrl(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+            child: ClipRRect(
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24.r), bottomRight: Radius.circular(24.r)),
+              child: FutureBuilder<String?>(
+                future: _resolvePrimaryPhotoUrl(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: isDark
+                                  ? [Colors.grey.shade900, Colors.grey.shade800]
+                                  : [Colors.grey.shade200, Colors.grey.shade300],
+                            ),
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE61525)),
+                            ),
+                          ),
+                        )
+                        .animate(onPlay: (controller) => controller.repeat())
+                        .shimmer(duration: 1500.ms, color: const Color(0xFFE61525).withOpacity(0.3));
+                  }
+
+                  if (snapshot.hasData && snapshot.data != null) {
+                    return Stack(
+                      children: [
+                        OpstechExtendedImageNetwork(
+                          img: snapshot.data!,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
+                        // Dark gradient overlay
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.black.withOpacity(0.5), Colors.black.withOpacity(0.3)],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+
+                  // Fallback placeholder
                   return Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: isDark
-                                ? [Colors.grey.shade900, Colors.grey.shade800]
-                                : [Colors.grey.shade200, Colors.grey.shade300],
-                          ),
-                        ),
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE61525)),
-                          ),
-                        ),
-                      )
-                      .animate(onPlay: (controller) => controller.repeat())
-                      .shimmer(duration: 1500.ms, color: const Color(0xFFE61525).withOpacity(0.3));
-                }
-
-                if (snapshot.hasData && snapshot.data != null) {
-                  return Stack(
-                    children: [
-                      OpstechExtendedImageNetwork(img: snapshot.data!, width: double.infinity, height: double.infinity),
-                      // Dark gradient overlay
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.black.withOpacity(0.5), Colors.black.withOpacity(0.3)],
-                          ),
-                        ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isDark
+                            ? [Colors.grey.shade900, Colors.grey.shade800]
+                            : [Colors.grey.shade200, Colors.grey.shade300],
                       ),
-                    ],
-                  );
-                }
-
-                // Fallback placeholder
-                return Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: isDark
-                          ? [Colors.grey.shade900, Colors.grey.shade800]
-                          : [Colors.grey.shade200, Colors.grey.shade300],
                     ),
-                  ),
-                  child: Center(
-                    child: Icon(Icons.directions_car, size: 80.sp, color: const Color(0xFFE61525).withOpacity(0.5)),
-                  ),
-                );
-              },
+                    child: Center(
+                      child: Icon(Icons.directions_car, size: 80.sp, color: const Color(0xFFE61525).withOpacity(0.5)),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
           // Car name and details at top left

@@ -102,7 +102,6 @@ class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
                 margin: EdgeInsets.only(right: 12.w),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16.r),
-                  border: Border.all(color: const Color(0xFFE61525).withOpacity(0.3), width: 1.5),
                   boxShadow: [
                     BoxShadow(
                       color: isDark ? Colors.black.withOpacity(0.4) : Colors.grey.withOpacity(0.4),
