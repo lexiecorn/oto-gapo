@@ -118,12 +118,14 @@ The following files have been created/updated:
 - `lib/app/pages/car_details_page.dart` - Full vehicle details with image carousel
 - `lib/app/pages/vehicle_awards_page.dart` - Awards list for a vehicle
 - `lib/app/pages/add_vehicle_award_page.dart` - Form to add/edit awards
+- `lib/app/pages/vehicle_awards_management_page.dart` - Admin interface to manage all vehicle awards
 
 **Updated Files:**
 
 - `lib/app/pages/car_widget.dart` - Complete redesign with dark theme
+- `lib/app/pages/admin_page.dart` - Added Vehicle Awards card in admin panel
 - `packages/authentication_repository/lib/src/models/vehicle.dart` - Added spec fields
-- `lib/app/routes/app_router.dart` - Added new routes
+- `lib/app/routes/app_router.dart` - Added new routes including admin management route
 
 ### 3. Route Configuration
 
@@ -147,6 +149,10 @@ AutoRoute(
   page: EditVehicleAwardPageRouter.page,
   path: '/vehicle/:vehicleId/awards/:awardId/edit',
 ),
+AutoRoute(
+  page: VehicleAwardsManagementRoute.page,
+  path: '/admin/vehicle-awards',
+),
 ```
 
 ### 4. Navigation Usage
@@ -163,6 +169,9 @@ context.router.pushNamed('/vehicle/$vehicleId/awards/add');
 
 // Navigate to edit award
 context.router.pushNamed('/vehicle/$vehicleId/awards/$awardId/edit');
+
+// Navigate to admin awards management (admins only)
+context.router.pushNamed('/admin/vehicle-awards');
 ```
 
 ## Features Implemented
@@ -190,15 +199,40 @@ context.router.pushNamed('/vehicle/$vehicleId/awards/$awardId/edit');
 - **Event Details:** Event name, date, category, placement
 - **Visual Display:** Trophy icons with count badges
 - **Image Support:** Optional award photos/certificates
-- **Admin Controls:** Admins can manage all awards
+- **Admin Controls:** Admins can manage all awards through dedicated admin panel
+- **Admin Management Page:** Centralized interface for admins to view, edit, and delete all vehicle awards across all users
 
-### 4. UI/UX Features
+### 4. Admin Vehicle Awards Management
+
+The admin panel now includes a dedicated Vehicle Awards Management interface that allows administrators to:
+
+- **Create Awards:** Add new awards to any user's vehicle
+  - Search for users by name or email with real-time filtering
+  - Select from the user's vehicles (with warning if user has no vehicles)
+  - Fill in award details: name, event, date, category, placement, description
+  - Automatic validation of required fields
+- **View All Awards:** See all vehicle awards across the entire community in one place
+- **Search & Filter:** Search awards by name, event, category, or placement
+- **Filter by Vehicle:** View awards for a specific vehicle using the dropdown filter
+- **Quick Edit:** Edit award details directly from the management interface using inline dialogs
+- **Delete Awards:** Remove awards with confirmation dialogs
+- **Real-time Stats:** View total awards count, number of vehicles, and filtered results
+- **Bulk Management:** Manage multiple awards efficiently
+
+**Access:** Admin Panel → Vehicle Awards card
+
+**Route:** `/admin/vehicle-awards`
+
+**File:** `lib/app/pages/vehicle_awards_management_page.dart`
+
+### 5. UI/UX Features
 
 - **Responsive Design:** Works on all screen sizes
 - **Smooth Animations:** Staggered fade-ins and slide effects
 - **Loading States:** Skeleton loaders and shimmer effects
 - **Empty States:** Encouraging messages for no data
 - **Error Handling:** Graceful error states with retry options
+- **Admin Dashboard:** Clean, modern interface with search and filter capabilities
 
 ## Color Scheme
 
@@ -212,6 +246,8 @@ The new design uses a dark automotive theme:
 
 ## Testing Checklist
 
+### User-Facing Features
+
 - [ ] Vehicle with no photos shows placeholder
 - [ ] Vehicle with multiple awards displays correctly
 - [ ] Awards wrap properly on small screens
@@ -221,6 +257,23 @@ The new design uses a dark automotive theme:
 - [ ] Awards navigation works correctly
 - [ ] Add/edit award form validates properly
 - [ ] Permissions: only owner/admin can edit
+
+### Admin Management Features
+
+- [ ] Admin can access Vehicle Awards Management from admin panel
+- [ ] Create award button opens dialog
+- [ ] User search filters correctly by name and email
+- [ ] User selection shows their vehicles
+- [ ] Warning displays when user has no vehicles
+- [ ] Award form validates required fields
+- [ ] Awards are created successfully
+- [ ] All awards load correctly in management interface
+- [ ] Search functionality filters awards properly
+- [ ] Vehicle filter dropdown works correctly
+- [ ] Edit dialog updates awards successfully
+- [ ] Delete confirmation prevents accidental deletions
+- [ ] Statistics display accurate counts
+- [ ] Error states handle failed operations gracefully
 
 ## Future Enhancements
 

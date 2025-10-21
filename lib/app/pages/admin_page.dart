@@ -10,6 +10,7 @@ import 'package:otogapo/app/pages/announcement_management_page.dart';
 import 'package:otogapo/app/pages/gallery_management_page.dart';
 import 'package:otogapo/app/pages/payment_management_page_new.dart';
 import 'package:otogapo/app/pages/user_management_page.dart';
+import 'package:otogapo/app/pages/vehicle_awards_management_page.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/app/widgets/admin_stat_card.dart';
 import 'package:otogapo/app/widgets/skeleton_loader.dart';
@@ -79,27 +80,19 @@ class _AdminPageState extends State<AdminPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (!_isAdmin) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Admin Access Denied'),
-          centerTitle: true,
-        ),
+        appBar: AppBar(title: const Text('Admin Access Denied'), centerTitle: true),
         body: const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.security, size: 64, color: Colors.red),
               SizedBox(height: 16),
-              Text(
-                'Access Denied',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
+              Text('Access Denied', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               SizedBox(height: 8),
               Text(
                 'You do not have admin privileges to access this page.',
@@ -139,10 +132,7 @@ class _AdminPageState extends State<AdminPage> {
               BlocBuilder<AdminAnalyticsCubit, AdminAnalyticsState>(
                 builder: (context, analyticsState) {
                   if (analyticsState.isLoading) {
-                    return SizedBox(
-                      height: 200.h,
-                      child: const SkeletonGrid(itemCount: 4),
-                    );
+                    return SizedBox(height: 200.h, child: const SkeletonGrid(itemCount: 4));
                   }
 
                   if (analyticsState.hasData) {
@@ -152,10 +142,7 @@ class _AdminPageState extends State<AdminPage> {
                       children: [
                         Text(
                           'Dashboard Overview',
-                          style: TextStyle(
-                            fontSize: 20.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 16.h),
                         GridView.count(
@@ -201,13 +188,7 @@ class _AdminPageState extends State<AdminPage> {
                 },
               ),
 
-              const Text(
-                'Admin Functions',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              const Text('Admin Functions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               GridView.count(
                 shrinkWrap: true,
@@ -223,9 +204,9 @@ class _AdminPageState extends State<AdminPage> {
                     subtitle: 'Manage all users',
                     onTap: () {
                       // Navigate to user management
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(builder: (context) => const UserManagementPage()),
-                      );
+                      Navigator.of(
+                        context,
+                      ).push(MaterialPageRoute<void>(builder: (context) => const UserManagementPage()));
                     },
                   ),
                   _buildAdminCard(
@@ -234,9 +215,9 @@ class _AdminPageState extends State<AdminPage> {
                     subtitle: 'Manage monthly dues',
                     onTap: () {
                       // Navigate to payment management
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(builder: (context) => const PaymentManagementPageNew()),
-                      );
+                      Navigator.of(
+                        context,
+                      ).push(MaterialPageRoute<void>(builder: (context) => const PaymentManagementPageNew()));
                     },
                   ),
                   _buildAdminCard(
@@ -245,9 +226,9 @@ class _AdminPageState extends State<AdminPage> {
                     subtitle: 'Manage images',
                     onTap: () {
                       // Navigate to gallery management
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(builder: (context) => const GalleryManagementPage()),
-                      );
+                      Navigator.of(
+                        context,
+                      ).push(MaterialPageRoute<void>(builder: (context) => const GalleryManagementPage()));
                     },
                   ),
                   _buildAdminCard(
@@ -263,11 +244,9 @@ class _AdminPageState extends State<AdminPage> {
                     title: 'Announcement Management',
                     subtitle: 'Create & manage announcements',
                     onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (context) => const AnnouncementManagementPage(),
-                        ),
-                      );
+                      Navigator.of(
+                        context,
+                      ).push(MaterialPageRoute<void>(builder: (context) => const AnnouncementManagementPage()));
                     },
                   ),
                   _buildAdminCard(
@@ -275,9 +254,17 @@ class _AdminPageState extends State<AdminPage> {
                     title: 'Analytics',
                     subtitle: 'View system analytics',
                     onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(builder: (context) => const AnalyticsPage()),
-                      );
+                      Navigator.of(context).push(MaterialPageRoute<void>(builder: (context) => const AnalyticsPage()));
+                    },
+                  ),
+                  _buildAdminCard(
+                    icon: Icons.emoji_events,
+                    title: 'Vehicle Awards',
+                    subtitle: 'Manage vehicle awards',
+                    onTap: () {
+                      Navigator.of(
+                        context,
+                      ).push(MaterialPageRoute<void>(builder: (context) => const VehicleAwardsManagementPage()));
                     },
                   ),
                   _buildAdminCard(
@@ -286,9 +273,9 @@ class _AdminPageState extends State<AdminPage> {
                     subtitle: 'Configure system',
                     onTap: () {
                       // TODO: Implement system settings
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('System settings feature coming soon!')),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(const SnackBar(content: Text('System settings feature coming soon!')));
                     },
                   ),
                   _buildAdminCard(
@@ -332,10 +319,7 @@ class _AdminPageState extends State<AdminPage> {
               Flexible(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -345,10 +329,7 @@ class _AdminPageState extends State<AdminPage> {
               Flexible(
                 child: Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,

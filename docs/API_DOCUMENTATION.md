@@ -741,6 +741,133 @@ await vehicleAwardsRepository.deleteAward(awardId);
 - **Update Rule:** `created_by = @request.auth.id || @request.auth.isAdmin = true` (owner or admin can update)
 - **Delete Rule:** `created_by = @request.auth.id || @request.auth.isAdmin = true` (owner or admin can delete)
 
+### Admin Vehicle Awards Management
+
+The admin panel includes a dedicated Vehicle Awards Management interface for centralized award administration.
+
+**Location:** Admin Panel → Vehicle Awards
+
+**Route:** `/admin/vehicle-awards`
+
+**File:** `lib/app/pages/vehicle_awards_management_page.dart`
+
+#### Features
+
+- **Create Awards:** Add new awards by searching for users and selecting their vehicles
+  - User search with real-time filtering by name or email
+  - Vehicle selection based on the selected user
+  - Warning message if user has no vehicles
+  - Full award details form with validation
+- **View All Awards:** Display all vehicle awards across the community with pagination support (up to 500 awards)
+- **Search Functionality:** Real-time search filtering by award name, event name, category, and placement
+- **Vehicle Filter:** Dropdown filter to view awards for specific vehicles
+- **Statistics Dashboard:** Live counts for:
+  - Total awards in the system
+  - Total vehicles with awards
+  - Filtered results count
+- **Inline Editing:** Quick edit dialog for updating award details without leaving the management page
+- **Delete Operations:** Confirmation dialogs for safe award deletion
+- **Responsive UI:** Dark-themed interface with animations and loading states
+
+#### PocketBase Operations
+
+```dart
+// Load all users for award creation
+final usersResponse = await pocketBaseService.pb
+  .collection('users')
+  .getList(page: 1, perPage: 500, sort: 'firstName');
+
+// Load all vehicles with user relation
+final vehiclesResponse = await pocketBaseService.pb
+  .collection('vehicles')
+  .getList(
+    page: 1,
+    perPage: 500,
+    sort: '-created',
+    expand: 'user',
+  );
+
+// Load all awards with expanded relations
+final awardsResponse = await pocketBaseService.pb
+  .collection('vehicle_awards')
+  .getList(
+    page: 1,
+    perPage: 500,
+    sort: '-event_date',
+    expand: 'vehicle_id,created_by',
+  );
+
+// Create a new award (admin permission required)
+await pocketBaseService.pb
+  .collection('vehicle_awards')
+  .create(
+    body: {
+      'vehicle_id': selectedVehicleId,
+      'award_name': 'Best Modified Car',
+      'event_name': 'Manila Auto Show 2025',
+      'event_date': DateTime.now().toIso8601String(),
+      'category': 'Modified',
+      'placement': '1st Place',
+      'description': 'Outstanding modifications',
+      'created_by': currentUserId,
+    },
+  );
+
+// Update an award (admin permission required)
+await pocketBaseService.pb
+  .collection('vehicle_awards')
+  .update(
+    awardId,
+    body: {
+      'award_name': 'Updated Name',
+      'event_name': 'Updated Event',
+      'event_date': DateTime.now().toIso8601String(),
+      'category': 'Modified',
+      'placement': '1st Place',
+      'description': 'Updated description',
+    },
+  );
+
+// Delete an award (admin permission required)
+await pocketBaseService.pb
+  .collection('vehicle_awards')
+  .delete(awardId);
+```
+
+#### Access Control
+
+Only users with admin privileges can access the Vehicle Awards Management page. The admin panel card for Vehicle Awards is only visible to authenticated admin users.
+
+#### UI Components
+
+**Award Card:**
+
+- Trophy icon with golden accent colors
+- Award name, event name, and vehicle details
+- Category and placement badges with color coding
+- Event date display
+- Description with text overflow handling
+- Action menu (three-dot) for edit and delete operations
+
+**Search Bar:**
+
+- Real-time filtering as user types
+- Electric blue accent color (#00d4ff)
+- Dark background (#0a0e27)
+
+**Vehicle Filter Dropdown:**
+
+- Shows all vehicles with format: "Make Model (Year)"
+- "All Vehicles" option to clear filter
+- Maintains dark theme consistency
+
+**Statistics Bar:**
+
+- Three-column layout with dividers
+- Golden color (#ffd700) for total awards
+- Electric blue (#00d4ff) for vehicles count
+- Purple (#a855f7) for filtered results
+
 ### UI Components
 
 #### VehicleSpecCard

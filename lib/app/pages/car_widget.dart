@@ -9,10 +9,7 @@ import 'package:otogapo/widgets/awards_trophy_row.dart';
 import 'package:otogapo_core/otogapo_core.dart';
 
 class CarWidget extends StatefulWidget {
-  const CarWidget({
-    required this.state,
-    super.key,
-  });
+  const CarWidget({required this.state, super.key});
   final ProfileState state;
 
   @override
@@ -30,40 +27,25 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    _carAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
+    _carAnimationController = AnimationController(duration: const Duration(milliseconds: 1200), vsync: this);
 
-    _imageAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
+    _imageAnimationController = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
 
-    _fadeAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _carAnimationController,
         curve: const Interval(0, 0.6, curve: Curves.easeOut),
       ),
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
       CurvedAnimation(
         parent: _carAnimationController,
         curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
       ),
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.9,
-      end: 1,
-    ).animate(
+    _scaleAnimation = Tween<double>(begin: 0.9, end: 1).animate(
       CurvedAnimation(
         parent: _carAnimationController,
         curve: const Interval(0.3, 1, curve: Curves.easeOutBack),
@@ -85,11 +67,26 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  String _capitalizeCarName(String carName) {
-    return carName.split(' ').map((word) {
-      if (word.isEmpty) return word;
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join(' ');
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'N/A';
+    return '${date.month}/${date.day}/${date.year}';
+  }
+
+  Widget _buildUserDetailRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 12.sp, color: Colors.grey[400]),
+        SizedBox(width: 6.w),
+        Text(
+          '$label: ',
+          style: TextStyle(fontSize: 11.sp, color: Colors.grey[400], fontWeight: FontWeight.w500),
+        ),
+        Text(
+          value,
+          style: TextStyle(fontSize: 11.sp, color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+      ],
+    );
   }
 
   /// Builds the car manufacturer logo widget with fallback handling
@@ -100,19 +97,11 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
       width: 50.w,
       height: 50.w,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(25.r),
-        border: Border.all(
-          color: const Color(0xFF00d4ff).withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFFE61525).withOpacity(0.5), width: 1),
         boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF00d4ff).withOpacity(0.2),
-            blurRadius: 8,
-            spreadRadius: 0,
-            offset: const Offset(0, 2),
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, spreadRadius: 0, offset: const Offset(0, 2)),
         ],
       ),
       padding: EdgeInsets.all(8.sp),
@@ -122,11 +111,7 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
           logoUrl,
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) {
-            return Icon(
-              Icons.directions_car,
-              size: 24.sp,
-              color: const Color(0xFF00d4ff),
-            );
+            return Icon(Icons.directions_car, size: 24.sp, color: const Color(0xFFE61525));
           },
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) return child;
@@ -136,9 +121,7 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                 height: 20.w,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    const Color(0xFF00d4ff),
-                  ),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFE61525)),
                   value: loadingProgress.expectedTotalBytes != null
                       ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
                       : null,
@@ -172,6 +155,7 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
   Widget _buildHeroSection() {
     final vehicle = widget.state.vehicles.isNotEmpty ? widget.state.vehicles.first : null;
     final mainImageFuture = _resolvePrimaryPhotoUrl();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       height: 280.h,
@@ -180,20 +164,13 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            const Color(0xFF0a0e27),
-            const Color(0xFF1a1e3f),
-            const Color(0xFF2a2f4f),
-          ],
+          colors: isDark
+              ? [Colors.black, Colors.grey.shade900, Colors.grey.shade800]
+              : [Colors.grey.shade100, Colors.grey.shade200, Colors.grey.shade300],
         ),
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF00d4ff).withOpacity(0.1),
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: const Offset(0, 4),
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 20, spreadRadius: 0, offset: const Offset(0, 4)),
         ],
       ),
       child: Stack(
@@ -206,28 +183,25 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                 future: mainImageFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
                     return Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            const Color(0xFF1a1e3f),
-                            const Color(0xFF2a2f4f),
-                          ],
-                        ),
-                      ),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            const Color(0xFF00d4ff),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: isDark
+                                  ? [Colors.grey.shade900, Colors.grey.shade800]
+                                  : [Colors.grey.shade200, Colors.grey.shade300],
+                            ),
                           ),
-                        ),
-                      ),
-                    ).animate(onPlay: (controller) => controller.repeat()).shimmer(
-                          duration: 1500.ms,
-                          color: const Color(0xFF00d4ff).withOpacity(0.3),
-                        );
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE61525)),
+                            ),
+                          ),
+                        )
+                        .animate(onPlay: (controller) => controller.repeat())
+                        .shimmer(duration: 1500.ms, color: const Color(0xFFE61525).withOpacity(0.3));
                   }
 
                   if (snapshot.hasData && snapshot.data != null) {
@@ -244,10 +218,7 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.black.withOpacity(0.3),
-                                Colors.black.withOpacity(0.7),
-                              ],
+                              colors: [Colors.black.withOpacity(0.5), Colors.black.withOpacity(0.3)],
                             ),
                           ),
                         ),
@@ -256,57 +227,40 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                   }
 
                   // Fallback placeholder
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
                   return Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [
-                          const Color(0xFF1a1e3f),
-                          const Color(0xFF2a2f4f),
-                        ],
+                        colors: isDark
+                            ? [Colors.grey.shade900, Colors.grey.shade800]
+                            : [Colors.grey.shade200, Colors.grey.shade300],
                       ),
                     ),
                     child: Center(
-                      child: Icon(
-                        Icons.directions_car,
-                        size: 80.sp,
-                        color: const Color(0xFF00d4ff).withOpacity(0.5),
-                      ),
+                      child: Icon(Icons.directions_car, size: 80.sp, color: const Color(0xFFE61525).withOpacity(0.5)),
                     ),
                   );
                 },
               ),
             ),
           ),
-          // Car logo in top right
-          if (vehicle != null)
-            Positioned(
-              top: 16.h,
-              right: 16.w,
-              child: _buildCarLogo(vehicle.make),
-            ),
-          // Car name and details overlay
+          // Car name and details at top left
           Positioned(
-            bottom: 20.h,
-            left: 20.w,
-            right: 20.w,
+            top: 16.h,
+            left: 16.w,
+            right: 80.w,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  vehicle != null ? _capitalizeCarName('${vehicle.make} ${vehicle.model}') : 'No Vehicle',
+                  vehicle != null ? '${vehicle.make} ${vehicle.model}'.toUpperCase() : 'NO VEHICLE',
                   style: TextStyle(
                     fontSize: 24.sp,
                     fontWeight: FontWeight.w900,
                     color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black.withOpacity(0.5),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    shadows: [Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 4, offset: const Offset(0, 2))],
                   ),
                 ),
                 if (vehicle != null) ...[
@@ -317,11 +271,7 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                       fontSize: 14.sp,
                       color: Colors.grey[300],
                       shadows: [
-                        Shadow(
-                          color: Colors.black.withOpacity(0.5),
-                          blurRadius: 2,
-                          offset: const Offset(0, 1),
-                        ),
+                        Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 2, offset: const Offset(0, 1)),
                       ],
                     ),
                   ),
@@ -329,6 +279,59 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
               ],
             ),
           ),
+          // User details at bottom left
+          Positioned(
+            bottom: 16.h,
+            left: 16.w,
+            right: 16.w,
+            child: Container(
+              padding: EdgeInsets.all(12.sp),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // User name and member number row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${widget.state.user.firstName} ${widget.state.user.lastName}',
+                          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w700, color: Colors.white),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE61525).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8.r),
+                          border: Border.all(color: const Color(0xFFE61525), width: 1),
+                        ),
+                        child: Text(
+                          '# ${widget.state.user.memberNumber}',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFFE61525),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8.h),
+                  // Additional user details
+                  _buildUserDetailRow(Icons.calendar_today, 'DOB', _formatDate(widget.state.user.birthDate)),
+                  SizedBox(height: 4.h),
+                  _buildUserDetailRow(Icons.badge, 'License', widget.state.user.driversLicenseNumber ?? 'N/A'),
+                ],
+              ),
+            ),
+          ),
+          // Car logo in top right
+          if (vehicle != null) Positioned(top: 16.h, right: 16.w, child: _buildCarLogo(vehicle.make)),
         ],
       ),
     );
@@ -336,6 +339,7 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
 
   Widget _buildSpecsGrid() {
     final vehicle = widget.state.vehicles.isNotEmpty ? widget.state.vehicles.first : null;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (vehicle == null) {
       return Container(
@@ -344,24 +348,17 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF1e2340).withOpacity(0.8),
-              const Color(0xFF2a2f4f).withOpacity(0.6),
-            ],
+            colors: isDark
+                ? [Colors.grey.shade900.withOpacity(0.8), Colors.grey.shade800.withOpacity(0.6)]
+                : [Colors.grey.shade100.withOpacity(0.8), Colors.grey.shade200.withOpacity(0.6)],
           ),
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: const Color(0xFF00d4ff).withOpacity(0.2),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0xFFE61525).withOpacity(0.3), width: 1),
         ),
         child: Center(
           child: Text(
             'No vehicle specifications available',
-            style: TextStyle(
-              fontSize: 16.sp,
-              color: Colors.grey[400],
-            ),
+            style: TextStyle(fontSize: 16.sp, color: isDark ? Colors.grey[400] : Colors.grey[600]),
           ),
         ),
       );
@@ -373,31 +370,11 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
         'label': 'Max Speed',
         'value': vehicle.maxSpeed != null ? '${vehicle.maxSpeed} km/h' : 'N/A',
       },
-      {
-        'icon': Icons.local_gas_station,
-        'label': 'Fuel Type',
-        'value': vehicle.fuelType ?? 'N/A',
-      },
-      {
-        'icon': Icons.timeline,
-        'label': 'Mileage',
-        'value': vehicle.mileage != null ? '${vehicle.mileage} km' : 'N/A',
-      },
-      {
-        'icon': Icons.settings,
-        'label': 'Wheels',
-        'value': vehicle.wheelSize ?? 'N/A',
-      },
-      {
-        'icon': Icons.settings_outlined,
-        'label': 'Transmission',
-        'value': vehicle.transmission ?? 'N/A',
-      },
-      {
-        'icon': Icons.power,
-        'label': 'Power',
-        'value': vehicle.horsepower != null ? '${vehicle.horsepower} HP' : 'N/A',
-      },
+      {'icon': Icons.local_gas_station, 'label': 'Fuel Type', 'value': vehicle.fuelType ?? 'N/A'},
+      {'icon': Icons.timeline, 'label': 'Mileage', 'value': vehicle.mileage != null ? '${vehicle.mileage} km' : 'N/A'},
+      {'icon': Icons.settings, 'label': 'Wheels', 'value': vehicle.wheelSize ?? 'N/A'},
+      {'icon': Icons.settings_outlined, 'label': 'Transmission', 'value': vehicle.transmission ?? 'N/A'},
+      {'icon': Icons.power, 'label': 'Power', 'value': vehicle.horsepower != null ? '${vehicle.horsepower} HP' : 'N/A'},
     ];
 
     return GridView.builder(
@@ -413,21 +390,13 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
       itemBuilder: (context, index) {
         final spec = specs[index];
         return VehicleSpecCard(
-          icon: spec['icon'] as IconData,
-          label: spec['label'] as String,
-          value: spec['value'] as String,
-        )
-            .animate()
-            .fadeIn(
-              delay: (400 + (index * 100)).ms,
-              duration: 600.ms,
+              icon: spec['icon'] as IconData,
+              label: spec['label'] as String,
+              value: spec['value'] as String,
             )
-            .slideY(
-              begin: 0.2,
-              delay: (400 + (index * 100)).ms,
-              duration: 600.ms,
-              curve: Curves.easeOutCubic,
-            );
+            .animate()
+            .fadeIn(delay: (400 + (index * 100)).ms, duration: 600.ms)
+            .slideY(begin: 0.2, delay: (400 + (index * 100)).ms, duration: 600.ms, curve: Curves.easeOutCubic);
       },
     );
   }
@@ -440,18 +409,17 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
       awardCount: awardCount,
       onTap: () {
         // TODO: Navigate to awards page when implemented
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Awards page coming soon!'),
-            backgroundColor: Color(0xFF00d4ff),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Awards page coming soon!'), backgroundColor: Color(0xFFE61525)));
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SlideTransition(
@@ -465,21 +433,18 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  const Color(0xFF0a0e27),
-                  const Color(0xFF1a1e3f),
-                ],
+                colors: isDark ? [Colors.black, Colors.grey.shade900] : [Colors.white, Colors.grey.shade100],
               ),
               borderRadius: BorderRadius.circular(20.r),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF00d4ff).withOpacity(0.1),
+                  color: isDark ? Colors.black.withOpacity(0.4) : Colors.grey.withOpacity(0.4),
                   blurRadius: 20,
                   spreadRadius: 0,
                   offset: const Offset(0, 8),
                 ),
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.3),
                   blurRadius: 10,
                   spreadRadius: 0,
                   offset: const Offset(0, 4),
@@ -500,7 +465,7 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 18.sp,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                   ).animate().fadeIn(delay: 300.ms, duration: 600.ms),
                   SizedBox(height: 12.h),
@@ -512,7 +477,7 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 18.sp,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                   ).animate().fadeIn(delay: 800.ms, duration: 600.ms),
                   SizedBox(height: 12.h),

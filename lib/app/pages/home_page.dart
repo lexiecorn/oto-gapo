@@ -15,9 +15,7 @@ import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:otogapo/widgets/announcement_popup_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@RoutePage(
-  name: 'HomePageRouter',
-)
+@RoutePage(name: 'HomePageRouter')
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
   // static const String routeName = '/home';
@@ -61,11 +59,7 @@ class HomePageState extends State<HomePage> {
         _hasShownLoginAnnouncements = true;
 
         // Show the announcements
-        await AnnouncementPopupDialog.showLoginAnnouncements(
-          context,
-          announcements,
-          pbService.getAnnouncementImageUrl,
-        );
+        await AnnouncementPopupDialog.showLoginAnnouncements(context, announcements, pbService.getAnnouncementImageUrl);
       } else {
         debugPrint('HomePage - No login announcements to show');
       }
@@ -75,22 +69,13 @@ class HomePageState extends State<HomePage> {
   }
 
   final List<Widget> _widgetOptions = <Widget>[
-    Container(
-      width: double.infinity,
-      padding: EdgeInsets.zero,
-      child: const HomeBody(),
-    ),
+    Container(width: double.infinity, padding: EdgeInsets.zero, child: const HomeBody()),
     const ProfilePage(),
     const SocialFeedPage(),
     const SettingsPage(),
   ];
 
-  final List<String> _pageTitles = [
-    'OTOGAPO',
-    'My Profile',
-    'Social Feed',
-    'Settings',
-  ];
+  final List<String> _pageTitles = ['OTOGAPO', 'My Profile', 'Social Feed', 'Settings'];
 
   final List<IconData> _pageIcons = [
     Icons.tire_repair,
@@ -99,12 +84,7 @@ class HomePageState extends State<HomePage> {
     Icons.settings_rounded,
   ];
 
-  final List<String> _pageLabels = [
-    'Otogapo',
-    'Profile',
-    'Feed',
-    'Settings',
-  ];
+  final List<String> _pageLabels = ['Otogapo', 'Profile', 'Feed', 'Settings'];
 
   Future<void> _loadLastSelectedTab() async {
     final prefs = await SharedPreferences.getInstance();
@@ -169,8 +149,8 @@ class HomePageState extends State<HomePage> {
         // backgroundColor: Colors.grey.shade100,
         // backgroundColor: Colors.grey.shade100
         // ,
-        appBar: _selectedIndex == 2
-            ? null // No AppBar for Social Feed page
+        appBar: _selectedIndex == 1 || _selectedIndex == 2
+            ? null // No AppBar for Profile and Social Feed pages
             : PreferredSize(
                 preferredSize: Size.fromHeight(kToolbarHeight),
                 child: Column(
@@ -182,18 +162,10 @@ class HomePageState extends State<HomePage> {
                     Flexible(
                       child: AppBar(
                         title: _selectedIndex == 0
-                            ? Image.asset(
-                                'assets/images/logo_sm.jpg',
-                                height: 40,
-                                fit: BoxFit.contain,
-                              )
+                            ? Image.asset('assets/images/logo_sm.jpg', height: 40, fit: BoxFit.contain)
                             : Text(
                                 _pageTitles.elementAt(_selectedIndex),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                               ),
                         centerTitle: true,
                         backgroundColor: Colors.black,
@@ -219,13 +191,13 @@ class HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-        body: _selectedIndex == 2
+        body: _selectedIndex == 1 || _selectedIndex == 2
             ? SafeArea(
                 child: Column(
                   children: [
-                    // Connectivity Banner for Social Feed (since no AppBar)
+                    // Connectivity Banner for Profile and Social Feed (since no AppBar)
                     const ConnectivityBanner(),
-                    // Social Feed content
+                    // Page content
                     Expanded(child: _widgetOptions.elementAt(_selectedIndex)),
                   ],
                 ),
@@ -245,10 +217,7 @@ class HomePageState extends State<HomePage> {
           duration: Duration(milliseconds: 600),
           curve: Curves.easeOutCubic,
         ),
-        FadeEffect(
-          delay: Duration(milliseconds: 200),
-          duration: Duration(milliseconds: 600),
-        ),
+        FadeEffect(delay: Duration(milliseconds: 200), duration: Duration(milliseconds: 600)),
       ],
       child: Container(
         decoration: BoxDecoration(
@@ -260,9 +229,7 @@ class HomePageState extends State<HomePage> {
               offset: const Offset(0, -10),
             ),
           ],
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(24),
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: SafeArea(
           child: Padding(
@@ -271,10 +238,7 @@ class HomePageState extends State<HomePage> {
               builder: (context, connectivityState) {
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: List.generate(
-                    _pageIcons.length,
-                    (index) => _buildNavItem(index, connectivityState),
-                  ),
+                  children: List.generate(_pageIcons.length, (index) => _buildNavItem(index, connectivityState)),
                 );
               },
             ),
@@ -301,17 +265,11 @@ class HomePageState extends State<HomePage> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOutCubic,
-          padding: EdgeInsets.symmetric(
-            horizontal: isSelected ? 20.w : 12.w,
-            vertical: 10.h,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: isSelected ? 20.w : 12.w, vertical: 10.h),
           decoration: BoxDecoration(
             gradient: isSelected
                 ? LinearGradient(
-                    colors: [
-                      Colors.amber[700]!,
-                      Colors.amber[500]!,
-                    ],
+                    colors: [Colors.amber[700]!, Colors.amber[500]!],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   )
@@ -319,13 +277,7 @@ class HomePageState extends State<HomePage> {
             color: isSelected ? null : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
             boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.amber[300]!.withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
+                ? [BoxShadow(color: Colors.amber[300]!.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4))]
                 : null,
           ),
           child: Stack(
@@ -358,22 +310,14 @@ class HomePageState extends State<HomePage> {
                 Positioned(
                   right: -4,
                   top: -4,
-                  child: Container(
-                    width: 10.w,
-                    height: 10.h,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                  )
-                      .animate(
-                        onPlay: (controller) => controller.repeat(reverse: true),
-                      )
-                      .scale(
-                        duration: 1000.ms,
-                        begin: const Offset(0.8, 0.8),
-                        end: const Offset(1.2, 1.2),
-                      ),
+                  child:
+                      Container(
+                            width: 10.w,
+                            height: 10.h,
+                            decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                          )
+                          .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                          .scale(duration: 1000.ms, begin: const Offset(0.8, 0.8), end: const Offset(1.2, 1.2)),
                 ),
             ],
           ),
