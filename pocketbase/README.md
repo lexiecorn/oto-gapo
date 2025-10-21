@@ -41,11 +41,12 @@ After importing collections, you can import sample data:
 
 For more details on PocketBase setup and configuration, see:
 
+- [docs/ANNOUNCEMENT_MANAGEMENT.md](../docs/ANNOUNCEMENT_MANAGEMENT.md) - **NEW**
 - [docs/POCKETBASE_ATTENDANCE_SETUP.md](../docs/POCKETBASE_ATTENDANCE_SETUP.md)
 - [docs/POCKETBASE_PERMISSIONS_SETUP.md](../docs/POCKETBASE_PERMISSIONS_SETUP.md)
-- [docs/SOCIAL_FEED_SCHEMA.md](../docs/SOCIAL_FEED_SCHEMA.md) - **NEW**
-- [docs/SOCIAL_FEED_IMPLEMENTATION.md](../docs/SOCIAL_FEED_IMPLEMENTATION.md) - **NEW**
-- [docs/SOCIAL_FEED_MODERATION_GUIDE.md](../docs/SOCIAL_FEED_MODERATION_GUIDE.md) - **NEW**
+- [docs/SOCIAL_FEED_SCHEMA.md](../docs/SOCIAL_FEED_SCHEMA.md)
+- [docs/SOCIAL_FEED_IMPLEMENTATION.md](../docs/SOCIAL_FEED_IMPLEMENTATION.md)
+- [docs/SOCIAL_FEED_MODERATION_GUIDE.md](../docs/SOCIAL_FEED_MODERATION_GUIDE.md)
 - [docs/API_DOCUMENTATION.md](../docs/API_DOCUMENTATION.md)
 
 ## Collections Overview
@@ -58,7 +59,7 @@ The OtoGapo application uses the following PocketBase collections:
 - **monthly_dues** - Payment tracking (legacy)
 - **payment_transactions** - Modern payment management
 - **gallery_images** - Homepage carousel images
-- **Announcements** - Association announcements
+- **Announcements** - Association announcements with images and login popup
 - **app_data** - Application configuration
 
 ### Attendance Collections

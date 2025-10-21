@@ -76,12 +76,21 @@ The app follows a clean architecture pattern with:
   - Automatic image compression (720p, <1MB)
   - Real-time feed updates with pull-to-refresh
 
+- **Announcements** ✨ **Enhanced**
+
+  - Admin announcement creation with images
+  - Automatic image compression (max 3MB)
+  - 6 announcement types with color coding
+  - Login popup for critical announcements
+  - Search and filter functionality
+  - Magazine-style card layout with full-height images
+
 - **Admin Features**
 
   - User management dashboard
   - Payment oversight
   - Meeting and attendance management
-  - Announcement creation and management
+  - Announcement management with images
   - Member statistics and reports
   - Gallery management for homepage carousel
   - Social feed moderation (reports, bans, content hiding)
@@ -587,6 +596,7 @@ See [Deployment Guide](./docs/DEPLOYMENT.md) for detailed comparison and setup i
 
 ### Features & Systems
 
+- [Announcement Management](./docs/ANNOUNCEMENT_MANAGEMENT.md) - Announcement system with images
 - [Payment System](./docs/PAYMENT_SYSTEM.md) - Payment tracking implementation
 - [Attendance System](./docs/ATTENDANCE_IMPLEMENTATION.md) - Meeting attendance features
 - [Social Feed System](./docs/SOCIAL_FEED_IMPLEMENTATION.md) - Social media wall implementation

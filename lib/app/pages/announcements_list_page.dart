@@ -352,132 +352,161 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.r),
       ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12.r),
         onTap: () {
           _showAnnouncementDetails(announcement, isDark, colorScheme);
         },
-        child: Padding(
-          padding: EdgeInsets.all(16.sp),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Icon or Image
-              Container(
-                width: 60.w,
-                height: 60.w,
-                decoration: BoxDecoration(
-                  color: _getTypeColor(type, isDark).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: imageField != null && imageField.isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(10.r),
-                        child: CachedNetworkImage(
-                          imageUrl: _buildImageUrl(announcement, '100x100t'),
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Icon(
-                            _getTypeIcon(type),
-                            size: 24.sp,
-                            color: _getTypeColor(type, isDark),
-                          ),
-                          errorWidget: (context, url, error) => Icon(
-                            _getTypeIcon(type),
-                            size: 24.sp,
-                            color: _getTypeColor(type, isDark),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: 140.h,
+          ),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Image (full height) or Icon
+                if (imageField != null && imageField.isNotEmpty)
+                  SizedBox(
+                    width: 120.w,
+                    child: CachedNetworkImage(
+                      imageUrl: _buildImageUrl(announcement, '300x300t'),
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: _getTypeColor(type, isDark).withOpacity(0.1),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              _getTypeColor(type, isDark),
+                            ),
                           ),
                         ),
-                      )
-                    : Padding(
-                        padding: EdgeInsets.all(10.sp),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: _getTypeColor(type, isDark).withOpacity(0.1),
                         child: Icon(
                           _getTypeIcon(type),
-                          size: 24.sp,
+                          size: 32.sp,
                           color: _getTypeColor(type, isDark),
                         ),
                       ),
-              ),
-
-              SizedBox(width: 16.w),
-
-              // Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: TextStyle(
-                              fontSize: 15.sp,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? colorScheme.onSurface : Colors.black87,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8.w,
-                            vertical: 4.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _getTypeColor(type, isDark).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          child: Text(
-                            type.toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.w600,
-                              color: _getTypeColor(type, isDark),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      content,
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        color: isDark ? colorScheme.onSurface.withOpacity(0.8) : Colors.grey[700],
-                        height: 1.4,
+                  )
+                else
+                  Container(
+                    width: 60.w,
+                    padding: EdgeInsets.all(16.sp),
+                    decoration: BoxDecoration(
+                      color: _getTypeColor(type, isDark).withOpacity(0.1),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        _getTypeIcon(type),
+                        size: 28.sp,
+                        color: _getTypeColor(type, isDark),
                       ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 12.h),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.schedule_rounded,
-                          size: 14.sp,
-                          color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
-                        ),
-                        SizedBox(width: 4.w),
-                        Text(
-                          date != null ? DateFormat('MMM dd, yyyy • h:mm a').format(date) : 'No date',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                  ),
+
+                // Content and Footer Column
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Content area
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.sp),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      title,
+                                      style: TextStyle(
+                                        fontSize: 15.sp,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? colorScheme.onSurface : Colors.black87,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8.w,
+                                      vertical: 4.h,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _getTypeColor(type, isDark).withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12.r),
+                                    ),
+                                    child: Text(
+                                      type.toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: 10.sp,
+                                        fontWeight: FontWeight.w600,
+                                        color: _getTypeColor(type, isDark),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8.h),
+                              Text(
+                                content,
+                                style: TextStyle(
+                                  fontSize: 13.sp,
+                                  color: isDark ? colorScheme.onSurface.withOpacity(0.8) : Colors.grey[700],
+                                  height: 1.4,
+                                ),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
-                        const Spacer(),
-                        Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 12.sp,
-                          color: isDark ? colorScheme.onSurface.withOpacity(0.3) : Colors.grey[400],
+                      ),
+
+                      // Footer with black background
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.8),
                         ),
-                      ],
-                    ),
-                  ],
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.schedule_rounded,
+                              size: 14.sp,
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                            SizedBox(width: 6.w),
+                            Text(
+                              date != null ? DateFormat('MMM dd, yyyy • h:mm a').format(date) : 'No date',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                            ),
+                            const Spacer(),
+                            Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 12.sp,
+                              color: Colors.white.withOpacity(0.7),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

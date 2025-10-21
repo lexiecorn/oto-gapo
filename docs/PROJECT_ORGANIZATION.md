@@ -52,10 +52,14 @@ All markdown documentation has been organized into the `docs/` directory:
 
 #### Features
 
+- `ANNOUNCEMENT_MANAGEMENT.md` - Announcement system with images and login popup
 - `ATTENDANCE_IMPLEMENTATION.md` - Attendance system
 - `ATTENDANCE_SCHEMA.md` - Attendance data schema
 - `PAYMENT_SYSTEM.md` - Payment tracking
 - `PAYMENT_DIALOG_DEBUG_GUIDE.md` - Payment debugging
+- `SOCIAL_FEED_IMPLEMENTATION.md` - Social feed system
+- `SOCIAL_FEED_SCHEMA.md` - Social feed data schema
+- `SOCIAL_FEED_MODERATION_GUIDE.md` - Content moderation guide
 
 #### CI/CD & Release
 
@@ -79,6 +83,7 @@ All markdown documentation has been organized into the `docs/` directory:
 
 - `POCKETBASE_ATTENDANCE_SETUP.md` - Attendance collections
 - `POCKETBASE_PERMISSIONS_SETUP.md` - Security setup
+- See also: `pocketbase/README.md` for collection schemas
 
 #### Guides & References
 

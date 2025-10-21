@@ -67,9 +67,10 @@ lib/
 │   │       ├── signup_cubit.dart # Sign-up Cubit
 │   │       └── signup_page.dart  # Sign-up UI
 │   ├── pages/                   # Application pages/screens
-│   │   ├── home_page.dart      # Main home page with bottom nav
+│   │   ├── home_page.dart      # Main home page with bottom nav + login popup
 │   │   ├── home_body.dart      # Otogapo page (carousel + nav cards)
-│   │   ├── announcements_list_page.dart  # Announcements with search
+│   │   ├── announcements_list_page.dart  # User-facing announcements with search
+│   │   ├── announcement_management_page.dart  # Admin announcement CRUD
 │   │   ├── user_list_page.dart # Members list
 │   │   ├── splash_page.dart    # Splash screen
 │   │   ├── admin_page.dart     # Admin dashboard
@@ -84,6 +85,7 @@ lib/
 │   └── widgets/               # Reusable UI components
 │       ├── carousel_view_from_pocketbase.dart  # Gallery carousel
 │       ├── otogapo_navigation_cards.dart # Otogapo navigation cards
+│       ├── announcement_popup_dialog.dart  # Login announcement popup
 │       ├── post_card_widget.dart  # Social feed post card
 │       ├── attendance_card.dart   # Attendance list items
 │       └── ...
@@ -102,6 +104,9 @@ lib/
 ├── services/               # Service classes
 │   └── pocketbase_service.dart # PocketBase integration
 └── utils/                  # Utility functions
+    ├── image_compression_helper.dart  # Image compression for uploads
+    ├── announcement_type_helper.dart  # Announcement type colors/icons
+    ├── car_logo_helper.dart  # Car brand logo mapping
     └── ...
 
 packages/                   # Local packages
@@ -300,6 +305,7 @@ context.router.push(const ProfilePageRouter());
 The app supports viewing both your own profile and other users' profiles, similar to Instagram/Facebook:
 
 **ProfilePage** (`lib/app/modules/profile/profile_page.dart`):
+
 - Accepts optional `userId` parameter
 - `userId == null` → Shows current user's profile (from bottom nav)
 - `userId != null` → Shows specified user's profile (from social feed, comments, etc.)
@@ -308,14 +314,17 @@ The app supports viewing both your own profile and other users' profiles, simila
 - Profile completion card hidden when viewing others
 
 **ProfileCubit Methods**:
+
 - `getProfile()` - Loads current authenticated user's profile
 - `getProfileByUserId(String userId)` - Loads any user's profile by ID
 
 **ProfileRepository Methods**:
+
 - `getProfile()` - Fetches current user from PocketBase auth store
 - `getProfileByUserId(String userId)` - Fetches any user by ID from users collection
 
 **Usage in Social Feed**:
+
 ```dart
 // Navigate to post author's profile
 onUserTap: () {
@@ -1094,8 +1103,126 @@ The admin dashboard provides centralized access to:
 1. **User Management** - Manage all user accounts
 2. **Payment Management** - Track and manage monthly dues
 3. **Gallery Management** - Manage homepage carousel images
-4. **Analytics** - View system analytics (planned)
-5. **System Settings** - Configure application (planned)
+4. **Announcement Management** - Create and manage announcements with images
+5. **Meetings** - Manage meetings and attendance
+6. **Analytics** - View system analytics
+7. **Social Feed Moderation** - Manage posts and reports
+8. **System Settings** - Configure application (planned)
+
+### Announcement Management System
+
+Location: `lib/app/pages/announcement_management_page.dart`
+
+#### Overview
+
+The announcement management system allows admin users to create, edit, and manage announcements with optional images. Announcements can be displayed in the announcements list or as login popups for critical information.
+
+#### Features
+
+**Admin Features:**
+
+- Create announcements with title, content, type, and optional image
+- Edit existing announcements including image replacement
+- Delete announcements with confirmation
+- Toggle active/inactive status
+- Toggle "Show on Login" for critical announcements
+- Search and filter announcements by type
+- Automatic image compression (max 3MB)
+
+**User Features:**
+
+- Browse announcements with search and type filters
+- View announcements with images in modern card layout
+- See full announcement details in dialog
+- Receive login popups for critical announcements
+
+#### Collection Schema
+
+**PocketBase Collection**: `Announcements`
+
+| Field       | Type   | Required | Description                                          |
+| ----------- | ------ | -------- | ---------------------------------------------------- |
+| title       | text   | No       | Announcement title                                   |
+| content     | text   | No       | Announcement body                                    |
+| type        | select | No       | general, important, urgent, event, reminder, success |
+| img         | file   | No       | Single image (max 3MB, auto-compressed)              |
+| showOnLogin | bool   | No       | Display as popup on login (default: false)           |
+| isActive    | bool   | No       | Visible to users (default: true)                     |
+
+**Permissions:**
+
+- List/View: All authenticated users
+- Create/Update/Delete: Admin users only (membership_type 1 or 2)
+
+#### Image Handling
+
+- **Automatic Compression**: Via `ImageCompressionHelper`
+- **Max Size**: 3MB (3242880 bytes)
+- **Target Quality**: 80-85% JPEG
+- **Resize**: Images > 1920px width resized to 1920px
+- **Thumbnails**: 100x100t, 300x300t, 600x400t
+- **Formats**: JPEG, PNG, WebP, GIF, SVG
+
+#### User Flow
+
+**Admin Creating Announcement:**
+
+```
+1. Admin navigates to Admin Panel
+2. Selects "Announcement Management"
+3. Clicks "Create" button
+4. Fills in form:
+   - Title (required)
+   - Content (required)
+   - Type (dropdown)
+   - Image (optional, auto-compressed)
+   - Show on Login (toggle)
+   - Active (toggle)
+5. Clicks "Save" → Image compressed → Uploaded to PocketBase
+```
+
+**User Viewing Announcements:**
+
+```
+1. User logs in → HomePage loads
+2. If announcements have showOnLogin=true:
+   - Popup dialog displays with image
+   - User clicks "Got it!" to dismiss
+3. Navigate to Announcements page from home
+4. Browse announcements with search/filter
+5. Click announcement to view full details
+```
+
+#### Components
+
+**Pages:**
+
+- `announcement_management_page.dart` - Admin CRUD interface
+- `announcements_list_page.dart` - User-facing list with search
+- `announcements.dart` - Home page announcement widget
+
+**Widgets:**
+
+- `announcement_popup_dialog.dart` - Login popup dialog
+
+**Utilities:**
+
+- `image_compression_helper.dart` - Image compression before upload
+- `announcement_type_helper.dart` - Type colors and icons
+
+#### Data Flow
+
+```
+AnnouncementManagementPage
+  ↓
+ImageCompressionHelper (if image provided)
+  ↓
+PocketBaseService
+  ↓
+HTTP MultipartRequest
+  ↓
+PocketBase API (Announcements collection)
+```
 
 ### Gallery Management System
 
@@ -1600,6 +1727,7 @@ See [Animations Guide](./ANIMATIONS_GUIDE.md) for complete documentation.
 The app implements Instagram/Facebook-style profile viewing:
 
 **Features**:
+
 - Tap user name or profile photo in posts → view their full profile
 - Tap user name or profile photo in comments → view their full profile
 - Same ProfilePage design for all users
@@ -1608,6 +1736,7 @@ The app implements Instagram/Facebook-style profile viewing:
 - Smooth navigation with auto_route
 
 **Navigation Flow**:
+
 ```
 Social Feed Post
   ↓ (tap name/photo)
@@ -1617,6 +1746,7 @@ View full profile (ID card, vehicles, info)
 ```
 
 **Implementation**:
+
 - `ProfilePage` with optional `userId` parameter
 - `ProfileCubit.getProfileByUserId()` method
 - `ProfileRepository.getProfileByUserId()` method

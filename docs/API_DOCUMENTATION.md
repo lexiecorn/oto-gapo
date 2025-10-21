@@ -519,23 +519,110 @@ Future<RecordModel> updateUser(String userId, {
 
 ### Announcement Management
 
+The announcement system provides full CRUD operations with image support, type categorization, and login popup functionality.
+
+#### Collection Schema
+
+- **Collection Name**: `Announcements`
+- **Fields**:
+  - `title` (text) - Announcement title
+  - `content` (text) - Announcement body content
+  - `type` (select) - Type: general, important, urgent, event, reminder, success
+  - `img` (file) - Optional image (max 3MB, thumbnails: 100x100t, 300x300t, 600x400t)
+  - `showOnLogin` (bool) - Display as popup when user logs in
+  - `isActive` (bool) - Toggle visibility to users
+  - `created` (autodate) - Creation timestamp
+  - `updated` (autodate) - Last update timestamp
+
+#### Service Methods
+
 ```dart
 // Get all announcements
 Future<List<RecordModel>> getAnnouncements()
 
-// Create announcement
+// Get announcements for login popup
+Future<List<RecordModel>> getLoginAnnouncements()
+
+// Create announcement with optional image
 Future<RecordModel> createAnnouncement({
   required String title,
   required String content,
-  required String authorId,
-  String? type
+  String? type,              // Default: 'general'
+  String? imageFilePath,     // Auto-compressed to 3MB
+  bool showOnLogin = false,  // Show as login popup
+  bool isActive = true,      // Visible to users
 })
 
-// Subscribe to announcement updates
+// Update announcement
+Future<RecordModel> updateAnnouncement({
+  required String announcementId,
+  String? title,
+  String? content,
+  String? type,
+  String? imageFilePath,     // Replace image if provided
+  bool? showOnLogin,
+  bool? isActive,
+})
+
+// Delete announcement
+Future<void> deleteAnnouncement(String announcementId)
+
+// Toggle active status
+Future<RecordModel> toggleAnnouncementActive(String announcementId)
+
+// Get announcement image URL
+String getAnnouncementImageUrl(
+  RecordModel announcement,
+  {String? thumb}  // e.g., '100x100t', '300x300t', '600x400t'
+)
+
+// Subscribe to announcement updates (real-time)
 Future<UnsubscribeFunc> subscribeToAnnouncements(
   void Function(RecordModel) onUpdate
 )
 ```
+
+#### Announcement Types
+
+| Type      | Color  | Icon          | Use Case                     |
+| --------- | ------ | ------------- | ---------------------------- |
+| general   | Blue   | info          | Regular updates, news        |
+| important | Orange | priority_high | High-priority matters        |
+| urgent    | Red    | warning       | Critical, time-sensitive     |
+| event     | Purple | event         | Meetings, activities         |
+| reminder  | Teal   | notifications | Payment reminders, deadlines |
+| success   | Green  | check_circle  | Achievements, good news      |
+
+#### Image Handling
+
+- **Automatic Compression**: Images are automatically compressed to 3MB max before upload
+- **Quality Target**: 80-85% JPEG quality
+- **Resize**: Images wider than 1920px are resized while preserving aspect ratio
+- **Thumbnails**: PocketBase generates 100x100, 300x300, and 600x400 thumbnails
+- **Supported Formats**: JPEG, PNG, WebP, GIF, SVG
+
+#### Login Popup Feature
+
+Announcements with `showOnLogin = true` automatically display as popups when users open the app:
+
+```dart
+// In HomePage after authentication
+final announcements = await PocketBaseService().getLoginAnnouncements();
+if (announcements.isNotEmpty) {
+  await AnnouncementPopupDialog.showLoginAnnouncements(
+    context,
+    announcements,
+    PocketBaseService().getAnnouncementImageUrl,
+  );
+}
+```
+
+**Behavior**:
+
+- Shows all announcements with `showOnLogin = true` and `isActive = true`
+- Displays sequentially if multiple announcements exist
+- Shows every time user opens the app (once per session)
+- Beautiful dialog with image support and type-based styling
 
 ### App Data Management
 
