@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import 'package:local_storage/local_storage.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 /// A beautiful dialog for displaying announcements with images
@@ -206,36 +205,6 @@ class AnnouncementPopupDialog extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  // Don't show again checkbox
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: false,
-                        onChanged: (value) async {
-                          if (value == true) {
-                            await _markAsSeenToday(announcement.id);
-                            if (context.mounted) {
-                              Navigator.of(context).pop();
-                              onDismiss?.call();
-                            }
-                          }
-                        },
-                        activeColor: colorScheme.primary,
-                      ),
-                      Expanded(
-                        child: Text(
-                          "Don't show this again today",
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[700],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 8.h),
-
                   // Close button
                   SizedBox(
                     width: double.infinity,
@@ -309,21 +278,6 @@ class AnnouncementPopupDialog extends StatelessWidget {
     }
   }
 
-  static Future<void> _markAsSeenToday(String announcementId) async {
-    final storage = const LocalStorage();
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    final key = 'seen_announcement_${announcementId}_$today';
-    await storage.write(key, 'true');
-  }
-
-  static Future<bool> hasBeenSeenToday(String announcementId) async {
-    final storage = const LocalStorage();
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    final key = 'seen_announcement_${announcementId}_$today';
-    final value = await storage.read<String>(key);
-    return value == 'true';
-  }
-
   /// Shows all login announcements in sequence
   static Future<void> showLoginAnnouncements(
     BuildContext context,
@@ -332,20 +286,9 @@ class AnnouncementPopupDialog extends StatelessWidget {
   ) async {
     if (announcements.isEmpty) return;
 
-    // Filter out announcements already seen today
-    final unseenAnnouncements = <RecordModel>[];
-    for (final announcement in announcements) {
-      final seen = await hasBeenSeenToday(announcement.id);
-      if (!seen) {
-        unseenAnnouncements.add(announcement);
-      }
-    }
-
-    if (unseenAnnouncements.isEmpty) return;
-
     // Show announcements one by one
-    for (var i = 0; i < unseenAnnouncements.length; i++) {
-      final announcement = unseenAnnouncements[i];
+    for (var i = 0; i < announcements.length; i++) {
+      final announcement = announcements[i];
       final imageUrl = getImageUrl(announcement, thumb: '600x400t');
 
       if (!context.mounted) break;

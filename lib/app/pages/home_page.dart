@@ -11,6 +11,8 @@ import 'package:otogapo/app/pages/home_body.dart';
 import 'package:otogapo/app/pages/settings_page.dart';
 import 'package:otogapo/app/pages/social_feed_page.dart';
 import 'package:otogapo/app/widgets/connectivity_banner.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo/widgets/announcement_popup_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 @RoutePage(
@@ -28,6 +30,7 @@ class HomePageState extends State<HomePage> {
   int _selectedIndex = 2; // Changed from 0 to 2 to default to Social Feed
   static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   static const String _lastTabKey = 'last_selected_tab';
+  bool _hasShownLoginAnnouncements = false;
 
   @override
   void initState() {
@@ -35,6 +38,40 @@ class HomePageState extends State<HomePage> {
     _loadLastSelectedTab();
     // Set initial status bar style
     _updateStatusBarStyle();
+    // Check and show login announcements
+    _checkAndShowLoginAnnouncements();
+  }
+
+  Future<void> _checkAndShowLoginAnnouncements() async {
+    // Wait a bit for the page to fully load
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+
+    if (!mounted || _hasShownLoginAnnouncements) return;
+
+    try {
+      // Fetch login announcements
+      final pbService = PocketBaseService();
+      final announcements = await pbService.getLoginAnnouncements();
+
+      if (!mounted) return;
+
+      if (announcements.isNotEmpty) {
+        debugPrint('HomePage - Showing ${announcements.length} login announcements');
+
+        _hasShownLoginAnnouncements = true;
+
+        // Show the announcements
+        await AnnouncementPopupDialog.showLoginAnnouncements(
+          context,
+          announcements,
+          pbService.getAnnouncementImageUrl,
+        );
+      } else {
+        debugPrint('HomePage - No login announcements to show');
+      }
+    } catch (e) {
+      debugPrint('HomePage - Error showing login announcements: $e');
+    }
   }
 
   final List<Widget> _widgetOptions = <Widget>[

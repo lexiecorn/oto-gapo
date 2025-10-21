@@ -228,19 +228,20 @@ class _AnnouncementManagementPageState extends State<AnnouncementManagementPage>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Announcement'),
-        content: const Text(
+        title: Text('Delete Announcement', style: TextStyle(fontSize: 16.sp)),
+        content: Text(
           'Are you sure you want to delete this announcement? This action cannot be undone.',
+          style: TextStyle(fontSize: 13.sp),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text('Cancel', style: TextStyle(fontSize: 13.sp)),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text('Delete', style: TextStyle(fontSize: 13.sp)),
           ),
         ],
       ),
