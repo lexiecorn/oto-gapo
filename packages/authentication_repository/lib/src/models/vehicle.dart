@@ -23,6 +23,14 @@ abstract class Vehicle with _$Vehicle {
     String? primaryPhoto,
     List<String>? photos,
     String? user, // User relation field - references user ID
+    // New vehicle specification fields
+    num? mileage, // Vehicle mileage in km
+    String? fuelType, // "Petrol", "Diesel", "Electric", "Hybrid"
+    String? wheelSize, // e.g., "18-inch Alloy"
+    num? maxSpeed, // Maximum speed in km/h
+    String? engineDisplacement, // e.g., "2.0L", "3.5L V6"
+    num? horsepower, // Engine power in HP
+    String? transmission, // "Automatic", "Manual", "CVT", etc.
   }) = _Vehicle;
 
   factory Vehicle.fromJson(Map<String, Object?> json) => _$VehicleFromJson(json);

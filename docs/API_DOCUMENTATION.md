@@ -37,6 +37,8 @@ The application has been fully migrated from Firebase Storage to PocketBase for 
 - [PocketBase Service](#pocketbase-service)
 - [User Management](#user-management)
 - [Payment Management](#payment-management)
+- [Vehicle Management](#vehicle-management)
+- [Vehicle Awards System](#vehicle-awards-system)
 - [Admin Services](#admin-services)
 - [Data Models](#data-models)
 - [Error Handling](#error-handling)
@@ -500,6 +502,300 @@ await pocketBaseService.initializePaymentRecords(
 6. **Better UX** - Users see detailed payment history
 
 For complete documentation, see [docs/PAYMENT_SYSTEM.md](./PAYMENT_SYSTEM.md)
+
+## Vehicle Management
+
+### Vehicle Specifications
+
+The vehicle model has been enhanced with comprehensive specification fields:
+
+#### New Vehicle Fields
+
+```dart
+class Vehicle {
+  // Existing fields...
+  num? mileage;           // Vehicle mileage in km
+  String? fuelType;       // "Petrol", "Diesel", "Electric", "Hybrid"
+  String? wheelSize;      // e.g., "18-inch Alloy"
+  num? maxSpeed;          // Maximum speed in km/h
+  String? engineDisplacement; // e.g., "2.0L", "3.5L V6"
+  num? horsepower;        // Engine power in HP
+  String? transmission;   // "Automatic", "Manual", "CVT", etc.
+}
+```
+
+#### PocketBase Schema
+
+**Collection:** `vehicles`
+
+**New Fields:**
+
+- `mileage` (number) - Vehicle mileage in kilometers
+- `fuelType` (text) - Fuel type specification
+- `wheelSize` (text) - Wheel and tire specifications
+- `maxSpeed` (number) - Maximum speed in km/h
+- `engineDisplacement` (text) - Engine displacement
+- `horsepower` (number) - Engine power in HP
+- `transmission` (text) - Transmission type
+
+#### Usage Examples
+
+```dart
+// Create vehicle with specifications
+final vehicle = Vehicle(
+  make: 'Toyota',
+  model: 'Supra',
+  year: '2023',
+  type: 'Sports Car',
+  color: 'White',
+  plateNumber: 'ABC-1234',
+  mileage: 15000,
+  fuelType: 'Petrol',
+  wheelSize: '19-inch Alloy',
+  maxSpeed: 250,
+  engineDisplacement: '3.0L I6',
+  horsepower: 382,
+  transmission: 'Automatic',
+);
+
+// Update vehicle specifications
+await pocketBaseService.updateVehicle(vehicleId, {
+  'mileage': 20000,
+  'horsepower': 400,
+  'maxSpeed': 280,
+});
+```
+
+## Vehicle Awards System
+
+### Overview
+
+The Vehicle Awards system allows members to showcase their car's achievements and trophies won at car shows and events. Each award includes detailed information about the event, category, placement, and optional images.
+
+### VehicleAward Model
+
+```dart
+class VehicleAward {
+  String? id;                    // PocketBase record ID
+  required String vehicleId;     // Relation to vehicles collection
+  required String awardName;    // e.g., "Best Modified Car"
+  required String eventName;    // e.g., "Manila Auto Show 2025"
+  required DateTime eventDate;  // Date of the event
+  String? category;             // e.g., "Modified", "Classic", "Best in Show"
+  String? placement;            // e.g., "1st Place", "Winner", "Champion"
+  String? description;          // Optional additional details
+  String? awardImage;           // File name for award photo/certificate
+  String? createdBy;            // User who created the award entry
+  DateTime? createdAt;
+  DateTime? updatedAt;
+}
+```
+
+### VehicleAwardsRepository
+
+#### Methods
+
+```dart
+class VehicleAwardsRepository {
+  // Get all awards for a specific vehicle
+  Future<List<VehicleAward>> getAwardsByVehicleId(String vehicleId);
+
+  // Create a new award for a vehicle
+  Future<VehicleAward> createAward(VehicleAward award);
+
+  // Update an existing award
+  Future<VehicleAward> updateAward(String id, Map<String, dynamic> data);
+
+  // Delete an award
+  Future<void> deleteAward(String id);
+
+  // Get a specific award by ID
+  Future<VehicleAward> getAwardById(String id);
+
+  // Get awards by category
+  Future<List<VehicleAward>> getAwardsByCategory(String category);
+
+  // Get awards by year
+  Future<List<VehicleAward>> getAwardsByYear(int year);
+}
+```
+
+#### Usage Examples
+
+```dart
+// Get all awards for a vehicle
+final awards = await vehicleAwardsRepository.getAwardsByVehicleId(vehicleId);
+
+// Create a new award
+final newAward = VehicleAward(
+  vehicleId: vehicleId,
+  awardName: 'Best Modified Car',
+  eventName: 'Manila Auto Show 2025',
+  eventDate: DateTime(2025, 3, 15),
+  category: 'Modified',
+  placement: '1st Place',
+  description: 'Won for outstanding modifications and performance',
+  createdBy: currentUserId,
+);
+
+final createdAward = await vehicleAwardsRepository.createAward(newAward);
+
+// Update an award
+await vehicleAwardsRepository.updateAward(awardId, {
+  'placement': 'Champion',
+  'description': 'Updated description',
+  'updated_at': DateTime.now().toIso8601String(),
+});
+
+// Delete an award
+await vehicleAwardsRepository.deleteAward(awardId);
+```
+
+### PocketBase Schema
+
+**Collection:** `vehicle_awards`
+
+**Schema:**
+
+```json
+{
+  "name": "vehicle_awards",
+  "type": "base",
+  "schema": [
+    {
+      "name": "id",
+      "type": "text",
+      "required": true,
+      "unique": true
+    },
+    {
+      "name": "vehicle_id",
+      "type": "relation",
+      "options": {
+        "collectionId": "vehicles"
+      },
+      "required": true
+    },
+    {
+      "name": "award_name",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "event_name",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "event_date",
+      "type": "date",
+      "required": true
+    },
+    {
+      "name": "category",
+      "type": "text"
+    },
+    {
+      "name": "placement",
+      "type": "text"
+    },
+    {
+      "name": "description",
+      "type": "text"
+    },
+    {
+      "name": "award_image",
+      "type": "file",
+      "options": {
+        "maxSelect": 1,
+        "maxSize": 5242880,
+        "mimeTypes": ["image/png", "image/jpeg", "image/gif", "image/webp"]
+      }
+    },
+    {
+      "name": "created_by",
+      "type": "relation",
+      "options": {
+        "collectionId": "users"
+      }
+    },
+    {
+      "name": "created_at",
+      "type": "date"
+    },
+    {
+      "name": "updated_at",
+      "type": "date"
+    }
+  ]
+}
+```
+
+### Permissions
+
+**Vehicle Awards Collection Permissions:**
+
+- **List Rule:** `@request.auth.id != ""` (authenticated users can view)
+- **View Rule:** `@request.auth.id != ""` (authenticated users can view)
+- **Create Rule:** `@request.auth.id != ""` (authenticated users can create)
+- **Update Rule:** `created_by = @request.auth.id || @request.auth.isAdmin = true` (owner or admin can update)
+- **Delete Rule:** `created_by = @request.auth.id || @request.auth.isAdmin = true` (owner or admin can delete)
+
+### UI Components
+
+#### VehicleSpecCard
+
+Reusable widget for displaying vehicle specifications with dark theme and glowing effects.
+
+```dart
+VehicleSpecCard(
+  icon: Icons.speed,
+  label: 'Max Speed',
+  value: '250 km/h',
+  isLoading: false,
+  onTap: () => navigateToDetails(),
+)
+```
+
+#### AwardsTrophyRow
+
+Widget for displaying vehicle awards with trophy icons and count badge.
+
+```dart
+AwardsTrophyRow(
+  awardCount: 5,
+  onTap: () => navigateToAwardsPage(),
+  isLoading: false,
+)
+```
+
+### Error Handling
+
+```dart
+class VehicleAwardsException implements Exception {
+  const VehicleAwardsException(this.message);
+  final String message;
+
+  @override
+  String toString() => 'VehicleAwardsException: $message';
+}
+```
+
+**Common Error Scenarios:**
+
+1. **Network Errors:** Handle connection issues gracefully
+2. **Permission Errors:** Show appropriate messages for unauthorized access
+3. **Validation Errors:** Display form validation messages
+4. **File Upload Errors:** Handle image upload failures
+
+### Integration with Profile System
+
+The awards system integrates seamlessly with the existing profile system:
+
+1. **ProfileCubit:** Extended to load vehicle awards
+2. **ProfileState:** Includes awards list for vehicles
+3. **CarWidget:** Redesigned with dark theme and awards display
+4. **Navigation:** Routes for awards management pages
 
 ## Admin Services
 

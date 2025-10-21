@@ -4,6 +4,8 @@ import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/utils/car_logo_helper.dart';
+import 'package:otogapo/widgets/vehicle_spec_card.dart';
+import 'package:otogapo/widgets/awards_trophy_row.dart';
 import 'package:otogapo_core/otogapo_core.dart';
 
 class CarWidget extends StatefulWidget {
@@ -29,12 +31,12 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
     super.initState();
 
     _carAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
 
     _imageAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
 
@@ -49,7 +51,7 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.2),
+      begin: const Offset(0, 0.3),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
@@ -95,41 +97,48 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
     final logoUrl = CarLogoHelper.getCarLogoSource(make);
 
     return Container(
-      width: 40,
-      height: 40,
+      width: 50.w,
+      height: 50.w,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(25.r),
+        border: Border.all(
+          color: const Color(0xFF00d4ff).withOpacity(0.3),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
+            color: const Color(0xFF00d4ff).withOpacity(0.2),
+            blurRadius: 8,
+            spreadRadius: 0,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(6),
+      padding: EdgeInsets.all(8.sp),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(25.r),
         child: Image.network(
           logoUrl,
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) {
-            // Fallback to car icon if logo fails to load
             return Icon(
               Icons.directions_car,
-              size: 20,
-              color: Colors.grey[600],
+              size: 24.sp,
+              color: const Color(0xFF00d4ff),
             );
           },
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) return child;
             return Center(
               child: SizedBox(
-                width: 20,
-                height: 20,
+                width: 20.w,
+                height: 20.w,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    const Color(0xFF00d4ff),
+                  ),
                   value: loadingProgress.expectedTotalBytes != null
                       ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
                       : null,
@@ -139,305 +148,376 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
           },
         ),
       ),
-    )
-        .animate()
-        .fadeIn(delay: 300.ms, duration: 600.ms)
-        .scale(delay: 350.ms, duration: 400.ms, curve: Curves.easeOutBack);
+    );
   }
 
-  Future<List<String>> _getCarImageUrls() async {
+  Future<String?> _resolvePrimaryPhotoUrl() async {
     try {
-      if (widget.state.vehicles.isEmpty) return [];
+      if (widget.state.vehicles.isEmpty) return null;
       final vehicle = widget.state.vehicles.first;
-      final photos = vehicle.photos ?? <String>[];
+      final primary = vehicle.primaryPhoto;
+      if (primary == null || primary.isEmpty) return null;
 
-      // Convert PocketBase filenames to full URLs
+      if (primary.startsWith('http')) {
+        return primary;
+      }
+
       final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-      final vehicleId = vehicle.id;
-
-      return photos.where((p) => p.isNotEmpty).map((filename) {
-        if (filename.startsWith('http')) {
-          return filename; // Already a full URL
-        }
-        return '$pocketbaseUrl/api/files/vehicles/$vehicleId/$filename';
-      }).toList();
-    } catch (e) {
-      return [];
+      return '$pocketbaseUrl/api/files/vehicles/${vehicle.id}/$primary';
+    } catch (_) {
+      return null;
     }
+  }
+
+  Widget _buildHeroSection() {
+    final vehicle = widget.state.vehicles.isNotEmpty ? widget.state.vehicles.first : null;
+    final mainImageFuture = _resolvePrimaryPhotoUrl();
+
+    return Container(
+      height: 280.h,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            const Color(0xFF0a0e27),
+            const Color(0xFF1a1e3f),
+            const Color(0xFF2a2f4f),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF00d4ff).withOpacity(0.1),
+            blurRadius: 20,
+            spreadRadius: 0,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Hero car image
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16.r),
+              child: FutureBuilder<String?>(
+                future: mainImageFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            const Color(0xFF1a1e3f),
+                            const Color(0xFF2a2f4f),
+                          ],
+                        ),
+                      ),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            const Color(0xFF00d4ff),
+                          ),
+                        ),
+                      ),
+                    ).animate(onPlay: (controller) => controller.repeat()).shimmer(
+                          duration: 1500.ms,
+                          color: const Color(0xFF00d4ff).withOpacity(0.3),
+                        );
+                  }
+
+                  if (snapshot.hasData && snapshot.data != null) {
+                    return Stack(
+                      children: [
+                        OpstechExtendedImageNetwork(
+                          img: snapshot.data!,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
+                        // Dark gradient overlay
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.black.withOpacity(0.3),
+                                Colors.black.withOpacity(0.7),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+
+                  // Fallback placeholder
+                  return Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF1a1e3f),
+                          const Color(0xFF2a2f4f),
+                        ],
+                      ),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.directions_car,
+                        size: 80.sp,
+                        color: const Color(0xFF00d4ff).withOpacity(0.5),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          // Car logo in top right
+          if (vehicle != null)
+            Positioned(
+              top: 16.h,
+              right: 16.w,
+              child: _buildCarLogo(vehicle.make),
+            ),
+          // Car name and details overlay
+          Positioned(
+            bottom: 20.h,
+            left: 20.w,
+            right: 20.w,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  vehicle != null ? _capitalizeCarName('${vehicle.make} ${vehicle.model}') : 'No Vehicle',
+                  style: TextStyle(
+                    fontSize: 24.sp,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withOpacity(0.5),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                ),
+                if (vehicle != null) ...[
+                  SizedBox(height: 4.h),
+                  Text(
+                    '${vehicle.year} • ${vehicle.color}',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey[300],
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.5),
+                          blurRadius: 2,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpecsGrid() {
+    final vehicle = widget.state.vehicles.isNotEmpty ? widget.state.vehicles.first : null;
+
+    if (vehicle == null) {
+      return Container(
+        padding: EdgeInsets.all(16.sp),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF1e2340).withOpacity(0.8),
+              const Color(0xFF2a2f4f).withOpacity(0.6),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(
+            color: const Color(0xFF00d4ff).withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            'No vehicle specifications available',
+            style: TextStyle(
+              fontSize: 16.sp,
+              color: Colors.grey[400],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final specs = [
+      {
+        'icon': Icons.speed,
+        'label': 'Max Speed',
+        'value': vehicle.maxSpeed != null ? '${vehicle.maxSpeed} km/h' : 'N/A',
+      },
+      {
+        'icon': Icons.local_gas_station,
+        'label': 'Fuel Type',
+        'value': vehicle.fuelType ?? 'N/A',
+      },
+      {
+        'icon': Icons.timeline,
+        'label': 'Mileage',
+        'value': vehicle.mileage != null ? '${vehicle.mileage} km' : 'N/A',
+      },
+      {
+        'icon': Icons.settings,
+        'label': 'Wheels',
+        'value': vehicle.wheelSize ?? 'N/A',
+      },
+      {
+        'icon': Icons.settings_outlined,
+        'label': 'Transmission',
+        'value': vehicle.transmission ?? 'N/A',
+      },
+      {
+        'icon': Icons.power,
+        'label': 'Power',
+        'value': vehicle.horsepower != null ? '${vehicle.horsepower} HP' : 'N/A',
+      },
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12.w,
+        mainAxisSpacing: 12.h,
+        childAspectRatio: 1.4,
+      ),
+      itemCount: specs.length,
+      itemBuilder: (context, index) {
+        final spec = specs[index];
+        return VehicleSpecCard(
+          icon: spec['icon'] as IconData,
+          label: spec['label'] as String,
+          value: spec['value'] as String,
+        )
+            .animate()
+            .fadeIn(
+              delay: (400 + (index * 100)).ms,
+              duration: 600.ms,
+            )
+            .slideY(
+              begin: 0.2,
+              delay: (400 + (index * 100)).ms,
+              duration: 600.ms,
+              curve: Curves.easeOutCubic,
+            );
+      },
+    );
+  }
+
+  Widget _buildAwardsSection() {
+    // TODO: Load awards from ProfileState when awards are integrated
+    final awardCount = 0; // Placeholder for now
+
+    return AwardsTrophyRow(
+      awardCount: awardCount,
+      onTap: () {
+        // TODO: Navigate to awards page when implemented
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Awards page coming soon!'),
+            backgroundColor: Color(0xFF00d4ff),
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // No Firebase listing; images come from PocketBase vehicle.photos
-
-    Future<String?> _resolvePrimaryPhotoUrl() async {
-      try {
-        if (widget.state.vehicles.isEmpty) return null;
-        final vehicle = widget.state.vehicles.first;
-        final primary = vehicle.primaryPhoto;
-        if (primary == null || primary.isEmpty) return null;
-
-        // Convert PocketBase filename to full URL
-        if (primary.startsWith('http')) {
-          return primary; // Already a full URL
-        }
-
-        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-        return '$pocketbaseUrl/api/files/vehicles/${vehicle.id}/$primary';
-      } catch (_) {
-        return null;
-      }
-    }
-
-    final mainImageFuture = _resolvePrimaryPhotoUrl();
-
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SlideTransition(
         position: _slideAnimation,
         child: ScaleTransition(
           scale: _scaleAnimation,
-          child: SizedBox(
+          child: Container(
             width: double.infinity,
-            child: Container(
-              margin: const EdgeInsets.symmetric(
-                horizontal: 6,
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: Colors.grey[300],
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
+            margin: EdgeInsets.symmetric(horizontal: 8.w),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFF0a0e27),
+                  const Color(0xFF1a1e3f),
                 ],
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Main image and vehicle info side by side
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Vehicle information (left) with staggered animation
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Car name with manufacturer logo
-                                Row(
-                                  children: [
-                                    // Manufacturer logo
-                                    if (widget.state.vehicles.isNotEmpty)
-                                      _buildCarLogo(widget.state.vehicles.first.make),
-                                    if (widget.state.vehicles.isNotEmpty) const SizedBox(width: 8),
-                                    // Car name
-                                    Expanded(
-                                      child: Text(
-                                        widget.state.vehicles.isNotEmpty
-                                            ? _capitalizeCarName(
-                                                '${widget.state.vehicles.first.make} ${widget.state.vehicles.first.model}')
-                                            : 'No Vehicle',
-                                        style: OpstechTextTheme.heading2.copyWith(
-                                          color: Colors.black87,
-                                          fontSize: 22.sp,
-                                          fontWeight: FontWeight.w900,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 2,
-                                      )
-                                          .animate()
-                                          .fadeIn(delay: 400.ms, duration: 600.ms)
-                                          .slideX(begin: -0.3, duration: 600.ms),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 5),
-                                if (widget.state.vehicles.isNotEmpty) ...[
-                                  Text(
-                                    'Plate Number: ${widget.state.vehicles.first.plateNumber}',
-                                    style: OpstechTextTheme.regular.copyWith(
-                                      color: Colors.black54,
-                                      fontSize: 14.sp,
-                                    ),
-                                  )
-                                      .animate()
-                                      .fadeIn(delay: 500.ms, duration: 600.ms)
-                                      .slideX(begin: -0.3, duration: 600.ms),
-                                  Text(
-                                    'Color: ${widget.state.vehicles.first.color}',
-                                    style: OpstechTextTheme.regular.copyWith(
-                                      color: Colors.black54,
-                                      fontSize: 14.sp,
-                                    ),
-                                  )
-                                      .animate()
-                                      .fadeIn(delay: 600.ms, duration: 600.ms)
-                                      .slideX(begin: -0.3, duration: 600.ms),
-                                  Text(
-                                    'Year: ${widget.state.vehicles.first.year}',
-                                    style: OpstechTextTheme.regular.copyWith(
-                                      color: Colors.black54,
-                                      fontSize: 14.sp,
-                                    ),
-                                  )
-                                      .animate()
-                                      .fadeIn(delay: 700.ms, duration: 600.ms)
-                                      .slideX(begin: -0.3, duration: 600.ms),
-                                ] else ...[
-                                  Text(
-                                    'No vehicle information available',
-                                    style: OpstechTextTheme.regular.copyWith(
-                                      color: Colors.black54,
-                                      fontSize: 14.sp,
-                                    ),
-                                  )
-                                      .animate()
-                                      .fadeIn(delay: 500.ms, duration: 600.ms)
-                                      .slideX(begin: -0.3, duration: 600.ms),
-                                ],
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Main car image (right, bigger) with enhanced animation
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: FutureBuilder<String?>(
-                              future: mainImageFuture,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return Container(
-                                    width: 140,
-                                    height: 140,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  ).animate(onPlay: (controller) => controller.repeat()).shimmer(duration: 1500.ms);
-                                }
-                                if (snapshot.hasData && snapshot.data != null) {
-                                  return OpstechExtendedImageNetwork(
-                                    img: snapshot.data!,
-                                    width: 140,
-                                    height: 140,
-                                  )
-                                      .animate()
-                                      .fadeIn(delay: 800.ms, duration: 800.ms)
-                                      .scale(delay: 900.ms, duration: 600.ms, curve: Curves.easeOutBack);
-                                }
-                                // Fallback to placeholder icon if no main image exists
-                                return Container(
-                                  width: 140,
-                                  height: 140,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Icon(
-                                    Icons.directions_car,
-                                    size: 60,
-                                    color: Colors.grey[600],
-                                  ),
-                                )
-                                    .animate()
-                                    .fadeIn(delay: 800.ms, duration: 800.ms)
-                                    .scale(delay: 900.ms, duration: 600.ms, curve: Curves.easeOutBack);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      // Car images grid with enhanced animation
-                      FutureBuilder<List<String>>(
-                        future: _getCarImageUrls(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return Container(
-                              height: 200,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            ).animate(onPlay: (controller) => controller.repeat()).shimmer(duration: 1500.ms);
-                          }
-
-                          final imageUrls = snapshot.data ?? [];
-
-                          if (imageUrls.isEmpty) {
-                            // Show placeholder if no car images exist
-                            return Container(
-                              height: 200,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.photo_library_outlined,
-                                      size: 48,
-                                      color: Colors.grey[400],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'No vehicle photos',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ).animate().fadeIn(delay: 1000.ms, duration: 800.ms).slideY(begin: 0.2, duration: 800.ms);
-                          }
-
-                          // Display car images in a 2x2 grid with staggered animations
-                          return GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                              childAspectRatio: 1.2,
-                            ),
-                            itemCount: imageUrls.length,
-                            itemBuilder: (context, index) {
-                              return ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: OpstechExtendedImageNetwork(
-                                  img: imageUrls[index],
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                ),
-                              )
-                                  .animate()
-                                  .fadeIn(delay: (1000 + (index * 200)).ms, duration: 600.ms)
-                                  .slideY(begin: 0.3, duration: 600.ms)
-                                  .scale(delay: (1100 + (index * 200)).ms, duration: 400.ms, curve: Curves.easeOutBack);
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+              borderRadius: BorderRadius.circular(20.r),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF00d4ff).withOpacity(0.1),
+                  blurRadius: 20,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 8),
                 ),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 10,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(16.sp),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Hero section with car image
+                  _buildHeroSection(),
+                  SizedBox(height: 20.h),
+                  // Specs grid
+                  Text(
+                    'Specifications',
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ).animate().fadeIn(delay: 300.ms, duration: 600.ms),
+                  SizedBox(height: 12.h),
+                  _buildSpecsGrid(),
+                  SizedBox(height: 20.h),
+                  // Awards section
+                  Text(
+                    'Achievements',
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ).animate().fadeIn(delay: 800.ms, duration: 600.ms),
+                  SizedBox(height: 12.h),
+                  _buildAwardsSection(),
+                ],
               ),
             ),
           ),

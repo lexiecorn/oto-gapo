@@ -107,5 +107,18 @@ class AppRouter extends $AppRouter {
           page: SocialFeedModerationPageRouter.page,
           path: '/social-feed/moderation',
         ),
+        // Vehicle routes
+        AutoRoute(
+          page: CarDetailsPageRouter.page,
+          path: '/car-details/:vehicleId',
+        ),
+        AutoRoute(
+          page: VehicleAwardsPageRouter.page,
+          path: '/vehicle/:vehicleId/awards',
+        ),
+        AutoRoute(
+          page: AddVehicleAwardPageRouter.page,
+          path: '/vehicle/:vehicleId/awards/add',
+        ),
       ];
 }

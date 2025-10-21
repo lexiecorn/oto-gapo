@@ -8,61 +8,87 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:auto_route/auto_route.dart' as _i25;
-import 'package:flutter/material.dart' as _i26;
-import 'package:otogapo/app/modules/profile/profile_page.dart' as _i14;
-import 'package:otogapo/app/modules/signin/signin_page.dart' as _i16;
-import 'package:otogapo/app/modules/signup/signup_page.dart' as _i17;
-import 'package:otogapo/app/pages/announcements_list_page.dart' as _i1;
-import 'package:otogapo/app/pages/attendance_calendar_page.dart' as _i2;
-import 'package:otogapo/app/pages/create_meeting_page.dart' as _i3;
-import 'package:otogapo/app/pages/create_post_page.dart' as _i4;
-import 'package:otogapo/app/pages/hashtag_posts_page.dart' as _i5;
-import 'package:otogapo/app/pages/home_body.dart' as _i6;
-import 'package:otogapo/app/pages/home_page.dart' as _i7;
-import 'package:otogapo/app/pages/mark_attendance_page.dart' as _i9;
-import 'package:otogapo/app/pages/meeting_details_page.dart' as _i10;
-import 'package:otogapo/app/pages/meeting_qr_code_page.dart' as _i11;
-import 'package:otogapo/app/pages/meetings_list_page.dart' as _i12;
-import 'package:otogapo/app/pages/post_detail_page.dart' as _i13;
-import 'package:otogapo/app/pages/qr_scanner_page.dart' as _i15;
-import 'package:otogapo/app/pages/social_feed_moderation_page.dart' as _i18;
-import 'package:otogapo/app/pages/social_feed_page.dart' as _i19;
-import 'package:otogapo/app/pages/splash_page.dart' as _i20;
-import 'package:otogapo/app/pages/user_attendance_history_page.dart' as _i21;
-import 'package:otogapo/app/pages/user_list_page.dart' as _i22;
-import 'package:otogapo/app/pages/user_posts_page.dart' as _i23;
-import 'package:otogapo/app/pages/user_qr_code_page.dart' as _i24;
-import 'package:otogapo/app/widgets/intro.dart' as _i8;
-import 'package:otogapo/models/meeting.dart' as _i27;
+import 'package:authentication_repository/authentication_repository.dart'
+    as _i29;
+import 'package:auto_route/auto_route.dart' as _i28;
+import 'package:flutter/material.dart' as _i30;
+import 'package:otogapo/app/modules/profile/profile_page.dart' as _i16;
+import 'package:otogapo/app/modules/signin/signin_page.dart' as _i18;
+import 'package:otogapo/app/modules/signup/signup_page.dart' as _i19;
+import 'package:otogapo/app/pages/add_vehicle_award_page.dart' as _i1;
+import 'package:otogapo/app/pages/announcements_list_page.dart' as _i2;
+import 'package:otogapo/app/pages/attendance_calendar_page.dart' as _i3;
+import 'package:otogapo/app/pages/car_details_page.dart' as _i4;
+import 'package:otogapo/app/pages/create_meeting_page.dart' as _i5;
+import 'package:otogapo/app/pages/create_post_page.dart' as _i6;
+import 'package:otogapo/app/pages/hashtag_posts_page.dart' as _i7;
+import 'package:otogapo/app/pages/home_body.dart' as _i8;
+import 'package:otogapo/app/pages/home_page.dart' as _i9;
+import 'package:otogapo/app/pages/mark_attendance_page.dart' as _i11;
+import 'package:otogapo/app/pages/meeting_details_page.dart' as _i12;
+import 'package:otogapo/app/pages/meeting_qr_code_page.dart' as _i13;
+import 'package:otogapo/app/pages/meetings_list_page.dart' as _i14;
+import 'package:otogapo/app/pages/post_detail_page.dart' as _i15;
+import 'package:otogapo/app/pages/qr_scanner_page.dart' as _i17;
+import 'package:otogapo/app/pages/social_feed_moderation_page.dart' as _i20;
+import 'package:otogapo/app/pages/social_feed_page.dart' as _i21;
+import 'package:otogapo/app/pages/splash_page.dart' as _i22;
+import 'package:otogapo/app/pages/user_attendance_history_page.dart' as _i23;
+import 'package:otogapo/app/pages/user_list_page.dart' as _i24;
+import 'package:otogapo/app/pages/user_posts_page.dart' as _i25;
+import 'package:otogapo/app/pages/user_qr_code_page.dart' as _i26;
+import 'package:otogapo/app/pages/vehicle_awards_page.dart' as _i27;
+import 'package:otogapo/app/widgets/intro.dart' as _i10;
+import 'package:otogapo/models/meeting.dart' as _i31;
 
-abstract class $AppRouter extends _i25.RootStackRouter {
+abstract class $AppRouter extends _i28.RootStackRouter {
   $AppRouter({super.navigatorKey});
 
   @override
-  final Map<String, _i25.PageFactory> pagesMap = {
-    AnnouncementsListPageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+  final Map<String, _i28.PageFactory> pagesMap = {
+    AddVehicleAwardPageRouter.name: (routeData) {
+      final args = routeData.argsAs<AddVehicleAwardPageRouterArgs>();
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i1.AnnouncementsListPage(),
+        child: _i1.AddVehicleAwardPage(
+          vehicle: args.vehicle,
+          award: args.award,
+          key: args.key,
+        ),
+      );
+    },
+    AnnouncementsListPageRouter.name: (routeData) {
+      return _i28.AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const _i2.AnnouncementsListPage(),
       );
     },
     AttendanceCalendarPageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i2.AttendanceCalendarPage(),
+        child: const _i3.AttendanceCalendarPage(),
+      );
+    },
+    CarDetailsPageRouter.name: (routeData) {
+      final args = routeData.argsAs<CarDetailsPageRouterArgs>();
+      return _i28.AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: _i4.CarDetailsPage(
+          vehicle: args.vehicle,
+          key: args.key,
+        ),
       );
     },
     CreateMeetingPageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i3.CreateMeetingPage(),
+        child: const _i5.CreateMeetingPage(),
       );
     },
     CreatePostPageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i4.CreatePostPage(),
+        child: const _i6.CreatePostPage(),
       );
     },
     HashtagPostsPageRouter.name: (routeData) {
@@ -70,30 +96,30 @@ abstract class $AppRouter extends _i25.RootStackRouter {
       final args = routeData.argsAs<HashtagPostsPageRouterArgs>(
           orElse: () => HashtagPostsPageRouterArgs(
               hashtag: pathParams.getString('hashtag')));
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: _i5.HashtagPostsPage(
+        child: _i7.HashtagPostsPage(
           hashtag: args.hashtag,
           key: args.key,
         ),
       );
     },
     HomeBodyRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i6.HomeBody(),
+        child: const _i8.HomeBody(),
       );
     },
     HomePageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i7.HomePage(),
+        child: const _i9.HomePage(),
       );
     },
     IntroPageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i8.IntroPage(),
+        child: const _i10.IntroPage(),
       );
     },
     MarkAttendancePageRouter.name: (routeData) {
@@ -101,9 +127,9 @@ abstract class $AppRouter extends _i25.RootStackRouter {
       final args = routeData.argsAs<MarkAttendancePageRouterArgs>(
           orElse: () => MarkAttendancePageRouterArgs(
               meetingId: pathParams.getString('meetingId')));
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: _i9.MarkAttendancePage(
+        child: _i11.MarkAttendancePage(
           meetingId: args.meetingId,
           key: args.key,
         ),
@@ -114,9 +140,9 @@ abstract class $AppRouter extends _i25.RootStackRouter {
       final args = routeData.argsAs<MeetingDetailsPageRouterArgs>(
           orElse: () => MeetingDetailsPageRouterArgs(
               meetingId: pathParams.getString('meetingId')));
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: _i10.MeetingDetailsPage(
+        child: _i12.MeetingDetailsPage(
           meetingId: args.meetingId,
           key: args.key,
         ),
@@ -124,18 +150,18 @@ abstract class $AppRouter extends _i25.RootStackRouter {
     },
     MeetingQRCodePageRouter.name: (routeData) {
       final args = routeData.argsAs<MeetingQRCodePageRouterArgs>();
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: _i11.MeetingQRCodePage(
+        child: _i13.MeetingQRCodePage(
           meeting: args.meeting,
           key: args.key,
         ),
       );
     },
     MeetingsListPageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i12.MeetingsListPage(),
+        child: const _i14.MeetingsListPage(),
       );
     },
     PostDetailPageRouter.name: (routeData) {
@@ -143,9 +169,9 @@ abstract class $AppRouter extends _i25.RootStackRouter {
       final args = routeData.argsAs<PostDetailPageRouterArgs>(
           orElse: () =>
               PostDetailPageRouterArgs(postId: pathParams.getString('postId')));
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: _i13.PostDetailPage(
+        child: _i15.PostDetailPage(
           postId: args.postId,
           key: args.key,
         ),
@@ -154,60 +180,60 @@ abstract class $AppRouter extends _i25.RootStackRouter {
     ProfilePageRouter.name: (routeData) {
       final args = routeData.argsAs<ProfilePageRouterArgs>(
           orElse: () => const ProfilePageRouterArgs());
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: _i14.ProfilePage(
+        child: _i16.ProfilePage(
           userId: args.userId,
           key: args.key,
         ),
       );
     },
     QRScannerPageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i15.QRScannerPage(),
+        child: const _i17.QRScannerPage(),
       );
     },
     SigninPageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i16.SigninPage(),
+        child: const _i18.SigninPage(),
       );
     },
     SignupPageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i17.SignupPage(),
+        child: const _i19.SignupPage(),
       );
     },
     SocialFeedModerationPageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i18.SocialFeedModerationPage(),
+        child: const _i20.SocialFeedModerationPage(),
       );
     },
     SocialFeedPageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i19.SocialFeedPage(),
+        child: const _i21.SocialFeedPage(),
       );
     },
     SplashPageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i20.SplashPage(),
+        child: const _i22.SplashPage(),
       );
     },
     UserAttendanceHistoryPageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i21.UserAttendanceHistoryPage(),
+        child: const _i23.UserAttendanceHistoryPage(),
       );
     },
     UserListPageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i22.UserListPage(),
+        child: const _i24.UserListPage(),
       );
     },
     UserPostsPageRouter.name: (routeData) {
@@ -215,27 +241,81 @@ abstract class $AppRouter extends _i25.RootStackRouter {
       final args = routeData.argsAs<UserPostsPageRouterArgs>(
           orElse: () =>
               UserPostsPageRouterArgs(userId: pathParams.getString('userId')));
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: _i23.UserPostsPage(
+        child: _i25.UserPostsPage(
           userId: args.userId,
           key: args.key,
         ),
       );
     },
     UserQRCodePageRouter.name: (routeData) {
-      return _i25.AutoRoutePage<dynamic>(
+      return _i28.AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const _i24.UserQRCodePage(),
+        child: const _i26.UserQRCodePage(),
+      );
+    },
+    VehicleAwardsPageRouter.name: (routeData) {
+      final args = routeData.argsAs<VehicleAwardsPageRouterArgs>();
+      return _i28.AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: _i27.VehicleAwardsPage(
+          vehicle: args.vehicle,
+          key: args.key,
+        ),
       );
     },
   };
 }
 
 /// generated route for
-/// [_i1.AnnouncementsListPage]
-class AnnouncementsListPageRouter extends _i25.PageRouteInfo<void> {
-  const AnnouncementsListPageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i1.AddVehicleAwardPage]
+class AddVehicleAwardPageRouter
+    extends _i28.PageRouteInfo<AddVehicleAwardPageRouterArgs> {
+  AddVehicleAwardPageRouter({
+    required _i29.Vehicle vehicle,
+    _i29.VehicleAward? award,
+    _i30.Key? key,
+    List<_i28.PageRouteInfo>? children,
+  }) : super(
+          AddVehicleAwardPageRouter.name,
+          args: AddVehicleAwardPageRouterArgs(
+            vehicle: vehicle,
+            award: award,
+            key: key,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'AddVehicleAwardPageRouter';
+
+  static const _i28.PageInfo<AddVehicleAwardPageRouterArgs> page =
+      _i28.PageInfo<AddVehicleAwardPageRouterArgs>(name);
+}
+
+class AddVehicleAwardPageRouterArgs {
+  const AddVehicleAwardPageRouterArgs({
+    required this.vehicle,
+    this.award,
+    this.key,
+  });
+
+  final _i29.Vehicle vehicle;
+
+  final _i29.VehicleAward? award;
+
+  final _i30.Key? key;
+
+  @override
+  String toString() {
+    return 'AddVehicleAwardPageRouterArgs{vehicle: $vehicle, award: $award, key: $key}';
+  }
+}
+
+/// generated route for
+/// [_i2.AnnouncementsListPage]
+class AnnouncementsListPageRouter extends _i28.PageRouteInfo<void> {
+  const AnnouncementsListPageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           AnnouncementsListPageRouter.name,
           initialChildren: children,
@@ -243,13 +323,13 @@ class AnnouncementsListPageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'AnnouncementsListPageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i2.AttendanceCalendarPage]
-class AttendanceCalendarPageRouter extends _i25.PageRouteInfo<void> {
-  const AttendanceCalendarPageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i3.AttendanceCalendarPage]
+class AttendanceCalendarPageRouter extends _i28.PageRouteInfo<void> {
+  const AttendanceCalendarPageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           AttendanceCalendarPageRouter.name,
           initialChildren: children,
@@ -257,13 +337,52 @@ class AttendanceCalendarPageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'AttendanceCalendarPageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i3.CreateMeetingPage]
-class CreateMeetingPageRouter extends _i25.PageRouteInfo<void> {
-  const CreateMeetingPageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i4.CarDetailsPage]
+class CarDetailsPageRouter
+    extends _i28.PageRouteInfo<CarDetailsPageRouterArgs> {
+  CarDetailsPageRouter({
+    required _i29.Vehicle vehicle,
+    _i30.Key? key,
+    List<_i28.PageRouteInfo>? children,
+  }) : super(
+          CarDetailsPageRouter.name,
+          args: CarDetailsPageRouterArgs(
+            vehicle: vehicle,
+            key: key,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'CarDetailsPageRouter';
+
+  static const _i28.PageInfo<CarDetailsPageRouterArgs> page =
+      _i28.PageInfo<CarDetailsPageRouterArgs>(name);
+}
+
+class CarDetailsPageRouterArgs {
+  const CarDetailsPageRouterArgs({
+    required this.vehicle,
+    this.key,
+  });
+
+  final _i29.Vehicle vehicle;
+
+  final _i30.Key? key;
+
+  @override
+  String toString() {
+    return 'CarDetailsPageRouterArgs{vehicle: $vehicle, key: $key}';
+  }
+}
+
+/// generated route for
+/// [_i5.CreateMeetingPage]
+class CreateMeetingPageRouter extends _i28.PageRouteInfo<void> {
+  const CreateMeetingPageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           CreateMeetingPageRouter.name,
           initialChildren: children,
@@ -271,13 +390,13 @@ class CreateMeetingPageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'CreateMeetingPageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i4.CreatePostPage]
-class CreatePostPageRouter extends _i25.PageRouteInfo<void> {
-  const CreatePostPageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i6.CreatePostPage]
+class CreatePostPageRouter extends _i28.PageRouteInfo<void> {
+  const CreatePostPageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           CreatePostPageRouter.name,
           initialChildren: children,
@@ -285,17 +404,17 @@ class CreatePostPageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'CreatePostPageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i5.HashtagPostsPage]
+/// [_i7.HashtagPostsPage]
 class HashtagPostsPageRouter
-    extends _i25.PageRouteInfo<HashtagPostsPageRouterArgs> {
+    extends _i28.PageRouteInfo<HashtagPostsPageRouterArgs> {
   HashtagPostsPageRouter({
     required String hashtag,
-    _i26.Key? key,
-    List<_i25.PageRouteInfo>? children,
+    _i30.Key? key,
+    List<_i28.PageRouteInfo>? children,
   }) : super(
           HashtagPostsPageRouter.name,
           args: HashtagPostsPageRouterArgs(
@@ -308,8 +427,8 @@ class HashtagPostsPageRouter
 
   static const String name = 'HashtagPostsPageRouter';
 
-  static const _i25.PageInfo<HashtagPostsPageRouterArgs> page =
-      _i25.PageInfo<HashtagPostsPageRouterArgs>(name);
+  static const _i28.PageInfo<HashtagPostsPageRouterArgs> page =
+      _i28.PageInfo<HashtagPostsPageRouterArgs>(name);
 }
 
 class HashtagPostsPageRouterArgs {
@@ -320,7 +439,7 @@ class HashtagPostsPageRouterArgs {
 
   final String hashtag;
 
-  final _i26.Key? key;
+  final _i30.Key? key;
 
   @override
   String toString() {
@@ -329,9 +448,9 @@ class HashtagPostsPageRouterArgs {
 }
 
 /// generated route for
-/// [_i6.HomeBody]
-class HomeBodyRouter extends _i25.PageRouteInfo<void> {
-  const HomeBodyRouter({List<_i25.PageRouteInfo>? children})
+/// [_i8.HomeBody]
+class HomeBodyRouter extends _i28.PageRouteInfo<void> {
+  const HomeBodyRouter({List<_i28.PageRouteInfo>? children})
       : super(
           HomeBodyRouter.name,
           initialChildren: children,
@@ -339,13 +458,13 @@ class HomeBodyRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'HomeBodyRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i7.HomePage]
-class HomePageRouter extends _i25.PageRouteInfo<void> {
-  const HomePageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i9.HomePage]
+class HomePageRouter extends _i28.PageRouteInfo<void> {
+  const HomePageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           HomePageRouter.name,
           initialChildren: children,
@@ -353,13 +472,13 @@ class HomePageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'HomePageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i8.IntroPage]
-class IntroPageRouter extends _i25.PageRouteInfo<void> {
-  const IntroPageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i10.IntroPage]
+class IntroPageRouter extends _i28.PageRouteInfo<void> {
+  const IntroPageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           IntroPageRouter.name,
           initialChildren: children,
@@ -367,17 +486,17 @@ class IntroPageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'IntroPageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i9.MarkAttendancePage]
+/// [_i11.MarkAttendancePage]
 class MarkAttendancePageRouter
-    extends _i25.PageRouteInfo<MarkAttendancePageRouterArgs> {
+    extends _i28.PageRouteInfo<MarkAttendancePageRouterArgs> {
   MarkAttendancePageRouter({
     required String meetingId,
-    _i26.Key? key,
-    List<_i25.PageRouteInfo>? children,
+    _i30.Key? key,
+    List<_i28.PageRouteInfo>? children,
   }) : super(
           MarkAttendancePageRouter.name,
           args: MarkAttendancePageRouterArgs(
@@ -390,8 +509,8 @@ class MarkAttendancePageRouter
 
   static const String name = 'MarkAttendancePageRouter';
 
-  static const _i25.PageInfo<MarkAttendancePageRouterArgs> page =
-      _i25.PageInfo<MarkAttendancePageRouterArgs>(name);
+  static const _i28.PageInfo<MarkAttendancePageRouterArgs> page =
+      _i28.PageInfo<MarkAttendancePageRouterArgs>(name);
 }
 
 class MarkAttendancePageRouterArgs {
@@ -402,7 +521,7 @@ class MarkAttendancePageRouterArgs {
 
   final String meetingId;
 
-  final _i26.Key? key;
+  final _i30.Key? key;
 
   @override
   String toString() {
@@ -411,13 +530,13 @@ class MarkAttendancePageRouterArgs {
 }
 
 /// generated route for
-/// [_i10.MeetingDetailsPage]
+/// [_i12.MeetingDetailsPage]
 class MeetingDetailsPageRouter
-    extends _i25.PageRouteInfo<MeetingDetailsPageRouterArgs> {
+    extends _i28.PageRouteInfo<MeetingDetailsPageRouterArgs> {
   MeetingDetailsPageRouter({
     required String meetingId,
-    _i26.Key? key,
-    List<_i25.PageRouteInfo>? children,
+    _i30.Key? key,
+    List<_i28.PageRouteInfo>? children,
   }) : super(
           MeetingDetailsPageRouter.name,
           args: MeetingDetailsPageRouterArgs(
@@ -430,8 +549,8 @@ class MeetingDetailsPageRouter
 
   static const String name = 'MeetingDetailsPageRouter';
 
-  static const _i25.PageInfo<MeetingDetailsPageRouterArgs> page =
-      _i25.PageInfo<MeetingDetailsPageRouterArgs>(name);
+  static const _i28.PageInfo<MeetingDetailsPageRouterArgs> page =
+      _i28.PageInfo<MeetingDetailsPageRouterArgs>(name);
 }
 
 class MeetingDetailsPageRouterArgs {
@@ -442,7 +561,7 @@ class MeetingDetailsPageRouterArgs {
 
   final String meetingId;
 
-  final _i26.Key? key;
+  final _i30.Key? key;
 
   @override
   String toString() {
@@ -451,13 +570,13 @@ class MeetingDetailsPageRouterArgs {
 }
 
 /// generated route for
-/// [_i11.MeetingQRCodePage]
+/// [_i13.MeetingQRCodePage]
 class MeetingQRCodePageRouter
-    extends _i25.PageRouteInfo<MeetingQRCodePageRouterArgs> {
+    extends _i28.PageRouteInfo<MeetingQRCodePageRouterArgs> {
   MeetingQRCodePageRouter({
-    required _i27.Meeting meeting,
-    _i26.Key? key,
-    List<_i25.PageRouteInfo>? children,
+    required _i31.Meeting meeting,
+    _i30.Key? key,
+    List<_i28.PageRouteInfo>? children,
   }) : super(
           MeetingQRCodePageRouter.name,
           args: MeetingQRCodePageRouterArgs(
@@ -469,8 +588,8 @@ class MeetingQRCodePageRouter
 
   static const String name = 'MeetingQRCodePageRouter';
 
-  static const _i25.PageInfo<MeetingQRCodePageRouterArgs> page =
-      _i25.PageInfo<MeetingQRCodePageRouterArgs>(name);
+  static const _i28.PageInfo<MeetingQRCodePageRouterArgs> page =
+      _i28.PageInfo<MeetingQRCodePageRouterArgs>(name);
 }
 
 class MeetingQRCodePageRouterArgs {
@@ -479,9 +598,9 @@ class MeetingQRCodePageRouterArgs {
     this.key,
   });
 
-  final _i27.Meeting meeting;
+  final _i31.Meeting meeting;
 
-  final _i26.Key? key;
+  final _i30.Key? key;
 
   @override
   String toString() {
@@ -490,9 +609,9 @@ class MeetingQRCodePageRouterArgs {
 }
 
 /// generated route for
-/// [_i12.MeetingsListPage]
-class MeetingsListPageRouter extends _i25.PageRouteInfo<void> {
-  const MeetingsListPageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i14.MeetingsListPage]
+class MeetingsListPageRouter extends _i28.PageRouteInfo<void> {
+  const MeetingsListPageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           MeetingsListPageRouter.name,
           initialChildren: children,
@@ -500,17 +619,17 @@ class MeetingsListPageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'MeetingsListPageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i13.PostDetailPage]
+/// [_i15.PostDetailPage]
 class PostDetailPageRouter
-    extends _i25.PageRouteInfo<PostDetailPageRouterArgs> {
+    extends _i28.PageRouteInfo<PostDetailPageRouterArgs> {
   PostDetailPageRouter({
     required String postId,
-    _i26.Key? key,
-    List<_i25.PageRouteInfo>? children,
+    _i30.Key? key,
+    List<_i28.PageRouteInfo>? children,
   }) : super(
           PostDetailPageRouter.name,
           args: PostDetailPageRouterArgs(
@@ -523,8 +642,8 @@ class PostDetailPageRouter
 
   static const String name = 'PostDetailPageRouter';
 
-  static const _i25.PageInfo<PostDetailPageRouterArgs> page =
-      _i25.PageInfo<PostDetailPageRouterArgs>(name);
+  static const _i28.PageInfo<PostDetailPageRouterArgs> page =
+      _i28.PageInfo<PostDetailPageRouterArgs>(name);
 }
 
 class PostDetailPageRouterArgs {
@@ -535,7 +654,7 @@ class PostDetailPageRouterArgs {
 
   final String postId;
 
-  final _i26.Key? key;
+  final _i30.Key? key;
 
   @override
   String toString() {
@@ -544,12 +663,12 @@ class PostDetailPageRouterArgs {
 }
 
 /// generated route for
-/// [_i14.ProfilePage]
-class ProfilePageRouter extends _i25.PageRouteInfo<ProfilePageRouterArgs> {
+/// [_i16.ProfilePage]
+class ProfilePageRouter extends _i28.PageRouteInfo<ProfilePageRouterArgs> {
   ProfilePageRouter({
     String? userId,
-    _i26.Key? key,
-    List<_i25.PageRouteInfo>? children,
+    _i30.Key? key,
+    List<_i28.PageRouteInfo>? children,
   }) : super(
           ProfilePageRouter.name,
           args: ProfilePageRouterArgs(
@@ -561,8 +680,8 @@ class ProfilePageRouter extends _i25.PageRouteInfo<ProfilePageRouterArgs> {
 
   static const String name = 'ProfilePageRouter';
 
-  static const _i25.PageInfo<ProfilePageRouterArgs> page =
-      _i25.PageInfo<ProfilePageRouterArgs>(name);
+  static const _i28.PageInfo<ProfilePageRouterArgs> page =
+      _i28.PageInfo<ProfilePageRouterArgs>(name);
 }
 
 class ProfilePageRouterArgs {
@@ -573,7 +692,7 @@ class ProfilePageRouterArgs {
 
   final String? userId;
 
-  final _i26.Key? key;
+  final _i30.Key? key;
 
   @override
   String toString() {
@@ -582,9 +701,9 @@ class ProfilePageRouterArgs {
 }
 
 /// generated route for
-/// [_i15.QRScannerPage]
-class QRScannerPageRouter extends _i25.PageRouteInfo<void> {
-  const QRScannerPageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i17.QRScannerPage]
+class QRScannerPageRouter extends _i28.PageRouteInfo<void> {
+  const QRScannerPageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           QRScannerPageRouter.name,
           initialChildren: children,
@@ -592,13 +711,13 @@ class QRScannerPageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'QRScannerPageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i16.SigninPage]
-class SigninPageRouter extends _i25.PageRouteInfo<void> {
-  const SigninPageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i18.SigninPage]
+class SigninPageRouter extends _i28.PageRouteInfo<void> {
+  const SigninPageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           SigninPageRouter.name,
           initialChildren: children,
@@ -606,13 +725,13 @@ class SigninPageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'SigninPageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i17.SignupPage]
-class SignupPageRouter extends _i25.PageRouteInfo<void> {
-  const SignupPageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i19.SignupPage]
+class SignupPageRouter extends _i28.PageRouteInfo<void> {
+  const SignupPageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           SignupPageRouter.name,
           initialChildren: children,
@@ -620,13 +739,13 @@ class SignupPageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'SignupPageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i18.SocialFeedModerationPage]
-class SocialFeedModerationPageRouter extends _i25.PageRouteInfo<void> {
-  const SocialFeedModerationPageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i20.SocialFeedModerationPage]
+class SocialFeedModerationPageRouter extends _i28.PageRouteInfo<void> {
+  const SocialFeedModerationPageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           SocialFeedModerationPageRouter.name,
           initialChildren: children,
@@ -634,13 +753,13 @@ class SocialFeedModerationPageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'SocialFeedModerationPageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i19.SocialFeedPage]
-class SocialFeedPageRouter extends _i25.PageRouteInfo<void> {
-  const SocialFeedPageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i21.SocialFeedPage]
+class SocialFeedPageRouter extends _i28.PageRouteInfo<void> {
+  const SocialFeedPageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           SocialFeedPageRouter.name,
           initialChildren: children,
@@ -648,13 +767,13 @@ class SocialFeedPageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'SocialFeedPageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i20.SplashPage]
-class SplashPageRouter extends _i25.PageRouteInfo<void> {
-  const SplashPageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i22.SplashPage]
+class SplashPageRouter extends _i28.PageRouteInfo<void> {
+  const SplashPageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           SplashPageRouter.name,
           initialChildren: children,
@@ -662,13 +781,13 @@ class SplashPageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'SplashPageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i21.UserAttendanceHistoryPage]
-class UserAttendanceHistoryPageRouter extends _i25.PageRouteInfo<void> {
-  const UserAttendanceHistoryPageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i23.UserAttendanceHistoryPage]
+class UserAttendanceHistoryPageRouter extends _i28.PageRouteInfo<void> {
+  const UserAttendanceHistoryPageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           UserAttendanceHistoryPageRouter.name,
           initialChildren: children,
@@ -676,13 +795,13 @@ class UserAttendanceHistoryPageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'UserAttendanceHistoryPageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i22.UserListPage]
-class UserListPageRouter extends _i25.PageRouteInfo<void> {
-  const UserListPageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i24.UserListPage]
+class UserListPageRouter extends _i28.PageRouteInfo<void> {
+  const UserListPageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           UserListPageRouter.name,
           initialChildren: children,
@@ -690,16 +809,16 @@ class UserListPageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'UserListPageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
 }
 
 /// generated route for
-/// [_i23.UserPostsPage]
-class UserPostsPageRouter extends _i25.PageRouteInfo<UserPostsPageRouterArgs> {
+/// [_i25.UserPostsPage]
+class UserPostsPageRouter extends _i28.PageRouteInfo<UserPostsPageRouterArgs> {
   UserPostsPageRouter({
     required String userId,
-    _i26.Key? key,
-    List<_i25.PageRouteInfo>? children,
+    _i30.Key? key,
+    List<_i28.PageRouteInfo>? children,
   }) : super(
           UserPostsPageRouter.name,
           args: UserPostsPageRouterArgs(
@@ -712,8 +831,8 @@ class UserPostsPageRouter extends _i25.PageRouteInfo<UserPostsPageRouterArgs> {
 
   static const String name = 'UserPostsPageRouter';
 
-  static const _i25.PageInfo<UserPostsPageRouterArgs> page =
-      _i25.PageInfo<UserPostsPageRouterArgs>(name);
+  static const _i28.PageInfo<UserPostsPageRouterArgs> page =
+      _i28.PageInfo<UserPostsPageRouterArgs>(name);
 }
 
 class UserPostsPageRouterArgs {
@@ -724,7 +843,7 @@ class UserPostsPageRouterArgs {
 
   final String userId;
 
-  final _i26.Key? key;
+  final _i30.Key? key;
 
   @override
   String toString() {
@@ -733,9 +852,9 @@ class UserPostsPageRouterArgs {
 }
 
 /// generated route for
-/// [_i24.UserQRCodePage]
-class UserQRCodePageRouter extends _i25.PageRouteInfo<void> {
-  const UserQRCodePageRouter({List<_i25.PageRouteInfo>? children})
+/// [_i26.UserQRCodePage]
+class UserQRCodePageRouter extends _i28.PageRouteInfo<void> {
+  const UserQRCodePageRouter({List<_i28.PageRouteInfo>? children})
       : super(
           UserQRCodePageRouter.name,
           initialChildren: children,
@@ -743,5 +862,44 @@ class UserQRCodePageRouter extends _i25.PageRouteInfo<void> {
 
   static const String name = 'UserQRCodePageRouter';
 
-  static const _i25.PageInfo<void> page = _i25.PageInfo<void>(name);
+  static const _i28.PageInfo<void> page = _i28.PageInfo<void>(name);
+}
+
+/// generated route for
+/// [_i27.VehicleAwardsPage]
+class VehicleAwardsPageRouter
+    extends _i28.PageRouteInfo<VehicleAwardsPageRouterArgs> {
+  VehicleAwardsPageRouter({
+    required _i29.Vehicle vehicle,
+    _i30.Key? key,
+    List<_i28.PageRouteInfo>? children,
+  }) : super(
+          VehicleAwardsPageRouter.name,
+          args: VehicleAwardsPageRouterArgs(
+            vehicle: vehicle,
+            key: key,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'VehicleAwardsPageRouter';
+
+  static const _i28.PageInfo<VehicleAwardsPageRouterArgs> page =
+      _i28.PageInfo<VehicleAwardsPageRouterArgs>(name);
+}
+
+class VehicleAwardsPageRouterArgs {
+  const VehicleAwardsPageRouterArgs({
+    required this.vehicle,
+    this.key,
+  });
+
+  final _i29.Vehicle vehicle;
+
+  final _i30.Key? key;
+
+  @override
+  String toString() {
+    return 'VehicleAwardsPageRouterArgs{vehicle: $vehicle, key: $key}';
+  }
 }

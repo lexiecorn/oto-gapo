@@ -30,7 +30,22 @@ mixin _$Vehicle {
   String get plateNumber => throw _privateConstructorUsedError;
   String? get primaryPhoto => throw _privateConstructorUsedError;
   List<String>? get photos => throw _privateConstructorUsedError;
-  String? get user => throw _privateConstructorUsedError;
+  String? get user =>
+      throw _privateConstructorUsedError; // User relation field - references user ID
+// New vehicle specification fields
+  num? get mileage =>
+      throw _privateConstructorUsedError; // Vehicle mileage in km
+  String? get fuelType =>
+      throw _privateConstructorUsedError; // "Petrol", "Diesel", "Electric", "Hybrid"
+  String? get wheelSize =>
+      throw _privateConstructorUsedError; // e.g., "18-inch Alloy"
+  num? get maxSpeed =>
+      throw _privateConstructorUsedError; // Maximum speed in km/h
+  String? get engineDisplacement =>
+      throw _privateConstructorUsedError; // e.g., "2.0L", "3.5L V6"
+  num? get horsepower =>
+      throw _privateConstructorUsedError; // Engine power in HP
+  String? get transmission => throw _privateConstructorUsedError;
 
   /// Serializes this Vehicle to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -56,7 +71,14 @@ abstract class $VehicleCopyWith<$Res> {
       String plateNumber,
       String? primaryPhoto,
       List<String>? photos,
-      String? user});
+      String? user,
+      num? mileage,
+      String? fuelType,
+      String? wheelSize,
+      num? maxSpeed,
+      String? engineDisplacement,
+      num? horsepower,
+      String? transmission});
 }
 
 /// @nodoc
@@ -84,6 +106,13 @@ class _$VehicleCopyWithImpl<$Res, $Val extends Vehicle>
     Object? primaryPhoto = freezed,
     Object? photos = freezed,
     Object? user = freezed,
+    Object? mileage = freezed,
+    Object? fuelType = freezed,
+    Object? wheelSize = freezed,
+    Object? maxSpeed = freezed,
+    Object? engineDisplacement = freezed,
+    Object? horsepower = freezed,
+    Object? transmission = freezed,
   }) {
     return _then(_value.copyWith(
       id: freezed == id
@@ -126,6 +155,34 @@ class _$VehicleCopyWithImpl<$Res, $Val extends Vehicle>
           ? _value.user
           : user // ignore: cast_nullable_to_non_nullable
               as String?,
+      mileage: freezed == mileage
+          ? _value.mileage
+          : mileage // ignore: cast_nullable_to_non_nullable
+              as num?,
+      fuelType: freezed == fuelType
+          ? _value.fuelType
+          : fuelType // ignore: cast_nullable_to_non_nullable
+              as String?,
+      wheelSize: freezed == wheelSize
+          ? _value.wheelSize
+          : wheelSize // ignore: cast_nullable_to_non_nullable
+              as String?,
+      maxSpeed: freezed == maxSpeed
+          ? _value.maxSpeed
+          : maxSpeed // ignore: cast_nullable_to_non_nullable
+              as num?,
+      engineDisplacement: freezed == engineDisplacement
+          ? _value.engineDisplacement
+          : engineDisplacement // ignore: cast_nullable_to_non_nullable
+              as String?,
+      horsepower: freezed == horsepower
+          ? _value.horsepower
+          : horsepower // ignore: cast_nullable_to_non_nullable
+              as num?,
+      transmission: freezed == transmission
+          ? _value.transmission
+          : transmission // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -147,7 +204,14 @@ abstract class _$$VehicleImplCopyWith<$Res> implements $VehicleCopyWith<$Res> {
       String plateNumber,
       String? primaryPhoto,
       List<String>? photos,
-      String? user});
+      String? user,
+      num? mileage,
+      String? fuelType,
+      String? wheelSize,
+      num? maxSpeed,
+      String? engineDisplacement,
+      num? horsepower,
+      String? transmission});
 }
 
 /// @nodoc
@@ -173,6 +237,13 @@ class __$$VehicleImplCopyWithImpl<$Res>
     Object? primaryPhoto = freezed,
     Object? photos = freezed,
     Object? user = freezed,
+    Object? mileage = freezed,
+    Object? fuelType = freezed,
+    Object? wheelSize = freezed,
+    Object? maxSpeed = freezed,
+    Object? engineDisplacement = freezed,
+    Object? horsepower = freezed,
+    Object? transmission = freezed,
   }) {
     return _then(_$VehicleImpl(
       id: freezed == id
@@ -215,6 +286,34 @@ class __$$VehicleImplCopyWithImpl<$Res>
           ? _value.user
           : user // ignore: cast_nullable_to_non_nullable
               as String?,
+      mileage: freezed == mileage
+          ? _value.mileage
+          : mileage // ignore: cast_nullable_to_non_nullable
+              as num?,
+      fuelType: freezed == fuelType
+          ? _value.fuelType
+          : fuelType // ignore: cast_nullable_to_non_nullable
+              as String?,
+      wheelSize: freezed == wheelSize
+          ? _value.wheelSize
+          : wheelSize // ignore: cast_nullable_to_non_nullable
+              as String?,
+      maxSpeed: freezed == maxSpeed
+          ? _value.maxSpeed
+          : maxSpeed // ignore: cast_nullable_to_non_nullable
+              as num?,
+      engineDisplacement: freezed == engineDisplacement
+          ? _value.engineDisplacement
+          : engineDisplacement // ignore: cast_nullable_to_non_nullable
+              as String?,
+      horsepower: freezed == horsepower
+          ? _value.horsepower
+          : horsepower // ignore: cast_nullable_to_non_nullable
+              as num?,
+      transmission: freezed == transmission
+          ? _value.transmission
+          : transmission // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -232,7 +331,14 @@ class _$VehicleImpl implements _Vehicle {
       required this.plateNumber,
       this.primaryPhoto,
       final List<String>? photos,
-      this.user})
+      this.user,
+      this.mileage,
+      this.fuelType,
+      this.wheelSize,
+      this.maxSpeed,
+      this.engineDisplacement,
+      this.horsepower,
+      this.transmission})
       : _photos = photos;
 
   factory _$VehicleImpl.fromJson(Map<String, dynamic> json) =>
@@ -268,10 +374,32 @@ class _$VehicleImpl implements _Vehicle {
 
   @override
   final String? user;
+// User relation field - references user ID
+// New vehicle specification fields
+  @override
+  final num? mileage;
+// Vehicle mileage in km
+  @override
+  final String? fuelType;
+// "Petrol", "Diesel", "Electric", "Hybrid"
+  @override
+  final String? wheelSize;
+// e.g., "18-inch Alloy"
+  @override
+  final num? maxSpeed;
+// Maximum speed in km/h
+  @override
+  final String? engineDisplacement;
+// e.g., "2.0L", "3.5L V6"
+  @override
+  final num? horsepower;
+// Engine power in HP
+  @override
+  final String? transmission;
 
   @override
   String toString() {
-    return 'Vehicle(id: $id, make: $make, model: $model, year: $year, type: $type, color: $color, plateNumber: $plateNumber, primaryPhoto: $primaryPhoto, photos: $photos, user: $user)';
+    return 'Vehicle(id: $id, make: $make, model: $model, year: $year, type: $type, color: $color, plateNumber: $plateNumber, primaryPhoto: $primaryPhoto, photos: $photos, user: $user, mileage: $mileage, fuelType: $fuelType, wheelSize: $wheelSize, maxSpeed: $maxSpeed, engineDisplacement: $engineDisplacement, horsepower: $horsepower, transmission: $transmission)';
   }
 
   @override
@@ -290,7 +418,20 @@ class _$VehicleImpl implements _Vehicle {
             (identical(other.primaryPhoto, primaryPhoto) ||
                 other.primaryPhoto == primaryPhoto) &&
             const DeepCollectionEquality().equals(other._photos, _photos) &&
-            (identical(other.user, user) || other.user == user));
+            (identical(other.user, user) || other.user == user) &&
+            (identical(other.mileage, mileage) || other.mileage == mileage) &&
+            (identical(other.fuelType, fuelType) ||
+                other.fuelType == fuelType) &&
+            (identical(other.wheelSize, wheelSize) ||
+                other.wheelSize == wheelSize) &&
+            (identical(other.maxSpeed, maxSpeed) ||
+                other.maxSpeed == maxSpeed) &&
+            (identical(other.engineDisplacement, engineDisplacement) ||
+                other.engineDisplacement == engineDisplacement) &&
+            (identical(other.horsepower, horsepower) ||
+                other.horsepower == horsepower) &&
+            (identical(other.transmission, transmission) ||
+                other.transmission == transmission));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -306,7 +447,14 @@ class _$VehicleImpl implements _Vehicle {
       plateNumber,
       primaryPhoto,
       const DeepCollectionEquality().hash(_photos),
-      user);
+      user,
+      mileage,
+      fuelType,
+      wheelSize,
+      maxSpeed,
+      engineDisplacement,
+      horsepower,
+      transmission);
 
   /// Create a copy of Vehicle
   /// with the given fields replaced by the non-null parameter values.
@@ -335,7 +483,14 @@ abstract class _Vehicle implements Vehicle {
       required final String plateNumber,
       final String? primaryPhoto,
       final List<String>? photos,
-      final String? user}) = _$VehicleImpl;
+      final String? user,
+      final num? mileage,
+      final String? fuelType,
+      final String? wheelSize,
+      final num? maxSpeed,
+      final String? engineDisplacement,
+      final num? horsepower,
+      final String? transmission}) = _$VehicleImpl;
 
   factory _Vehicle.fromJson(Map<String, dynamic> json) = _$VehicleImpl.fromJson;
 
@@ -358,7 +513,22 @@ abstract class _Vehicle implements Vehicle {
   @override
   List<String>? get photos;
   @override
-  String? get user;
+  String? get user; // User relation field - references user ID
+// New vehicle specification fields
+  @override
+  num? get mileage; // Vehicle mileage in km
+  @override
+  String? get fuelType; // "Petrol", "Diesel", "Electric", "Hybrid"
+  @override
+  String? get wheelSize; // e.g., "18-inch Alloy"
+  @override
+  num? get maxSpeed; // Maximum speed in km/h
+  @override
+  String? get engineDisplacement; // e.g., "2.0L", "3.5L V6"
+  @override
+  num? get horsepower; // Engine power in HP
+  @override
+  String? get transmission;
 
   /// Create a copy of Vehicle
   /// with the given fields replaced by the non-null parameter values.

@@ -470,3 +470,4 @@ Each announcement type has consistent colors and icons:
 - [API Documentation](./API_DOCUMENTATION.md) - API reference for announcement methods
 - [Architecture](./ARCHITECTURE.md) - System architecture overview
 - [PocketBase Permissions Setup](./POCKETBASE_PERMISSIONS_SETUP.md) - Security configuration
+

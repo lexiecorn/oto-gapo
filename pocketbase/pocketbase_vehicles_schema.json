@@ -1,0 +1,100 @@
+{
+  "name": "vehicles",
+  "type": "base",
+  "schema": [
+    {
+      "name": "id",
+      "type": "text",
+      "required": true,
+      "unique": true
+    },
+    {
+      "name": "make",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "model",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "year",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "type",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "color",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "plateNumber",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "primaryPhoto",
+      "type": "file",
+      "options": {
+        "maxSelect": 1,
+        "maxSize": 10485760,
+        "mimeTypes": ["image/png", "image/jpeg", "image/gif", "image/webp"]
+      }
+    },
+    {
+      "name": "photos",
+      "type": "file",
+      "options": {
+        "maxSelect": 10,
+        "maxSize": 10485760,
+        "mimeTypes": ["image/png", "image/jpeg", "image/gif", "image/webp"]
+      }
+    },
+    {
+      "name": "user",
+      "type": "relation",
+      "options": {
+        "collectionId": "users"
+      }
+    },
+    {
+      "name": "mileage",
+      "type": "number"
+    },
+    {
+      "name": "fuelType",
+      "type": "text"
+    },
+    {
+      "name": "wheelSize",
+      "type": "text"
+    },
+    {
+      "name": "maxSpeed",
+      "type": "number"
+    },
+    {
+      "name": "engineDisplacement",
+      "type": "text"
+    },
+    {
+      "name": "horsepower",
+      "type": "number"
+    },
+    {
+      "name": "transmission",
+      "type": "text"
+    }
+  ],
+  "indexes": [
+    "CREATE INDEX idx_vehicles_user ON vehicles (user)",
+    "CREATE INDEX idx_vehicles_make ON vehicles (make)",
+    "CREATE INDEX idx_vehicles_plateNumber ON vehicles (plateNumber)"
+  ]
+}

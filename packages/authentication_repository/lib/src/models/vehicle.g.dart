@@ -19,6 +19,13 @@ _$VehicleImpl _$$VehicleImplFromJson(Map<String, dynamic> json) =>
       photos:
           (json['photos'] as List<dynamic>?)?.map((e) => e as String).toList(),
       user: json['user'] as String?,
+      mileage: json['mileage'] as num?,
+      fuelType: json['fuelType'] as String?,
+      wheelSize: json['wheelSize'] as String?,
+      maxSpeed: json['maxSpeed'] as num?,
+      engineDisplacement: json['engineDisplacement'] as String?,
+      horsepower: json['horsepower'] as num?,
+      transmission: json['transmission'] as String?,
     );
 
 Map<String, dynamic> _$$VehicleImplToJson(_$VehicleImpl instance) =>
@@ -33,4 +40,11 @@ Map<String, dynamic> _$$VehicleImplToJson(_$VehicleImpl instance) =>
       'primaryPhoto': instance.primaryPhoto,
       'photos': instance.photos,
       'user': instance.user,
+      'mileage': instance.mileage,
+      'fuelType': instance.fuelType,
+      'wheelSize': instance.wheelSize,
+      'maxSpeed': instance.maxSpeed,
+      'engineDisplacement': instance.engineDisplacement,
+      'horsepower': instance.horsepower,
+      'transmission': instance.transmission,
     };

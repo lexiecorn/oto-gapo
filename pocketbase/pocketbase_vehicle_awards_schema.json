@@ -1,0 +1,76 @@
+{
+  "name": "vehicle_awards",
+  "type": "base",
+  "schema": [
+    {
+      "name": "id",
+      "type": "text",
+      "required": true,
+      "unique": true
+    },
+    {
+      "name": "vehicle_id",
+      "type": "relation",
+      "options": {
+        "collectionId": "vehicles"
+      },
+      "required": true
+    },
+    {
+      "name": "award_name",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "event_name",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "event_date",
+      "type": "date",
+      "required": true
+    },
+    {
+      "name": "category",
+      "type": "text"
+    },
+    {
+      "name": "placement",
+      "type": "text"
+    },
+    {
+      "name": "description",
+      "type": "text"
+    },
+    {
+      "name": "award_image",
+      "type": "file",
+      "options": {
+        "maxSelect": 1,
+        "maxSize": 5242880,
+        "mimeTypes": ["image/png", "image/jpeg", "image/gif", "image/webp"]
+      }
+    },
+    {
+      "name": "created_by",
+      "type": "relation",
+      "options": {
+        "collectionId": "users"
+      }
+    },
+    {
+      "name": "created_at",
+      "type": "date"
+    },
+    {
+      "name": "updated_at",
+      "type": "date"
+    }
+  ],
+  "indexes": [
+    "CREATE INDEX idx_vehicle_awards_vehicle_id ON vehicle_awards (vehicle_id)",
+    "CREATE INDEX idx_vehicle_awards_event_date ON vehicle_awards (event_date)",
+    "CREATE INDEX idx_vehicle_awards_created_by ON vehicle_awards (created_by)"
+  ]
+}
