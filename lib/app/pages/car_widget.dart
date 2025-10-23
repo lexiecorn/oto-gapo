@@ -1,5 +1,6 @@
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -121,10 +122,10 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
       itemBuilder: (context, index) {
         final spec = specs[index];
         return VehicleSpecCard(
-              icon: spec['icon'] as IconData,
-              label: spec['label'] as String,
-              value: spec['value'] as String,
-            )
+          icon: spec['icon'] as IconData,
+          label: spec['label'] as String,
+          value: spec['value'] as String,
+        )
             .animate()
             .fadeIn(delay: (400 + (index * 100)).ms, duration: 600.ms)
             .slideY(begin: 0.2, delay: (400 + (index * 100)).ms, duration: 600.ms, curve: Curves.easeOutCubic);
@@ -222,12 +223,7 @@ class _CarWidgetImageCardState extends State<CarWidgetImageCard> with TickerProv
     final vehicle = widget.state.vehicles.isNotEmpty ? widget.state.vehicles.first : null;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Padding(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 26.h, // SafeArea + 8 extra
-      ),
-      child: _HeroImageCard(state: widget.state, vehicle: vehicle, isDark: isDark),
-    );
+    return _HeroImageCard(state: widget.state, vehicle: vehicle, isDark: isDark);
   }
 }
 
@@ -308,21 +304,21 @@ class _HeroImageCard extends StatelessWidget {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: isDark
-                                  ? [Colors.grey.shade900, Colors.grey.shade800]
-                                  : [Colors.grey.shade200, Colors.grey.shade300],
-                            ),
-                          ),
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE61525)),
-                            ),
-                          ),
-                        )
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: isDark
+                              ? [Colors.grey.shade900, Colors.grey.shade800]
+                              : [Colors.grey.shade200, Colors.grey.shade300],
+                        ),
+                      ),
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE61525)),
+                        ),
+                      ),
+                    )
                         .animate(onPlay: (controller) => controller.repeat())
                         .shimmer(duration: 1500.ms, color: const Color(0xFFE61525).withOpacity(0.3));
                   }
@@ -370,7 +366,7 @@ class _HeroImageCard extends StatelessWidget {
           ),
           // Car name and details at top left
           Positioned(
-            top: 16.h,
+            top: MediaQuery.of(context).padding.top + 16.h, // Account for status bar
             left: 16.w,
             right: 80.w,
             child: Column(
@@ -406,7 +402,9 @@ class _HeroImageCard extends StatelessWidget {
             ),
           ),
           // Car logo in top right
-          if (vehicle != null) Positioned(top: 16.h, right: 16.w, child: _buildCarLogo(vehicle!.make)),
+          if (vehicle != null)
+            Positioned(
+                top: MediaQuery.of(context).padding.top + 16.h, right: 16.w, child: _buildCarLogo(vehicle!.make)),
           // User details at bottom left
           Positioned(
             bottom: 16.h,
@@ -691,10 +689,10 @@ class _CarWidgetSpecsOnly extends StatelessWidget {
       itemBuilder: (context, index) {
         final spec = specs[index];
         return VehicleSpecCard(
-              icon: spec['icon'] as IconData,
-              label: spec['label'] as String,
-              value: spec['value'] as String,
-            )
+          icon: spec['icon'] as IconData,
+          label: spec['label'] as String,
+          value: spec['value'] as String,
+        )
             .animate()
             .fadeIn(delay: (400 + (index * 100)).ms, duration: 600.ms)
             .slideY(begin: 0.2, delay: (400 + (index * 100)).ms, duration: 600.ms, curve: Curves.easeOutCubic);

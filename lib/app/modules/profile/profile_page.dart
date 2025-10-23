@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
@@ -96,7 +97,7 @@ class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
         itemBuilder: (context, index, realIndex) {
           return Container(
             width: 200.w,
-            margin: EdgeInsets.only(right: 6.w), // Reduced from 12.w to 6.w
+            margin: EdgeInsets.only(right: 2.w), // Further reduced spacing
             child: Material(
               elevation: 8,
               borderRadius: BorderRadius.circular(16.r),
@@ -123,7 +124,7 @@ class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
           autoPlayAnimationDuration: Duration(milliseconds: 800),
           autoPlayCurve: Curves.fastOutSlowIn,
           enlargeCenterPage: false,
-          viewportFraction: 0.6, // Optimized for full width display
+          viewportFraction: 0.55, // Increased to show more of each image, making them appear closer
           enableInfiniteScroll: true,
           scrollDirection: Axis.horizontal,
         ),
@@ -256,95 +257,103 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     final isViewingOwnProfile =
         widget.userId == null || (currentAuthUser != null && widget.userId == currentAuthUser.id);
 
-    return Scaffold(
-      body: BlocConsumer<ProfileCubit, ProfileState>(
-        listener: (context, state) {},
-        builder: (context, state) {
-          // Add debugging
-          print('Profile Page - Profile Status: ${state.profileStatus}');
-          print('Profile Page - User Member Number: "${state.user.memberNumber}"');
-          print('Profile Page - User First Name: "${state.user.firstName}"');
-          print('Profile Page - User Last Name: "${state.user.lastName}"');
-          print('Profile Page - User Membership Type: ${state.user.membership_type}');
-          print('Profile Page - User UID: "${state.user.uid}"');
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: null,
+        body: MediaQuery.removePadding(
+          context: context,
+          removeTop: true,
+          child: BlocConsumer<ProfileCubit, ProfileState>(
+            listener: (context, state) {},
+            builder: (context, state) {
+              // Add debugging
+              print('Profile Page - Profile Status: ${state.profileStatus}');
+              print('Profile Page - User Member Number: "${state.user.memberNumber}"');
+              print('Profile Page - User First Name: "${state.user.firstName}"');
+              print('Profile Page - User Last Name: "${state.user.lastName}"');
+              print('Profile Page - User Membership Type: ${state.user.membership_type}');
+              print('Profile Page - User UID: "${state.user.uid}"');
 
-          // Only check for mismatch if viewing own profile
-          if (isViewingOwnProfile &&
-              currentAuthUser != null &&
-              state.user.uid.isNotEmpty &&
-              state.user.uid != currentAuthUser.id) {
-            print('Profile Page - User mismatch detected!');
-            print('Profile Page - Auth user UID: ${currentAuthUser.id}');
-            print('Profile Page - Profile user UID: ${state.user.uid}');
-            print('Profile Page - Force clearing profile for new user');
-            context.read<ProfileCubit>().forceClear();
-            // Immediately fetch profile without artificial delay
-            context.read<ProfileCubit>().getProfile();
-          }
+              // Only check for mismatch if viewing own profile
+              if (isViewingOwnProfile &&
+                  currentAuthUser != null &&
+                  state.user.uid.isNotEmpty &&
+                  state.user.uid != currentAuthUser.id) {
+                print('Profile Page - User mismatch detected!');
+                print('Profile Page - Auth user UID: ${currentAuthUser.id}');
+                print('Profile Page - Profile user UID: ${state.user.uid}');
+                print('Profile Page - Force clearing profile for new user');
+                context.read<ProfileCubit>().forceClear();
+                // Immediately fetch profile without artificial delay
+                context.read<ProfileCubit>().getProfile();
+              }
 
-          if (state.profileStatus == ProfileStatus.initial) {
-            // Show loading screen while initializing
-            return _buildLoadingScreen();
-          } else if (state.profileStatus == ProfileStatus.loading) {
-            return _buildLoadingScreen();
-          } else if (state.profileStatus == ProfileStatus.error) {
-            return _buildErrorScreen();
-          }
+              if (state.profileStatus == ProfileStatus.initial) {
+                // Show loading screen while initializing
+                return _buildLoadingScreen();
+              } else if (state.profileStatus == ProfileStatus.loading) {
+                return _buildLoadingScreen();
+              } else if (state.profileStatus == ProfileStatus.error) {
+                return _buildErrorScreen();
+              }
 
-          // Debug display for development
-          if (state.user.firstName.isEmpty && state.user.lastName.isEmpty) {
-            return _buildEmptyUserScreen(context, state);
-          }
+              // Debug display for development
+              if (state.user.firstName.isEmpty && state.user.lastName.isEmpty) {
+                return _buildEmptyUserScreen(context, state);
+              }
 
-          // Update profile progress
-          _updateProfileProgress(state.user);
+              // Update profile progress
+              _updateProfileProgress(state.user);
 
-          return FadeTransition(
-            opacity: _fadeAnimation,
-            child: Column(
-              children: [
-                // Profile Completion Card (only show for own profile, once a week) - FIXED
-                if (isViewingOwnProfile)
-                  Padding(
-                    padding: EdgeInsets.only(left: 8, right: 8, bottom: 4.h),
-                    child: const ProfileCompletionCardWrapper(),
-                  ),
-                // Hero image card - FIXED AT TOP (no spacing)
-                MediaQuery.removePadding(
-                  context: context,
-                  removeTop: true,
-                  removeBottom: true,
-                  child: CarWidgetImageCard(state: state),
-                ),
-                SizedBox(height: 12.h),
-                // Vehicle photos carousel - FIXED
-                if (state.vehicles.isNotEmpty) _VehiclePhotosCarousel(state: state),
-                SizedBox(height: 12.h),
-                // Container with scrollable content inside - CONTAINER STAYS FIXED
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w),
-                    child: _CarWidgetSpecsOnlyFixed(
-                      state: state,
-                      onRefresh: () async {
-                        // Add a subtle animation when refreshing
-                        _pageAnimationController.reset();
-                        _pageAnimationController.forward();
+              return FadeTransition(
+                opacity: _fadeAnimation,
+                child: Column(
+                  children: [
+                    // Hero image card - FIXED AT TOP (no spacing)
+                    CarWidgetImageCard(state: state),
+                    // Profile Completion Card (only show for own profile, once a week) - FIXED
+                    if (isViewingOwnProfile)
+                      Padding(
+                        padding: EdgeInsets.only(left: 8, right: 8, bottom: 4.h),
+                        child: const ProfileCompletionCardWrapper(),
+                      ),
+                    SizedBox(height: 12.h),
+                    // Vehicle photos carousel - FIXED
+                    if (state.vehicles.isNotEmpty) _VehiclePhotosCarousel(state: state),
+                    SizedBox(height: 12.h),
+                    // Container with scrollable content inside - CONTAINER STAYS FIXED
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.w),
+                        child: _CarWidgetSpecsOnlyFixed(
+                          state: state,
+                          onRefresh: () async {
+                            // Add a subtle animation when refreshing
+                            _pageAnimationController.reset();
+                            _pageAnimationController.forward();
 
-                        // Refresh the profile data
-                        if (isViewingOwnProfile) {
-                          context.read<ProfileCubit>().getProfile();
-                        } else {
-                          context.read<ProfileCubit>().getProfileByUserId(widget.userId!);
-                        }
-                      },
+                            // Refresh the profile data
+                            if (isViewingOwnProfile) {
+                              context.read<ProfileCubit>().getProfile();
+                            } else {
+                              context.read<ProfileCubit>().getProfileByUserId(widget.userId!);
+                            }
+                          },
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
+              );
+            },
+          ),
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:attendance_repository/attendance_repository.dart';
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/admin_analytics/bloc/admin_analytics_cubit.dart';
@@ -172,6 +173,16 @@ class AppView extends StatelessWidget {
               debugShowCheckedModeBanner: false,
               routerConfig: appRouter.config(),
               theme: themeProvider.theme,
+              builder: (context, child) {
+                return AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: SystemUiOverlayStyle(
+                    statusBarColor: Colors.transparent,
+                    statusBarIconBrightness: Brightness.light,
+                    statusBarBrightness: Brightness.dark,
+                  ),
+                  child: child!,
+                );
+              },
             );
           },
         );
