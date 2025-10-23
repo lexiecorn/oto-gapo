@@ -90,7 +90,7 @@ class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
 
     return Container(
       height: 180.h,
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 12.h),
+      padding: EdgeInsets.symmetric(vertical: 12.h), // Removed horizontal padding for full width
       child: CarouselSlider.builder(
         itemCount: photoUrls.length,
         itemBuilder: (context, index, realIndex) {
@@ -123,7 +123,7 @@ class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
           autoPlayAnimationDuration: Duration(milliseconds: 800),
           autoPlayCurve: Curves.fastOutSlowIn,
           enlargeCenterPage: false,
-          viewportFraction: 0.55, // Show multiple images with closer spacing
+          viewportFraction: 0.6, // Optimized for full width display
           enableInfiniteScroll: true,
           scrollDirection: Axis.horizontal,
         ),
