@@ -1,4 +1,5 @@
 import 'package:authentication_repository/authentication_repository.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -134,16 +135,13 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
   }
 
   Widget buildAwardsSection() {
-    // TODO: Load awards from ProfileState when awards are integrated
-    final awardCount = 0; // Placeholder for now
+    final awardCount = widget.state.awards.length;
 
     return AwardsTrophyRow(
       awardCount: awardCount,
       onTap: () {
-        // TODO: Navigate to awards page when implemented
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Awards page coming soon!'), backgroundColor: Color(0xFFE61525)));
+        // Navigate to awards management page
+        context.router.pushNamed('/admin/vehicle-awards');
       },
     );
   }
@@ -278,8 +276,8 @@ class _HeroImageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 320.h,
       width: double.infinity,
+      height: 320.h, // Restore fixed height for proper sliver behavior
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -701,14 +699,16 @@ class _CarWidgetSpecsOnly extends StatelessWidget {
   }
 
   static Widget _buildAwardsSectionStatic(BuildContext context) {
-    final awardCount = 0;
+    final awardCount = 0; // Static method - no access to state
     return AwardsTrophyRow(
       awardCount: awardCount,
       onTap: () {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Awards page coming soon!'), backgroundColor: Color(0xFFE61525)));
+        // Navigate to awards management page
+        context.router.pushNamed('/admin/vehicle-awards');
       },
-    );
+    )
+        .animate()
+        .fadeIn(delay: 200.ms, duration: 600.ms)
+        .slideY(begin: 0.2, delay: 200.ms, duration: 600.ms, curve: Curves.easeOutCubic);
   }
 }

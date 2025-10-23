@@ -11,7 +11,7 @@ _$VehicleImpl _$$VehicleImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String?,
       make: json['make'] as String,
       model: json['model'] as String,
-      year: json['year'] as String,
+      year: json['year'] as num,
       type: json['type'] as String,
       color: json['color'] as String,
       plateNumber: json['plateNumber'] as String,

@@ -30,7 +30,7 @@ void main() {
           model: 'Civic',
           plateNumber: 'XYZ-5678',
           color: 'Red',
-          year: '2022',
+          year: 2022,
         );
 
         // Act
@@ -322,9 +322,10 @@ void main() {
               model: 'CX-5',
               plateNumber: 'MZD-9999',
               color: 'Blue',
-              year: '2023',
+              year: 2023,
             ),
           ],
+          awards: [],
         );
 
         // Act

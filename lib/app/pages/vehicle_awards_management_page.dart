@@ -20,7 +20,6 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
   List<dynamic> _allUsers = [];
   bool _isLoading = true;
   String? _error;
-  String _searchQuery = '';
   String? _selectedVehicleId;
 
   late final PocketBaseService _pocketBaseService;
@@ -40,29 +39,74 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
 
     try {
       // Load all users
-      final usersResponse = await _pocketBaseService.pb
-          .collection('users')
-          .getList(page: 1, perPage: 500, sort: 'firstName');
+      final usersResponse =
+          await _pocketBaseService.pb.collection('users').getList(page: 1, perPage: 500, sort: 'firstName');
 
       _allUsers = usersResponse.items;
 
       // Load all vehicles
-      final vehiclesResponse = await _pocketBaseService.pb
-          .collection('vehicles')
-          .getList(page: 1, perPage: 500, sort: '-created', expand: 'user');
+      final vehiclesResponse =
+          await _pocketBaseService.pb.collection('vehicles').getList(page: 1, perPage: 500, sort: '-created');
 
-      _vehicles = vehiclesResponse.items
-          .map<Vehicle>((item) => Vehicle.fromJson(item.data as Map<String, Object?>))
-          .toList();
+      _vehicles = vehiclesResponse.items.map<Vehicle>((item) {
+        final data = Map<String, dynamic>.from(item.data);
+        data['id'] = item.id;
+        return Vehicle.fromJson(data);
+      }).toList();
 
       // Load all awards
       final awardsResponse = await _pocketBaseService.pb
           .collection('vehicle_awards')
           .getList(page: 1, perPage: 500, sort: '-event_date', expand: 'vehicle_id,created_by');
 
-      _allAwards = awardsResponse.items
-          .map<VehicleAward>((item) => VehicleAward.fromJson(item.data as Map<String, Object?>))
-          .toList();
+      _allAwards = awardsResponse.items.map<VehicleAward>((item) {
+        final data = Map<String, dynamic>.from(item.data);
+        data['id'] = item.id;
+
+        // Handle type conversions for fields that might come as different types
+        if (data['vehicle_id'] != null) {
+          data['vehicleId'] = data['vehicle_id'].toString();
+        } else {
+          data['vehicleId'] = ''; // Provide default for required field
+        }
+
+        if (data['created_by'] != null) {
+          data['createdBy'] = data['created_by'].toString();
+        }
+
+        // Handle required string fields - provide defaults if null
+        if (data['award_name'] == null) {
+          data['awardName'] = 'Unknown Award';
+        } else {
+          data['awardName'] = data['award_name'].toString();
+        }
+
+        if (data['event_name'] == null) {
+          data['eventName'] = 'Unknown Event';
+        } else {
+          data['eventName'] = data['event_name'].toString();
+        }
+
+        // Handle date fields - convert from ISO string to DateTime if needed
+        if (data['event_date'] != null && data['event_date'] is String) {
+          data['eventDate'] = data['event_date'];
+        } else if (data['event_date'] != null) {
+          // Handle if it's already a DateTime object
+          data['eventDate'] = data['event_date'];
+        } else {
+          // Provide default date if null
+          data['eventDate'] = DateTime.now().toIso8601String();
+        }
+
+        if (data['created_at'] != null && data['created_at'] is String) {
+          data['createdAt'] = data['created_at'];
+        }
+        if (data['updated_at'] != null && data['updated_at'] is String) {
+          data['updatedAt'] = data['updated_at'];
+        }
+
+        return VehicleAward.fromJson(data);
+      }).toList();
 
       setState(() {
         _isLoading = false;
@@ -80,18 +124,6 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
 
     if (_selectedVehicleId != null) {
       filtered = filtered.where((award) => award.vehicleId == _selectedVehicleId).toList();
-    }
-
-    if (_searchQuery.isNotEmpty) {
-      filtered = filtered
-          .where(
-            (award) =>
-                award.awardName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                award.eventName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                (award.category?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
-                (award.placement?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false),
-          )
-          .toList();
     }
 
     return filtered;
@@ -278,19 +310,17 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
     if (result != true || !mounted) return;
 
     try {
-      await _pocketBaseService.pb
-          .collection('vehicle_awards')
-          .update(
-            award.id!,
-            body: {
-              'award_name': awardNameController.text,
-              'event_name': eventNameController.text,
-              'event_date': selectedDate.toIso8601String(),
-              'category': categoryController.text.isNotEmpty ? categoryController.text : null,
-              'placement': placementController.text.isNotEmpty ? placementController.text : null,
-              'description': descriptionController.text.isNotEmpty ? descriptionController.text : null,
-            },
-          );
+      await _pocketBaseService.pb.collection('vehicle_awards').update(
+        award.id!,
+        body: {
+          'award_name': awardNameController.text,
+          'event_name': eventNameController.text,
+          'event_date': selectedDate.toIso8601String(),
+          'category': categoryController.text.isNotEmpty ? categoryController.text : null,
+          'placement': placementController.text.isNotEmpty ? placementController.text : null,
+          'description': descriptionController.text.isNotEmpty ? descriptionController.text : null,
+        },
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(
@@ -322,87 +352,87 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
     final blueAccent = isDark ? const Color(0xFF00d4ff) : const Color(0xFF0095c7);
 
     String? selectedUserId;
-    String? selectedVehicleId;
-    List<Vehicle> userVehicles = [];
+    Vehicle? selectedVehicle;
     final awardNameController = TextEditingController();
     final eventNameController = TextEditingController();
     final categoryController = TextEditingController();
     final placementController = TextEditingController();
     final descriptionController = TextEditingController();
     DateTime? selectedDate;
-    String userSearchQuery = '';
+    bool isLoadingVehicle = false;
 
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
-          // Filter users based on search
-          final filteredUsers = userSearchQuery.isEmpty
-              ? _allUsers
-              : _allUsers.where((user) {
-                  final firstName = (user.data['firstName'] ?? '').toString().toLowerCase();
-                  final lastName = (user.data['lastName'] ?? '').toString().toLowerCase();
-                  final email = (user.data['email'] ?? '').toString().toLowerCase();
-                  final query = userSearchQuery.toLowerCase();
-                  return firstName.contains(query) || lastName.contains(query) || email.contains(query);
-                }).toList();
+          // Show all users since search is removed
+          final filteredUsers = _allUsers;
 
-          // Update user vehicles when user is selected
-          if (selectedUserId != null) {
-            userVehicles = _vehicles.where((v) => v.user == selectedUserId).toList();
+          // Function to fetch user's vehicle
+          Future<void> fetchUserVehicle(String userId) async {
+            setDialogState(() {
+              isLoadingVehicle = true;
+              selectedVehicle = null;
+            });
+
+            try {
+              // Get user's vehicle using the same method as ProfileRepository
+              final vehicleRecords =
+                  await _pocketBaseService.pb.collection('vehicles').getList(filter: 'user = "$userId"');
+
+              if (vehicleRecords.items.isNotEmpty) {
+                final vehicleData = Map<String, dynamic>.from(vehicleRecords.items.first.data);
+                vehicleData['id'] = vehicleRecords.items.first.id;
+
+                // Convert year from number to String if needed
+                if (vehicleData['year'] != null) {
+                  vehicleData['year'] = vehicleData['year'].toString();
+                }
+
+                final vehicle = Vehicle.fromJson(vehicleData);
+                setDialogState(() {
+                  selectedVehicle = vehicle;
+                  isLoadingVehicle = false;
+                });
+              } else {
+                setDialogState(() {
+                  selectedVehicle = null;
+                  isLoadingVehicle = false;
+                });
+              }
+            } catch (e) {
+              setDialogState(() {
+                selectedVehicle = null;
+                isLoadingVehicle = false;
+              });
+            }
           }
 
           return AlertDialog(
             backgroundColor: colorScheme.surface,
             title: Text(
               'Create Award',
-              style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold),
+              style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            content: SingleChildScrollView(
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            content: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.85,
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
+              ),
+              child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // User search
-                    Text(
-                      'Search User',
-                      style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      style: TextStyle(color: colorScheme.onSurface),
-                      decoration: InputDecoration(
-                        hintText: 'Search by name or email...',
-                        hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.5)),
-                        prefixIcon: Icon(Icons.search, color: blueAccent),
-                        filled: true,
-                        fillColor: isDark ? colorScheme.background : Colors.grey[100],
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
-                        ),
-                        focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: blueAccent, width: 2)),
-                      ),
-                      onChanged: (value) {
-                        setDialogState(() {
-                          userSearchQuery = value;
-                          selectedUserId = null;
-                          selectedVehicleId = null;
-                          userVehicles = [];
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 12),
-
                     // User selection dropdown
                     DropdownButtonFormField<String?>(
                       value: selectedUserId,
                       dropdownColor: colorScheme.surface,
-                      style: TextStyle(color: colorScheme.onSurface),
+                      style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
                       decoration: InputDecoration(
                         labelText: 'Select User *',
-                        labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                        labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
                         filled: true,
                         fillColor: isDark ? colorScheme.background : Colors.grey[100],
                         enabledBorder: OutlineInputBorder(
@@ -426,92 +456,133 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                       onChanged: (value) {
                         setDialogState(() {
                           selectedUserId = value;
-                          selectedVehicleId = null;
-                          if (value != null) {
-                            userVehicles = _vehicles.where((v) => v.user == value).toList();
-                          } else {
-                            userVehicles = [];
-                          }
+                          selectedVehicle = null;
                         });
+                        if (value != null) {
+                          fetchUserVehicle(value);
+                        }
                       },
                     ),
                     const SizedBox(height: 12),
 
-                    // Vehicle selection
+                    // Vehicle display
                     if (selectedUserId != null) ...[
-                      DropdownButtonFormField<String?>(
-                        value: selectedVehicleId,
-                        dropdownColor: colorScheme.surface,
-                        style: TextStyle(color: colorScheme.onSurface),
-                        decoration: InputDecoration(
-                          labelText: 'Select Vehicle *',
-                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
-                          filled: true,
-                          fillColor: isDark ? colorScheme.background : Colors.grey[100],
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
+                      if (isLoadingVehicle) ...[
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: colorScheme.onSurface.withOpacity(0.3)),
                           ),
-                          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: blueAccent, width: 2)),
-                          prefixIcon: Icon(Icons.directions_car, color: blueAccent),
-                        ),
-                        items: [
-                          const DropdownMenuItem<String?>(value: null, child: Text('Select a vehicle...')),
-                          ...userVehicles.map(
-                            (vehicle) => DropdownMenuItem(
-                              value: vehicle.id,
-                              child: Text('${vehicle.make} ${vehicle.model} (${vehicle.year})'),
-                            ),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          setDialogState(() {
-                            selectedVehicleId = value;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-
-                    if (userVehicles.isEmpty && selectedUserId != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.orange),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.warning, color: Colors.orange, size: 20),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'This user has no vehicles. Please add a vehicle first.',
-                                style: TextStyle(color: Colors.orange, fontSize: 12),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: blueAccent,
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 12),
+                              Text(
+                                'Loading vehicle...',
+                                style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      ] else if (selectedVehicle != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: blueAccent.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: blueAccent.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.directions_car, color: blueAccent, size: 24),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Selected Vehicle',
+                                      style: TextStyle(
+                                        color: blueAccent,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${selectedVehicle!.make} ${selectedVehicle!.model} (${selectedVehicle!.year})',
+                                      style: TextStyle(
+                                        color: colorScheme.onSurface,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
+                                    ),
+                                    if (selectedVehicle!.plateNumber.isNotEmpty)
+                                      Text(
+                                        'Plate: ${selectedVehicle!.plateNumber}',
+                                        style: TextStyle(
+                                          color: colorScheme.onSurface.withOpacity(0.7),
+                                          fontSize: 10,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ] else ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.orange),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.warning, color: Colors.orange, size: 20),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'This user has no vehicles. Please add a vehicle first.',
+                                  style: TextStyle(color: Colors.orange, fontSize: 10),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 12),
                     ],
 
                     // Award details
-                    if (selectedVehicleId != null) ...[
+                    if (selectedVehicle != null) ...[
                       Divider(color: colorScheme.onSurface.withOpacity(0.3)),
                       const SizedBox(height: 12),
                       Text(
                         'Award Details',
-                        style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                       const SizedBox(height: 12),
-
                       TextField(
                         controller: awardNameController,
-                        style: TextStyle(color: colorScheme.onSurface),
+                        style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
                         decoration: InputDecoration(
                           labelText: 'Award Name *',
-                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
                           ),
@@ -519,13 +590,12 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                         ),
                       ),
                       const SizedBox(height: 12),
-
                       TextField(
                         controller: eventNameController,
-                        style: TextStyle(color: colorScheme.onSurface),
+                        style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
                         decoration: InputDecoration(
                           labelText: 'Event Name *',
-                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
                           ),
@@ -533,14 +603,13 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                         ),
                       ),
                       const SizedBox(height: 12),
-
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(
                           selectedDate != null
                               ? 'Event Date: ${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
                               : 'Select Event Date *',
-                          style: TextStyle(color: colorScheme.onSurface),
+                          style: TextStyle(color: colorScheme.onSurface, fontSize: 12),
                         ),
                         trailing: Icon(Icons.calendar_today, color: blueAccent),
                         onTap: () async {
@@ -558,15 +627,14 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                         },
                       ),
                       const SizedBox(height: 12),
-
                       TextField(
                         controller: categoryController,
-                        style: TextStyle(color: colorScheme.onSurface),
+                        style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
                         decoration: InputDecoration(
                           labelText: 'Category',
                           hintText: 'e.g., Modified, Classic, Best in Show',
-                          hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.4), fontSize: 12),
-                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                          hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.4), fontSize: 10),
+                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
                           ),
@@ -574,15 +642,14 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                         ),
                       ),
                       const SizedBox(height: 12),
-
                       TextField(
                         controller: placementController,
-                        style: TextStyle(color: colorScheme.onSurface),
+                        style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
                         decoration: InputDecoration(
                           labelText: 'Placement',
                           hintText: 'e.g., 1st Place, Winner, Champion',
-                          hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.4), fontSize: 12),
-                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                          hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.4), fontSize: 10),
+                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
                           ),
@@ -590,14 +657,13 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                         ),
                       ),
                       const SizedBox(height: 12),
-
                       TextField(
                         controller: descriptionController,
-                        style: TextStyle(color: colorScheme.onSurface),
+                        style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
                         maxLines: 3,
                         decoration: InputDecoration(
                           labelText: 'Description',
-                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
                           ),
@@ -612,8 +678,7 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
             actions: [
               TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
               TextButton(
-                onPressed:
-                    selectedVehicleId == null ||
+                onPressed: selectedVehicle == null ||
                         awardNameController.text.isEmpty ||
                         eventNameController.text.isEmpty ||
                         selectedDate == null
@@ -631,7 +696,7 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
     if (result != true || !mounted) return;
 
     // Validate required fields
-    if (selectedVehicleId == null ||
+    if (selectedVehicle == null ||
         awardNameController.text.isEmpty ||
         eventNameController.text.isEmpty ||
         selectedDate == null) {
@@ -644,20 +709,18 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
     }
 
     try {
-      await _pocketBaseService.pb
-          .collection('vehicle_awards')
-          .create(
-            body: {
-              'vehicle_id': selectedVehicleId,
-              'award_name': awardNameController.text,
-              'event_name': eventNameController.text,
-              'event_date': selectedDate!.toIso8601String(),
-              'category': categoryController.text.isNotEmpty ? categoryController.text : null,
-              'placement': placementController.text.isNotEmpty ? placementController.text : null,
-              'description': descriptionController.text.isNotEmpty ? descriptionController.text : null,
-              'created_by': _pocketBaseService.pb.authStore.model?.id,
-            },
-          );
+      await _pocketBaseService.pb.collection('vehicle_awards').create(
+        body: {
+          'vehicle_id': selectedVehicle!.id,
+          'award_name': awardNameController.text,
+          'event_name': eventNameController.text,
+          'event_date': selectedDate!.toIso8601String(),
+          'category': categoryController.text.isNotEmpty ? categoryController.text : null,
+          'placement': placementController.text.isNotEmpty ? placementController.text : null,
+          'description': descriptionController.text.isNotEmpty ? descriptionController.text : null,
+          'created_by': _pocketBaseService.pb.authStore.model?.id,
+        },
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(
@@ -849,29 +912,12 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
       ),
       body: Column(
         children: [
-          // Search and filter bar
+          // Filter bar
           Container(
             padding: EdgeInsets.all(16.sp),
             color: colorScheme.surface,
             child: Column(
               children: [
-                TextField(
-                  style: TextStyle(color: colorScheme.onSurface),
-                  decoration: InputDecoration(
-                    hintText: 'Search awards...',
-                    hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.5)),
-                    prefixIcon: Icon(Icons.search, color: blueAccent),
-                    filled: true,
-                    fillColor: isDark ? colorScheme.background : Colors.grey[100],
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: BorderSide.none),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _searchQuery = value;
-                    });
-                  },
-                ),
-                SizedBox(height: 12.h),
                 DropdownButtonFormField<String?>(
                   value: _selectedVehicleId,
                   dropdownColor: colorScheme.surface,
@@ -961,56 +1007,57 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
             child: _isLoading
                 ? Center(child: CircularProgressIndicator(color: blueAccent))
                 : _error != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error_outline, size: 64.sp, color: colorScheme.error),
-                        SizedBox(height: 16.h),
-                        Text(
-                          'Error loading awards',
-                          style: TextStyle(color: colorScheme.onSurface, fontSize: 16.sp),
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.error_outline, size: 64.sp, color: colorScheme.error),
+                            SizedBox(height: 16.h),
+                            Text(
+                              'Error loading awards',
+                              style: TextStyle(color: colorScheme.onSurface, fontSize: 16.sp),
+                            ),
+                            SizedBox(height: 8.h),
+                            Text(
+                              _error!,
+                              style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 12.sp),
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: 16.h),
+                            ElevatedButton(
+                              onPressed: _loadData,
+                              style: ElevatedButton.styleFrom(backgroundColor: blueAccent),
+                              child: const Text('Retry'),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 8.h),
-                        Text(
-                          _error!,
-                          style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 12.sp),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 16.h),
-                        ElevatedButton(
-                          onPressed: _loadData,
-                          style: ElevatedButton.styleFrom(backgroundColor: blueAccent),
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  )
-                : _filteredAwards.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.emoji_events_outlined, size: 64.sp, color: colorScheme.onSurface.withOpacity(0.3)),
-                        SizedBox(height: 16.h),
-                        Text(
-                          'No awards found',
-                          style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 16.sp),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: EdgeInsets.all(16.sp),
-                    itemCount: _filteredAwards.length,
-                    itemBuilder: (context, index) {
-                      final award = _filteredAwards[index];
-                      return _buildAwardCard(award, isDark, colorScheme, goldColor, blueAccent, purpleAccent)
-                          .animate()
-                          .fadeIn(delay: (50 * index).ms, duration: 300.ms)
-                          .slideX(begin: 0.2, delay: (50 * index).ms, duration: 300.ms);
-                    },
-                  ),
+                      )
+                    : _filteredAwards.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.emoji_events_outlined,
+                                    size: 64.sp, color: colorScheme.onSurface.withOpacity(0.3)),
+                                SizedBox(height: 16.h),
+                                Text(
+                                  'No awards found',
+                                  style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 16.sp),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: EdgeInsets.all(16.sp),
+                            itemCount: _filteredAwards.length,
+                            itemBuilder: (context, index) {
+                              final award = _filteredAwards[index];
+                              return _buildAwardCard(award, isDark, colorScheme, goldColor, blueAccent, purpleAccent)
+                                  .animate()
+                                  .fadeIn(delay: (50 * index).ms, duration: 300.ms)
+                                  .slideX(begin: 0.2, delay: (50 * index).ms, duration: 300.ms);
+                            },
+                          ),
           ),
         ],
       ),

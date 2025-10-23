@@ -36,10 +36,10 @@ class AwardsTrophyRow extends StatelessWidget {
                 : [Colors.grey.shade100.withOpacity(0.8), Colors.grey.shade200.withOpacity(0.6)],
           ),
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: const Color(0xFFffd700).withOpacity(0.4), width: 1),
+          border: Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFffd700).withOpacity(0.2),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 8,
               spreadRadius: 0,
               offset: const Offset(0, 2),
@@ -54,35 +54,47 @@ class AwardsTrophyRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Trophy icon
+            // Trophy icon with enhanced animations
             Container(
               padding: EdgeInsets.all(8.sp),
               decoration: BoxDecoration(
-                color: const Color(0xFFffd700).withOpacity(0.2),
+                color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
                 borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(color: const Color(0xFFffd700).withOpacity(0.5), width: 1),
+                border: Border.all(color: Colors.grey.withOpacity(0.4), width: 1),
               ),
-              child: Icon(Icons.emoji_events, size: 20.sp, color: const Color(0xFFffd700)),
+              child: _AnimatedTrophy(
+                size: 24.sp,
+              ).animate().scale(delay: 200.ms, duration: 400.ms, curve: Curves.elasticOut),
             ),
             SizedBox(width: 12.w),
-            // Awards count and text
+            // Awards count and text with staggered animations
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     '$awardCount Award${awardCount == 1 ? '' : 's'}',
-                    style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w700, color: const Color(0xFFffd700)),
-                  ),
+                    style: TextStyle(
+                        fontSize: 16.sp, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
+                  )
+                      .animate()
+                      .fadeIn(delay: 300.ms, duration: 500.ms)
+                      .slideX(begin: 0.2, delay: 300.ms, duration: 500.ms, curve: Curves.easeOutCubic),
                   Text(
                     'Tap to view details',
                     style: TextStyle(fontSize: 12.sp, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                  ),
+                  )
+                      .animate()
+                      .fadeIn(delay: 500.ms, duration: 400.ms)
+                      .slideX(begin: 0.1, delay: 500.ms, duration: 400.ms, curve: Curves.easeOutCubic),
                 ],
               ),
             ),
-            // Arrow icon
-            Icon(Icons.arrow_forward_ios, size: 16.sp, color: const Color(0xFFffd700).withOpacity(0.7)),
+            // Arrow icon with bounce animation
+            Icon(Icons.arrow_forward_ios, size: 16.sp, color: isDark ? Colors.grey[400] : Colors.grey[600])
+                .animate()
+                .fadeIn(delay: 400.ms, duration: 400.ms)
+                .slideX(begin: 0.3, delay: 400.ms, duration: 400.ms, curve: Curves.easeOutCubic),
           ],
         ),
       ),
@@ -103,37 +115,37 @@ class AwardsTrophyRow extends StatelessWidget {
               : [Colors.grey.shade100.withOpacity(0.8), Colors.grey.shade200.withOpacity(0.6)],
         ),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: const Color(0xFFffd700).withOpacity(0.2), width: 1),
+        border: Border.all(color: const Color(0xFF4CAF50).withOpacity(0.2), width: 1),
       ),
       child: Row(
         children: [
           Container(
-                width: 36.w,
-                height: 36.h,
-                decoration: BoxDecoration(color: Colors.grey[700], borderRadius: BorderRadius.circular(8.r)),
-              )
+            width: 36.w,
+            height: 36.h,
+            decoration: BoxDecoration(color: Colors.grey[700], borderRadius: BorderRadius.circular(8.r)),
+          )
               .animate(onPlay: (controller) => controller.repeat())
-              .shimmer(duration: 1500.ms, color: const Color(0xFFffd700).withOpacity(0.3)),
+              .shimmer(duration: 1500.ms, color: const Color(0xFF4CAF50).withOpacity(0.3)),
           SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                      height: 16.h,
-                      width: 100.w,
-                      decoration: BoxDecoration(color: Colors.grey[700], borderRadius: BorderRadius.circular(4.r)),
-                    )
+                  height: 16.h,
+                  width: 100.w,
+                  decoration: BoxDecoration(color: Colors.grey[700], borderRadius: BorderRadius.circular(4.r)),
+                )
                     .animate(onPlay: (controller) => controller.repeat())
-                    .shimmer(duration: 1500.ms, color: const Color(0xFFffd700).withOpacity(0.3)),
+                    .shimmer(duration: 1500.ms, color: const Color(0xFF4CAF50).withOpacity(0.3)),
                 SizedBox(height: 4.h),
                 Container(
-                      height: 12.h,
-                      width: 80.w,
-                      decoration: BoxDecoration(color: Colors.grey[700], borderRadius: BorderRadius.circular(4.r)),
-                    )
+                  height: 12.h,
+                  width: 80.w,
+                  decoration: BoxDecoration(color: Colors.grey[700], borderRadius: BorderRadius.circular(4.r)),
+                )
                     .animate(onPlay: (controller) => controller.repeat())
-                    .shimmer(duration: 1500.ms, color: const Color(0xFFffd700).withOpacity(0.3)),
+                    .shimmer(duration: 1500.ms, color: const Color(0xFF4CAF50).withOpacity(0.3)),
               ],
             ),
           ),
@@ -160,7 +172,12 @@ class AwardsTrophyRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.emoji_events_outlined, size: 20.sp, color: isDark ? Colors.grey[500] : Colors.grey[600]),
+          _AnimatedTrophy(
+            size: 24.sp,
+          )
+              .animate()
+              .fadeIn(delay: 200.ms, duration: 400.ms)
+              .scale(delay: 200.ms, duration: 400.ms, curve: Curves.elasticOut),
           SizedBox(width: 12.w),
           Expanded(
             child: Text(
@@ -170,10 +187,82 @@ class AwardsTrophyRow extends StatelessWidget {
                 fontWeight: FontWeight.w500,
                 color: isDark ? Colors.grey[400] : Colors.grey[600],
               ),
-            ),
+            )
+                .animate()
+                .fadeIn(delay: 400.ms, duration: 500.ms)
+                .slideX(begin: 0.2, delay: 400.ms, duration: 500.ms, curve: Curves.easeOutCubic),
           ),
         ],
       ),
     ).animate().fadeIn(duration: 600.ms).slideX(begin: 0.3, duration: 600.ms, curve: Curves.easeOutCubic);
+  }
+}
+
+/// Custom animated trophy widget with golden color and smooth animations
+class _AnimatedTrophy extends StatefulWidget {
+  const _AnimatedTrophy({required this.size});
+
+  final double size;
+
+  @override
+  State<_AnimatedTrophy> createState() => _AnimatedTrophyState();
+}
+
+class _AnimatedTrophyState extends State<_AnimatedTrophy> with TickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _rotationAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.2,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+
+    _rotationAnimation = Tween<double>(
+      begin: -0.1,
+      end: 0.1,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+
+    _controller.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: Transform.rotate(
+            angle: _rotationAnimation.value,
+            child: Icon(
+              Icons.emoji_events,
+              size: widget.size,
+              color: const Color(0xFFD4AF37),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

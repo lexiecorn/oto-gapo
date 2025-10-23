@@ -87,6 +87,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
     return BlocProvider<FeedCubit>.value(
       value: _feedCubit,
       child: Scaffold(
+        backgroundColor: Colors.grey.shade100,
         body: Column(
           children: [
             // Compact TabBar at top of body
@@ -100,6 +101,14 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
                     width: 1,
                   ),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    offset: const Offset(0, 2),
+                    blurRadius: 4,
+                    spreadRadius: 0,
+                  ),
+                ],
               ),
               child: TabBar(
                 controller: _tabController,

@@ -129,10 +129,7 @@ class ProfileRepository {
         // Add vehicle ID from record
         vehicleData['id'] = record.id;
 
-        // Convert year from number to String (PocketBase returns number, model expects String)
-        if (vehicleData['year'] != null) {
-          vehicleData['year'] = vehicleData['year'].toString();
-        }
+        // Year is already a number from PocketBase, no conversion needed
 
         // Normalize primaryPhoto if it's a filename (not a full URL)
         final primary = vehicleData['primaryPhoto'];
@@ -305,6 +302,94 @@ class ProfileRepository {
       return user;
     } catch (e) {
       print('ProfileRepository.getProfileByUserId - Exception: $e');
+      throw ProfileFailure(
+        code: 'Exception',
+        message: e.toString(),
+        plugin: 'flutter_error/server_error',
+      );
+    }
+  }
+
+  /// Get awards for a user's vehicles
+  Future<List<my_auth_repo.VehicleAward>> getUserVehicleAwards(String userId) async {
+    try {
+      print('ProfileRepository.getUserVehicleAwards - Getting awards for user: $userId');
+
+      // First get the user's vehicles
+      final vehicles = await getUserVehicles(userId);
+      if (vehicles.isEmpty) {
+        print('ProfileRepository.getUserVehicleAwards - No vehicles found for user');
+        return [];
+      }
+
+      // Get all vehicle IDs
+      final vehicleIds = vehicles.map((v) => v.id).where((id) => id != null).cast<String>().toList();
+      if (vehicleIds.isEmpty) {
+        print('ProfileRepository.getUserVehicleAwards - No valid vehicle IDs found');
+        return [];
+      }
+
+      // Query awards for all user's vehicles
+      final awardsResponse = await pocketBaseAuth.pocketBase.collection('vehicle_awards').getList(
+            page: 1,
+            perPage: 500,
+            sort: '-event_date',
+            filter: vehicleIds.map((id) => 'vehicle_id = "$id"').join(' || '),
+          );
+
+      final awards = awardsResponse.items.map<my_auth_repo.VehicleAward>((item) {
+        final data = Map<String, dynamic>.from(item.data);
+        data['id'] = item.id;
+
+        // Handle type conversions for fields that might come as different types
+        if (data['vehicle_id'] != null) {
+          data['vehicleId'] = data['vehicle_id'].toString();
+        } else {
+          data['vehicleId'] = ''; // Provide default for required field
+        }
+
+        if (data['created_by'] != null) {
+          data['createdBy'] = data['created_by'].toString();
+        }
+
+        // Handle required string fields - provide defaults if null
+        if (data['award_name'] == null) {
+          data['awardName'] = 'Unknown Award';
+        } else {
+          data['awardName'] = data['award_name'].toString();
+        }
+
+        if (data['event_name'] == null) {
+          data['eventName'] = 'Unknown Event';
+        } else {
+          data['eventName'] = data['event_name'].toString();
+        }
+
+        // Handle date fields - convert from ISO string to DateTime if needed
+        if (data['event_date'] != null && data['event_date'] is String) {
+          data['eventDate'] = data['event_date'];
+        } else if (data['event_date'] != null) {
+          // Handle if it's already a DateTime object
+          data['eventDate'] = data['event_date'];
+        } else {
+          // Provide default date if null
+          data['eventDate'] = DateTime.now().toIso8601String();
+        }
+
+        if (data['created_at'] != null && data['created_at'] is String) {
+          data['createdAt'] = data['created_at'];
+        }
+        if (data['updated_at'] != null && data['updated_at'] is String) {
+          data['updatedAt'] = data['updated_at'];
+        }
+
+        return my_auth_repo.VehicleAward.fromJson(data);
+      }).toList();
+
+      print('ProfileRepository.getUserVehicleAwards - Found ${awards.length} awards for user');
+      return awards;
+    } catch (e) {
+      print('ProfileRepository.getUserVehicleAwards - Exception: $e');
       throw ProfileFailure(
         code: 'Exception',
         message: e.toString(),

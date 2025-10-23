@@ -23,8 +23,8 @@ mixin _$Vehicle {
   String? get id => throw _privateConstructorUsedError; // PocketBase record ID
   String get make => throw _privateConstructorUsedError;
   String get model => throw _privateConstructorUsedError;
-  String get year =>
-      throw _privateConstructorUsedError; // Changed from int to String to match schema
+  num get year =>
+      throw _privateConstructorUsedError; // PocketBase stores as number type
   String get type => throw _privateConstructorUsedError;
   String get color => throw _privateConstructorUsedError;
   String get plateNumber => throw _privateConstructorUsedError;
@@ -65,7 +65,7 @@ abstract class $VehicleCopyWith<$Res> {
       {String? id,
       String make,
       String model,
-      String year,
+      num year,
       String type,
       String color,
       String plateNumber,
@@ -130,7 +130,7 @@ class _$VehicleCopyWithImpl<$Res, $Val extends Vehicle>
       year: null == year
           ? _value.year
           : year // ignore: cast_nullable_to_non_nullable
-              as String,
+              as num,
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
@@ -198,7 +198,7 @@ abstract class _$$VehicleImplCopyWith<$Res> implements $VehicleCopyWith<$Res> {
       {String? id,
       String make,
       String model,
-      String year,
+      num year,
       String type,
       String color,
       String plateNumber,
@@ -261,7 +261,7 @@ class __$$VehicleImplCopyWithImpl<$Res>
       year: null == year
           ? _value.year
           : year // ignore: cast_nullable_to_non_nullable
-              as String,
+              as num,
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
@@ -352,8 +352,8 @@ class _$VehicleImpl implements _Vehicle {
   @override
   final String model;
   @override
-  final String year;
-// Changed from int to String to match schema
+  final num year;
+// PocketBase stores as number type
   @override
   final String type;
   @override
@@ -477,7 +477,7 @@ abstract class _Vehicle implements Vehicle {
       {final String? id,
       required final String make,
       required final String model,
-      required final String year,
+      required final num year,
       required final String type,
       required final String color,
       required final String plateNumber,
@@ -501,7 +501,7 @@ abstract class _Vehicle implements Vehicle {
   @override
   String get model;
   @override
-  String get year; // Changed from int to String to match schema
+  num get year; // PocketBase stores as number type
   @override
   String get type;
   @override

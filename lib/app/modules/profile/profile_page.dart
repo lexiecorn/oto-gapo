@@ -176,7 +176,7 @@ class _CarWidgetSpecsOnlyFixed extends StatelessWidget {
       ),
       child: RefreshIndicator(
         onRefresh: onRefresh,
-        child: SingleChildScrollView(
+        child: Padding(
           padding: EdgeInsets.all(16.sp),
           child: CarWidget(state: state),
         ),
@@ -318,22 +318,39 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
 
               return FadeTransition(
                 opacity: _fadeAnimation,
-                child: Column(
-                  children: [
-                    // Hero image card - FIXED AT TOP (no spacing)
-                    CarWidgetImageCard(state: state),
-                    // Profile Completion Card (only show for own profile, once a week) - FIXED
-                    if (isViewingOwnProfile)
-                      Padding(
-                        padding: EdgeInsets.only(left: 8, right: 8, bottom: 4.h),
-                        child: const ProfileCompletionCardWrapper(),
+                child: CustomScrollView(
+                  slivers: [
+                    // Sliver App Bar with hero image
+                    SliverAppBar(
+                      expandedHeight: 320.h,
+                      floating: false,
+                      pinned: true,
+                      snap: false,
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      flexibleSpace: FlexibleSpaceBar(
+                        background: CarWidgetImageCard(state: state),
+                        collapseMode: CollapseMode.parallax,
                       ),
-                    SizedBox(height: 12.h),
-                    // Vehicle photos carousel - FIXED
-                    if (state.vehicles.isNotEmpty) _VehiclePhotosCarousel(state: state),
-                    SizedBox(height: 12.h),
-                    // Container with scrollable content inside - CONTAINER STAYS FIXED
-                    Expanded(
+                    ),
+                    // Profile Completion Card (only show for own profile, once a week)
+                    if (isViewingOwnProfile)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.only(left: 8, right: 8, bottom: 4.h, top: 8.h),
+                          child: const ProfileCompletionCardWrapper(),
+                        ),
+                      ),
+                    // Vehicle photos carousel
+                    if (state.vehicles.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12.h),
+                          child: _VehiclePhotosCarousel(state: state),
+                        ),
+                      ),
+                    // Container with scrollable content
+                    SliverToBoxAdapter(
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 8.w),
                         child: _CarWidgetSpecsOnlyFixed(
@@ -352,6 +369,10 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                           },
                         ),
                       ),
+                    ),
+                    // Add some bottom padding for better UX
+                    SliverToBoxAdapter(
+                      child: SizedBox(height: 20.h),
                     ),
                   ],
                 ),

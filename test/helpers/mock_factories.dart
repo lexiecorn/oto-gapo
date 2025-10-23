@@ -17,7 +17,7 @@ class MockProfileRepository extends Mock implements ProfileRepository {}
 Vehicle createMockVehicle({
   String make = 'Toyota',
   String model = 'Vios',
-  String year = '2020',
+  num year = 2020,
   String type = 'Sedan',
   String color = 'Silver',
   String plateNumber = 'ABC-1234',
@@ -45,12 +45,14 @@ ProfileState createMockProfileState({
   ProfileStatus status = ProfileStatus.loaded,
   User? user,
   List<Vehicle>? vehicles,
+  List<VehicleAward>? awards,
   CustomError? error,
 }) {
   return ProfileState(
     profileStatus: status,
     user: user ?? User.empty(),
     vehicles: vehicles ?? [],
+    awards: awards ?? [],
     error: error ?? CustomError.initial(),
   );
 }
@@ -61,7 +63,7 @@ ProfileState createProfileStateWithVehicle({
   String model = 'Vios',
   String plateNumber = 'ABC-1234',
   String color = 'Silver',
-  String year = '2020',
+  num year = 2020,
   String? primaryPhoto,
   List<String>? photos,
 }) {
@@ -92,7 +94,7 @@ ProfileState createProfileStateWithMultipleVehicles({
       model: 'Model $index',
       plateNumber: 'ABC-${1000 + index}',
       color: index.isEven ? 'Red' : 'Blue',
-      year: '${2020 + index}',
+      year: 2020 + index,
     ),
   );
 

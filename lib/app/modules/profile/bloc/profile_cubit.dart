@@ -28,11 +28,17 @@ class ProfileCubit extends Cubit<ProfileState> {
       final vehicles = await profileRepository.getUserVehicles(user.uid);
       print('ProfileCubit.getProfile - Found ${vehicles.length} vehicles');
 
+      // Fetch awards for this user's vehicles
+      print('ProfileCubit.getProfile - Fetching awards for user: ${user.uid}');
+      final awards = await profileRepository.getUserVehicleAwards(user.uid);
+      print('ProfileCubit.getProfile - Found ${awards.length} awards');
+
       emit(
         state.copyWith(
           profileStatus: ProfileStatus.loaded,
           user: user,
           vehicles: vehicles,
+          awards: awards,
         ),
       );
       print('ProfileCubit.getProfile - State updated to loaded');
@@ -76,11 +82,17 @@ class ProfileCubit extends Cubit<ProfileState> {
       final vehicles = await profileRepository.getUserVehicles(user.uid);
       print('ProfileCubit.getProfileByUserId - Found ${vehicles.length} vehicles');
 
+      // Fetch awards for this user's vehicles
+      print('ProfileCubit.getProfileByUserId - Fetching awards for user: ${user.uid}');
+      final awards = await profileRepository.getUserVehicleAwards(user.uid);
+      print('ProfileCubit.getProfileByUserId - Found ${awards.length} awards');
+
       emit(
         state.copyWith(
           profileStatus: ProfileStatus.loaded,
           user: user,
           vehicles: vehicles,
+          awards: awards,
         ),
       );
       print('ProfileCubit.getProfileByUserId - State updated to loaded');

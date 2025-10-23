@@ -16,7 +16,7 @@ abstract class Vehicle with _$Vehicle {
     String? id, // PocketBase record ID
     required String make,
     required String model,
-    required String year, // Changed from int to String to match schema
+    required num year, // PocketBase stores as number type
     required String type,
     required String color,
     required String plateNumber,
