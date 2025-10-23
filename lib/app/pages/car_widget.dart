@@ -278,7 +278,7 @@ class _HeroImageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 280.h,
+      height: 320.h,
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -366,7 +366,7 @@ class _HeroImageCard extends StatelessWidget {
           ),
           // Car name and details at top left
           Positioned(
-            top: MediaQuery.of(context).padding.top + 16.h, // Account for status bar
+            top: MediaQuery.of(context).padding.top + 36.h, // Account for status bar
             left: 16.w,
             right: 80.w,
             child: Column(
@@ -404,7 +404,7 @@ class _HeroImageCard extends StatelessWidget {
           // Car logo in top right
           if (vehicle != null)
             Positioned(
-                top: MediaQuery.of(context).padding.top + 16.h, right: 16.w, child: _buildCarLogo(vehicle!.make)),
+                top: MediaQuery.of(context).padding.top + 36.h, right: 16.w, child: _buildCarLogo(vehicle!.make)),
           // User details at bottom left
           Positioned(
             bottom: 16.h,

@@ -91,13 +91,18 @@ class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
 
     return Container(
       height: 180.h,
-      padding: EdgeInsets.symmetric(vertical: 12.h), // Removed horizontal padding for full width
+      padding: EdgeInsets.symmetric(
+        vertical: 6.sp,
+      ), // Removed horizontal padding for full width
       child: CarouselSlider.builder(
         itemCount: photoUrls.length,
         itemBuilder: (context, index, realIndex) {
           return Container(
             width: 200.w,
-            margin: EdgeInsets.only(right: 2.w), // Further reduced spacing
+            padding: EdgeInsets.only(bottom: 16.w),
+            margin: EdgeInsets.only(
+              right: 2.w,
+            ), // Further reduced spacing
             child: Material(
               elevation: 8,
               borderRadius: BorderRadius.circular(16.r),
