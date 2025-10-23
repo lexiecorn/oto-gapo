@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
@@ -24,42 +25,6 @@ class _VehiclePhotosCarousel extends StatefulWidget {
 }
 
 class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
-  late ScrollController _scrollController;
-  late Timer _autoScrollTimer;
-  static const double _scrollSpeed = 30.0; // pixels per second
-  static const Duration _scrollInterval = Duration(milliseconds: 50);
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController = ScrollController();
-    _startAutoScroll();
-  }
-
-  @override
-  void dispose() {
-    _autoScrollTimer.cancel();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _startAutoScroll() {
-    _autoScrollTimer = Timer.periodic(_scrollInterval, (timer) {
-      if (!_scrollController.hasClients) return;
-
-      final maxScroll = _scrollController.position.maxScrollExtent;
-      final currentScroll = _scrollController.offset;
-      final nextScroll = currentScroll + (_scrollSpeed * _scrollInterval.inMilliseconds / 1000);
-
-      if (nextScroll >= maxScroll) {
-        // Reset to beginning for infinite scroll
-        _scrollController.jumpTo(0);
-      } else {
-        _scrollController.animateTo(nextScroll, duration: _scrollInterval, curve: Curves.linear);
-      }
-    });
-  }
-
   List<String> _getPhotoUrls() {
     if (widget.state.vehicles.isEmpty) return [];
     final vehicle = widget.state.vehicles.first;
@@ -123,41 +88,44 @@ class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
     final photoUrls = _getPhotoUrls();
     if (photoUrls.isEmpty) return const SizedBox.shrink();
 
-    // Create infinite list by repeating photos
-    final infinitePhotoUrls = List.generate(
-      photoUrls.length * 100, // Repeat 100 times for pseudo-infinite scroll
-      (index) => photoUrls[index % photoUrls.length],
-    );
-
     return Container(
       height: 180.h,
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 12.h),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: infinitePhotoUrls.map((imageUrl) {
-            return Container(
-              width: 200.w,
-              margin: EdgeInsets.only(right: 12.w),
-              child: Material(
-                elevation: 8,
+      child: CarouselSlider.builder(
+        itemCount: photoUrls.length,
+        itemBuilder: (context, index, realIndex) {
+          return Container(
+            width: 200.w,
+            margin: EdgeInsets.only(right: 6.w), // Reduced from 12.w to 6.w
+            child: Material(
+              elevation: 8,
+              borderRadius: BorderRadius.circular(16.r),
+              child: InkWell(
+                onTap: () => _showImageLightbox(context, photoUrls[index]),
                 borderRadius: BorderRadius.circular(16.r),
-                child: InkWell(
-                  onTap: () => _showImageLightbox(context, imageUrl),
+                child: ClipRRect(
                   borderRadius: BorderRadius.circular(16.r),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16.r),
-                    child: Image.network(
-                      imageUrl,
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
+                  child: Image.network(
+                    photoUrls[index],
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
-            );
-          }).toList(),
+            ),
+          );
+        },
+        options: CarouselOptions(
+          height: 180.h,
+          autoPlay: true,
+          autoPlayInterval: Duration(seconds: 3),
+          autoPlayAnimationDuration: Duration(milliseconds: 800),
+          autoPlayCurve: Curves.fastOutSlowIn,
+          enlargeCenterPage: false,
+          viewportFraction: 0.55, // Show multiple images with closer spacing
+          enableInfiniteScroll: true,
+          scrollDirection: Axis.horizontal,
         ),
       ),
     );
