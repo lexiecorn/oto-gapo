@@ -12,7 +12,6 @@ import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/modules/profile_progress/bloc/profile_progress_cubit.dart';
 import 'package:otogapo/app/pages/car_widget.dart';
 import 'package:otogapo/app/widgets/profile_completion_card_wrapper.dart';
-import 'package:otogapo_core/otogapo_core.dart';
 
 // Vehicle photos carousel widget with auto-scroll and infinite loop
 class _VehiclePhotosCarousel extends StatefulWidget {
@@ -75,11 +74,54 @@ class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
     }).toList();
   }
 
+  void _showImageLightbox(BuildContext context, String imageUrl) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) {
+          return Scaffold(
+            backgroundColor: Colors.black,
+            appBar: AppBar(
+              backgroundColor: Colors.black,
+              iconTheme: const IconThemeData(color: Colors.white),
+              elevation: 0,
+            ),
+            body: Stack(
+              children: [
+                // Full-screen tap detector for closing
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: Colors.transparent,
+                  ),
+                ),
+                // Image viewer
+                Center(
+                  child: InteractiveViewer(
+                    minScale: 1,
+                    maxScale: 5,
+                    child: GestureDetector(
+                      onTap: () {}, // Prevent closing when tapping the image
+                      child: Image.network(
+                        imageUrl,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final photoUrls = _getPhotoUrls();
     if (photoUrls.isEmpty) return const SizedBox.shrink();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Create infinite list by repeating photos
     final infinitePhotoUrls = List.generate(
@@ -87,43 +129,36 @@ class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
       (index) => photoUrls[index % photoUrls.length],
     );
 
-    return SizedBox(
-      height: 180.h, // Increased height
-      child: ListView.builder(
-        controller: _scrollController,
+    return Container(
+      height: 180.h,
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 12.h),
+      child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 12.h),
-        itemCount: infinitePhotoUrls.length,
-        physics: const ClampingScrollPhysics(), // Smooth scrolling
-        itemBuilder: (context, index) {
-          final actualIndex = index % photoUrls.length;
-          return Container(
-                width: 200.w, // Increased width
-                margin: EdgeInsets.only(right: 12.w),
-                decoration: BoxDecoration(
+        child: Row(
+          children: infinitePhotoUrls.map((imageUrl) {
+            return Container(
+              width: 200.w,
+              margin: EdgeInsets.only(right: 12.w),
+              child: Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(16.r),
+                child: InkWell(
+                  onTap: () => _showImageLightbox(context, imageUrl),
                   borderRadius: BorderRadius.circular(16.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isDark ? Colors.black.withOpacity(0.4) : Colors.grey.withOpacity(0.4),
-                      blurRadius: 12,
-                      spreadRadius: 0,
-                      offset: const Offset(0, 4),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16.r),
+                    child: Image.network(
+                      imageUrl,
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
                     ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16.r),
-                  child: OpstechExtendedImageNetwork(
-                    img: infinitePhotoUrls[index],
-                    width: double.infinity,
-                    height: double.infinity,
                   ),
                 ),
-              )
-              .animate()
-              .fadeIn(delay: (200 + (actualIndex * 100)).ms, duration: 600.ms)
-              .slideX(begin: 0.3, delay: (200 + (actualIndex * 100)).ms, duration: 600.ms);
-        },
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -142,6 +177,7 @@ class _CarWidgetSpecsOnlyFixed extends StatelessWidget {
 
     return Container(
       width: double.infinity,
+      clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,

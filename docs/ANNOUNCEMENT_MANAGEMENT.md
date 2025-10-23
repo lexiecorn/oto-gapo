@@ -471,3 +471,5 @@ Each announcement type has consistent colors and icons:
 - [Architecture](./ARCHITECTURE.md) - System architecture overview
 - [PocketBase Permissions Setup](./POCKETBASE_PERMISSIONS_SETUP.md) - Security configuration
 
+
+
