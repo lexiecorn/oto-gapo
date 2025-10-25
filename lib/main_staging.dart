@@ -46,8 +46,14 @@ Future<void> main() async {
       return true;
     };
 
-    // Enable Crashlytics collection
-    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+    // Enable Crashlytics collection with proper error handling
+    try {
+      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+      print('Crashlytics collection enabled successfully');
+    } catch (e) {
+      print('Failed to enable Crashlytics collection: $e');
+      // Continue execution even if Crashlytics setup fails
+    }
 
     await bootstrap(
       (
