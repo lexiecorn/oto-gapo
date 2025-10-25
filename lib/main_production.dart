@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -13,12 +14,19 @@ import 'package:otogapo/firebase_options_prod.dart';
 import 'package:otogapo/utils/crashlytics_helper.dart';
 
 Future<void> main() async {
+  // Start performance monitoring
+  developer.Timeline.startSync('app_start');
+
   await runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+      developer.Timeline.finishSync();
+      developer.Timeline.startSync('firebase_init');
 
       // Initialize Firebase
       await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      developer.Timeline.finishSync();
+      developer.Timeline.startSync('crashlytics_init');
 
       // Initialize Crashlytics with n8n integration
       FlutterError.onError = (FlutterErrorDetails details) {
@@ -43,9 +51,13 @@ Future<void> main() async {
         print('Failed to enable Crashlytics collection: $e');
         // Continue execution even if Crashlytics setup fails
       }
+      developer.Timeline.finishSync();
+      developer.Timeline.startSync('flavor_config');
 
       // Set up flavor configuration before bootstrap
       FlavorConfig(name: 'PROD', variables: {'pocketbaseUrl': 'https://pb.lexserver.org'});
+      developer.Timeline.finishSync();
+      developer.Timeline.startSync('bootstrap');
 
       await bootstrap((authRepository, pocketBaseAuthRepository, dio, packageInfo, storage) async {
         await ScreenUtil.ensureScreenSize();
@@ -61,7 +73,14 @@ Future<void> main() async {
           },
         );
 
-        return App(authRepository: authRepository, pocketBaseAuthRepository: pocketBaseAuthRepository);
+        developer.Timeline.finishSync();
+        developer.Timeline.startSync('app_creation');
+
+        final app = App(authRepository: authRepository, pocketBaseAuthRepository: pocketBaseAuthRepository);
+
+        developer.Timeline.finishSync(); // Finish the app_creation timeline
+
+        return app;
       });
     },
     (exception, stackTrace) async {

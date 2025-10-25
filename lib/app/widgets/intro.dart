@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -20,30 +22,56 @@ class IntroPage extends StatefulWidget {
 }
 
 class _IntroPageState extends State<IntroPage> {
+  Timer? _navigationTimer;
+
   @override
   void initState() {
     super.initState();
     print('Intro Widget - initState called');
     _getProfile();
+    _startNavigationTimer();
+  }
+
+  @override
+  void dispose() {
+    _navigationTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startNavigationTimer() {
+    _navigationTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        try {
+          AutoRouter.of(context).replace(const HomePageRouter());
+        } catch (e) {
+          print('Intro Widget - Error navigating to home: $e');
+        }
+      }
+    });
   }
 
   void _getProfile() {
-    final uid = context.read<AuthBloc>().state.user!.id;
-    print('Intro Widget - Getting profile for UID: $uid');
-    print('Intro Widget - AuthBloc state user: ${context.read<AuthBloc>().state.user}');
-    print('Intro Widget - Current ProfileCubit state: ${context.read<ProfileCubit>().state}');
+    // Use scheduleMicrotask to ensure this runs after the current frame
+    scheduleMicrotask(() {
+      if (!mounted) return;
 
-    // Force clear profile state first to prevent cached data issues
-    print('Intro Widget - Force clearing profile state');
-    context.read<ProfileCubit>().forceClear();
+      final uid = context.read<AuthBloc>().state.user!.id;
+      print('Intro Widget - Getting profile for UID: $uid');
+      print('Intro Widget - AuthBloc state user: ${context.read<AuthBloc>().state.user}');
+      print('Intro Widget - Current ProfileCubit state: ${context.read<ProfileCubit>().state}');
 
-    // Add a small delay to ensure state is cleared
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        print('Intro Widget - Profile state cleared, calling getProfile');
-        context.read<ProfileCubit>().getProfile();
-        print('Intro Widget - getProfile called');
-      }
+      // Force clear profile state first to prevent cached data issues
+      print('Intro Widget - Force clearing profile state');
+      context.read<ProfileCubit>().forceClear();
+
+      // Use a microtask instead of Future.delayed to avoid blocking
+      scheduleMicrotask(() {
+        if (mounted) {
+          print('Intro Widget - Profile state cleared, calling getProfile');
+          context.read<ProfileCubit>().getProfile();
+          print('Intro Widget - getProfile called');
+        }
+      });
     });
   }
 
@@ -63,17 +91,6 @@ class _IntroPageState extends State<IntroPage> {
 
   @override
   Widget build(BuildContext context) {
-    Future.delayed(const Duration(seconds: 5), () {
-      // Check if the widget is still mounted before accessing the router
-      if (mounted) {
-        try {
-          AutoRouter.of(context).replace(const HomePageRouter());
-        } catch (e) {
-          print('Intro Widget - Error navigating to home: $e');
-        }
-      }
-    });
-
     return Scaffold(
       // gradient background
 
@@ -90,8 +107,8 @@ class _IntroPageState extends State<IntroPage> {
             print('Intro Widget - Auth state changed, force clearing profile');
             context.read<ProfileCubit>().forceClear();
 
-            // Add a small delay to ensure state is cleared
-            Future.delayed(const Duration(milliseconds: 100), () {
+            // Use microtask to avoid blocking
+            scheduleMicrotask(() {
               if (mounted) {
                 _getProfile();
               }
@@ -120,7 +137,7 @@ class _IntroPageState extends State<IntroPage> {
               print('Intro Widget - Profile user UID: ${state.user.uid}');
               print('Intro Widget - Force clearing profile for new user');
               context.read<ProfileCubit>().forceClear();
-              Future.delayed(const Duration(milliseconds: 100), () {
+              scheduleMicrotask(() {
                 if (mounted) {
                   _getProfile();
                 }

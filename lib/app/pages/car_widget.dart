@@ -1,5 +1,6 @@
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -233,23 +234,6 @@ class _HeroImageCard extends StatelessWidget {
   final Vehicle? vehicle;
   final bool isDark;
 
-  Future<String?> _resolvePrimaryPhotoUrl() async {
-    try {
-      if (vehicle == null) return null;
-      final primary = vehicle!.primaryPhoto;
-      if (primary == null || primary.isEmpty) return null;
-
-      if (primary.startsWith('http')) {
-        return primary;
-      }
-
-      final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-      return '$pocketbaseUrl/api/files/vehicles/${vehicle!.id}/$primary';
-    } catch (_) {
-      return null;
-    }
-  }
-
   String? _resolveProfileImageUrl() {
     try {
       final profileImage = state.user.profileImage;
@@ -271,6 +255,95 @@ class _HeroImageCard extends StatelessWidget {
   String _formatDate(DateTime? date) {
     if (date == null) return 'N/A';
     return '${date.month}/${date.day}/${date.year}';
+  }
+
+  Widget _buildHeroImage() {
+    // Use a more efficient approach with cached network image
+    final imageUrl = _resolvePrimaryPhotoUrlSync();
+
+    if (imageUrl != null) {
+      return Stack(
+        children: [
+          CachedNetworkImage(
+            imageUrl: imageUrl,
+            width: double.infinity,
+            height: double.infinity,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [Colors.grey.shade900, Colors.grey.shade800]
+                      : [Colors.grey.shade200, Colors.grey.shade300],
+                ),
+              ),
+              child: const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE61525)),
+                ),
+              ),
+            ),
+            errorWidget: (context, url, error) => Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [Colors.grey.shade900, Colors.grey.shade800]
+                      : [Colors.grey.shade200, Colors.grey.shade300],
+                ),
+              ),
+              child: Center(
+                child: Icon(Icons.directions_car, size: 80.sp, color: const Color(0xFFE61525).withOpacity(0.5)),
+              ),
+            ),
+          ),
+          // Dark gradient overlay
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.black.withOpacity(0.5), Colors.black.withOpacity(0.3)],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Fallback placeholder
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark ? [Colors.grey.shade900, Colors.grey.shade800] : [Colors.grey.shade200, Colors.grey.shade300],
+        ),
+      ),
+      child: Center(
+        child: Icon(Icons.directions_car, size: 80.sp, color: const Color(0xFFE61525).withOpacity(0.5)),
+      ),
+    );
+  }
+
+  String? _resolvePrimaryPhotoUrlSync() {
+    try {
+      if (vehicle == null) return null;
+      final primary = vehicle!.primaryPhoto;
+      if (primary == null || primary.isEmpty) return null;
+
+      if (primary.startsWith('http')) {
+        return primary;
+      }
+
+      final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+      return '$pocketbaseUrl/api/files/vehicles/${vehicle!.id}/$primary';
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
@@ -297,69 +370,7 @@ class _HeroImageCard extends StatelessWidget {
           Positioned.fill(
             child: ClipRRect(
               borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24.r), bottomRight: Radius.circular(24.r)),
-              child: FutureBuilder<String?>(
-                future: _resolvePrimaryPhotoUrl(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: isDark
-                              ? [Colors.grey.shade900, Colors.grey.shade800]
-                              : [Colors.grey.shade200, Colors.grey.shade300],
-                        ),
-                      ),
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE61525)),
-                        ),
-                      ),
-                    )
-                        .animate(onPlay: (controller) => controller.repeat())
-                        .shimmer(duration: 1500.ms, color: const Color(0xFFE61525).withOpacity(0.3));
-                  }
-
-                  if (snapshot.hasData && snapshot.data != null) {
-                    return Stack(
-                      children: [
-                        OpstechExtendedImageNetwork(
-                          img: snapshot.data!,
-                          width: double.infinity,
-                          height: double.infinity,
-                        ),
-                        // Dark gradient overlay
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Colors.black.withOpacity(0.5), Colors.black.withOpacity(0.3)],
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-
-                  // Fallback placeholder
-                  return Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: isDark
-                            ? [Colors.grey.shade900, Colors.grey.shade800]
-                            : [Colors.grey.shade200, Colors.grey.shade300],
-                      ),
-                    ),
-                    child: Center(
-                      child: Icon(Icons.directions_car, size: 80.sp, color: const Color(0xFFE61525).withOpacity(0.5)),
-                    ),
-                  );
-                },
-              ),
+              child: _buildHeroImage(),
             ),
           ),
           // Car name and details at top left
