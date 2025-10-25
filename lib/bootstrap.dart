@@ -29,7 +29,7 @@ import 'package:otogapo/models/cached_data.dart';
 import 'package:otogapo/services/connectivity_service.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:otogapo/services/sync_service.dart';
-import 'package:otogapo/utils/network_helper.dart';
+import 'package:otogapo/utils/crashlytics_helper.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 /// Global GetIt instance for dependency injection.
@@ -96,12 +96,20 @@ typedef BootstrapBuilder = FutureOr<Widget> Function(
 Future<void> bootstrap(
   BootstrapBuilder builder,
 ) async {
-  // Set up error handling for Flutter errors and report to Crashlytics
+  // Set up error handling for Flutter errors and report to Crashlytics and n8n
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);
 
     // Report to Crashlytics
     FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+
+    // Also send to n8n via CrashlyticsHelper
+    CrashlyticsHelper.logError(
+      details.exception,
+      details.stack,
+      reason: 'Bootstrap Flutter error',
+      fatal: true,
+    );
 
     // In production, ensure we don't crash on initialization errors
     if (details.exception.toString().contains('SharedPreferences') ||
@@ -117,6 +125,14 @@ Future<void> bootstrap(
 
     // Report to Crashlytics
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+
+    // Also send to n8n via CrashlyticsHelper
+    CrashlyticsHelper.logError(
+      error,
+      stack,
+      reason: 'Bootstrap async error',
+      fatal: true,
+    );
 
     return true;
   };
@@ -190,35 +206,27 @@ Future<void> bootstrap(
 
   // Initialize repositories
   final authRepository = AuthRepository(
-    client: dio,
     storage: storage,
   );
 
   // Create PocketBaseAuthRepository with storage and initialize it
   final pocketBaseAuthRepository = PocketBaseAuthRepository(storage: storage);
 
-  // PRODUCTION BYPASS: Skip PocketBase initialization to prevent hanging
-  log('PRODUCTION BYPASS: Skipping PocketBase initialization to prevent hanging');
-  /*
-  // Add timeout to PocketBase initialization to prevent hanging
+  // Initialize PocketBase with timeout to prevent hanging
   try {
-    // Check network connectivity first
-    final hasInternet = await NetworkHelper.hasInternetConnection();
-    if (!hasInternet) {
-      log('No internet connection - initializing PocketBase without network');
-    }
-    
+    log('Initializing PocketBase with timeout...');
     await pocketBaseAuthRepository.initialize().timeout(
-      const Duration(seconds: 5),
+      const Duration(seconds: 10),
       onTimeout: () {
         log('PocketBase initialization timeout - continuing with app startup');
         return;
       },
     );
+    log('PocketBase initialized successfully');
   } catch (e) {
     log('PocketBase initialization error: $e - continuing with app startup');
+    // Continue with app startup even if PocketBase fails to initialize
   }
-  */
 
   // Register repositories in GetIt
   getIt

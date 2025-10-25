@@ -35,13 +35,29 @@ Future<void> main() async {
       print('Firebase initialization failed - continuing without Firebase: $e');
     }
 
-    // Initialize Crashlytics with timeout
+    // Initialize Crashlytics with timeout and n8n integration
     try {
-      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+      FlutterError.onError = (FlutterErrorDetails details) {
+        FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+        // Also send to n8n via CrashlyticsHelper
+        CrashlyticsHelper.logError(
+          details.exception,
+          details.stack,
+          reason: 'Flutter framework error',
+          fatal: true,
+        );
+      };
 
-      // Pass all uncaught asynchronous errors to Crashlytics
+      // Pass all uncaught asynchronous errors to Crashlytics and n8n
       PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
         FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        // Also send to n8n via CrashlyticsHelper
+        CrashlyticsHelper.logError(
+          error,
+          stack,
+          reason: 'Platform dispatcher error',
+          fatal: true,
+        );
         return true;
       };
 

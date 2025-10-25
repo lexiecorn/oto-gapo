@@ -9,11 +9,13 @@ import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/pages/admin_page.dart';
 import 'package:otogapo/app/pages/current_user_account_page.dart';
+import 'package:otogapo/app/pages/developer_tools_page.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/app/widgets/payment_status_card_new.dart';
 import 'package:otogapo/providers/theme_provider.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -351,35 +353,24 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 16),
                 ],
-                // Debug info - remove this after testing
-                if (!_isAdmin) ...[
+
+                // Developer Tools Navigation (only in debug/staging)
+                if (kDebugMode || FlavorConfig.instance.name == 'DEVELOPMENT') ...[
                   _buildSettingsCard(
-                    icon: Icons.bug_report,
-                    title: 'Debug Info',
-                    subtitle: 'Admin status: $_isAdmin, Loading: $_isLoading',
+                    icon: Icons.developer_mode,
+                    title: 'Developer Tools',
+                    subtitle: 'Testing and debugging utilities',
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Debug: _isAdmin=$_isAdmin, _isLoading=$_isLoading'),
-                          duration: const Duration(seconds: 3),
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const DeveloperToolsPage(),
                         ),
                       );
                     },
                   ),
                   const SizedBox(height: 16),
-                  // Temporary admin override for testing
-                  _buildSettingsCard(
-                    icon: Icons.admin_panel_settings,
-                    title: 'Admin Panel (Override)',
-                    subtitle: 'Temporary admin access for testing',
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(builder: (context) => const AdminPage()),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
                 ],
+
                 _buildSettingsCard(
                   icon: Icons.logout,
                   title: 'Logout',

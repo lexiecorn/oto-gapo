@@ -52,26 +52,81 @@ class PocketBaseAuthRepository {
 
   PocketBase get pocketBase {
     if (!_isInitialized) {
-      throw StateError(
-        'PocketBaseAuthRepository not initialized. '
-        'Call initialize() before accessing pocketBase.',
-      );
+      // Lazy initialization - initialize on first access
+      _initializeSync();
     }
     return _pocketBase!;
+  }
+
+  /// Synchronous initialization for lazy loading
+  void _initializeSync() {
+    if (_isInitialized) return;
+
+    final url = FlavorConfig.instance.variables['pocketbaseUrl'] as String? ?? 'https://pb.lexserver.org';
+
+    try {
+      // If storage is available, use persistent auth store
+      if (_storage != null) {
+        // For sync initialization, we'll use a basic auth store
+        // The persistent store will be set up when initialize() is called
+        _pocketBase = PocketBase(url);
+      } else {
+        // Fallback to default auth store if storage is not available
+        _pocketBase = PocketBase(url);
+      }
+
+      _isInitialized = true;
+    } catch (e) {
+      // If initialization fails, create a basic PocketBase instance
+      // This prevents the app from hanging on network issues
+      print('PocketBase lazy initialization failed: $e');
+      _pocketBase = PocketBase(url);
+      _isInitialized = true;
+    }
   }
 
   /// Stream of authentication state changes
   Stream<RecordModel?> get user {
     return Stream.periodic(const Duration(milliseconds: 500), (_) {
-      return pocketBase.authStore.model as RecordModel?;
+      try {
+        // Check if PocketBase is initialized before accessing
+        if (!_isInitialized || _pocketBase == null) {
+          return null;
+        }
+        return _pocketBase!.authStore.model as RecordModel?;
+      } catch (e) {
+        // If there's an error accessing the auth store, return null
+        print('Error accessing auth store: $e');
+        return null;
+      }
     }).distinct();
   }
 
   /// Get current authenticated user
-  RecordModel? get currentUser => pocketBase.authStore.model as RecordModel?;
+  RecordModel? get currentUser {
+    try {
+      if (!_isInitialized || _pocketBase == null) {
+        return null;
+      }
+      return _pocketBase!.authStore.model as RecordModel?;
+    } catch (e) {
+      print('Error getting current user: $e');
+      return null;
+    }
+  }
 
   /// Check if user is authenticated
-  bool get isAuthenticated => pocketBase.authStore.isValid;
+  bool get isAuthenticated {
+    try {
+      if (!_isInitialized || _pocketBase == null) {
+        return false;
+      }
+      return _pocketBase!.authStore.isValid;
+    } catch (e) {
+      print('Error checking authentication status: $e');
+      return false;
+    }
+  }
 
   /// Sign up with email and password
   Future<RecordModel> signUp({

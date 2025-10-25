@@ -1,9 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'package:authentication_repository/src/models/auth_failure.dart';
-import 'package:authentication_repository/src/models/token_storage.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
-import 'package:fresh_dio/fresh_dio.dart';
 import 'package:local_storage/local_storage.dart';
 import 'package:pocketbase/pocketbase.dart';
 
@@ -12,29 +10,9 @@ import 'package:pocketbase/pocketbase.dart';
 class AuthRepository {
   ///
   AuthRepository({
-    required Dio client,
     required LocalStorage storage,
-  }) : _storage = storage {
-    _fresh = Fresh<String>(
-      httpClient: client,
-      tokenStorage: AuthTokenStorage(_storage),
-      tokenHeader: (token) => {
-        'Authorization': 'Bearer $token',
-      },
-      refreshToken: (token, client) async {
-        if (token != null) {
-          return token;
-        }
-        return '';
-      },
-    );
+  }) : _storage = storage;
 
-    // Add fresh as an interceptor to the Dio client to automatically
-    // add the token to all requests.
-    client.interceptors.add(_fresh);
-  }
-
-  late final Fresh<String> _fresh;
   final LocalStorage _storage;
   PocketBase? _pocketBase;
   bool _isPocketBaseInitialized = false;

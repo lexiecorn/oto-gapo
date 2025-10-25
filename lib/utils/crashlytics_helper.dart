@@ -7,14 +7,16 @@
 import 'dart:developer' as developer;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:otogapo/services/n8n_error_logger.dart';
 
 class CrashlyticsHelper {
   static final FirebaseCrashlytics _crashlytics = FirebaseCrashlytics.instance;
 
-  /// Log a non-fatal error to Crashlytics.
+  /// Log a non-fatal error to Crashlytics and n8n.
   ///
   /// Use this method to log errors that don't crash the app but should be
-  /// tracked for debugging purposes.
+  /// tracked for debugging purposes. Errors are sent to both Firebase Crashlytics
+  /// and n8n webhook for comprehensive monitoring.
   static Future<void> logError(
     dynamic error,
     StackTrace? stackTrace, {
@@ -41,6 +43,9 @@ class CrashlyticsHelper {
         fatal: fatal,
         reason: reason,
       );
+
+      // Also send to n8n webhook (non-blocking)
+      _sendToN8n(error, stackTrace, reason: reason, fatal: fatal);
     } catch (e) {
       // Fail silently to prevent infinite loops
       if (kDebugMode) {
@@ -161,7 +166,8 @@ class CrashlyticsHelper {
   /// Record a fatal error that will crash the app.
   ///
   /// Use this sparingly, typically for critical errors that should terminate
-  /// the app gracefully with a crash report.
+  /// the app gracefully with a crash report. Errors are sent to both Firebase
+  /// Crashlytics and n8n webhook.
   static Future<void> recordFatalError(
     dynamic error,
     StackTrace? stackTrace, {
@@ -178,5 +184,26 @@ class CrashlyticsHelper {
         developer.log('Failed to record fatal error in Crashlytics: $e');
       }
     }
+  }
+
+  /// Helper method to send error to n8n webhook (non-blocking)
+  static void _sendToN8n(
+    dynamic error,
+    StackTrace? stackTrace, {
+    String? reason,
+    bool fatal = false,
+  }) {
+    // Send to n8n asynchronously without blocking the main error flow
+    N8nErrorLogger.sendErrorToN8n(
+      error.toString(),
+      stackTrace?.toString(),
+      reason: reason,
+      fatal: fatal,
+    ).catchError((Object e) {
+      // Silently handle n8n errors to prevent infinite loops
+      if (kDebugMode) {
+        developer.log('Failed to send error to n8n: $e');
+      }
+    });
   }
 }

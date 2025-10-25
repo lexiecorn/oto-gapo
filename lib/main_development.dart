@@ -22,12 +22,28 @@ Future<void> main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // Initialize Crashlytics
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    // Initialize Crashlytics with n8n integration
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+      // Also send to n8n via CrashlyticsHelper
+      CrashlyticsHelper.logError(
+        details.exception,
+        details.stack,
+        reason: 'Flutter framework error',
+        fatal: true,
+      );
+    };
 
-    // Pass all uncaught asynchronous errors to Crashlytics
+    // Pass all uncaught asynchronous errors to Crashlytics and n8n
     PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      // Also send to n8n via CrashlyticsHelper
+      CrashlyticsHelper.logError(
+        error,
+        stack,
+        reason: 'Platform dispatcher error',
+        fatal: true,
+      );
       return true;
     };
 
