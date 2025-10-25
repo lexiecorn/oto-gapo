@@ -40,7 +40,7 @@ This checklist ensures all necessary steps are completed before releasing a new 
 - [ ] Production build successful (APK)
 - [ ] Production build successful (AAB)
 - [ ] App size checked and optimized
-- [ ] ProGuard rules verified (no crashes in release mode)
+- [ ] Obfuscation disabled (currently off to simplify debugging)
 - [ ] APK/AAB signature verified
 
 ### 5. Play Store Requirements

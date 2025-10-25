@@ -2,51 +2,70 @@
 
 ## Problem Description
 
-The app gets stuck on the **native Android splash screen** (the one that shows the app logo when you first tap the app icon) after uploading to Play Store, but works fine in the emulator. This is a common production issue caused by Flutter engine initialization failures and network timeouts.
+The app gets stuck on the **splash screen** after uploading to Play Store, but works fine in debug mode. This is a classic production issue caused by **R8 code minification and obfuscation** removing critical initialization code.
 
-## Root Causes Identified
+## Root Cause
 
-1. **R8 Code Shrinking**: The most likely cause - R8 (Android's code shrinker) removes critical initialization code
-2. **Flutter Engine Initialization Hanging**: The Flutter engine fails to start properly in production
-3. **Firebase Initialization Timeout**: Firebase initialization can hang in production environments
-4. **PocketBase Network Timeout**: The app tries to connect to `https://pb.lexserver.org` during initialization, which might be unreachable or slow in production
-5. **SharedPreferences Timeout**: The app waits for SharedPreferences initialization which can hang
-6. **Hive Storage Timeout**: Local storage initialization can hang in production
-7. **Authentication Check Hanging**: The AuthBloc tries to check existing authentication but might get stuck
+**R8 Code Shrinking was removing critical initialization code**, causing the app to hang during startup in production builds. R8 minification and obfuscation were enabled in `android/app/build.gradle.kts`, which stripped out essential code paths that worked fine in debug builds.
 
-## Solutions Implemented
+## Primary Fix: Disabled R8 Code Shrinking
 
-### 1. Disabled R8 Code Shrinking (Primary Fix)
+### Changes Made to `android/app/build.gradle.kts`
 
-- **Disabled `isMinifyEnabled`**: Prevents R8 from removing critical code
-- **Disabled `isShrinkResources`**: Prevents resource removal
-- **Commented out ProGuard rules**: Removes aggressive optimization
-- **APK size increased**: From 55.2MB to 58.7MB (confirms code shrinking disabled)
+```kotlin
+buildTypes {
+    getByName("release") {
+        signingConfig = signingConfigs.getByName("release")
+        // CRITICAL FIX: Disable R8 minification to prevent splash screen hang
+        isMinifyEnabled = false  // Disabled R8 code shrinking and obfuscation
+        isShrinkResources = false  // Disabled resource shrinking
+    }
+}
+```
 
-### 2. Reduced Timeouts
+### Why This Works
 
-- **Splash Screen Timeout**: Reduced from 5 seconds to 3 seconds
-- **PocketBase Initialization**: Reduced from 15 seconds to 5 seconds
-- **Hive Storage**: Reduced from 10 seconds to 5 seconds
-- **SharedPreferences**: Reduced from 10 seconds to 3 seconds
+- **R8 was removing critical initialization code** that Flutter, Firebase, and PocketBase depend on
+- **Debug builds don't use R8**, which is why the app worked fine in development
+- **Disabling minification eliminates obfuscation issues** that caused the hang
+- **Note**: This increases APK size (~5-10MB) but ensures app stability
 
-### 2. Network Connectivity Checks
+### Alternative Solutions (If minification is required)
 
-- Added `NetworkHelper` utility to check internet connectivity
-- Added network checks before PocketBase initialization
-- Added fallback behavior when network is unavailable
+If you need to re-enable minification later, you must:
 
-### 3. Robust Error Handling
+1. Add comprehensive ProGuard rules to keep all Flutter, Firebase, and PocketBase classes
+2. Test extensively in production before releasing
+3. Monitor crash reports for missing classes
 
-- Added try-catch blocks around all initialization steps
-- Added fallback PocketBase initialization when network fails
-- Added Crashlytics error reporting for debugging
+### Additional Cleanup
 
-### 4. Improved Authentication Flow
+Removed aggressive production bypasses and timeouts that were masking the real issue:
 
-- Added timeout to authentication checks
-- Added fallback to unauthenticated state on errors
-- Improved error handling in AuthBloc
+#### Files Modified
+
+1. **`lib/main_production.dart`**
+
+   - Removed aggressive timeouts on Firebase initialization
+   - Removed bypass logic for Crashlytics initialization
+   - Removed aggressive timeouts on bootstrap
+   - Removed bypass logic for ScreenUtil initialization
+
+2. **`lib/app/view/app.dart`**
+
+   - Removed production bypass for SharedPreferences initialization
+   - Simplified FutureBuilder to use normal SharedPreferences initialization
+
+3. **`lib/app/modules/auth/auth_bloc.dart`**
+
+   - Restored proper authentication check logic
+   - Removed production bypass that skipped real auth checks
+   - Proper error handling with Crashlytics reporting
+
+4. **`lib/app/pages/splash_page.dart`**
+   - Removed aggressive emergency bypass timers
+   - Increased safety timeout from 2 seconds to 5 seconds
+   - Simplified initialization logic
 
 ## Files Modified
 

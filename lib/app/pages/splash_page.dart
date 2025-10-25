@@ -10,9 +10,7 @@ import 'package:otogapo/utils/debug_helper.dart';
 
 // import 'package:otogapo/app/routes/app_router.gr.dart';
 
-@RoutePage(
-  name: 'SplashPageRouter',
-)
+@RoutePage(name: 'SplashPageRouter')
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
   // static const String routeName = '/';
@@ -28,41 +26,18 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
     DebugHelper.log('SplashPage - Initializing splash screen');
-    
-    // Set a very aggressive timeout for production to prevent infinite loading
-    _timeoutTimer = Timer(const Duration(seconds: 2), () {
+
+    // Set a safety timeout to prevent infinite loading (increased for production stability)
+    _timeoutTimer = Timer(const Duration(seconds: 5), () {
       if (mounted) {
-        DebugHelper.log('SplashPage - AGGRESSIVE TIMEOUT: Force navigating to signin');
-        // Force navigation to signin regardless of auth status
+        DebugHelper.log('SplashPage - TIMEOUT: Force navigating to signin');
+        // Force navigation to signin if auth check takes too long
         AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
       }
     });
-    
+
     // Check network connectivity and show appropriate message
     _checkNetworkConnectivity();
-    
-    // Add immediate fallback timer
-    Timer(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        DebugHelper.log('SplashPage - Quick fallback check');
-        final authBloc = context.read<AuthBloc>();
-        DebugHelper.log('SplashPage - Current auth status: ${authBloc.state.authStatus}');
-      }
-    });
-    
-    // Add emergency bypass timer
-    Timer(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        DebugHelper.log('SplashPage - Emergency bypass check');
-        // Force immediate navigation if still on splash
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (mounted) {
-            DebugHelper.log('SplashPage - Emergency navigation to signin');
-            AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
-          }
-        });
-      }
-    });
   }
 
   Future<void> _checkNetworkConnectivity() async {
@@ -107,9 +82,7 @@ class _SplashPageState extends State<SplashPage> {
           debugPrint('SplashPage - Navigating to intro page');
           Future.microtask(() {
             if (context.mounted) {
-              AutoRouter.of(context).replaceAll([
-                const IntroPageRouter(),
-              ]);
+              AutoRouter.of(context).replaceAll([const IntroPageRouter()]);
             }
           });
         } else {
@@ -123,16 +96,14 @@ class _SplashPageState extends State<SplashPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const CircularProgressIndicator(
-                  strokeWidth: 2,
-                ),
+                const CircularProgressIndicator(strokeWidth: 2),
                 const SizedBox(height: 16),
                 Text(
                   state.authStatus == AuthStatus.unknown
                       ? 'Checking authentication...'
                       : state.authStatus == AuthStatus.unauthenticated
-                          ? 'Redirecting to login...'
-                          : 'Loading...',
+                      ? 'Redirecting to login...'
+                      : 'Loading...',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],

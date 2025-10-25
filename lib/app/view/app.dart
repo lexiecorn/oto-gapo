@@ -31,8 +31,8 @@ class App extends StatelessWidget {
     required AuthRepository authRepository,
     required PocketBaseAuthRepository pocketBaseAuthRepository,
     super.key,
-  })  : _authRepository = authRepository,
-        _pocketBaseAuthRepository = pocketBaseAuthRepository;
+  }) : _authRepository = authRepository,
+       _pocketBaseAuthRepository = pocketBaseAuthRepository;
 
   final AuthRepository _authRepository;
   final PocketBaseAuthRepository _pocketBaseAuthRepository;
@@ -40,26 +40,11 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<SharedPreferences>(
-      future: Future.value(null).then((_) async {
-        // PRODUCTION BYPASS: Skip SharedPreferences to prevent hanging
-        log('PRODUCTION BYPASS: Skipping SharedPreferences initialization');
-        return await SharedPreferences.getInstance();
-      }).timeout(
-        const Duration(seconds: 1),
-        onTimeout: () async {
-          // Create a fallback SharedPreferences instance
-          log('SharedPreferences timeout - using fallback');
-          return await SharedPreferences.getInstance();
-        },
-      ),
+      future: SharedPreferences.getInstance(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const MaterialApp(
-            home: Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
+            home: Scaffold(body: Center(child: CircularProgressIndicator())),
           );
         }
 
@@ -99,14 +84,11 @@ class App extends StatelessWidget {
             RepositoryProvider<AuthRepository>.value(value: _authRepository),
             RepositoryProvider<PocketBaseAuthRepository>.value(value: _pocketBaseAuthRepository),
             RepositoryProvider<ProfileRepository>(
-              create: (context) => ProfileRepository(
-                pocketBaseAuth: context.read<PocketBaseAuthRepository>(),
-              ),
+              create: (context) => ProfileRepository(pocketBaseAuth: context.read<PocketBaseAuthRepository>()),
             ),
             RepositoryProvider<AttendanceRepository>(
-              create: (context) => AttendanceRepository(
-                pocketBase: context.read<PocketBaseAuthRepository>().pocketBase,
-              ),
+              create: (context) =>
+                  AttendanceRepository(pocketBase: context.read<PocketBaseAuthRepository>().pocketBase),
             ),
             // RepositoryProvider(
             //   create: (context) => PickListsRepository(
@@ -142,55 +124,32 @@ class App extends StatelessWidget {
                 ),
               ),
               BlocProvider<SigninCubit>(
-                create: (context) => SigninCubit(
-                  pocketBaseAuth: context.read<PocketBaseAuthRepository>(),
-                ),
+                create: (context) => SigninCubit(pocketBaseAuth: context.read<PocketBaseAuthRepository>()),
               ),
               BlocProvider<SignupCubit>(
-                create: (context) => SignupCubit(
-                  authRepository: context.read<AuthRepository>(),
-                ),
+                create: (context) => SignupCubit(authRepository: context.read<AuthRepository>()),
               ),
               BlocProvider<ProfileCubit>(
-                create: (context) => ProfileCubit(
-                  profileRepository: context.read<ProfileRepository>(),
-                ),
+                create: (context) => ProfileCubit(profileRepository: context.read<ProfileRepository>()),
               ),
               BlocProvider<MeetingCubit>(
-                create: (context) => MeetingCubit(
-                  attendanceRepository: context.read<AttendanceRepository>(),
-                ),
+                create: (context) => MeetingCubit(attendanceRepository: context.read<AttendanceRepository>()),
               ),
               BlocProvider<AttendanceCubit>(
-                create: (context) => AttendanceCubit(
-                  attendanceRepository: context.read<AttendanceRepository>(),
-                ),
+                create: (context) => AttendanceCubit(attendanceRepository: context.read<AttendanceRepository>()),
               ),
               // New Cubits for advanced features
               BlocProvider<ConnectivityCubit>(
-                create: (context) => ConnectivityCubit(
-                  connectivityService: ConnectivityService(),
-                  syncService: SyncService(),
-                ),
+                create: (context) =>
+                    ConnectivityCubit(connectivityService: ConnectivityService(), syncService: SyncService()),
               ),
-              BlocProvider<CalendarCubit>(
-                create: (context) => CalendarCubit(
-                  pocketBaseService: PocketBaseService(),
-                ),
-              ),
-              BlocProvider<ProfileProgressCubit>(
-                create: (context) => ProfileProgressCubit(),
-              ),
+              BlocProvider<CalendarCubit>(create: (context) => CalendarCubit(pocketBaseService: PocketBaseService())),
+              BlocProvider<ProfileProgressCubit>(create: (context) => ProfileProgressCubit()),
               BlocProvider<AdminAnalyticsCubit>(
-                create: (context) => AdminAnalyticsCubit(
-                  pocketBaseService: PocketBaseService(),
-                ),
+                create: (context) => AdminAnalyticsCubit(pocketBaseService: PocketBaseService()),
               ),
             ],
-            child: ChangeNotifierProvider(
-              create: (context) => ThemeProvider(prefs!),
-              child: const AppView(),
-            ),
+            child: ChangeNotifierProvider(create: (context) => ThemeProvider(prefs!), child: const AppView()),
           ),
         );
       },

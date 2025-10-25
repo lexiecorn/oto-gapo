@@ -341,8 +341,7 @@ Join Otogapo today and streamline your association management!
 - ✅ Comprehensive unit test coverage
 - ✅ Widget test implementation
 - ✅ Very Good Analysis linting
-- ✅ ProGuard configuration for release builds
-- ✅ Code obfuscation for enhanced security
+- ✅ Code obfuscation currently disabled (simplifies debugging and eliminates Play Store warnings)
 
 #### Platform Support
 
@@ -357,7 +356,7 @@ Join Otogapo today and streamline your association management!
 - **Data Encryption**: All data transmitted over HTTPS
 - **Session Management**: Secure token-based session handling
 - **Role-Based Access**: Granular permission system for different user roles
-- **ProGuard**: Code obfuscation in release builds to prevent reverse engineering
+- **Note**: Code obfuscation is currently disabled to simplify debugging and eliminate Play Store warnings about missing deobfuscation files
 
 ### 📊 Performance
 
@@ -389,9 +388,9 @@ None reported in initial release.
 - **Flavor**: Production
 - **Build Type**: Release
 - **Signing**: Release keystore
-- **Minification**: Enabled
-- **Obfuscation**: Enabled
-- **Tree Shaking**: Enabled
+- **Minification**: Disabled
+- **Obfuscation**: Disabled (to simplify debugging and eliminate Play Store warnings)
+- **Tree Shaking**: Enabled (via Flutter's default build process)
 
 ### Distribution
 

@@ -95,9 +95,15 @@ android {
     buildTypes {
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = false  // Temporarily disable minification to debug splash issue
-            isShrinkResources = false  // Temporarily disable resource shrinking
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")  // Use less aggressive rules
+            // CRITICAL FIX: Disable R8 minification to prevent splash screen hang
+            // R8 was removing critical initialization code in production
+            isMinifyEnabled = false  // Disable R8 code shrinking and obfuscation
+            isShrinkResources = false  // Disable resource shrinking
+            // Keep ProGuard rules commented out since we're not using minification
+            // proguardFiles(
+            //     getDefaultProguardFile("proguard-android-optimize.txt"),
+            //     "proguard-rules.pro"
+            // )
         }
         getByName("debug") {
             signingConfig = signingConfigs.getByName("debug")

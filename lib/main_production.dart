@@ -13,99 +13,38 @@ import 'package:otogapo/firebase_options_prod.dart';
 import 'package:otogapo/utils/crashlytics_helper.dart';
 
 Future<void> main() async {
-  await runZonedGuarded(() async {
-    // AGGRESSIVE TIMEOUT: Set a very short timeout for production
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+  await runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
 
-    WidgetsFlutterBinding.ensureInitialized();
+      // Initialize Firebase
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-    // PRODUCTION BYPASS: Skip Firebase initialization to prevent hanging
-    try {
-      // Initialize Firebase with timeout
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      ).timeout(
-        const Duration(seconds: 2),
-        onTimeout: () {
-          print('Firebase initialization timeout - continuing without Firebase');
-          throw TimeoutException('Firebase initialization timeout', const Duration(seconds: 2));
-        },
-      );
-    } catch (e) {
-      print('Firebase initialization failed - continuing without Firebase: $e');
-    }
-
-    // Initialize Crashlytics with timeout and n8n integration
-    try {
+      // Initialize Crashlytics with n8n integration
       FlutterError.onError = (FlutterErrorDetails details) {
         FirebaseCrashlytics.instance.recordFlutterFatalError(details);
         // Also send to n8n via CrashlyticsHelper
-        CrashlyticsHelper.logError(
-          details.exception,
-          details.stack,
-          reason: 'Flutter framework error',
-          fatal: true,
-        );
+        CrashlyticsHelper.logError(details.exception, details.stack, reason: 'Flutter framework error', fatal: true);
       };
 
       // Pass all uncaught asynchronous errors to Crashlytics and n8n
       PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
         FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
         // Also send to n8n via CrashlyticsHelper
-        CrashlyticsHelper.logError(
-          error,
-          stack,
-          reason: 'Platform dispatcher error',
-          fatal: true,
-        );
+        CrashlyticsHelper.logError(error, stack, reason: 'Platform dispatcher error', fatal: true);
         return true;
       };
 
-      // Enable Crashlytics collection with timeout
-      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true).timeout(
-        const Duration(seconds: 1),
-        onTimeout: () {
-          print('Crashlytics initialization timeout - continuing without Crashlytics');
-        },
-      );
-    } catch (e) {
-      print('Crashlytics initialization failed - continuing without Crashlytics: $e');
-    }
+      // Enable Crashlytics collection
+      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
 
-    // Set up flavor configuration before bootstrap
-    FlavorConfig(
-      name: 'PROD',
-      variables: {
-        'pocketbaseUrl': 'https://pb.lexserver.org',
-      },
-    );
+      // Set up flavor configuration before bootstrap
+      FlavorConfig(name: 'PROD', variables: {'pocketbaseUrl': 'https://pb.lexserver.org'});
 
-    // AGGRESSIVE TIMEOUT: Set a very short timeout for bootstrap
-    await bootstrap(
-      (
-        authRepository,
-        pocketBaseAuthRepository,
-        dio,
-        packageInfo,
-        storage,
-      ) async {
-        // PRODUCTION BYPASS: Skip ScreenUtil to prevent hanging
-        try {
-          await ScreenUtil.ensureScreenSize().timeout(
-            const Duration(seconds: 1),
-            onTimeout: () {
-              print('ScreenUtil initialization timeout - continuing without ScreenUtil');
-            },
-          );
-        } catch (e) {
-          print('ScreenUtil initialization failed - continuing without ScreenUtil: $e');
-        }
+      await bootstrap((authRepository, pocketBaseAuthRepository, dio, packageInfo, storage) async {
+        await ScreenUtil.ensureScreenSize();
 
-        SystemChrome.setSystemUIOverlayStyle(
-          const SystemUiOverlayStyle(
-            systemNavigationBarColor: Colors.black,
-          ),
-        );
+        SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(systemNavigationBarColor: Colors.black));
 
         // Update FlavorConfig with package info
         FlavorConfig(
@@ -116,23 +55,12 @@ Future<void> main() async {
           },
         );
 
-        return App(
-          authRepository: authRepository,
-          pocketBaseAuthRepository: pocketBaseAuthRepository,
-        );
-      },
-    ).timeout(
-      const Duration(seconds: 5),
-      onTimeout: () {
-        print('Bootstrap timeout - creating minimal app');
-        // Create a minimal app if bootstrap fails
-        // Note: This timeout callback cannot access the repository variables
-        // as they are not in scope. This is a fallback that should not be reached.
-        throw TimeoutException('Bootstrap timeout', const Duration(seconds: 5));
-      },
-    );
-  }, (exception, stackTrace) async {
-    // Report to Crashlytics
-    await CrashlyticsHelper.logError(exception, stackTrace, reason: 'Main function error');
-  });
+        return App(authRepository: authRepository, pocketBaseAuthRepository: pocketBaseAuthRepository);
+      });
+    },
+    (exception, stackTrace) async {
+      // Report to Crashlytics
+      await CrashlyticsHelper.logError(exception, stackTrace, reason: 'Main function error');
+    },
+  );
 }

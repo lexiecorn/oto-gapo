@@ -133,13 +133,14 @@ keytool -printcert -jarfile build/app/outputs/flutter-apk/app-production-release
 # Valid from: Fri Oct 03 21:58:35 PST 2025 until: Sun Sep 09 21:58:35 PST 2125
 ```
 
-### 3. Check ProGuard/R8 Obfuscation
+### 3. Check Obfuscation Status
 
 ```bash
-# Mapping file should exist (for crash report deobfuscation)
-ls -lh build/app/outputs/mapping/productionRelease/mapping.txt
+# Note: Obfuscation is currently disabled in android/app/build.gradle.kts
+# This means no mapping file is generated. If you re-enable obfuscation:
+# ls -lh build/app/outputs/mapping/productionRelease/mapping.txt
 
-# Backup this file - needed to read crash reports!
+# When obfuscation is enabled, backup the mapping file for crash report deobfuscation
 ```
 
 ## Installing and Testing
@@ -339,6 +340,7 @@ adb install build/app/outputs/flutter-apk/app-production-release.apk
 - Verify Firebase configuration
 - Check SHA-1 fingerprint matches Play Console
 - Ensure API keys are correct
+- Verify obfuscation settings (currently disabled in build.gradle.kts)
 
 ## Getting Debug Information
 
@@ -374,7 +376,7 @@ Before uploading to Play Store:
 - [ ] Build completes without errors
 - [ ] APK/AAB size is reasonable
 - [ ] Signing verified
-- [ ] ProGuard mapping file saved
+- [ ] Obfuscation status confirmed (currently disabled)
 
 ### Functional Testing
 
@@ -394,7 +396,7 @@ Before uploading to Play Store:
 
 - [ ] Release notes prepared
 - [ ] Known issues documented
-- [ ] ProGuard mapping file backed up
+- [ ] Obfuscation status documented
 - [ ] Build configuration documented
 
 ## Next Steps

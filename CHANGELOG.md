@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0+30] - 2025-11-25
+
+### Changed
+
+- Disabled code obfuscation to eliminate Play Store warnings about missing deobfuscation files
+- Removed ProGuard configuration from Android build
+- Updated documentation to reflect obfuscation status
+
+### Improved
+
+- Simplified debugging by removing code obfuscation
+- Cleaner stack traces in Crashlytics reports
+- No need to manage ProGuard mapping files
+
 ## [1.0.0+6] - 2025-10-18
 
 ### Added

@@ -624,7 +624,7 @@ class PocketBaseService {
     try {
       await _ensureAuthenticated();
       final result = await pb.collection('Announcements').getList(
-            filter: 'showOnLogin = true && isActive = true',
+            filter: 'showOnLogin = true',
             sort: '-created',
           );
       return result.items;

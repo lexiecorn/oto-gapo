@@ -85,6 +85,10 @@ All markdown documentation has been organized into the `docs/` directory:
 - `POCKETBASE_PERMISSIONS_SETUP.md` - Security setup
 - See also: `pocketbase/README.md` for collection schemas
 
+#### Android Build & Optimization
+
+- `R8_OBFUSCATION_SETUP.md` - R8 code shrinking and obfuscation configuration
+
 #### Guides & References
 
 - `LOCAL_BUILD_TESTING.md` - Local build testing

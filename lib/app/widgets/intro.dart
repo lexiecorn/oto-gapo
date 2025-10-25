@@ -39,9 +39,11 @@ class _IntroPageState extends State<IntroPage> {
 
     // Add a small delay to ensure state is cleared
     Future.delayed(const Duration(milliseconds: 100), () {
-      print('Intro Widget - Profile state cleared, calling getProfile');
-      context.read<ProfileCubit>().getProfile();
-      print('Intro Widget - getProfile called');
+      if (mounted) {
+        print('Intro Widget - Profile state cleared, calling getProfile');
+        context.read<ProfileCubit>().getProfile();
+        print('Intro Widget - getProfile called');
+      }
     });
   }
 
@@ -62,7 +64,14 @@ class _IntroPageState extends State<IntroPage> {
   @override
   Widget build(BuildContext context) {
     Future.delayed(const Duration(seconds: 5), () {
-      AutoRouter.of(context).replace(const HomePageRouter());
+      // Check if the widget is still mounted before accessing the router
+      if (mounted) {
+        try {
+          AutoRouter.of(context).replace(const HomePageRouter());
+        } catch (e) {
+          print('Intro Widget - Error navigating to home: $e');
+        }
+      }
     });
 
     return Scaffold(
@@ -82,7 +91,11 @@ class _IntroPageState extends State<IntroPage> {
             context.read<ProfileCubit>().forceClear();
 
             // Add a small delay to ensure state is cleared
-            Future.delayed(const Duration(milliseconds: 100), _getProfile);
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (mounted) {
+                _getProfile();
+              }
+            });
           }
         },
         child: BlocConsumer<ProfileCubit, ProfileState>(
@@ -107,7 +120,11 @@ class _IntroPageState extends State<IntroPage> {
               print('Intro Widget - Profile user UID: ${state.user.uid}');
               print('Intro Widget - Force clearing profile for new user');
               context.read<ProfileCubit>().forceClear();
-              Future.delayed(const Duration(milliseconds: 100), _getProfile);
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (mounted) {
+                  _getProfile();
+                }
+              });
             }
 
             // Handle different profile states

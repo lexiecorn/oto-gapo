@@ -11,10 +11,7 @@ part 'auth_event.dart';
 part 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc({
-    required this.authRepository,
-    required this.pocketBaseAuth,
-  }) : super(AuthState.unknown()) {
+  AuthBloc({required this.authRepository, required this.pocketBaseAuth}) : super(AuthState.unknown()) {
     _isLoggingOut = false;
 
     // Listen to PocketBase auth changes
@@ -28,28 +25,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthStateChangedEvent>((event, emit) {
       log('auth state changing');
       if (event.user != null) {
-        emit(
-          state.copyWith(
-            authStatus: AuthStatus.authenticated,
-            user: event.user,
-          ),
-        );
+        emit(state.copyWith(authStatus: AuthStatus.authenticated, user: event.user));
       } else {
-        emit(
-          state.copyWith(
-            authStatus: AuthStatus.unauthenticated,
-          ),
-        );
+        emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
       }
     });
 
     on<SignInRequestedEvent>((event, emit) async {
       try {
         emit(state.copyWith(authStatus: AuthStatus.unknown));
-        await pocketBaseAuth.signIn(
-          email: event.email,
-          password: event.password,
-        );
+        await pocketBaseAuth.signIn(email: event.email, password: event.password);
         // Auth state will be updated via the stream listener
       } catch (e) {
         emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
@@ -113,21 +98,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<CheckExistingAuthEvent>((event, emit) async {
       try {
         log('Checking existing authentication...');
-        
-        // AGGRESSIVE TIMEOUT: Set a very short timeout for production
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-        
-        // In production, skip complex auth checks to prevent hanging
-        log('PRODUCTION BYPASS: Skipping complex auth check, setting unauthenticated');
-        emit(
-          state.copyWith(
-            authStatus: AuthStatus.unauthenticated,
-          ),
-        );
-        return;
-        
-        // Original auth check (commented out for production)
-        /*
+
         // Check if PocketBase has a valid session
         final isAuthenticated = pocketBaseAuth.isAuthenticated;
         log('PocketBase isAuthenticated: $isAuthenticated');
@@ -137,29 +108,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           log('Current user: ${user?.id}');
           if (user != null) {
             log('User found, setting authenticated state');
-            emit(
-              state.copyWith(
-                authStatus: AuthStatus.authenticated,
-                user: user,
-              ),
-            );
+            emit(state.copyWith(authStatus: AuthStatus.authenticated, user: user));
           } else {
             log('No user found despite being authenticated, setting unauthenticated');
-            emit(
-              state.copyWith(
-                authStatus: AuthStatus.unauthenticated,
-              ),
-            );
+            emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
           }
         } else {
           log('Not authenticated, setting unauthenticated state');
-          emit(
-            state.copyWith(
-              authStatus: AuthStatus.unauthenticated,
-            ),
-          );
+          emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
         }
-        */
       } catch (e, stackTrace) {
         log('Error checking existing auth: $e');
         // Report to Crashlytics
@@ -169,11 +126,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           // Ignore crashlytics errors
         }
         // Always emit unauthenticated on error to prevent hanging
-        emit(
-          state.copyWith(
-            authStatus: AuthStatus.unauthenticated,
-          ),
-        );
+        emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
       }
     });
 

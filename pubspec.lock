@@ -704,22 +704,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.4"
-  fresh:
-    dependency: transitive
-    description:
-      name: fresh
-      sha256: "9d345f48d4685781a5d8768b05634a0b2a46dfacec42c4b9d4b49ebe5127ef2e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.3"
-  fresh_dio:
-    dependency: transitive
-    description:
-      name: fresh_dio
-      sha256: afa3cc9fe6189ec22d0f9a936f01c8e6724e9801b610d4709bd39945890e22ad
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.2"
   frontend_server_client:
     dependency: transitive
     description:

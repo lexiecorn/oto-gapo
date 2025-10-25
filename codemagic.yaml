@@ -157,6 +157,15 @@ workflows:
           echo "🔍 Listing AAB files..."
           find build/app/outputs -name "*.aab" || echo "No .aab files found"
       
+      - name: Find and verify R8 mapping file
+        script: |
+          echo "🔍 Searching for R8 mapping file..."
+          find . -name "mapping.txt" -type f 2>/dev/null | head -20
+          echo ""
+          echo "📂 Checking common locations:"
+          ls -lh android/app/build/outputs/mapping/productionRelease/mapping.txt 2>/dev/null || echo "Not found in standard location"
+          ls -lh build/app/outputs/mapping/productionRelease/mapping.txt 2>/dev/null || echo "Not found in Flutter output"
+      
       - name: Build Android APK
         script: |
           echo "🔨 Building Android APK for direct distribution..."
@@ -169,6 +178,7 @@ workflows:
     artifacts:
       - build/app/outputs/**/*.aab
       - build/app/outputs/flutter-apk/*.apk
+      - android/app/build/outputs/mapping/productionRelease/mapping.txt
       - build/app/outputs/mapping/productionRelease/mapping.txt
     
     publishing:

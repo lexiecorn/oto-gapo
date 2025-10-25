@@ -88,10 +88,8 @@ class DeveloperToolsPage extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      alignment: WrapAlignment.center,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Expanded(
                           child: ElevatedButton(
@@ -104,6 +102,7 @@ class DeveloperToolsPage extends StatelessWidget {
                             child: const Text('Test Webhook'),
                           ),
                         ),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () => _testN8nError(false),

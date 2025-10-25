@@ -37,8 +37,7 @@
         "--flavor",
         "production",
         "--target",
-        "lib/main_production.dart",
-      
+        "lib/main_production.dart"
       ]
     }
   ]
