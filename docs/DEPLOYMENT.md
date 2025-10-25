@@ -89,7 +89,7 @@ Update flavor-specific configurations in:
 
 1. Go to [Firebase Console](https://console.firebase.google.com/)
 2. Create new project
-3. Enable Authentication and Firestore
+3. Enable Authentication, Firestore, and Crashlytics
 
 ### 2. Configure Authentication
 
@@ -97,7 +97,13 @@ Update flavor-specific configurations in:
 2. Enable Google Sign-In
 3. Configure OAuth consent screen
 
-### 3. Generate Configuration Files
+### 3. Configure Crashlytics
+
+1. Enable Crashlytics in Firebase Console
+2. Configure data collection settings
+3. Set up crash alerts and notifications
+
+### 4. Generate Configuration Files
 
 ```bash
 # Install Firebase CLI
@@ -109,15 +115,18 @@ firebase login
 # Configure project
 firebase use --add
 
-# Generate configuration files
-flutterfire configure
+# Generate configuration files for each flavor
+flutterfire configure --project=otogapo-dev --platforms=android,ios,web --out=lib/firebase_options_dev.dart
+flutterfire configure --project=otogapo-dev --platforms=android,ios,web --out=lib/firebase_options_staging.dart
+flutterfire configure --project=otogapo-prod --platforms=android,ios,web --out=lib/firebase_options_prod.dart
 ```
 
-### 4. Update Configuration Files
+### 5. Update Configuration Files
 
 Ensure the following files are updated:
 
 - `lib/firebase_options_dev.dart`
+- `lib/firebase_options_staging.dart`
 - `lib/firebase_options_prod.dart`
 
 ## PocketBase Configuration

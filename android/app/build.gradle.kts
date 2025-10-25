@@ -5,7 +5,8 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
-    // Removed: id("com.google.gms.google-services") - no longer using Firebase
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 val localProperties = Properties().apply {
@@ -94,32 +95,30 @@ android {
     buildTypes {
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            isMinifyEnabled = false  // Temporarily disable minification to debug splash issue
+            isShrinkResources = false  // Temporarily disable resource shrinking
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")  // Use less aggressive rules
         }
         getByName("debug") {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
 
-    // Enable ABI splits ONLY for release builds to reduce APK size significantly
-    // Debug builds use universal APK for compatibility with flutter run / VS Code
-    // Google Play will deliver device-specific APKs (e.g., arm64 devices only get arm64 libs)
-    splits {
-        abi {
-            // Only enable splits for release builds, not debug builds
-            isEnable = gradle.startParameter.taskNames.any { 
-                it.contains("Release") && !it.contains("Debug") 
-            }
-            reset()
-            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-            // Universal APK for debug, split APKs for release
-            isUniversalApk = !gradle.startParameter.taskNames.any { 
-                it.contains("Release") && !it.contains("Debug") 
-            }
-        }
-    }
+    // Temporarily disable ABI splits to debug build issues
+    // splits {
+    //     abi {
+    //         // Only enable splits for release builds, not debug builds
+    //         isEnable = gradle.startParameter.taskNames.any { 
+    //             it.contains("Release") && !it.contains("Debug") 
+    //         }
+    //         reset()
+    //         include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+    //         // Universal APK for debug, split APKs for release
+    //         isUniversalApk = !gradle.startParameter.taskNames.any { 
+    //             it.contains("Release") && !it.contains("Debug") 
+    //         }
+    //     }
+    // }
 
     // Ensure native libraries use 16 KB page alignment for Android 15+ requirements
     // This is required for Google Play Store compliance starting Nov 1, 2025
@@ -136,36 +135,15 @@ flutter {
     source = "../.."
 }
 
-// Workaround for Flutter not finding output files (.apk and .aab)
-// Copy the outputs to where Flutter expects them
+// Simplified APK copying for debugging
 tasks.whenTaskAdded {
-    // Handle app bundle tasks (bundleXxxYyy)
-    if (name.startsWith("bundle")) {
-        doLast {
-            val variantName = name.removePrefix("bundle")
-            val bundleDir = file("$buildDir/outputs/bundle/$variantName")
-            val targetDir = file("${project.rootDir}/../build/app/outputs/bundle/$variantName")
-            if (bundleDir.exists()) {
-                targetDir.mkdirs()
-                copy {
-                    from(bundleDir)
-                    into(targetDir)
-                }
-                println("✓ Copied .aab to: $targetDir")
-            }
-        }
-    }
-    
-    // Handle APK assembly tasks (assembleXxxYyy)
     if (name.startsWith("assemble") && !name.contains("Test")) {
         doLast {
-            // APKs are in apk/<flavor>/<buildType>/ structure
             val apkOutputDir = file("$buildDir/outputs/apk")
             val targetDir = file("${project.rootDir}/../build/app/outputs/flutter-apk")
             
             if (apkOutputDir.exists()) {
                 targetDir.mkdirs()
-                // Copy all APK files from all subdirectories
                 apkOutputDir.walk()
                     .filter { it.extension == "apk" }
                     .forEach { apkFile ->
@@ -173,8 +151,10 @@ tasks.whenTaskAdded {
                             from(apkFile)
                             into(targetDir)
                         }
+                        println("✓ Copied APK: ${apkFile.name} to: $targetDir")
                     }
-                println("✓ Copied .apk files to: $targetDir")
+            } else {
+                println("⚠️ APK output directory not found: $apkOutputDir")
             }
         }
     }

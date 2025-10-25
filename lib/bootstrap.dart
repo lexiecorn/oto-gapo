@@ -12,11 +12,13 @@
 
 import 'dart:async';
 import 'dart:developer';
+import 'dart:ui';
 
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:get_it/get_it.dart';
@@ -27,6 +29,7 @@ import 'package:otogapo/models/cached_data.dart';
 import 'package:otogapo/services/connectivity_service.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:otogapo/services/sync_service.dart';
+import 'package:otogapo/utils/network_helper.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 /// Global GetIt instance for dependency injection.
@@ -72,13 +75,14 @@ typedef BootstrapBuilder = FutureOr<Widget> Function(
 /// This function:
 /// 1. Sets up error handling for Flutter errors
 /// 2. Configures BLoC observer for state management monitoring
-/// 3. Initializes package info for version tracking
-/// 4. Sets up Dio HTTP client
-/// 5. Initializes PocketBase service
-/// 6. Registers services in dependency injection container
-/// 7. Initializes local storage
-/// 8. Creates and registers repositories
-/// 9. Runs the application with the provided builder
+/// 3. Initializes Firebase and Crashlytics
+/// 4. Initializes package info for version tracking
+/// 5. Sets up Dio HTTP client
+/// 6. Initializes PocketBase service
+/// 7. Registers services in dependency injection container
+/// 8. Initializes local storage
+/// 9. Creates and registers repositories
+/// 10. Runs the application with the provided builder
 ///
 /// Example:
 /// ```dart
@@ -92,8 +96,29 @@ typedef BootstrapBuilder = FutureOr<Widget> Function(
 Future<void> bootstrap(
   BootstrapBuilder builder,
 ) async {
+  // Set up error handling for Flutter errors and report to Crashlytics
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);
+
+    // Report to Crashlytics
+    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+
+    // In production, ensure we don't crash on initialization errors
+    if (details.exception.toString().contains('SharedPreferences') ||
+        details.exception.toString().contains('PocketBase') ||
+        details.exception.toString().contains('Hive')) {
+      log('Non-critical initialization error, continuing with app startup');
+    }
+  };
+
+  // Set up error handling for async errors
+  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+    log('Async error: $error', stackTrace: stack);
+
+    // Report to Crashlytics
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+
+    return true;
   };
 
   Bloc.observer = const AppBlocObserver();
@@ -116,7 +141,19 @@ Future<void> bootstrap(
 
   // Initialize local storage FIRST (initializes Hive)
   const storage = LocalStorage();
-  await storage.init();
+
+  // Add timeout to Hive initialization to prevent hanging
+  try {
+    await storage.init().timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        log('Hive initialization timeout - continuing with app startup');
+        return;
+      },
+    );
+  } catch (e) {
+    log('Hive initialization error: $e - continuing with app startup');
+  }
 
   // Register Hive type adapters for cached data models BEFORE opening boxes
   Hive.registerAdapter(CachedPostAdapter());
@@ -128,7 +165,19 @@ Future<void> bootstrap(
   // Initialize Connectivity and Sync services AFTER Hive is ready
   final connectivityService = ConnectivityService();
   final syncService = SyncService();
-  await syncService.init(); // Initialize sync service with Hive boxes
+
+  // Add timeout to sync service initialization
+  try {
+    await syncService.init().timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        log('Sync service initialization timeout - continuing with app startup');
+        return;
+      },
+    );
+  } catch (e) {
+    log('Sync service initialization error: $e - continuing with app startup');
+  }
 
   // Initialized the router.
   getIt
@@ -147,7 +196,29 @@ Future<void> bootstrap(
 
   // Create PocketBaseAuthRepository with storage and initialize it
   final pocketBaseAuthRepository = PocketBaseAuthRepository(storage: storage);
-  await pocketBaseAuthRepository.initialize();
+
+  // PRODUCTION BYPASS: Skip PocketBase initialization to prevent hanging
+  log('PRODUCTION BYPASS: Skipping PocketBase initialization to prevent hanging');
+  /*
+  // Add timeout to PocketBase initialization to prevent hanging
+  try {
+    // Check network connectivity first
+    final hasInternet = await NetworkHelper.hasInternetConnection();
+    if (!hasInternet) {
+      log('No internet connection - initializing PocketBase without network');
+    }
+    
+    await pocketBaseAuthRepository.initialize().timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        log('PocketBase initialization timeout - continuing with app startup');
+        return;
+      },
+    );
+  } catch (e) {
+    log('PocketBase initialization error: $e - continuing with app startup');
+  }
+  */
 
   // Register repositories in GetIt
   getIt

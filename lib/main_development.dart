@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:ui';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
@@ -7,10 +10,29 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/app.dart';
 import 'package:otogapo/app/core/logging.dart';
 import 'package:otogapo/bootstrap.dart';
+import 'package:otogapo/firebase_options_dev.dart';
+import 'package:otogapo/utils/crashlytics_helper.dart';
 
 Future<void> main() async {
   await runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // Initialize Firebase
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    // Initialize Crashlytics
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+    // Pass all uncaught asynchronous errors to Crashlytics
+    PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+
+    // Enable Crashlytics collection
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
 
     // Initialize logging configuration
     AppLogging.init();
@@ -47,6 +69,7 @@ Future<void> main() async {
       },
     );
   }, (exception, stackTrace) async {
-    // await Sentry.captureException(exception, stackTrace: stackTrace);
+    // Report to Crashlytics
+    await CrashlyticsHelper.logError(exception, stackTrace, reason: 'Main function error');
   });
 }

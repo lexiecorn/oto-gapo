@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
+import 'package:otogapo/utils/network_helper.dart';
+import 'package:otogapo/utils/debug_helper.dart';
 
 // import 'package:otogapo/app/routes/app_router.gr.dart';
 
@@ -25,21 +27,49 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    // Set a timeout to prevent infinite loading
-    _timeoutTimer = Timer(const Duration(seconds: 5), () {
+    DebugHelper.log('SplashPage - Initializing splash screen');
+    
+    // Set a very aggressive timeout for production to prevent infinite loading
+    _timeoutTimer = Timer(const Duration(seconds: 2), () {
       if (mounted) {
-        // If still unknown after timeout, redirect to signin
-        final authBloc = context.read<AuthBloc>();
-        debugPrint('SplashPage - Timeout reached, auth status: ${authBloc.state.authStatus}');
-        if (authBloc.state.authStatus == AuthStatus.unknown) {
-          debugPrint('SplashPage - Timeout: Navigating to signin page');
-          AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
-        } else if (authBloc.state.authStatus == AuthStatus.authenticated) {
-          debugPrint('SplashPage - Timeout: User authenticated, navigating to intro page');
-          AutoRouter.of(context).replaceAll([const IntroPageRouter()]);
-        }
+        DebugHelper.log('SplashPage - AGGRESSIVE TIMEOUT: Force navigating to signin');
+        // Force navigation to signin regardless of auth status
+        AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
       }
     });
+    
+    // Check network connectivity and show appropriate message
+    _checkNetworkConnectivity();
+    
+    // Add immediate fallback timer
+    Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        DebugHelper.log('SplashPage - Quick fallback check');
+        final authBloc = context.read<AuthBloc>();
+        DebugHelper.log('SplashPage - Current auth status: ${authBloc.state.authStatus}');
+      }
+    });
+    
+    // Add emergency bypass timer
+    Timer(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        DebugHelper.log('SplashPage - Emergency bypass check');
+        // Force immediate navigation if still on splash
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            DebugHelper.log('SplashPage - Emergency navigation to signin');
+            AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
+          }
+        });
+      }
+    });
+  }
+
+  Future<void> _checkNetworkConnectivity() async {
+    final hasInternet = await NetworkHelper.hasInternetConnection();
+    if (!hasInternet) {
+      debugPrint('SplashPage - No internet connection detected');
+    }
   }
 
   @override

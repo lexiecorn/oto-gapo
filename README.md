@@ -107,7 +107,7 @@ The app follows a clean architecture pattern with:
 
 - **Flutter**: Cross-platform mobile framework
 - **Dart**: Programming language
-- **Firebase**: Authentication and cloud services
+- **Firebase**: Authentication, crash reporting, and cloud services
 - **PocketBase**: Backend-as-a-Service for data management
 
 ### Key Dependencies
@@ -118,6 +118,7 @@ The app follows a clean architecture pattern with:
 - **Local Storage**: `hive`, `shared_preferences`
 - **UI Components**: `flutter_screenutil`, `extended_image`
 - **Authentication**: `firebase_auth`, `google_sign_in`
+- **Crash Reporting**: `firebase_crashlytics`, `firebase_analytics`
 - **Image Handling**: `image_picker`
 - **Validation**: `validators`
 - **QR Code**: `qr_flutter`, `mobile_scanner`

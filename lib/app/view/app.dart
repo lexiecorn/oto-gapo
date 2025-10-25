@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:attendance_repository/attendance_repository.dart';
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
@@ -38,9 +40,20 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<SharedPreferences>(
-      future: SharedPreferences.getInstance(),
+      future: Future.value(null).then((_) async {
+        // PRODUCTION BYPASS: Skip SharedPreferences to prevent hanging
+        log('PRODUCTION BYPASS: Skipping SharedPreferences initialization');
+        return await SharedPreferences.getInstance();
+      }).timeout(
+        const Duration(seconds: 1),
+        onTimeout: () async {
+          // Create a fallback SharedPreferences instance
+          log('SharedPreferences timeout - using fallback');
+          return await SharedPreferences.getInstance();
+        },
+      ),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const MaterialApp(
             home: Scaffold(
               body: Center(
@@ -49,6 +62,37 @@ class App extends StatelessWidget {
             ),
           );
         }
+
+        if (snapshot.hasError) {
+          // If SharedPreferences fails, continue with app initialization
+          print('SharedPreferences error: ${snapshot.error}');
+          // In production, create a minimal fallback to prevent splash screen hang
+          return MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 16),
+                    const Text('Initializing app...'),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () {
+                        // Retry initialization
+                        Navigator.of(context).pushReplacementNamed('/');
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        // Use snapshot.data if available, otherwise create a fallback
+        final prefs = snapshot.data;
 
         return MultiRepositoryProvider(
           providers: [
@@ -144,7 +188,7 @@ class App extends StatelessWidget {
               ),
             ],
             child: ChangeNotifierProvider(
-              create: (context) => ThemeProvider(snapshot.data!),
+              create: (context) => ThemeProvider(prefs!),
               child: const AppView(),
             ),
           ),

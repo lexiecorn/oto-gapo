@@ -29,17 +29,25 @@ class PocketBaseAuthRepository {
 
     final url = FlavorConfig.instance.variables['pocketbaseUrl'] as String? ?? 'https://pb.lexserver.org';
 
-    // If storage is available, use persistent auth store
-    if (_storage != null) {
-      final persistentStore = PersistentAuthStore(_storage!);
-      final authStore = await persistentStore.createAuthStore();
-      _pocketBase = PocketBase(url, authStore: authStore);
-    } else {
-      // Fallback to default auth store if storage is not available
-      _pocketBase = PocketBase(url);
-    }
+    try {
+      // If storage is available, use persistent auth store
+      if (_storage != null) {
+        final persistentStore = PersistentAuthStore(_storage!);
+        final authStore = await persistentStore.createAuthStore();
+        _pocketBase = PocketBase(url, authStore: authStore);
+      } else {
+        // Fallback to default auth store if storage is not available
+        _pocketBase = PocketBase(url);
+      }
 
-    _isInitialized = true;
+      _isInitialized = true;
+    } catch (e) {
+      // If initialization fails, create a basic PocketBase instance
+      // This prevents the app from hanging on network issues
+      print('PocketBase initialization failed: $e');
+      _pocketBase = PocketBase(url);
+      _isInitialized = true;
+    }
   }
 
   PocketBase get pocketBase {

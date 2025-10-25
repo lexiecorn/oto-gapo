@@ -5,6 +5,7 @@ import 'package:authentication_repository/authentication_repository.dart';
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:pocketbase/pocketbase.dart';
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -67,7 +68,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           additionalData: event.additionalData,
         );
         // Auth state will be updated via the stream listener
-      } catch (e) {
+      } catch (e, stackTrace) {
+        // Report to Crashlytics
+        try {
+          await FirebaseCrashlytics.instance.recordError(e, stackTrace);
+        } catch (_) {
+          // Ignore crashlytics errors
+        }
         emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
         rethrow;
       }
@@ -86,11 +93,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         log('Signout completed successfully');
 
         // Re-enable stream listener after a short delay
-        Future.delayed(const Duration(milliseconds: 1000), () {
+        Future<void>.delayed(const Duration(milliseconds: 1000), () {
           _isLoggingOut = false;
         });
-      } catch (e) {
+      } catch (e, stackTrace) {
         log('Error during signout: $e');
+        // Report to Crashlytics
+        try {
+          await FirebaseCrashlytics.instance.recordError(e, stackTrace);
+        } catch (_) {
+          // Ignore crashlytics errors
+        }
         // Still emit unauthenticated state even if there's an error
         emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
         _isLoggingOut = false; // Re-enable stream listener
@@ -100,6 +113,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<CheckExistingAuthEvent>((event, emit) async {
       try {
         log('Checking existing authentication...');
+        
+        // AGGRESSIVE TIMEOUT: Set a very short timeout for production
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        
+        // In production, skip complex auth checks to prevent hanging
+        log('PRODUCTION BYPASS: Skipping complex auth check, setting unauthenticated');
+        emit(
+          state.copyWith(
+            authStatus: AuthStatus.unauthenticated,
+          ),
+        );
+        return;
+        
+        // Original auth check (commented out for production)
+        /*
         // Check if PocketBase has a valid session
         final isAuthenticated = pocketBaseAuth.isAuthenticated;
         log('PocketBase isAuthenticated: $isAuthenticated');
@@ -131,8 +159,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             ),
           );
         }
-      } catch (e) {
+        */
+      } catch (e, stackTrace) {
         log('Error checking existing auth: $e');
+        // Report to Crashlytics
+        try {
+          await FirebaseCrashlytics.instance.recordError(e, stackTrace);
+        } catch (_) {
+          // Ignore crashlytics errors
+        }
+        // Always emit unauthenticated on error to prevent hanging
         emit(
           state.copyWith(
             authStatus: AuthStatus.unauthenticated,

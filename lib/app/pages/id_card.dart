@@ -39,7 +39,6 @@ class _IdCardState extends State<IdCard> with TickerProviderStateMixin {
   late Animation<double> _shadowAnimation;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  bool _isHovered = false;
 
   @override
   void initState() {
@@ -107,10 +106,6 @@ class _IdCardState extends State<IdCard> with TickerProviderStateMixin {
   }
 
   void _onHover(bool isHovered) {
-    setState(() {
-      _isHovered = isHovered;
-    });
-
     if (isHovered) {
       _hoverAnimationController.forward();
     } else {
