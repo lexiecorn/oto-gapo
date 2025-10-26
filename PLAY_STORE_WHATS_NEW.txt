@@ -1,9 +1,0 @@
-🚀 What's New in v1.0.0+12!
-
-✨ Improvements:
-• Enhanced app performance & stability
-• Bug fixes and optimizations
-• Improved user experience
-• Better error handling
-
-Thank you for using Otogapo! 🚗💨

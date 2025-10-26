@@ -1,0 +1,144 @@
+Otogapo - Advanced Vehicle Association Management
+
+Streamline membership, meetings, attendance, payments, and community communication with offline capabilities and modern UI/UX.
+
+🚗 KEY FEATURES
+
+🔐 SECURE AUTHENTICATION
+• Firebase authentication with Google Sign-In
+• Secure session management
+
+👥 MEMBER MANAGEMENT
+• Complete profile with vehicle registration
+• Driver's license and emergency contacts
+• Medical information and photos
+• Profile completion tracking
+
+📅 MEETING MANAGEMENT
+• Create meetings (Regular, GMM, Special, Emergency)
+• Track status and view with filters
+• Meeting calendar with attendance streaks
+
+📱 QR CODE ATTENDANCE
+• Generate unique QR codes per meeting
+• Quick check-in via scanning
+• Time-limited secure tokens
+• Built-in scanner with auto-recording
+
+✅ ATTENDANCE TRACKING
+• Real-time statistics (Present, Late, Absent, Excused, Leave)
+• Visual calendar with streaks
+• Manual marking for admins
+• CSV export for analytics
+
+🌟 SOCIAL FEED & COMMUNITY
+• Share posts, photos, and updates
+• React with 6 emojis (Like, Love, Laugh, Wow, Sad, Angry)
+• Comment with @mentions and #hashtags
+• Advanced search with filters
+• Report inappropriate content
+• Offline support with auto-sync
+• Admin moderation and content filtering
+
+📊 REPORTING & ANALYTICS
+• Export to CSV format
+• Meeting and member reports
+• Attendance trends and analytics
+• Payment insights
+• Live admin dashboard
+
+💰 PAYMENT TRACKING
+• Monthly dues management
+• Payment history and advance payments
+• Overdue alerts
+• Visual tracking with charts
+
+📢 ANNOUNCEMENTS
+• Association-wide updates
+• Important notices and events
+• Image carousel gallery
+• Magazine-style layout
+
+👨‍💼 ADMIN DASHBOARD
+• User and meeting management
+• Attendance oversight
+• Payment management
+• Gallery and announcement creation
+• Social feed moderation
+• Export and reporting tools
+• Real-time analytics with charts
+
+✨ ADVANCED FEATURES
+
+📱 OFFLINE SUPPORT
+• Work completely offline with auto-sync
+• Create posts, reactions, comments offline
+• Mark attendance offline
+• Real-time connectivity monitoring
+• Queue with retry logic
+• Cache last 100 posts
+
+🎨 ENHANCED UI/UX
+• Smooth animations and transitions
+• Attendance calendar with streaks
+• Advanced search
+• Profile completion tracking
+• Skeleton loading states
+• Dark mode support
+
+🔍 SMART SEARCH
+• Server-side search with filters
+• Search history and suggestions
+• Filter by date, author, hashtags
+
+📈 ANALYTICS
+• Live dashboard statistics
+• User engagement analytics
+• Attendance trend analysis
+• Payment insights
+• Interactive charts
+
+🛡️ SECURITY & PRIVACY
+• Industry-standard encryption
+• Secure authentication protocols
+• Data protection compliance
+• Community moderation
+
+📱 USER-FRIENDLY DESIGN
+• Material Design interface
+• Easy navigation
+• Responsive layouts
+• Dark mode
+
+🚀 TECHNICAL EXCELLENCE
+• Built with Flutter
+• Complete offline capability
+• Fast response times
+• Regular updates
+• Cross-platform compatibility
+
+💡 GETTING STARTED
+1. Download from Play Store
+2. Create account (email or Google)
+3. Complete member profile
+4. Add vehicle information
+5. Track payments and attend meetings
+6. Join community feed
+7. Stay connected offline/online
+
+📞 SUPPORT
+• In-app support
+• Email assistance
+• Comprehensive documentation
+
+🎯 WHO IS IT FOR?
+Perfect for vehicle association members, administrators, and super admins staying connected online and offline.
+
+🎉 COMING SOON
+• Push notifications
+• Payment gateway
+• Enhanced analytics
+• Recurring meetings
+• PDF reports
+
+Download Otogapo today for advanced vehicle association management with powerful community features and offline support!
