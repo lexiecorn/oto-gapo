@@ -9,9 +9,10 @@ import 'package:otogapo/widgets/loading_overlay.dart';
 import 'package:provider/provider.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
-
   const OtpVerificationScreen({
-    required this.phoneNumber, required this.verificationId, super.key,
+    required this.phoneNumber,
+    required this.verificationId,
+    super.key,
   });
   final String phoneNumber;
   final String verificationId;
@@ -194,9 +195,13 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   TextButton(
                     onPressed: _canResend ? _resendOtp : null,
                     child: Text(
-                      _canResend ? 'Resend Code' : 'Resend Code in $_remainingTime seconds',
+                      _canResend
+                          ? 'Resend Code'
+                          : 'Resend Code in $_remainingTime seconds',
                       style: TextStyle(
-                        color: _canResend ? Theme.of(context).primaryColor : Theme.of(context).disabledColor,
+                        color: _canResend
+                            ? Theme.of(context).primaryColor
+                            : Theme.of(context).disabledColor,
                       ),
                     ),
                   ),

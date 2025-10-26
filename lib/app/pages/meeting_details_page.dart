@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/attendance/bloc/attendance_cubit.dart';
-import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart' as meeting_cubit;
+import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart'
+    as meeting_cubit;
 import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/app/widgets/attendance_card.dart';
 import 'package:otogapo/models/meeting.dart';
@@ -87,7 +88,8 @@ class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
 
       // Save to file
       final directory = await getApplicationDocumentsDirectory();
-      final fileName = 'attendance_${meeting?.title.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.csv';
+      final fileName =
+          'attendance_${meeting?.title.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.csv';
       final file = File('${directory.path}/$fileName');
       await file.writeAsString(csv);
 
@@ -123,7 +125,10 @@ class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
           IconButton(
             icon: const Icon(Icons.qr_code),
             onPressed: () {
-              final meeting = context.read<meeting_cubit.MeetingCubit>().state.selectedMeeting;
+              final meeting = context
+                  .read<meeting_cubit.MeetingCubit>()
+                  .state
+                  .selectedMeeting;
               if (meeting != null) {
                 context.router.push(
                   MeetingQRCodePageRouter(meeting: meeting),
@@ -236,7 +241,8 @@ class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
               Expanded(
                 child: BlocBuilder<AttendanceCubit, AttendanceState>(
                   builder: (context, attendanceState) {
-                    if (attendanceState.status == AttendanceStateStatus.loading) {
+                    if (attendanceState.status ==
+                        AttendanceStateStatus.loading) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
@@ -254,7 +260,9 @@ class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
                         return AttendanceMemberItem(
                           attendance: attendance,
                           onStatusChanged: (newStatus) {
-                            context.read<AttendanceCubit>().updateAttendanceStatus(
+                            context
+                                .read<AttendanceCubit>()
+                                .updateAttendanceStatus(
                                   attendance.id,
                                   newStatus.value,
                                 );
@@ -269,14 +277,17 @@ class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
           );
         },
       ),
-      floatingActionButton: BlocBuilder<meeting_cubit.MeetingCubit, meeting_cubit.MeetingState>(
+      floatingActionButton:
+          BlocBuilder<meeting_cubit.MeetingCubit, meeting_cubit.MeetingState>(
         builder: (context, state) {
           final meeting = state.selectedMeeting;
           if (meeting == null || !meeting.isScheduled) return const SizedBox();
 
           return FloatingActionButton.extended(
             onPressed: () {
-              context.read<meeting_cubit.MeetingCubit>().generateQRCode(meeting.id);
+              context
+                  .read<meeting_cubit.MeetingCubit>()
+                  .generateQRCode(meeting.id);
             },
             icon: const Icon(Icons.qr_code_2),
             label: const Text('Start Meeting'),

@@ -55,13 +55,15 @@ class ProfileProgressCubit extends Cubit<ProfileProgressState> {
       missingFields.add(ProfileField.bloodType);
     }
 
-    if (user.driversLicenseNumber != null && user.driversLicenseNumber!.isNotEmpty) {
+    if (user.driversLicenseNumber != null &&
+        user.driversLicenseNumber!.isNotEmpty) {
       completedFields.add(ProfileField.driversLicenseNumber);
     } else {
       missingFields.add(ProfileField.driversLicenseNumber);
     }
 
-    if (user.emergencyContactName != null && user.emergencyContactName!.isNotEmpty) {
+    if (user.emergencyContactName != null &&
+        user.emergencyContactName!.isNotEmpty) {
       completedFields.add(ProfileField.emergencyContactName);
     } else {
       missingFields.add(ProfileField.emergencyContactName);
@@ -85,7 +87,8 @@ class ProfileProgressCubit extends Cubit<ProfileProgressState> {
     );
   }
 
-  List<ProfileSuggestion> _generateSuggestions(List<ProfileField> missingFields) {
+  List<ProfileSuggestion> _generateSuggestions(
+      List<ProfileField> missingFields) {
     final suggestions = <ProfileSuggestion>[];
 
     for (final field in missingFields) {
@@ -95,7 +98,8 @@ class ProfileProgressCubit extends Cubit<ProfileProgressState> {
             const ProfileSuggestion(
               field: ProfileField.profileImage,
               title: 'Add Profile Photo',
-              description: 'Help others recognize you by adding a profile photo',
+              description:
+                  'Help others recognize you by adding a profile photo',
               priority: 1,
             ),
           );

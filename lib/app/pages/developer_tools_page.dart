@@ -39,9 +39,14 @@ class DeveloperToolsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     _buildInfoRow('Debug Mode', kDebugMode.toString()),
-                    _buildInfoRow('Flavor', FlavorConfig.instance.name ?? 'Unknown'),
-                    _buildInfoRow('Show Developer Tools',
-                        (kDebugMode || (FlavorConfig.instance.name ?? '') == 'DEVELOPMENT').toString()),
+                    _buildInfoRow(
+                        'Flavor', FlavorConfig.instance.name ?? 'Unknown'),
+                    _buildInfoRow(
+                        'Show Developer Tools',
+                        (kDebugMode ||
+                                (FlavorConfig.instance.name ?? '') ==
+                                    'DEVELOPMENT')
+                            .toString()),
                     _buildInfoRow('Platform', defaultTargetPlatform.name),
                   ],
                 ),
@@ -155,7 +160,8 @@ class DeveloperToolsPage extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.purple,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 24),
                       ),
                       child: const Text('Test PocketBase Connection'),
                     ),
@@ -198,7 +204,8 @@ class DeveloperToolsPage extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 24),
                       ),
                       child: const Text('Show Debug Info'),
                     ),
@@ -241,7 +248,8 @@ class DeveloperToolsPage extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.indigo,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 24),
                       ),
                       child: const Text('Admin Panel (Override)'),
                     ),
@@ -284,7 +292,8 @@ class DeveloperToolsPage extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 24),
                       ),
                       child: const Text('Show App Info'),
                     ),
@@ -388,8 +397,11 @@ class DeveloperToolsPage extends StatelessWidget {
               _buildInfoRow('Debug Mode', kDebugMode.toString()),
               _buildInfoRow('Flavor', FlavorConfig.instance.name ?? 'Unknown'),
               _buildInfoRow('Platform', defaultTargetPlatform.name),
-              _buildInfoRow('Show Developer Tools',
-                  (kDebugMode || (FlavorConfig.instance.name ?? '') == 'DEVELOPMENT').toString()),
+              _buildInfoRow(
+                  'Show Developer Tools',
+                  (kDebugMode ||
+                          (FlavorConfig.instance.name ?? '') == 'DEVELOPMENT')
+                      .toString()),
             ],
           ),
         ),

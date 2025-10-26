@@ -95,7 +95,8 @@ class UpdateDialog extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.all(12.sp),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                      color:
+                          isDark ? Colors.grey.shade900 : Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Column(

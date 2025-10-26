@@ -58,10 +58,12 @@ class _IntroPageState extends State<IntroPage> {
       final authState = context.read<AuthBloc>().state;
       print('Intro Widget - Auth status: ${authState.authStatus}');
       print('Intro Widget - Auth user: ${authState.user}');
-      print('Intro Widget - Current ProfileCubit state: ${context.read<ProfileCubit>().state}');
+      print(
+          'Intro Widget - Current ProfileCubit state: ${context.read<ProfileCubit>().state}');
 
       // Check if user is authenticated before trying to get profile
-      if (authState.authStatus != AuthStatus.authenticated || authState.user == null) {
+      if (authState.authStatus != AuthStatus.authenticated ||
+          authState.user == null) {
         print('Intro Widget - User not authenticated, skipping profile fetch');
         return;
       }
@@ -112,7 +114,8 @@ class _IntroPageState extends State<IntroPage> {
           print('Intro Widget - Auth user: ${authState.user}');
 
           // Reset profile when auth state changes
-          if (authState.authStatus == AuthStatus.authenticated && authState.user != null) {
+          if (authState.authStatus == AuthStatus.authenticated &&
+              authState.user != null) {
             print('Intro Widget - Auth state changed, force clearing profile');
             context.read<ProfileCubit>().forceClear();
 
@@ -123,7 +126,8 @@ class _IntroPageState extends State<IntroPage> {
               }
             });
           } else if (authState.authStatus == AuthStatus.unauthenticated) {
-            print('Intro Widget - User not authenticated, clearing profile state');
+            print(
+                'Intro Widget - User not authenticated, clearing profile state');
             context.read<ProfileCubit>().forceClear();
           }
         },
@@ -135,15 +139,19 @@ class _IntroPageState extends State<IntroPage> {
           builder: (context, state) {
             // Add debugging
             print('Intro Widget - Profile Status: ${state.profileStatus}');
-            print('Intro Widget - User Member Number: "${state.user.memberNumber}"');
+            print(
+                'Intro Widget - User Member Number: "${state.user.memberNumber}"');
             print('Intro Widget - User First Name: "${state.user.firstName}"');
             print('Intro Widget - User Last Name: "${state.user.lastName}"');
             print('Intro Widget - User UID: "${state.user.uid}"');
-            print('Intro Widget - User Membership Type: ${state.user.membership_type}');
+            print(
+                'Intro Widget - User Membership Type: ${state.user.membership_type}');
 
             // Check if the current authenticated user is different from the profile user
             final currentAuthUser = context.read<AuthBloc>().state.user;
-            if (currentAuthUser != null && state.user.uid.isNotEmpty && state.user.uid != currentAuthUser.id) {
+            if (currentAuthUser != null &&
+                state.user.uid.isNotEmpty &&
+                state.user.uid != currentAuthUser.id) {
               print('Intro Widget - User mismatch detected!');
               print('Intro Widget - Auth user UID: ${currentAuthUser.id}');
               print('Intro Widget - Profile user UID: ${state.user.uid}');
@@ -185,11 +193,13 @@ class _IntroPageState extends State<IntroPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.person_off, size: 64, color: Colors.orange),
+                    const Icon(Icons.person_off,
+                        size: 64, color: Colors.orange),
                     const SizedBox(height: 16),
                     const Text(
                       'User data appears to be empty',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text('UID: ${state.user.uid}'),
@@ -208,7 +218,9 @@ class _IntroPageState extends State<IntroPage> {
             }
 
             // Use a fallback for empty member number
-            final displayMemberNumber = state.user.memberNumber.isNotEmpty ? state.user.memberNumber : 'X';
+            final displayMemberNumber = state.user.memberNumber.isNotEmpty
+                ? state.user.memberNumber
+                : 'X';
 
             return Container(
               decoration: const BoxDecoration(

@@ -25,12 +25,14 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   Map<String, bool?> _cachedMonthStatus = {}; // Cache for month status data
 
   // Loading states for payment toggles
-  Set<String> _loadingPaymentToggles = {}; // Track which payment toggles are loading
+  Set<String> _loadingPaymentToggles =
+      {}; // Track which payment toggles are loading
   bool _isBulkUpdating = false; // Track bulk update loading state
 
   // Cache for payment status to avoid repeated API calls
   Map<String, Map<String, dynamic>?> _paymentStatusCache = {};
-  Map<String, DateTime> _cacheTimestamps = {}; // Track when cache entries were created
+  Map<String, DateTime> _cacheTimestamps =
+      {}; // Track when cache entries were created
 
   // Clear all payment status cache
   void _clearAllPaymentStatusCache() {
@@ -49,7 +51,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       final monthDate = DateFormat('yyyy_MM').parse(month);
 
       // This will trigger the duplicate cleanup logic
-      final result = await pocketBaseService.getMonthlyDuesForUserAndMonth(userId, monthDate);
+      final result = await pocketBaseService.getMonthlyDuesForUserAndMonth(
+          userId, monthDate);
 
       if (result != null) {
         print('Force cleanup - Found record: ${result.id}');
@@ -74,7 +77,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       final monthDate = DateFormat('yyyy_MM').parse(month);
 
       // Test direct database query
-      final monthlyDues = await pocketBaseService.getMonthlyDuesForUserAndMonth(userId, monthDate);
+      final monthlyDues = await pocketBaseService.getMonthlyDuesForUserAndMonth(
+          userId, monthDate);
       print('Direct query result: ${monthlyDues != null}');
 
       if (monthlyDues != null) {
@@ -171,7 +175,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         }
       }
 
-      print('Loaded ${users.length} valid users (filtered out inactive/deleted users)');
+      print(
+          'Loaded ${users.length} valid users (filtered out inactive/deleted users)');
       setState(() {
         _users = users;
       });
@@ -205,7 +210,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
     });
   }
 
-  Future<void> _markPaymentStatus(String userId, String month, bool status) async {
+  Future<void> _markPaymentStatus(
+      String userId, String month, bool status) async {
     final toggleKey = '${userId}_$month';
 
     // Add to loading set
@@ -229,11 +235,15 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       _cacheTimestamps.remove(cacheKey);
 
       // Clear cache for all months for this user to ensure consistency
-      _paymentStatusCache.removeWhere((key, value) => key.startsWith('${userId}_'));
-      _cacheTimestamps.removeWhere((key, value) => key.startsWith('${userId}_'));
+      _paymentStatusCache
+          .removeWhere((key, value) => key.startsWith('${userId}_'));
+      _cacheTimestamps
+          .removeWhere((key, value) => key.startsWith('${userId}_'));
 
-      print('Payment Management - Cleared cache for user: $userId, month: $month');
-      print('Payment Management - Remaining cache keys: ${_paymentStatusCache.keys.toList()}');
+      print(
+          'Payment Management - Cleared cache for user: $userId, month: $month');
+      print(
+          'Payment Management - Remaining cache keys: ${_paymentStatusCache.keys.toList()}');
 
       // Refresh the data and force UI update
       await _loadUsers();
@@ -250,10 +260,14 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         Color backgroundColor;
 
         if (status) {
-          message = result == null ? 'Payment record not created' : 'Payment marked as paid';
+          message = result == null
+              ? 'Payment record not created'
+              : 'Payment marked as paid';
           backgroundColor = result == null ? Colors.red : Colors.green;
         } else {
-          message = result == null ? 'Payment record deleted' : 'Payment marked as unpaid';
+          message = result == null
+              ? 'Payment record deleted'
+              : 'Payment marked as unpaid';
           backgroundColor = result == null ? Colors.red : Colors.orange;
         }
 
@@ -281,17 +295,20 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
     }
   }
 
-  Future<Map<String, dynamic>?> _getPaymentStatus(String userId, String month) async {
+  Future<Map<String, dynamic>?> _getPaymentStatus(
+      String userId, String month) async {
     final cacheKey = '${userId}_$month';
 
     // Check cache first with expiration (5 minutes)
     if (_paymentStatusCache.containsKey(cacheKey)) {
       final cacheTime = _cacheTimestamps[cacheKey];
-      if (cacheTime != null && DateTime.now().difference(cacheTime).inMinutes < 5) {
+      if (cacheTime != null &&
+          DateTime.now().difference(cacheTime).inMinutes < 5) {
         print('_getPaymentStatus - Using cached data for $cacheKey');
         return _paymentStatusCache[cacheKey];
       } else {
-        print('_getPaymentStatus - Cache expired for $cacheKey, fetching fresh data');
+        print(
+            '_getPaymentStatus - Cache expired for $cacheKey, fetching fresh data');
         _paymentStatusCache.remove(cacheKey);
         _cacheTimestamps.remove(cacheKey);
       }
@@ -302,9 +319,11 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       final monthDate = DateFormat('yyyy_MM').parse(month);
 
       // Get the actual dues record directly
-      final monthlyDues = await pocketBaseService.getMonthlyDuesForUserAndMonth(userId, monthDate);
+      final monthlyDues = await pocketBaseService.getMonthlyDuesForUserAndMonth(
+          userId, monthDate);
 
-      print('_getPaymentStatus - User: $userId, Month: $month, Record found: ${monthlyDues != null}');
+      print(
+          '_getPaymentStatus - User: $userId, Month: $month, Record found: ${monthlyDues != null}');
       if (monthlyDues != null) {
         print('_getPaymentStatus - Record details:');
         print('  - ID: ${monthlyDues.id}');
@@ -312,7 +331,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         print('  - Payment Date: ${monthlyDues.paymentDate}');
         print('  - Due For Month: ${monthlyDues.dueForMonth}');
         print('  - Notes: ${monthlyDues.notes}');
-        print('  - Is Paid (paymentDate != null): ${monthlyDues.paymentDate != null}');
+        print(
+            '  - Is Paid (paymentDate != null): ${monthlyDues.paymentDate != null}');
       }
 
       Map<String, dynamic>? result;
@@ -339,7 +359,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
           } else {
             final joinedDate = DateTime.parse(joinedDateString);
             final monthStart = DateTime(monthDate.year, monthDate.month);
-            final joinedMonthStart = DateTime(joinedDate.year, joinedDate.month);
+            final joinedMonthStart =
+                DateTime(joinedDate.year, joinedDate.month);
 
             // If user joined after this month, not applicable
             if (monthStart.isBefore(joinedMonthStart)) {
@@ -378,12 +399,14 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       // Cache the result with timestamp
       _paymentStatusCache[cacheKey] = result;
       _cacheTimestamps[cacheKey] = DateTime.now();
-      print('_getPaymentStatus - Cached result for $cacheKey at ${DateTime.now()}');
+      print(
+          '_getPaymentStatus - Cached result for $cacheKey at ${DateTime.now()}');
       return result;
     } catch (e) {
       // Handle 404 errors gracefully - user might not exist
       if (e.toString().contains('404') || e.toString().contains('not found')) {
-        print('User $userId not found or inactive - skipping payment status check');
+        print(
+            'User $userId not found or inactive - skipping payment status check');
         return {
           'status': null,
           'amount': 0,
@@ -415,7 +438,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   }
 
   // New method to bulk update payments for a user
-  Future<void> _bulkUpdatePayments(String userId, List<String> months, bool status) async {
+  Future<void> _bulkUpdatePayments(
+      String userId, List<String> months, bool status) async {
     setState(() {
       _isBulkUpdating = true;
     });
@@ -547,8 +571,10 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   }
 
   // Helper method to get profile image download URL for PocketBase
-  Future<String?> _getProfileImageUrl(String userId, String? profileImageFileName) async {
-    if (profileImageFileName == null || profileImageFileName.isEmpty) return null;
+  Future<String?> _getProfileImageUrl(
+      String userId, String? profileImageFileName) async {
+    if (profileImageFileName == null || profileImageFileName.isEmpty)
+      return null;
 
     try {
       // If it's already a full URL, return it
@@ -557,7 +583,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       }
 
       // Otherwise, construct the PocketBase file URL
-      final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+      final pocketbaseUrl =
+          FlavorConfig.instance.variables['pocketbaseUrl'] as String;
       return '$pocketbaseUrl/api/files/users/$userId/$profileImageFileName';
     } catch (e) {
       print('Error getting profile image URL: $e');
@@ -584,7 +611,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
             onPressed: () async {
               // Debug the first user for the current month
               if (_users.isNotEmpty) {
-                await _debugPaymentStatus(_users.first['id'] as String, _selectedMonth);
+                await _debugPaymentStatus(
+                    _users.first['id'] as String, _selectedMonth);
               }
             },
             tooltip: 'Debug Payment Status',
@@ -595,7 +623,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
             onPressed: () async {
               // Force cleanup for the first user
               if (_users.isNotEmpty) {
-                await _forceCleanupUserMonth(_users.first['id'] as String, _selectedMonth);
+                await _forceCleanupUserMonth(
+                    _users.first['id'] as String, _selectedMonth);
               }
             },
             tooltip: 'Force Cleanup Duplicates',
@@ -676,7 +705,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                   value: _selectedMonth,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                   items: _availableMonths.map((month) {
                     final date = DateFormat('yyyy_MM').parse(month);
@@ -812,7 +842,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                   child: FutureBuilder<Map<String, int>>(
                     future: _getOverviewStats(),
                     builder: (context, snapshot) {
-                      final stats = snapshot.data ?? {'totalPaid': 0, 'totalUnpaid': 0};
+                      final stats =
+                          snapshot.data ?? {'totalPaid': 0, 'totalUnpaid': 0};
                       return _buildSummaryItem(
                         'Paid',
                         stats['totalPaid'].toString(),
@@ -826,7 +857,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                   child: FutureBuilder<Map<String, int>>(
                     future: _getOverviewStats(),
                     builder: (context, snapshot) {
-                      final stats = snapshot.data ?? {'totalPaid': 0, 'totalUnpaid': 0};
+                      final stats =
+                          snapshot.data ?? {'totalPaid': 0, 'totalUnpaid': 0};
                       return _buildSummaryItem(
                         'Unpaid',
                         stats['totalUnpaid'].toString(),
@@ -993,7 +1025,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
         // Only count months up to current month (not future months)
         if (date.isBefore(DateTime(now.year, now.month + 1))) {
-          final paymentData = await _getPaymentStatus(user['id'] as String, month);
+          final paymentData =
+              await _getPaymentStatus(user['id'] as String, month);
           if ((paymentData?['status'] as bool?) == true) {
             totalPaid++;
           } else {
@@ -1024,7 +1057,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
     return count;
   }
 
-  Widget _buildSummaryItem(String title, String value, IconData icon, Color color) {
+  Widget _buildSummaryItem(
+      String title, String value, IconData icon, Color color) {
     return Column(
       children: [
         Icon(icon, color: color, size: 28),
@@ -1062,13 +1096,16 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                   radius: 18,
                   backgroundColor: Theme.of(context).primaryColor,
                   child: FutureBuilder<String?>(
-                    future: _getProfileImageUrl(user['id'] as String, user['profileImage'] as String?),
+                    future: _getProfileImageUrl(
+                        user['id'] as String, user['profileImage'] as String?),
                     builder: (context, snapshot) {
                       final profileImageUrl = snapshot.data;
                       return profileImageUrl == null
                           ? Text(
-                              ((user['firstName'] as String?) ?? '')[0].toUpperCase(),
-                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                              ((user['firstName'] as String?) ?? '')[0]
+                                  .toUpperCase(),
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 16),
                             )
                           : ClipOval(
                               child: Image.network(
@@ -1078,8 +1115,10 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Text(
-                                    ((user['firstName'] as String?) ?? '')[0].toUpperCase(),
-                                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                                    ((user['firstName'] as String?) ?? '')[0]
+                                        .toUpperCase(),
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 16),
                                   );
                                 },
                               ),
@@ -1110,7 +1149,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                   ),
                 ),
                 FutureBuilder<Map<String, dynamic>?>(
-                  future: _getPaymentStatus(user['id'] as String, _selectedMonth),
+                  future:
+                      _getPaymentStatus(user['id'] as String, _selectedMonth),
                   builder: (context, snapshot) {
                     final paymentData = snapshot.data;
                     final status = paymentData?['status'] as bool?;
@@ -1118,13 +1158,18 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                     return Column(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: status == null ? Colors.grey : (status == true ? Colors.green : Colors.red),
+                            color: status == null
+                                ? Colors.grey
+                                : (status == true ? Colors.green : Colors.red),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            status == null ? 'N/A' : (status == true ? 'PAID' : 'UNPAID'),
+                            status == null
+                                ? 'N/A'
+                                : (status == true ? 'PAID' : 'UNPAID'),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 9,
@@ -1141,7 +1186,11 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: status == null ? Colors.grey : (status == true ? Colors.green : Colors.red),
+                                color: status == null
+                                    ? Colors.grey
+                                    : (status == true
+                                        ? Colors.green
+                                        : Colors.red),
                               ),
                             ),
                             const SizedBox(width: 4),
@@ -1170,10 +1219,12 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                     });
                   },
                   icon: const Icon(Icons.update, size: 16),
-                  label: const Text('Bulk Update', style: TextStyle(fontSize: 12)),
+                  label:
+                      const Text('Bulk Update', style: TextStyle(fontSize: 12)),
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.blue,
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
@@ -1189,7 +1240,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
     var count = 0;
 
     for (final user in _users) {
-      final paymentData = await _getPaymentStatus(user['id'] as String, _selectedMonth);
+      final paymentData =
+          await _getPaymentStatus(user['id'] as String, _selectedMonth);
       // Only count as paid if payment record exists and status is explicitly true
       if ((paymentData?['status'] as bool?) == true) {
         count++;
@@ -1202,7 +1254,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
     var count = 0;
 
     for (final user in _users) {
-      final paymentData = await _getPaymentStatus(user['id'] as String, _selectedMonth);
+      final paymentData =
+          await _getPaymentStatus(user['id'] as String, _selectedMonth);
       // Count as unpaid if status is explicitly false (member but no payment)
       // Don't count if status is null (not a member during this month)
       if ((paymentData?['status'] as bool?) == false) {
@@ -1262,18 +1315,22 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
                       return ListTile(
                         visualDensity: VisualDensity.compact,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 16),
                         leading: CircleAvatar(
                           radius: 16,
                           backgroundColor: Theme.of(context).primaryColor,
                           child: FutureBuilder<String?>(
-                            future: _getProfileImageUrl(user['id'] as String, user['profileImage'] as String?),
+                            future: _getProfileImageUrl(user['id'] as String,
+                                user['profileImage'] as String?),
                             builder: (context, snapshot) {
                               final profileImageUrl = snapshot.data;
                               return profileImageUrl == null
                                   ? Text(
-                                      ((user['firstName'] as String?) ?? '')[0].toUpperCase(),
-                                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                                      ((user['firstName'] as String?) ?? '')[0]
+                                          .toUpperCase(),
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 14),
                                     )
                                   : ClipOval(
                                       child: Image.network(
@@ -1281,10 +1338,15 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                         width: 32,
                                         height: 32,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
                                           return Text(
-                                            ((user['firstName'] as String?) ?? '')[0].toUpperCase(),
-                                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                                            ((user['firstName'] as String?) ??
+                                                    '')[0]
+                                                .toUpperCase(),
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 14),
                                           );
                                         },
                                       ),
@@ -1300,7 +1362,10 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                           'Member #${user['memberNumber'] ?? ''}',
                           style: const TextStyle(fontSize: 12),
                         ),
-                        trailing: isSelected ? const Icon(Icons.check_circle, color: Colors.green, size: 20) : null,
+                        trailing: isSelected
+                            ? const Icon(Icons.check_circle,
+                                color: Colors.green, size: 20)
+                            : null,
                         onTap: () {
                           setState(() {
                             _selectedUser = user;
@@ -1308,7 +1373,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                           });
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Selected: ${user['firstName']} ${user['lastName']}'),
+                              content: Text(
+                                  'Selected: ${user['firstName']} ${user['lastName']}'),
                               backgroundColor: Colors.green,
                             ),
                           );
@@ -1356,7 +1422,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                           setState(() {
                             _showBulkUpdateDialog = false;
                             _selectedMonthsForBulkUpdate.clear();
-                            _cachedMonthStatus.clear(); // Clear cache when dialog closes
+                            _cachedMonthStatus
+                                .clear(); // Clear cache when dialog closes
                           });
                         },
                         icon: const Icon(Icons.close),
@@ -1385,7 +1452,9 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                     builder: (context, setDialogState) {
                       if (_cachedMonthStatus.isEmpty && _selectedUser != null) {
                         // Load data only once when dialog opens
-                        _getUserAllMonthsWithStatus(_selectedUser!['id'] as String).then((monthStatus) {
+                        _getUserAllMonthsWithStatus(
+                                _selectedUser!['id'] as String)
+                            .then((monthStatus) {
                           setDialogState(() {
                             _cachedMonthStatus = monthStatus;
                           });
@@ -1416,21 +1485,25 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                               itemBuilder: (context, index) {
                                 final month = allMonths[index];
                                 final date = DateFormat('yyyy_MM').parse(month);
-                                final displayText = DateFormat('MMMM yyyy').format(date);
+                                final displayText =
+                                    DateFormat('MMMM yyyy').format(date);
                                 final status = _cachedMonthStatus[month];
-                                final isSelected = _selectedMonthsForBulkUpdate.contains(month);
+                                final isSelected = _selectedMonthsForBulkUpdate
+                                    .contains(month);
 
                                 return Theme(
                                   data: Theme.of(context).copyWith(
                                     listTileTheme: const ListTileThemeData(
                                       dense: true,
                                       minVerticalPadding: 0,
-                                      contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                                      contentPadding:
+                                          EdgeInsets.symmetric(horizontal: 16),
                                     ),
                                   ),
                                   child: CheckboxListTile(
                                     visualDensity: VisualDensity.compact,
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 16),
                                     title: Text(
                                       displayText,
                                       style: const TextStyle(
@@ -1441,14 +1514,20 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                     subtitle: Text(
                                       status == null
                                           ? 'Not Applicable'
-                                          : (status == true ? 'Paid' : (_isFutureMonth(month) ? 'Future' : 'Unpaid')),
+                                          : (status == true
+                                              ? 'Paid'
+                                              : (_isFutureMonth(month)
+                                                  ? 'Future'
+                                                  : 'Unpaid')),
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: status == null
                                             ? Colors.grey
                                             : (status == true
                                                 ? Colors.green
-                                                : (_isFutureMonth(month) ? Colors.blue : Colors.red)),
+                                                : (_isFutureMonth(month)
+                                                    ? Colors.blue
+                                                    : Colors.red)),
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -1456,14 +1535,18 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                     onChanged: status == null
                                         ? null
                                         : (value) {
-                                            print('Checkbox tapped for month: $month, value: $value');
+                                            print(
+                                                'Checkbox tapped for month: $month, value: $value');
                                             setDialogState(() {
                                               if (value == true) {
-                                                _selectedMonthsForBulkUpdate.add(month);
+                                                _selectedMonthsForBulkUpdate
+                                                    .add(month);
                                               } else {
-                                                _selectedMonthsForBulkUpdate.remove(month);
+                                                _selectedMonthsForBulkUpdate
+                                                    .remove(month);
                                               }
-                                              print('Selected months: $_selectedMonthsForBulkUpdate');
+                                              print(
+                                                  'Selected months: $_selectedMonthsForBulkUpdate');
                                             });
                                           },
                                     secondary: Icon(
@@ -1471,12 +1554,16 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                           ? Icons.remove
                                           : (status == true
                                               ? Icons.check_circle
-                                              : (_isFutureMonth(month) ? Icons.schedule : Icons.cancel)),
+                                              : (_isFutureMonth(month)
+                                                  ? Icons.schedule
+                                                  : Icons.cancel)),
                                       color: status == null
                                           ? Colors.grey
                                           : (status == true
                                               ? Colors.green
-                                              : (_isFutureMonth(month) ? Colors.blue : Colors.red)),
+                                              : (_isFutureMonth(month)
+                                                  ? Colors.blue
+                                                  : Colors.red)),
                                       size: 18,
                                     ),
                                   ),
@@ -1493,15 +1580,20 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                     onPressed: () {
                                       setDialogState(() {
                                         // Only select months that are applicable (not null status)
-                                        _selectedMonthsForBulkUpdate =
-                                            allMonths.where((month) => _cachedMonthStatus[month] != null).toList();
+                                        _selectedMonthsForBulkUpdate = allMonths
+                                            .where((month) =>
+                                                _cachedMonthStatus[month] !=
+                                                null)
+                                            .toList();
                                       });
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.blue,
                                       foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8),
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
                                     ),
                                     child: const Text(
                                       'Select All',
@@ -1520,8 +1612,10 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.grey,
                                       foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8),
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
                                     ),
                                     child: const Text(
                                       'Clear All',
@@ -1538,7 +1632,9 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                               children: [
                                 Expanded(
                                   child: ElevatedButton(
-                                    onPressed: _selectedMonthsForBulkUpdate.isEmpty || _isBulkUpdating
+                                    onPressed: _selectedMonthsForBulkUpdate
+                                                .isEmpty ||
+                                            _isBulkUpdating
                                         ? null
                                         : () async {
                                             await _bulkUpdatePayments(
@@ -1548,15 +1644,19 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                             );
                                             setState(() {
                                               _showBulkUpdateDialog = false;
-                                              _selectedMonthsForBulkUpdate.clear();
-                                              _cachedMonthStatus.clear(); // Clear cache after update
+                                              _selectedMonthsForBulkUpdate
+                                                  .clear();
+                                              _cachedMonthStatus
+                                                  .clear(); // Clear cache after update
                                             });
                                           },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.green,
                                       foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8),
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
                                     ),
                                     child: _isBulkUpdating
                                         ? const SizedBox(
@@ -1564,7 +1664,9 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                             height: 16,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2,
-                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                      Colors.white),
                                             ),
                                           )
                                         : const Text(
@@ -1576,7 +1678,9 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: ElevatedButton(
-                                    onPressed: _selectedMonthsForBulkUpdate.isEmpty || _isBulkUpdating
+                                    onPressed: _selectedMonthsForBulkUpdate
+                                                .isEmpty ||
+                                            _isBulkUpdating
                                         ? null
                                         : () async {
                                             await _bulkUpdatePayments(
@@ -1586,15 +1690,19 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                             );
                                             setState(() {
                                               _showBulkUpdateDialog = false;
-                                              _selectedMonthsForBulkUpdate.clear();
-                                              _cachedMonthStatus.clear(); // Clear cache after update
+                                              _selectedMonthsForBulkUpdate
+                                                  .clear();
+                                              _cachedMonthStatus
+                                                  .clear(); // Clear cache after update
                                             });
                                           },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.orange,
                                       foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8),
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
                                     ),
                                     child: _isBulkUpdating
                                         ? const SizedBox(
@@ -1602,7 +1710,9 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                             height: 16,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2,
-                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                      Colors.white),
                                             ),
                                           )
                                         : const Text(
@@ -1637,7 +1747,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
         // Only count future months that have been paid
         if (date.isAfter(DateTime(now.year, now.month))) {
-          final paymentData = await _getPaymentStatus(user['id'] as String, month);
+          final paymentData =
+              await _getPaymentStatus(user['id'] as String, month);
           if ((paymentData?['status'] as bool?) == true) {
             count++;
           }

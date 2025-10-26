@@ -47,7 +47,8 @@ class CrashlyticsTestButton extends StatelessWidget {
                     await CrashlyticsHelper.log('Test log message from button');
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Test log sent to Crashlytics')),
+                        const SnackBar(
+                            content: Text('Test log sent to Crashlytics')),
                       );
                     }
                   },
@@ -62,7 +63,8 @@ class CrashlyticsTestButton extends StatelessWidget {
                     );
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Test error sent to Crashlytics')),
+                        const SnackBar(
+                            content: Text('Test error sent to Crashlytics')),
                       );
                     }
                   },
@@ -70,10 +72,12 @@ class CrashlyticsTestButton extends StatelessWidget {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    await CrashlyticsHelper.setCustomKey('test_key', 'test_value');
+                    await CrashlyticsHelper.setCustomKey(
+                        'test_key', 'test_value');
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Custom key set in Crashlytics')),
+                        const SnackBar(
+                            content: Text('Custom key set in Crashlytics')),
                       );
                     }
                   },
@@ -84,7 +88,8 @@ class CrashlyticsTestButton extends StatelessWidget {
                     await CrashlyticsHelper.setUserId('test_user_123');
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('User ID set in Crashlytics')),
+                        const SnackBar(
+                            content: Text('User ID set in Crashlytics')),
                       );
                     }
                   },

@@ -60,7 +60,8 @@ class CreateUserPage extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: (isDark ? colorScheme.secondary : Colors.green).withOpacity(0.3),
+                  color: (isDark ? colorScheme.secondary : Colors.green)
+                      .withOpacity(0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -71,7 +72,8 @@ class CreateUserPage extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(16.sp),
                   decoration: BoxDecoration(
-                    color: (isDark ? colorScheme.onSecondary : Colors.white).withOpacity(0.2),
+                    color: (isDark ? colorScheme.onSecondary : Colors.white)
+                        .withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12.sp),
                   ),
                   child: Icon(
@@ -95,7 +97,8 @@ class CreateUserPage extends StatelessWidget {
                   'Add a new member to the system with complete details',
                   style: TextStyle(
                     fontSize: 14.sp,
-                    color: (isDark ? colorScheme.onSecondary : Colors.white).withOpacity(0.9),
+                    color: (isDark ? colorScheme.onSecondary : Colors.white)
+                        .withOpacity(0.9),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -112,7 +115,9 @@ class CreateUserPage extends StatelessWidget {
               padding: EdgeInsets.all(16.sp),
               child: const CreateUserSection()
                   .animate()
-                  .fadeIn(delay: const Duration(milliseconds: 200), duration: const Duration(milliseconds: 600))
+                  .fadeIn(
+                      delay: const Duration(milliseconds: 200),
+                      duration: const Duration(milliseconds: 600))
                   .slideY(
                     begin: -0.2,
                     delay: const Duration(milliseconds: 200),
@@ -135,7 +140,8 @@ class CreateUserPage extends StatelessWidget {
         backgroundColor: isDark ? colorScheme.surface : Colors.white,
         title: Row(
           children: [
-            Icon(Icons.help_outline, color: isDark ? colorScheme.secondary : Colors.green),
+            Icon(Icons.help_outline,
+                color: isDark ? colorScheme.secondary : Colors.green),
             SizedBox(width: 8.sp),
             Text(
               'Create User Help',
@@ -153,28 +159,32 @@ class CreateUserPage extends StatelessWidget {
               context: context,
               icon: Icons.person,
               title: 'Personal Information',
-              description: "Fill in the user's basic personal details like name, email, and contact information.",
+              description:
+                  "Fill in the user's basic personal details like name, email, and contact information.",
             ),
             SizedBox(height: 12.sp),
             _buildHelpItem(
               context: context,
               icon: Icons.directions_car,
               title: 'Vehicle Information',
-              description: 'Add vehicle details including make, model, color, and license plate number.',
+              description:
+                  'Add vehicle details including make, model, color, and license plate number.',
             ),
             SizedBox(height: 12.sp),
             _buildHelpItem(
               context: context,
               icon: Icons.photo_camera,
               title: 'Profile & Vehicle Photos',
-              description: 'Upload profile picture and vehicle photos for identification purposes.',
+              description:
+                  'Upload profile picture and vehicle photos for identification purposes.',
             ),
             SizedBox(height: 12.sp),
             _buildHelpItem(
               context: context,
               icon: Icons.security,
               title: 'Account Settings',
-              description: 'Set user permissions, membership type, and account status.',
+              description:
+                  'Set user permissions, membership type, and account status.',
             ),
           ],
         ),
@@ -205,7 +215,8 @@ class CreateUserPage extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20.sp, color: isDark ? colorScheme.secondary : Colors.green),
+        Icon(icon,
+            size: 20.sp, color: isDark ? colorScheme.secondary : Colors.green),
         SizedBox(width: 12.sp),
         Expanded(
           child: Column(
@@ -223,7 +234,9 @@ class CreateUserPage extends StatelessWidget {
                 description,
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                  color: isDark
+                      ? colorScheme.onSurface.withOpacity(0.7)
+                      : Colors.grey[600],
                 ),
               ),
             ],

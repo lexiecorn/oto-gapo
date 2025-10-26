@@ -36,5 +36,6 @@ class AppVersionConfig with _$AppVersionConfig {
   }) = _AppVersionConfig;
 
   /// Creates an [AppVersionConfig] from JSON.
-  factory AppVersionConfig.fromJson(Map<String, dynamic> json) => _$AppVersionConfigFromJson(json);
+  factory AppVersionConfig.fromJson(Map<String, dynamic> json) =>
+      _$AppVersionConfigFromJson(json);
 }

@@ -109,4 +109,3 @@ class PaymentAnalytics {
   /// Check if analytics data is available
   bool get isEmpty => totalTransactions == 0;
 }
-

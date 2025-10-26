@@ -195,8 +195,10 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       final attendance = Attendance.fromRecord(record);
 
       // Update or add to list
-      final updatedAttendances =
-          state.attendances.where((a) => !(a.userId == userId && a.meetingId == meetingId)).toList()..add(attendance);
+      final updatedAttendances = state.attendances
+          .where((a) => !(a.userId == userId && a.meetingId == meetingId))
+          .toList()
+        ..add(attendance);
 
       emit(
         state.copyWith(
@@ -275,7 +277,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     try {
       await attendanceRepository.deleteAttendance(attendanceId);
 
-      final updatedAttendances = state.attendances.where((a) => a.id != attendanceId).toList();
+      final updatedAttendances =
+          state.attendances.where((a) => a.id != attendanceId).toList();
 
       emit(
         state.copyWith(

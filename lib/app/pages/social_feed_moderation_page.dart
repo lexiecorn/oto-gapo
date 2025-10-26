@@ -14,10 +14,12 @@ class SocialFeedModerationPage extends StatefulWidget {
   const SocialFeedModerationPage({super.key});
 
   @override
-  State<SocialFeedModerationPage> createState() => _SocialFeedModerationPageState();
+  State<SocialFeedModerationPage> createState() =>
+      _SocialFeedModerationPageState();
 }
 
-class _SocialFeedModerationPageState extends State<SocialFeedModerationPage> with SingleTickerProviderStateMixin {
+class _SocialFeedModerationPageState extends State<SocialFeedModerationPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late ModerationCubit _moderationCubit;
 
@@ -65,9 +67,16 @@ class _SocialFeedModerationPageState extends State<SocialFeedModerationPage> wit
           centerTitle: true,
           bottom: TabBar(
             controller: _tabController,
-            labelColor: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.blue,
-            unselectedLabelColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey[600],
-            indicatorColor: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.blue,
+            labelColor: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.blue,
+            unselectedLabelColor:
+                Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey[400]
+                    : Colors.grey[600],
+            indicatorColor: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.blue,
             tabs: const [
               Tab(text: 'Reports', icon: Icon(Icons.flag)),
               Tab(text: 'Hidden', icon: Icon(Icons.visibility_off)),
@@ -161,7 +170,8 @@ class _SocialFeedModerationPageState extends State<SocialFeedModerationPage> wit
                       ),
 
                       // Report details
-                      if (report.reportDetails != null && report.reportDetails!.isNotEmpty) ...[
+                      if (report.reportDetails != null &&
+                          report.reportDetails!.isNotEmpty) ...[
                         SizedBox(height: 8.h),
                         Text(
                           'Details: ${report.reportDetails}',

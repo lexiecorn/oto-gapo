@@ -33,7 +33,8 @@ class SyncService {
   Box<CachedMeeting>? _meetingsBox;
   Box<CachedUserProfile>? _profilesBox;
 
-  final StreamController<SyncStatus> _syncStatusController = StreamController<SyncStatus>.broadcast();
+  final StreamController<SyncStatus> _syncStatusController =
+      StreamController<SyncStatus>.broadcast();
   StreamSubscription<ConnectivityStatus>? _connectivitySubscription;
 
   bool _isSyncing = false;
@@ -60,7 +61,8 @@ class SyncService {
     _profilesBox = await Hive.openBox<CachedUserProfile>('cached_profiles');
 
     // Listen to connectivity changes
-    _connectivitySubscription = _connectivityService.connectivityStream.listen(_onConnectivityChanged);
+    _connectivitySubscription =
+        _connectivityService.connectivityStream.listen(_onConnectivityChanged);
 
     // Sync if already online
     if (_connectivityService.isOnline && pendingActionsCount > 0) {
@@ -89,7 +91,8 @@ class SyncService {
     await _actionsBox?.add(action);
     _updateStatus(SyncStatus.pending);
 
-    print('SyncService - Action queued: ${action.type}, pending: $pendingActionsCount');
+    print(
+        'SyncService - Action queued: ${action.type}, pending: $pendingActionsCount');
 
     // Try to sync immediately if online
     if (_connectivityService.isOnline) {
@@ -131,10 +134,12 @@ class SyncService {
         action.error = e.toString();
         await action.save();
 
-        print('SyncService - Action sync failed (attempt ${action.attempts}): ${action.type}, error: $e');
+        print(
+            'SyncService - Action sync failed (attempt ${action.attempts}): ${action.type}, error: $e');
 
         if (action.hasFailed) {
-          print('SyncService - Action permanently failed after ${action.attempts} attempts: ${action.type}');
+          print(
+              'SyncService - Action permanently failed after ${action.attempts} attempts: ${action.type}');
           // Remove failed action
           successfulActions.add(i);
         }
@@ -153,7 +158,8 @@ class SyncService {
       print('SyncService - All actions synced successfully');
     } else {
       _updateStatus(SyncStatus.pending);
-      print('SyncService - Sync complete, $pendingActionsCount actions remaining');
+      print(
+          'SyncService - Sync complete, $pendingActionsCount actions remaining');
     }
   }
 

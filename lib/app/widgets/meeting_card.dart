@@ -53,13 +53,17 @@ class MeetingCard extends StatelessWidget {
                   Icon(
                     Icons.category_outlined,
                     size: 16.sp,
-                    color: theme.brightness == Brightness.light ? Colors.blue.shade700 : Colors.blue.shade300,
+                    color: theme.brightness == Brightness.light
+                        ? Colors.blue.shade700
+                        : Colors.blue.shade300,
                   ),
                   SizedBox(width: 4.w),
                   Text(
                     meeting.meetingTypeDisplay,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.brightness == Brightness.light ? Colors.blue.shade700 : Colors.blue.shade300,
+                      color: theme.brightness == Brightness.light
+                          ? Colors.blue.shade700
+                          : Colors.blue.shade300,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -130,9 +134,12 @@ class MeetingCard extends StatelessWidget {
               if (meeting.isQRCodeValid) ...[
                 SizedBox(height: 12.h),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: theme.brightness == Brightness.dark ? 0.2 : 0.15),
+                    color: Colors.green.withValues(
+                        alpha:
+                            theme.brightness == Brightness.dark ? 0.2 : 0.15),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Row(
@@ -141,13 +148,17 @@ class MeetingCard extends StatelessWidget {
                       Icon(
                         Icons.qr_code,
                         size: 16.sp,
-                        color: theme.brightness == Brightness.dark ? Colors.green.shade300 : Colors.green.shade700,
+                        color: theme.brightness == Brightness.dark
+                            ? Colors.green.shade300
+                            : Colors.green.shade700,
                       ),
                       SizedBox(width: 4.w),
                       Text(
                         'QR Code Active',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.brightness == Brightness.dark ? Colors.green.shade300 : Colors.green.shade800,
+                          color: theme.brightness == Brightness.dark
+                              ? Colors.green.shade300
+                              : Colors.green.shade800,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

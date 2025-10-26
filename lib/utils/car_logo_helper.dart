@@ -71,8 +71,10 @@ class CarLogoHelper {
     }
 
     // Remove special characters and replace spaces with hyphens
-    normalized =
-        normalized.replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(RegExp(r'\s+'), '-').replaceAll(RegExp(r'-+'), '-');
+    normalized = normalized
+        .replaceAll(RegExp(r'[^\w\s-]'), '')
+        .replaceAll(RegExp(r'\s+'), '-')
+        .replaceAll(RegExp(r'-+'), '-');
 
     return normalized;
   }

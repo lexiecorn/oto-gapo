@@ -68,7 +68,8 @@ void main() {
     });
 
     group('Empty State', () {
-      testWidgets('displays "No Vehicle" when vehicles list is empty', (tester) async {
+      testWidgets('displays "No Vehicle" when vehicles list is empty',
+          (tester) async {
         // Arrange
         final state = createEmptyProfileState();
 
@@ -96,7 +97,8 @@ void main() {
             (widget) =>
                 widget is Image &&
                 widget.image is AssetImage &&
-                (widget.image as AssetImage).assetName == 'assets/images/vios.jpg',
+                (widget.image as AssetImage).assetName ==
+                    'assets/images/vios.jpg',
           ),
           findsAtLeastNWidgets(1),
         );
@@ -104,7 +106,8 @@ void main() {
     });
 
     group('Image Handling', () {
-      testWidgets('shows default image when primaryPhoto is null', (tester) async {
+      testWidgets('shows default image when primaryPhoto is null',
+          (tester) async {
         // Arrange - Vehicle with no primaryPhoto
         final state = createProfileStateWithVehicle(
           primaryPhoto: null,
@@ -119,13 +122,15 @@ void main() {
             (widget) =>
                 widget is Image &&
                 widget.image is AssetImage &&
-                (widget.image as AssetImage).assetName == 'assets/images/vios.jpg',
+                (widget.image as AssetImage).assetName ==
+                    'assets/images/vios.jpg',
           ),
           findsAtLeastNWidgets(1),
         );
       });
 
-      testWidgets('shows default image when primaryPhoto is empty', (tester) async {
+      testWidgets('shows default image when primaryPhoto is empty',
+          (tester) async {
         // Arrange - Vehicle with empty primaryPhoto
         final state = createProfileStateWithVehicle(
           primaryPhoto: '',
@@ -140,13 +145,15 @@ void main() {
             (widget) =>
                 widget is Image &&
                 widget.image is AssetImage &&
-                (widget.image as AssetImage).assetName == 'assets/images/vios.jpg',
+                (widget.image as AssetImage).assetName ==
+                    'assets/images/vios.jpg',
           ),
           findsAtLeastNWidgets(1),
         );
       });
 
-      testWidgets('displays photo grid when photos list has items', (tester) async {
+      testWidgets('displays photo grid when photos list has items',
+          (tester) async {
         // Arrange - Vehicle with multiple photos
         final state = createProfileStateWithVehicle(
           photos: [
@@ -163,7 +170,8 @@ void main() {
         expect(find.byType(GridView), findsOneWidget);
       });
 
-      testWidgets('shows default image when photos list is empty', (tester) async {
+      testWidgets('shows default image when photos list is empty',
+          (tester) async {
         // Arrange - Vehicle with empty photos list
         final state = createProfileStateWithVehicle(
           photos: [],
@@ -178,7 +186,8 @@ void main() {
             (widget) =>
                 widget is Image &&
                 widget.image is AssetImage &&
-                (widget.image as AssetImage).assetName == 'assets/images/vios.jpg',
+                (widget.image as AssetImage).assetName ==
+                    'assets/images/vios.jpg',
           ),
           findsAtLeastNWidgets(1),
         );
@@ -200,7 +209,8 @@ void main() {
         // Assert - GridView should only have 2 items (empty URL filtered)
         final gridView = tester.widget<GridView>(find.byType(GridView));
         expect(
-          (gridView.childrenDelegate as SliverChildBuilderDelegate).estimatedChildCount,
+          (gridView.childrenDelegate as SliverChildBuilderDelegate)
+              .estimatedChildCount,
           equals(2),
         );
       });
@@ -257,7 +267,8 @@ void main() {
         expect(find.text('Toyota Vios'), findsOneWidget);
       });
 
-      testWidgets('widget disposes animation controllers properly', (tester) async {
+      testWidgets('widget disposes animation controllers properly',
+          (tester) async {
         // Arrange
         final state = createProfileStateWithVehicle();
 
@@ -290,7 +301,8 @@ void main() {
       testWidgets('displays content after futures resolve', (tester) async {
         // Arrange - Use null/empty URLs to avoid loading states with shimmer
         final state = createProfileStateWithVehicle(
-          primaryPhoto: null, // Will use default asset image (no network loading)
+          primaryPhoto:
+              null, // Will use default asset image (no network loading)
           photos: [], // Empty list shows default asset (no GridView loading)
         );
 
@@ -338,7 +350,8 @@ void main() {
         expect(find.text('Year: 2023'), findsOneWidget);
       });
 
-      testWidgets('uses helper factories for cleaner test setup', (tester) async {
+      testWidgets('uses helper factories for cleaner test setup',
+          (tester) async {
         // Arrange - Using factory helpers
         final state = createProfileStateWithVehicle(
           make: 'Ford',
@@ -356,7 +369,8 @@ void main() {
     });
 
     group('Mock Strategy B - Cubit Mocks', () {
-      testWidgets('works with MockProfileCubit using bloc_test', (tester) async {
+      testWidgets('works with MockProfileCubit using bloc_test',
+          (tester) async {
         // Arrange - Strategy B: Mock cubit with whenListen
         final state = createProfileStateWithVehicle(
           make: 'Nissan',

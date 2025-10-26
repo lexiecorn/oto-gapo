@@ -70,8 +70,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '833031029708',
     projectId: 'otogapo-prod',
     storageBucket: 'otogapo-prod.firebasestorage.app',
-    androidClientId: '833031029708-1molrj379ev9n68ej77lr6qt57moii2g.apps.googleusercontent.com',
-    iosClientId: '833031029708-cnltns25hb8r86hpmsuhte10lkc5f3qi.apps.googleusercontent.com',
+    androidClientId:
+        '833031029708-1molrj379ev9n68ej77lr6qt57moii2g.apps.googleusercontent.com',
+    iosClientId:
+        '833031029708-cnltns25hb8r86hpmsuhte10lkc5f3qi.apps.googleusercontent.com',
     iosBundleId: 'com.digitappstudio.otogapo',
   );
 }

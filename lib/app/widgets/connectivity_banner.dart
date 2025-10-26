@@ -32,7 +32,9 @@ class ConnectivityBanner extends StatelessWidget {
             color: _getBackgroundColor(state),
             elevation: 4,
             child: InkWell(
-              onTap: state.isOffline ? null : () => context.read<ConnectivityCubit>().triggerSync(),
+              onTap: state.isOffline
+                  ? null
+                  : () => context.read<ConnectivityCubit>().triggerSync(),
               child: Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: 16.w,
@@ -72,7 +74,8 @@ class ConnectivityBanner extends StatelessWidget {
                         height: 20.h,
                         child: const CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       ),
                     ] else if (state.hasPendingActions && state.isOnline) ...[

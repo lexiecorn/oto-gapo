@@ -119,7 +119,8 @@ class Attendance {
       meetingDate: parseDate(record.data['meetingDate'] as String),
       status: AttendanceStatus.fromString(record.data['status'] as String),
       checkInTime: parseOptionalDate(record.data['checkInTime']),
-      checkInMethod: CheckInMethod.fromString(record.data['checkInMethod'] as String?),
+      checkInMethod:
+          CheckInMethod.fromString(record.data['checkInMethod'] as String?),
       markedBy: record.data['markedBy'] as String?,
       notes: record.data['notes'] as String?,
       created: DateTime.parse(record.created),

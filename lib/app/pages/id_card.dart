@@ -121,7 +121,8 @@ class _IdCardState extends State<IdCard> with TickerProviderStateMixin {
       onEnter: (_) => _onHover(true),
       onExit: (_) => _onHover(false),
       child: AnimatedBuilder(
-        animation: Listenable.merge([_cardAnimationController, _hoverAnimationController]),
+        animation: Listenable.merge(
+            [_cardAnimationController, _hoverAnimationController]),
         builder: (context, child) {
           final hoverScale = 1.0 + (_hoverAnimationController.value * 0.02);
           final currentScale = _scaleAnimation.value * hoverScale;
@@ -138,7 +139,9 @@ class _IdCardState extends State<IdCard> with TickerProviderStateMixin {
                     side: const BorderSide(color: Colors.white, width: 3),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  elevation: 10 + (_shadowAnimation.value * 5) + (_hoverAnimationController.value * 3),
+                  elevation: 10 +
+                      (_shadowAnimation.value * 5) +
+                      (_hoverAnimationController.value * 3),
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
@@ -152,9 +155,11 @@ class _IdCardState extends State<IdCard> with TickerProviderStateMixin {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1 + (_shadowAnimation.value * 0.2)),
+                          color: Colors.black.withOpacity(
+                              0.1 + (_shadowAnimation.value * 0.2)),
                           blurRadius: 8 + (_hoverAnimationController.value * 4),
-                          offset: Offset(0, 4 + (_hoverAnimationController.value * 2)),
+                          offset: Offset(
+                              0, 4 + (_hoverAnimationController.value * 2)),
                         ),
                       ],
                     ),
@@ -184,7 +189,10 @@ class _IdCardState extends State<IdCard> with TickerProviderStateMixin {
                               )
                                   .animate()
                                   .fadeIn(delay: 600.ms, duration: 800.ms)
-                                  .scale(delay: 700.ms, duration: 600.ms, curve: Curves.easeOutBack),
+                                  .scale(
+                                      delay: 700.ms,
+                                      duration: 600.ms,
+                                      curve: Curves.easeOutBack),
                               const SizedBox(height: 10),
                               Container(
                                 alignment: Alignment.center,
@@ -196,7 +204,10 @@ class _IdCardState extends State<IdCard> with TickerProviderStateMixin {
                                     fontWeight: FontWeight.w900,
                                   ),
                                 ),
-                              ).animate().fadeIn(delay: 800.ms, duration: 600.ms).slideY(begin: 0.3, duration: 600.ms),
+                              )
+                                  .animate()
+                                  .fadeIn(delay: 800.ms, duration: 600.ms)
+                                  .slideY(begin: 0.3, duration: 600.ms),
                             ],
                           ),
                         ),
@@ -212,7 +223,10 @@ class _IdCardState extends State<IdCard> with TickerProviderStateMixin {
                                   fontSize: 18.sp,
                                   fontWeight: FontWeight.w900,
                                 ),
-                              ).animate().fadeIn(delay: 900.ms, duration: 600.ms).slideX(begin: 0.3, duration: 600.ms),
+                              )
+                                  .animate()
+                                  .fadeIn(delay: 900.ms, duration: 600.ms)
+                                  .slideX(begin: 0.3, duration: 600.ms),
                               const SizedBox(height: 10),
                               Text(
                                 'License #: ${widget.licenseNum}',
@@ -220,28 +234,40 @@ class _IdCardState extends State<IdCard> with TickerProviderStateMixin {
                                   color: Colors.white,
                                   fontSize: 11.sp,
                                 ),
-                              ).animate().fadeIn(delay: 1000.ms, duration: 600.ms).slideX(begin: 0.3, duration: 600.ms),
+                              )
+                                  .animate()
+                                  .fadeIn(delay: 1000.ms, duration: 600.ms)
+                                  .slideX(begin: 0.3, duration: 600.ms),
                               Text(
                                 'DOB: ${widget.dob}',
                                 style: OpstechTextTheme.regular.copyWith(
                                   color: Colors.white,
                                   fontSize: 11.sp,
                                 ),
-                              ).animate().fadeIn(delay: 1100.ms, duration: 600.ms).slideX(begin: 0.3, duration: 600.ms),
+                              )
+                                  .animate()
+                                  .fadeIn(delay: 1100.ms, duration: 600.ms)
+                                  .slideX(begin: 0.3, duration: 600.ms),
                               Text(
                                 'ID Number: ${widget.idNumber}',
                                 style: OpstechTextTheme.regular.copyWith(
                                   color: Colors.white,
                                   fontSize: 11.sp,
                                 ),
-                              ).animate().fadeIn(delay: 1200.ms, duration: 600.ms).slideX(begin: 0.3, duration: 600.ms),
+                              )
+                                  .animate()
+                                  .fadeIn(delay: 1200.ms, duration: 600.ms)
+                                  .slideX(begin: 0.3, duration: 600.ms),
                               Text(
                                 'Joined: December 20, 2023',
                                 style: OpstechTextTheme.regular.copyWith(
                                   color: Colors.white,
                                   fontSize: 11.sp,
                                 ),
-                              ).animate().fadeIn(delay: 1300.ms, duration: 600.ms).slideX(begin: 0.3, duration: 600.ms),
+                              )
+                                  .animate()
+                                  .fadeIn(delay: 1300.ms, duration: 600.ms)
+                                  .slideX(begin: 0.3, duration: 600.ms),
                             ],
                           ),
                         ),

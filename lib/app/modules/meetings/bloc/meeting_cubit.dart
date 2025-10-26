@@ -70,7 +70,8 @@ class MeetingCubit extends Cubit<MeetingState> {
   /// Load upcoming meetings
   Future<void> loadUpcomingMeetings() async {
     final today = DateTime.now().toIso8601String().split('T')[0];
-    final filter = 'meetingDate >= "$today" && (status = "scheduled" || status = "ongoing")';
+    final filter =
+        'meetingDate >= "$today" && (status = "scheduled" || status = "ongoing")';
     await loadMeetings(filter: filter);
   }
 
@@ -187,7 +188,9 @@ class MeetingCubit extends Cubit<MeetingState> {
         state.copyWith(
           status: MeetingStatus.success,
           meetings: updatedMeetings,
-          selectedMeeting: state.selectedMeeting?.id == meetingId ? meeting : state.selectedMeeting,
+          selectedMeeting: state.selectedMeeting?.id == meetingId
+              ? meeting
+              : state.selectedMeeting,
         ),
       );
     } on AttendanceFailure catch (e) {
@@ -224,7 +227,9 @@ class MeetingCubit extends Cubit<MeetingState> {
         state.copyWith(
           status: MeetingStatus.success,
           meetings: updatedMeetings,
-          selectedMeeting: state.selectedMeeting?.id == meetingId ? meeting : state.selectedMeeting,
+          selectedMeeting: state.selectedMeeting?.id == meetingId
+              ? meeting
+              : state.selectedMeeting,
         ),
       );
     } on AttendanceFailure catch (e) {
@@ -262,7 +267,8 @@ class MeetingCubit extends Cubit<MeetingState> {
     try {
       await attendanceRepository.deleteMeeting(meetingId);
 
-      final updatedMeetings = state.meetings.where((m) => m.id != meetingId).toList();
+      final updatedMeetings =
+          state.meetings.where((m) => m.id != meetingId).toList();
 
       emit(
         state.copyWith(

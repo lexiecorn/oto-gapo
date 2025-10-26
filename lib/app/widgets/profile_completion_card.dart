@@ -65,7 +65,8 @@ class ProfileCompletionCard extends StatelessWidget {
                         size: 24.sp,
                       )
                           .animate(
-                            onPlay: (controller) => controller.repeat(reverse: true),
+                            onPlay: (controller) =>
+                                controller.repeat(reverse: true),
                           )
                           .scale(
                             duration: 1000.ms,

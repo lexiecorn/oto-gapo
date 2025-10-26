@@ -132,7 +132,8 @@ class Meeting {
         createdBy: record.data['createdBy'] as String,
         qrCodeToken: record.data['qrCodeToken'] as String?,
         qrCodeExpiry: parseOptionalDate(record.data['qrCodeExpiry']),
-        totalExpectedMembers: (record.data['totalExpectedMembers'] as num?)?.toInt(),
+        totalExpectedMembers:
+            (record.data['totalExpectedMembers'] as num?)?.toInt(),
         presentCount: (record.data['presentCount'] as num?)?.toInt() ?? 0,
         absentCount: (record.data['absentCount'] as num?)?.toInt() ?? 0,
         lateCount: (record.data['lateCount'] as num?)?.toInt() ?? 0,
@@ -182,7 +183,8 @@ class Meeting {
     return DateTime.now().isBefore(qrCodeExpiry!);
   }
 
-  int get totalAttendance => presentCount + lateCount + absentCount + excusedCount;
+  int get totalAttendance =>
+      presentCount + lateCount + absentCount + excusedCount;
 
   double get attendanceRate {
     if (totalExpectedMembers == null || totalExpectedMembers == 0) {
@@ -201,7 +203,9 @@ class Meeting {
   /// Check if meeting is today
   bool get isToday {
     final now = DateTime.now();
-    return meetingDate.year == now.year && meetingDate.month == now.month && meetingDate.day == now.day;
+    return meetingDate.year == now.year &&
+        meetingDate.month == now.month &&
+        meetingDate.day == now.day;
   }
 
   /// Get formatted date string

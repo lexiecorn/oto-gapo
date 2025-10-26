@@ -2,7 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart' as meeting_cubit;
+import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart'
+    as meeting_cubit;
 import 'package:otogapo/models/meeting.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -55,15 +56,19 @@ class MeetingQRCodePage extends StatelessWidget {
                   ),
                   SizedBox(height: 32.h),
                   ElevatedButton.icon(
-                    onPressed: state.status == meeting_cubit.MeetingStatus.submitting
-                        ? null
-                        : () {
-                            context.read<meeting_cubit.MeetingCubit>().generateQRCode(currentMeeting.id);
-                          },
+                    onPressed:
+                        state.status == meeting_cubit.MeetingStatus.submitting
+                            ? null
+                            : () {
+                                context
+                                    .read<meeting_cubit.MeetingCubit>()
+                                    .generateQRCode(currentMeeting.id);
+                              },
                     icon: const Icon(Icons.qr_code_2),
-                    label: state.status == meeting_cubit.MeetingStatus.submitting
-                        ? const Text('Generating...')
-                        : const Text('Generate QR Code'),
+                    label:
+                        state.status == meeting_cubit.MeetingStatus.submitting
+                            ? const Text('Generating...')
+                            : const Text('Generate QR Code'),
                   ),
                 ],
               ),
@@ -206,33 +211,38 @@ class MeetingQRCodePage extends StatelessWidget {
 
                 // Regenerate Button
                 OutlinedButton.icon(
-                  onPressed: state.status == meeting_cubit.MeetingStatus.submitting
-                      ? null
-                      : () {
-                          showDialog<bool>(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Regenerate QR Code?'),
-                              content: const Text(
-                                'This will create a new QR code and invalidate the current one.',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(false),
-                                  child: const Text('Cancel'),
+                  onPressed:
+                      state.status == meeting_cubit.MeetingStatus.submitting
+                          ? null
+                          : () {
+                              showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Regenerate QR Code?'),
+                                  content: const Text(
+                                    'This will create a new QR code and invalidate the current one.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
+                                      child: const Text('Regenerate'),
+                                    ),
+                                  ],
                                 ),
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(true),
-                                  child: const Text('Regenerate'),
-                                ),
-                              ],
-                            ),
-                          ).then((confirmed) {
-                            if (confirmed == true && context.mounted) {
-                              context.read<meeting_cubit.MeetingCubit>().generateQRCode(currentMeeting.id);
-                            }
-                          });
-                        },
+                              ).then((confirmed) {
+                                if (confirmed == true && context.mounted) {
+                                  context
+                                      .read<meeting_cubit.MeetingCubit>()
+                                      .generateQRCode(currentMeeting.id);
+                                }
+                              });
+                            },
                   icon: const Icon(Icons.refresh),
                   label: const Text('Regenerate QR Code'),
                 ),

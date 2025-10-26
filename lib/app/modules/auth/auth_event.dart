@@ -45,7 +45,8 @@ class SignUpRequestedEvent extends AuthEvent {
   final Map<String, dynamic>? additionalData;
 
   @override
-  List<Object?> get props => [email, password, firstName, lastName, additionalData];
+  List<Object?> get props =>
+      [email, password, firstName, lastName, additionalData];
 }
 
 class UpdatePhotoUrlEvent extends AuthEvent {

@@ -12,7 +12,8 @@ class UserAttendanceHistoryPage extends StatefulWidget {
   const UserAttendanceHistoryPage({super.key});
 
   @override
-  State<UserAttendanceHistoryPage> createState() => _UserAttendanceHistoryPageState();
+  State<UserAttendanceHistoryPage> createState() =>
+      _UserAttendanceHistoryPageState();
 }
 
 class _UserAttendanceHistoryPageState extends State<UserAttendanceHistoryPage> {
@@ -39,11 +40,14 @@ class _UserAttendanceHistoryPageState extends State<UserAttendanceHistoryPage> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent * 0.9) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.9) {
       final cubit = context.read<AttendanceCubit>();
       final user = context.read<ProfileCubit>().state.user;
 
-      if (cubit.state.hasMore && cubit.state.status != AttendanceStateStatus.loading && user != null) {
+      if (cubit.state.hasMore &&
+          cubit.state.status != AttendanceStateStatus.loading &&
+          user != null) {
         cubit.loadUserAttendance(
           user.uid,
           page: cubit.state.currentPage + 1,
@@ -90,7 +94,8 @@ class _UserAttendanceHistoryPageState extends State<UserAttendanceHistoryPage> {
   }
 
   Widget _buildAttendanceList(AttendanceState state, ThemeData theme) {
-    if (state.status == AttendanceStateStatus.loading && state.attendances.isEmpty) {
+    if (state.status == AttendanceStateStatus.loading &&
+        state.attendances.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -236,7 +241,8 @@ class _SummaryCard extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: _getAttendanceRateColor(summary.attendanceRate).withValues(alpha: 0.1),
+                color: _getAttendanceRateColor(summary.attendanceRate)
+                    .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Row(

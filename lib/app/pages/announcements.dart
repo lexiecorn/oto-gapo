@@ -14,7 +14,8 @@ class AnnouncementsWidget extends StatefulWidget {
   State<AnnouncementsWidget> createState() => _AnnouncementsWidgetState();
 }
 
-class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerProviderStateMixin {
+class _AnnouncementsWidgetState extends State<AnnouncementsWidget>
+    with TickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   List<Map<String, dynamic>> _announcements = [];
   bool _isLoading = true;
@@ -64,7 +65,9 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
     final authState = context.read<AuthBloc>().state;
 
     // Only fetch if user is authenticated and we haven't tried yet
-    if (authState.authStatus == AuthStatus.authenticated && authState.user != null && !_hasTriedFetching) {
+    if (authState.authStatus == AuthStatus.authenticated &&
+        authState.user != null &&
+        !_hasTriedFetching) {
       _hasTriedFetching = true;
       _fetchAnnouncements();
     }
@@ -84,7 +87,8 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
       final announcements = await pocketBaseService.getAnnouncements();
 
       if (announcements.isNotEmpty) {
-        _announcements = announcements.map((announcement) => announcement.data).toList();
+        _announcements =
+            announcements.map((announcement) => announcement.data).toList();
         // Sort by date (newest first)
         _announcements.sort((a, b) {
           final dateA = DateTime.parse(a['created'] as String);
@@ -142,13 +146,16 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
 
     // If user is not authenticated yet, show loading
     final authState = context.read<AuthBloc>().state;
-    if (authState.authStatus != AuthStatus.authenticated || authState.user == null) {
+    if (authState.authStatus != AuthStatus.authenticated ||
+        authState.user == null) {
       return Container(
         height: 200.sp,
         padding: EdgeInsets.all(16.sp),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16.sp),
-          color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).colorScheme.surface : Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Theme.of(context).colorScheme.surface
+              : Colors.white,
           border: Border.all(
             color: Theme.of(context).brightness == Brightness.dark
                 ? Theme.of(context).colorScheme.outline.withOpacity(0.2)
@@ -170,7 +177,9 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
           borderRadius: BorderRadius.circular(16.sp),
           color: isDark ? colorScheme.surface : Colors.white,
           border: Border.all(
-            color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade200,
+            color: isDark
+                ? colorScheme.outline.withOpacity(0.2)
+                : Colors.grey.shade200,
           ),
           boxShadow: [
             BoxShadow(
@@ -199,7 +208,9 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                 'Loading announcements...',
                 style: TextStyle(
                   fontSize: 14.sp,
-                  color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                  color: isDark
+                      ? colorScheme.onSurface.withOpacity(0.7)
+                      : Colors.grey[600],
                 ),
               ),
             ],
@@ -216,7 +227,9 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
           borderRadius: BorderRadius.circular(16.sp),
           color: isDark ? colorScheme.surface : Colors.white,
           border: Border.all(
-            color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade200,
+            color: isDark
+                ? colorScheme.outline.withOpacity(0.2)
+                : Colors.grey.shade200,
           ),
           boxShadow: [
             BoxShadow(
@@ -233,14 +246,18 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
               Icon(
                 Icons.announcement_outlined,
                 size: 32.sp,
-                color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[400],
+                color: isDark
+                    ? colorScheme.onSurface.withOpacity(0.5)
+                    : Colors.grey[400],
               ),
               SizedBox(height: 8.sp),
               Text(
                 _errorMessage,
                 style: TextStyle(
                   fontSize: 14.sp,
-                  color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                  color: isDark
+                      ? colorScheme.onSurface.withOpacity(0.7)
+                      : Colors.grey[600],
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -260,7 +277,9 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
             borderRadius: BorderRadius.circular(16.sp),
             color: isDark ? colorScheme.surface : Colors.white,
             border: Border.all(
-              color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade200,
+              color: isDark
+                  ? colorScheme.outline.withOpacity(0.2)
+                  : Colors.grey.shade200,
             ),
             boxShadow: [
               BoxShadow(
@@ -277,7 +296,9 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
               Container(
                 padding: EdgeInsets.all(16.sp),
                 decoration: BoxDecoration(
-                  color: isDark ? colorScheme.primary.withOpacity(0.1) : colorScheme.primary.withOpacity(0.05),
+                  color: isDark
+                      ? colorScheme.primary.withOpacity(0.1)
+                      : colorScheme.primary.withOpacity(0.05),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(16.sp),
                     topRight: Radius.circular(16.sp),
@@ -288,7 +309,8 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                     Container(
                       padding: EdgeInsets.all(8.sp),
                       decoration: BoxDecoration(
-                        color: isDark ? colorScheme.primary : colorScheme.primary,
+                        color:
+                            isDark ? colorScheme.primary : colorScheme.primary,
                         borderRadius: BorderRadius.circular(8.sp),
                       ),
                       child: Icon(
@@ -307,14 +329,18 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                             style: TextStyle(
                               fontSize: 18.sp,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? colorScheme.onSurface : Colors.black87,
+                              color: isDark
+                                  ? colorScheme.onSurface
+                                  : Colors.black87,
                             ),
                           ),
                           Text(
                             '${_announcements.length} announcement${_announcements.length != 1 ? 's' : ''}',
                             style: TextStyle(
                               fontSize: 12.sp,
-                              color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                              color: isDark
+                                  ? colorScheme.onSurface.withOpacity(0.7)
+                                  : Colors.grey[600],
                             ),
                           ),
                         ],
@@ -326,7 +352,9 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                         icon: Icon(
                           Icons.refresh_rounded,
                           size: 20.sp,
-                          color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                          color: isDark
+                              ? colorScheme.onSurface.withOpacity(0.7)
+                              : Colors.grey[600],
                         ),
                         tooltip: 'Refresh',
                       ),
@@ -344,7 +372,9 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                             Icon(
                               Icons.announcement_outlined,
                               size: 48.sp,
-                              color: isDark ? colorScheme.onSurface.withOpacity(0.3) : Colors.grey[300],
+                              color: isDark
+                                  ? colorScheme.onSurface.withOpacity(0.3)
+                                  : Colors.grey[300],
                             ),
                             SizedBox(height: 16.sp),
                             Text(
@@ -352,7 +382,9 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                               style: TextStyle(
                                 fontSize: 16.sp,
                                 fontWeight: FontWeight.w500,
-                                color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                                color: isDark
+                                    ? colorScheme.onSurface.withOpacity(0.5)
+                                    : Colors.grey[500],
                               ),
                             ),
                             SizedBox(height: 8.sp),
@@ -360,7 +392,9 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                               'Check back later for updates',
                               style: TextStyle(
                                 fontSize: 14.sp,
-                                color: isDark ? colorScheme.onSurface.withOpacity(0.4) : Colors.grey[400],
+                                color: isDark
+                                    ? colorScheme.onSurface.withOpacity(0.4)
+                                    : Colors.grey[400],
                               ),
                             ),
                           ],
@@ -421,7 +455,9 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
         borderRadius: BorderRadius.circular(12.sp),
         color: isDark ? colorScheme.surface : Colors.white,
         border: Border.all(
-          color: isDark ? colorScheme.outline.withOpacity(0.1) : Colors.grey.shade100,
+          color: isDark
+              ? colorScheme.outline.withOpacity(0.1)
+              : Colors.grey.shade100,
         ),
         boxShadow: [
           BoxShadow(
@@ -494,16 +530,20 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                               style: TextStyle(
                                 fontSize: 16.sp,
                                 fontWeight: FontWeight.w600,
-                                color: isDark ? colorScheme.onSurface : Colors.black87,
+                                color: isDark
+                                    ? colorScheme.onSurface
+                                    : Colors.black87,
                               ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8.sp, vertical: 4.sp),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8.sp, vertical: 4.sp),
                             decoration: BoxDecoration(
-                              color: _getTypeColor(type, isDark).withOpacity(0.1),
+                              color:
+                                  _getTypeColor(type, isDark).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12.sp),
                             ),
                             child: Text(
@@ -522,7 +562,9 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                         content,
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: isDark ? colorScheme.onSurface.withOpacity(0.8) : Colors.grey[700],
+                          color: isDark
+                              ? colorScheme.onSurface.withOpacity(0.8)
+                              : Colors.grey[700],
                           height: 1.4,
                         ),
                         maxLines: 3,
@@ -534,21 +576,30 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                           Icon(
                             Icons.schedule_rounded,
                             size: 14.sp,
-                            color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                            color: isDark
+                                ? colorScheme.onSurface.withOpacity(0.5)
+                                : Colors.grey[500],
                           ),
                           SizedBox(width: 4.sp),
                           Text(
-                            date != null ? DateFormat('MMM dd, yyyy • h:mm a').format(date) : 'No date',
+                            date != null
+                                ? DateFormat('MMM dd, yyyy • h:mm a')
+                                    .format(date)
+                                : 'No date',
                             style: TextStyle(
                               fontSize: 12.sp,
-                              color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                              color: isDark
+                                  ? colorScheme.onSurface.withOpacity(0.5)
+                                  : Colors.grey[500],
                             ),
                           ),
                           const Spacer(),
                           Icon(
                             Icons.arrow_forward_ios_rounded,
                             size: 12.sp,
-                            color: isDark ? colorScheme.onSurface.withOpacity(0.3) : Colors.grey[400],
+                            color: isDark
+                                ? colorScheme.onSurface.withOpacity(0.3)
+                                : Colors.grey[400],
                           ),
                         ],
                       ),
@@ -563,14 +614,17 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
     );
   }
 
-  void _showAnnouncementDetails(Map<String, dynamic> announcement, bool isDark, ColorScheme colorScheme) {
+  void _showAnnouncementDetails(
+      Map<String, dynamic> announcement, bool isDark, ColorScheme colorScheme) {
     final type = announcement['type'] as String? ?? 'general';
     final title = announcement['title'] as String? ?? 'No Title';
     final content = announcement['content'] as String? ?? 'No content';
     final dateString = announcement['created'] as String?;
     final date = dateString != null ? DateTime.parse(dateString) : null;
     final imageField = announcement['img'] as String?;
-    final imageUrl = imageField != null && imageField.isNotEmpty ? _buildImageUrl(announcement, '300x300t') : null;
+    final imageUrl = imageField != null && imageField.isNotEmpty
+        ? _buildImageUrl(announcement, '300x300t')
+        : null;
 
     showDialog<void>(
       context: context,
@@ -610,12 +664,14 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                           style: TextStyle(
                             fontSize: 20.sp,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? colorScheme.onSurface : Colors.black87,
+                            color:
+                                isDark ? colorScheme.onSurface : Colors.black87,
                           ),
                         ),
                         SizedBox(height: 4.sp),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10.sp, vertical: 4.sp),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 10.sp, vertical: 4.sp),
                           decoration: BoxDecoration(
                             color: _getTypeColor(type, isDark).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12.sp),
@@ -636,7 +692,9 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                     onPressed: () => Navigator.of(context).pop(),
                     icon: Icon(
                       Icons.close_rounded,
-                      color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                      color: isDark
+                          ? colorScheme.onSurface.withOpacity(0.7)
+                          : Colors.grey[600],
                     ),
                   ),
                 ],
@@ -678,7 +736,9 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                 content,
                 style: TextStyle(
                   fontSize: 16.sp,
-                  color: isDark ? colorScheme.onSurface.withOpacity(0.9) : Colors.grey[800],
+                  color: isDark
+                      ? colorScheme.onSurface.withOpacity(0.9)
+                      : Colors.grey[800],
                   height: 1.5,
                 ),
               ),
@@ -691,14 +751,21 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                   Icon(
                     Icons.schedule_rounded,
                     size: 16.sp,
-                    color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                    color: isDark
+                        ? colorScheme.onSurface.withOpacity(0.5)
+                        : Colors.grey[500],
                   ),
                   SizedBox(width: 8.sp),
                   Text(
-                    date != null ? DateFormat('EEEE, MMMM dd, yyyy • h:mm a').format(date) : 'No date available',
+                    date != null
+                        ? DateFormat('EEEE, MMMM dd, yyyy • h:mm a')
+                            .format(date)
+                        : 'No date available',
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600],
+                      color: isDark
+                          ? colorScheme.onSurface.withOpacity(0.6)
+                          : Colors.grey[600],
                     ),
                   ),
                 ],
@@ -712,7 +779,8 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> with TickerPr
                 child: ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark ? colorScheme.primary : colorScheme.primary,
+                    backgroundColor:
+                        isDark ? colorScheme.primary : colorScheme.primary,
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 16.sp),
                     shape: RoundedRectangleBorder(

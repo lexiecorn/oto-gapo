@@ -22,7 +22,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   // Controllers for create user form
   final TextEditingController _newEmailController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final TextEditingController _newFirstNameController = TextEditingController();
   final TextEditingController _newLastNameController = TextEditingController();
   bool _obscurePassword = true;
@@ -34,32 +35,43 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   String? _selectedBloodType;
   String? _selectedCivilStatus;
   final TextEditingController _civilStatusController = TextEditingController();
-  final TextEditingController _contactNumberController = TextEditingController();
+  final TextEditingController _contactNumberController =
+      TextEditingController();
   final TextEditingController _dateOfBirthController = TextEditingController();
   DateTime? _selectedDateOfBirth;
-  final TextEditingController _driversLicenseExpirationDateController = TextEditingController();
+  final TextEditingController _driversLicenseExpirationDateController =
+      TextEditingController();
   DateTime? _selectedLicenseExpirationDate;
-  final TextEditingController _driversLicenseNumberController = TextEditingController();
-  final TextEditingController _driversLicenseRestrictionCodeController = TextEditingController();
-  final TextEditingController _emergencyContactNameController = TextEditingController();
-  final TextEditingController _emergencyContactNumberController = TextEditingController();
+  final TextEditingController _driversLicenseNumberController =
+      TextEditingController();
+  final TextEditingController _driversLicenseRestrictionCodeController =
+      TextEditingController();
+  final TextEditingController _emergencyContactNameController =
+      TextEditingController();
+  final TextEditingController _emergencyContactNumberController =
+      TextEditingController();
   bool _isActive = true;
   bool _isAdmin = false;
   final TextEditingController _memberNumberController = TextEditingController();
-  final TextEditingController _membershipTypeController = TextEditingController();
+  final TextEditingController _membershipTypeController =
+      TextEditingController();
   String? _selectedMembershipType = '3'; // Default to Member
   final TextEditingController _middleNameController = TextEditingController();
   final TextEditingController _nationalityController = TextEditingController();
   final TextEditingController _profileImageController = TextEditingController();
   final TextEditingController _religionController = TextEditingController();
-  final TextEditingController _spouseContactNumberController = TextEditingController();
+  final TextEditingController _spouseContactNumberController =
+      TextEditingController();
   final TextEditingController _spouseNameController = TextEditingController();
   // Vehicle fields (flat)
   final TextEditingController _vehicleColorController = TextEditingController();
   final TextEditingController _vehicleModelController = TextEditingController();
-  final TextEditingController _vehiclePhotosController = TextEditingController();
-  final TextEditingController _vehiclePlateNumberController = TextEditingController();
-  final TextEditingController _vehiclePrimaryPhotoController = TextEditingController();
+  final TextEditingController _vehiclePhotosController =
+      TextEditingController();
+  final TextEditingController _vehiclePlateNumberController =
+      TextEditingController();
+  final TextEditingController _vehiclePrimaryPhotoController =
+      TextEditingController();
   final TextEditingController _vehicleTypeController = TextEditingController();
   String? _selectedVehicleType = 'Sedan'; // Default to Sedan
   int? _selectedVehicleYear;
@@ -115,19 +127,25 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.sp),
-        borderSide: BorderSide(color: isDark ? colorScheme.outline.withOpacity(0.5) : Colors.grey.shade300),
+        borderSide: BorderSide(
+            color: isDark
+                ? colorScheme.outline.withOpacity(0.5)
+                : Colors.grey.shade300),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.sp),
-        borderSide: BorderSide(color: isDark ? colorScheme.primary : Colors.blue, width: 2),
+        borderSide: BorderSide(
+            color: isDark ? colorScheme.primary : Colors.blue, width: 2),
       ),
       labelStyle: TextStyle(
         fontSize: 14.sp,
-        color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+        color:
+            isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
       ),
       hintStyle: TextStyle(
         fontSize: 13.sp,
-        color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[400],
+        color:
+            isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[400],
       ),
       contentPadding: EdgeInsets.symmetric(
         horizontal: 12.sp,
@@ -187,7 +205,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
   Future<void> _fetchVehicleMakes() async {
     try {
-      final response = await http.get(Uri.parse('https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json'));
+      final response = await http.get(Uri.parse(
+          'https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json'));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -301,8 +320,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   }
 
   Future<List<String>> fetchModelsForMake(String make) async {
-    final response =
-        await http.get(Uri.parse('https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/$make?format=json'));
+    final response = await http.get(Uri.parse(
+        'https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/$make?format=json'));
     final data = json.decode(response.body);
     final results = data['Results'] as List;
     return results.map((e) => e['Model_Name'].toString()).toList();
@@ -393,8 +412,10 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       if (bLower == searchText && aLower != searchText) return 1;
 
       // Starts with matches second
-      if (aLower.startsWith(searchText) && !bLower.startsWith(searchText)) return -1;
-      if (bLower.startsWith(searchText) && !aLower.startsWith(searchText)) return 1;
+      if (aLower.startsWith(searchText) && !bLower.startsWith(searchText))
+        return -1;
+      if (bLower.startsWith(searchText) && !aLower.startsWith(searchText))
+        return 1;
 
       // Alphabetical order for the rest
       return aLower.compareTo(bLower);
@@ -437,7 +458,10 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 setState(() {
                   _selectedVehicleColor = pickerColor;
                   // Update the hex text field
-                  final hexColor = pickerColor.value.toRadixString(16).substring(2).toUpperCase();
+                  final hexColor = pickerColor.value
+                      .toRadixString(16)
+                      .substring(2)
+                      .toUpperCase();
                   _vehicleColorController.text = hexColor;
                 });
                 Navigator.of(context).pop();
@@ -452,7 +476,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   String _generateRandomString(int length) {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     final random = Random();
-    return String.fromCharCodes(Iterable.generate(length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+    return String.fromCharCodes(Iterable.generate(
+        length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
   }
 
   Future<void> _pickAndUploadProfileImage() async {
@@ -628,7 +653,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   }
 
   // Upload car image to PocketBase
-  Future<String?> _uploadCarImageToStorage(String userId, String imageName) async {
+  Future<String?> _uploadCarImageToStorage(
+      String userId, String imageName) async {
     File? selectedImage;
 
     // Determine which image to upload based on imageName
@@ -693,13 +719,16 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     final dateOfBirth = _selectedDateOfBirth;
     final driversLicenseExpirationDate = _selectedLicenseExpirationDate;
     final driversLicenseNumber = _driversLicenseNumberController.text.trim();
-    final driversLicenseRestrictionCode = _driversLicenseRestrictionCodeController.text.trim();
+    final driversLicenseRestrictionCode =
+        _driversLicenseRestrictionCodeController.text.trim();
     final emergencyContactName = _emergencyContactNameController.text.trim();
-    final emergencyContactNumber = _emergencyContactNumberController.text.trim();
+    final emergencyContactNumber =
+        _emergencyContactNumberController.text.trim();
     final isActive = _isActive;
     final isAdmin = _isAdmin;
     final memberNumber = _memberNumberController.text.trim();
-    final membershipType = int.tryParse(_membershipTypeController.text.trim()) ?? 3;
+    final membershipType =
+        int.tryParse(_membershipTypeController.text.trim()) ?? 3;
     final middleName = _middleNameController.text.trim();
     final nationality = _nationalityController.text.trim();
     final profileImage = _profileImageController.text.trim();
@@ -708,19 +737,28 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     final spouseName = _spouseNameController.text.trim();
     // Vehicle fields
     final vehicleColor = _vehicleColorController.text.trim();
-    final vehicleModel =
-        _selectedVehicleModel == 'custom' ? _vehicleModelController.text.trim() : (_selectedVehicleModel ?? '');
-    final vehiclePhotos =
-        _vehiclePhotosController.text.trim().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+    final vehicleModel = _selectedVehicleModel == 'custom'
+        ? _vehicleModelController.text.trim()
+        : (_selectedVehicleModel ?? '');
+    final vehiclePhotos = _vehiclePhotosController.text
+        .trim()
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
     final vehiclePlateNumber = _vehiclePlateNumberController.text.trim();
     final vehiclePrimaryPhoto = _vehiclePrimaryPhotoController.text.trim();
     final vehicleType = _selectedVehicleType ?? 'Sedan';
     final vehicleYear = _selectedVehicleYear ?? 0;
     final vehicleMake = _selectedVehicleMake ?? '';
 
-    if (email.isEmpty || password.isEmpty || firstName.isEmpty || lastName.isEmpty) {
+    if (email.isEmpty ||
+        password.isEmpty ||
+        firstName.isEmpty ||
+        lastName.isEmpty) {
       setState(
-        () => _createUserMessage = 'Please fill in all required fields (email, password, first name, last name).',
+        () => _createUserMessage =
+            'Please fill in all required fields (email, password, first name, last name).',
       );
       return;
     }
@@ -728,7 +766,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     // Validate password requirements
     if (password.length < 8) {
       setState(
-        () => _createUserMessage = 'Password must be at least 8 characters long.',
+        () =>
+            _createUserMessage = 'Password must be at least 8 characters long.',
       );
       return;
     }
@@ -829,11 +868,13 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       print('Updating PocketBase user data with ID: $uid');
       final userData = {
         'age': age.isNotEmpty ? double.tryParse(age) : null,
-        'birthDate': dateOfBirth?.toIso8601String(), // Schema has birthDate as date field
+        'birthDate': dateOfBirth
+            ?.toIso8601String(), // Schema has birthDate as date field
         'bloodType': bloodType,
         'civilStatus': civilStatus,
         'contactNumber': contactNumber,
-        'driversLicenseExpirationDate': driversLicenseExpirationDate?.toIso8601String(),
+        'driversLicenseExpirationDate':
+            driversLicenseExpirationDate?.toIso8601String(),
         'driversLicenseNumber': driversLicenseNumber,
         'driversLicenseRestrictionCode': driversLicenseRestrictionCode,
         'email': email,
@@ -845,11 +886,13 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         'isActive': isActive,
         'isAdmin': isAdmin,
         'lastName': lastName,
-        'memberNumber': memberNumber.isNotEmpty ? double.tryParse(memberNumber) : null,
+        'memberNumber':
+            memberNumber.isNotEmpty ? double.tryParse(memberNumber) : null,
         'membership_type': membershipType,
         'middleName': middleName,
         'nationality': nationality,
-        'profileImage': profileImageUrl ?? profileImage, // Use uploaded image URL or fallback to text input
+        'profileImage': profileImageUrl ??
+            profileImage, // Use uploaded image URL or fallback to text input
         'religion': religion,
         'spouseContactNumber': spouseContactNumber,
         'spouseName': spouseName,
@@ -876,10 +919,12 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           color: vehicleColor.isNotEmpty ? vehicleColor : 'Unknown',
           make: vehicleMake.isNotEmpty ? vehicleMake : 'Unknown',
           model: vehicleModel.isNotEmpty ? vehicleModel : 'Unknown',
-          plateNumber: vehiclePlateNumber.isNotEmpty ? vehiclePlateNumber : 'PENDING',
+          plateNumber:
+              vehiclePlateNumber.isNotEmpty ? vehiclePlateNumber : 'PENDING',
           type: vehicleType,
           year: vehicleYear > 0 ? vehicleYear : DateTime.now().year,
-          primaryPhoto: mainCarImageUrl ?? (vehiclePrimaryPhoto.isNotEmpty ? vehiclePrimaryPhoto : null),
+          primaryPhoto: mainCarImageUrl ??
+              (vehiclePrimaryPhoto.isNotEmpty ? vehiclePrimaryPhoto : null),
           photos: vehiclePhotosUrls.isNotEmpty ? vehiclePhotosUrls : null,
         );
         vehicleId = vehicleRecord.id;
@@ -1077,15 +1122,18 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       print('Updating PocketBase test user data with ID: $uid');
       final userData = {
         'age': randomAge,
-        'birthplace': randomDateOfBirth.toIso8601String(), // Schema has birthplace as date field (birthdate)
+        'birthplace': randomDateOfBirth
+            .toIso8601String(), // Schema has birthplace as date field (birthdate)
         'bloodType': randomBloodType,
         'civilStatus': randomCivilStatus,
         'contactNumber': randomPhoneNumber,
-        'driversLicenseExpirationDate': randomLicenseExpiration.toIso8601String(),
+        'driversLicenseExpirationDate':
+            randomLicenseExpiration.toIso8601String(),
         'driversLicenseNumber': _generateRandomString(12),
         'driversLicenseRestrictionCode': (Random().nextInt(9) + 1).toString(),
         'email': randomEmail,
-        'emergencyContactName': '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}',
+        'emergencyContactName':
+            '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}',
         'emergencyContactNumber': _getRandomPhoneNumber(),
         'firstName': randomFirstName,
         'gender': Random().nextBool() ? 'Male' : 'Female',
@@ -1099,7 +1147,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         'nationality': 'Filipino',
         'profileImage': '',
         'religion': randomReligion,
-        'spouseContactNumber': randomCivilStatus == 'Married' ? _getRandomPhoneNumber() : '',
+        'spouseContactNumber':
+            randomCivilStatus == 'Married' ? _getRandomPhoneNumber() : '',
         'spouseName': randomCivilStatus == 'Married'
             ? '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}'
             : '',
@@ -1296,8 +1345,24 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     'Trece Martires',
   ];
 
-  final List<String> _testBloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-  final List<String> _testCivilStatus = ['Single', 'Married', 'Widowed', 'Separated', 'Divorced', 'Annulled'];
+  final List<String> _testBloodTypes = [
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'AB+',
+    'AB-',
+    'O+',
+    'O-'
+  ];
+  final List<String> _testCivilStatus = [
+    'Single',
+    'Married',
+    'Widowed',
+    'Separated',
+    'Divorced',
+    'Annulled'
+  ];
   final List<String> _testReligions = [
     'Catholic',
     'Protestant',
@@ -1354,11 +1419,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
               onPressed: () async {
                 if (_vehicleMakes.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Vehicle makes not loaded yet!')),
+                    const SnackBar(
+                        content: Text('Vehicle makes not loaded yet!')),
                   );
                   return;
                 }
-                final selectedMake = _vehicleMakes.contains('Toyota') ? 'Toyota' : _vehicleMakes.first;
+                final selectedMake = _vehicleMakes.contains('Toyota')
+                    ? 'Toyota'
+                    : _vehicleMakes.first;
                 await _onVehicleMakeChanged(selectedMake);
 
                 // Generate random data
@@ -1386,8 +1454,10 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   _middleNameController.text = randomMiddleName;
                   _newEmailController.text =
                       '${randomFirstName.toLowerCase()}.${randomLastName.toLowerCase()}${_generateRandomString(3)}@gmail.com';
-                  _newPasswordController.text = 'TestPass123!'; // Strong password (min 8 chars)
-                  _confirmPasswordController.text = 'TestPass123!'; // Match password
+                  _newPasswordController.text =
+                      'TestPass123!'; // Strong password (min 8 chars)
+                  _confirmPasswordController.text =
+                      'TestPass123!'; // Match password
 
                   // Age and Birth Info
                   _ageController.text = randomAge.toString();
@@ -1403,12 +1473,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   _selectedCivilStatus = randomCivilStatus;
 
                   // Contact Information (10 digits for Philippine mobile)
-                  _contactNumberController.text = randomPhoneNumber.substring(2); // Remove '09' prefix
+                  _contactNumberController.text =
+                      randomPhoneNumber.substring(2); // Remove '09' prefix
 
                   // Emergency Contact
                   _emergencyContactNameController.text =
                       '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}';
-                  _emergencyContactNumberController.text = _getRandomPhoneNumber().substring(2);
+                  _emergencyContactNumberController.text =
+                      _getRandomPhoneNumber().substring(2);
 
                   // Nationality and Religion
                   _nationalityController.text = 'Filipino';
@@ -1416,17 +1488,21 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
                   // Spouse Information (only if married)
                   _spouseContactNumberController.text =
-                      randomCivilStatus == 'Married' ? _getRandomPhoneNumber().substring(2) : '';
+                      randomCivilStatus == 'Married'
+                          ? _getRandomPhoneNumber().substring(2)
+                          : '';
                   _spouseNameController.text = randomCivilStatus == 'Married'
                       ? '${_getRandomItem(_testFirstNames)} ${_getRandomItem(_testLastNames)}'
                       : '';
 
                   // Driver's License
-                  _driversLicenseNumberController.text = _generateRandomString(12).toUpperCase();
+                  _driversLicenseNumberController.text =
+                      _generateRandomString(12).toUpperCase();
                   _selectedLicenseExpirationDate = randomLicenseExpiration;
                   _driversLicenseExpirationDateController.text =
                       '${randomLicenseExpiration.day}/${randomLicenseExpiration.month}/${randomLicenseExpiration.year}';
-                  _driversLicenseRestrictionCodeController.text = '${Random().nextInt(9) + 1}';
+                  _driversLicenseRestrictionCodeController.text =
+                      '${Random().nextInt(9) + 1}';
 
                   // Account & Membership
                   _isActive = true;
@@ -1439,11 +1515,15 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   _profileImageController.text = '';
 
                   // Vehicle Details
-                  _vehicleColorController.text = randomVehicleColor.toLowerCase();
+                  _vehicleColorController.text =
+                      randomVehicleColor.toLowerCase();
                   _selectedVehicleColor = _getColorFromName(randomVehicleColor);
                   _vehicleMakeController.text = selectedMake;
-                  _vehicleModelController.text = _vehicleModels.isNotEmpty ? _vehicleModels.first : 'Corolla';
-                  _selectedVehicleModel = _vehicleModels.isNotEmpty ? _vehicleModels.first : null;
+                  _vehicleModelController.text = _vehicleModels.isNotEmpty
+                      ? _vehicleModels.first
+                      : 'Corolla';
+                  _selectedVehicleModel =
+                      _vehicleModels.isNotEmpty ? _vehicleModels.first : null;
                   _vehiclePlateNumberController.text = randomPlateNumber;
                   _selectedVehicleType = randomVehicleType;
                   _vehicleTypeController.text = randomVehicleType;
@@ -1459,7 +1539,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
               onPressed: () async {
                 if (_vehicleMakes.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Vehicle makes not loaded yet!')),
+                    const SnackBar(
+                        content: Text('Vehicle makes not loaded yet!')),
                   );
                   return;
                 }
@@ -1500,7 +1581,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
                 if (shouldProceed != true) return;
 
-                final selectedMake = _vehicleMakes.contains('Toyota') ? 'Toyota' : _vehicleMakes.first;
+                final selectedMake = _vehicleMakes.contains('Toyota')
+                    ? 'Toyota'
+                    : _vehicleMakes.first;
                 await _onVehicleMakeChanged(selectedMake);
 
                 // Generate 10 test users
@@ -1551,7 +1634,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(true),
-                        style: TextButton.styleFrom(foregroundColor: Colors.red),
+                        style:
+                            TextButton.styleFrom(foregroundColor: Colors.red),
                         child: Text(
                           'Delete All',
                           style: TextStyle(fontSize: 14.sp),
@@ -1568,25 +1652,31 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
                   // Get all users with membership_type = 3
                   final pocketBaseUsers = await pocketBaseService.getAllUsers();
-                  final testUsers = pocketBaseUsers.where((user) => user.data['membership_type'] == 3).toList();
+                  final testUsers = pocketBaseUsers
+                      .where((user) => user.data['membership_type'] == 3)
+                      .toList();
 
                   var deletedCount = 0;
                   for (final user in testUsers) {
                     // Get and delete associated monthly dues records
-                    final monthlyDues = await pocketBaseService.getMonthlyDuesForUser(user.id);
+                    final monthlyDues =
+                        await pocketBaseService.getMonthlyDuesForUser(user.id);
                     for (final dues in monthlyDues) {
                       await pocketBaseService.deleteMonthlyDues(dues.id);
                     }
 
                     // Delete the user document
-                    await pocketBaseService.pb.collection('users').delete(user.id);
+                    await pocketBaseService.pb
+                        .collection('users')
+                        .delete(user.id);
 
                     deletedCount++;
                   }
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Successfully deleted $deletedCount test users!'),
+                      content: Text(
+                          'Successfully deleted $deletedCount test users!'),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -1612,7 +1702,10 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
-            border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
+            border: Border.all(
+                color: isDark
+                    ? colorScheme.outline.withOpacity(0.2)
+                    : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -1685,7 +1778,10 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                     borderRadius: BorderRadius.circular(8.sp),
                     borderSide: BorderSide(
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? Theme.of(context).colorScheme.outline.withOpacity(0.5)
+                          ? Theme.of(context)
+                              .colorScheme
+                              .outline
+                              .withOpacity(0.5)
                           : Colors.grey.shade300,
                     ),
                   ),
@@ -1701,13 +1797,19 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   labelStyle: TextStyle(
                     fontSize: 14.sp,
                     color: Theme.of(context).brightness == Brightness.dark
-                        ? Theme.of(context).colorScheme.onSurface.withOpacity(0.7)
+                        ? Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.7)
                         : Colors.grey[600],
                   ),
                   hintStyle: TextStyle(
                     fontSize: 13.sp,
                     color: Theme.of(context).brightness == Brightness.dark
-                        ? Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                        ? Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.5)
                         : Colors.grey[400],
                   ),
                   contentPadding: EdgeInsets.symmetric(
@@ -1716,9 +1818,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   ),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6)
+                          ? Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.6)
                           : Colors.grey[600],
                     ),
                     onPressed: () {
@@ -1744,7 +1851,10 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                     borderRadius: BorderRadius.circular(8.sp),
                     borderSide: BorderSide(
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? Theme.of(context).colorScheme.outline.withOpacity(0.5)
+                          ? Theme.of(context)
+                              .colorScheme
+                              .outline
+                              .withOpacity(0.5)
                           : Colors.grey.shade300,
                     ),
                   ),
@@ -1760,13 +1870,19 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   labelStyle: TextStyle(
                     fontSize: 14.sp,
                     color: Theme.of(context).brightness == Brightness.dark
-                        ? Theme.of(context).colorScheme.onSurface.withOpacity(0.7)
+                        ? Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.7)
                         : Colors.grey[600],
                   ),
                   hintStyle: TextStyle(
                     fontSize: 13.sp,
                     color: Theme.of(context).brightness == Brightness.dark
-                        ? Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                        ? Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.5)
                         : Colors.grey[400],
                   ),
                   contentPadding: EdgeInsets.symmetric(
@@ -1775,9 +1891,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   ),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6)
+                          ? Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.6)
                           : Colors.grey[600],
                     ),
                     onPressed: () {
@@ -1810,7 +1931,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         if (value.isNotEmpty) {
                           final age = int.tryParse(value);
                           if (age != null && (age < 1 || age > 120)) {
-                            _ageController.text = value.substring(0, value.length - 1);
+                            _ageController.text =
+                                value.substring(0, value.length - 1);
                           }
                         }
                       },
@@ -1841,14 +1963,38 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         hintText: 'Blood type',
                       ),
                       items: [
-                        DropdownMenuItem(value: 'A+', child: Text('A+', style: TextStyle(fontSize: 14.sp))),
-                        DropdownMenuItem(value: 'A-', child: Text('A-', style: TextStyle(fontSize: 14.sp))),
-                        DropdownMenuItem(value: 'B+', child: Text('B+', style: TextStyle(fontSize: 14.sp))),
-                        DropdownMenuItem(value: 'B-', child: Text('B-', style: TextStyle(fontSize: 14.sp))),
-                        DropdownMenuItem(value: 'AB+', child: Text('AB+', style: TextStyle(fontSize: 14.sp))),
-                        DropdownMenuItem(value: 'AB-', child: Text('AB-', style: TextStyle(fontSize: 14.sp))),
-                        DropdownMenuItem(value: 'O+', child: Text('O+', style: TextStyle(fontSize: 14.sp))),
-                        DropdownMenuItem(value: 'O-', child: Text('O-', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: 'A+',
+                            child:
+                                Text('A+', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: 'A-',
+                            child:
+                                Text('A-', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: 'B+',
+                            child:
+                                Text('B+', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: 'B-',
+                            child:
+                                Text('B-', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: 'AB+',
+                            child:
+                                Text('AB+', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: 'AB-',
+                            child:
+                                Text('AB-', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: 'O+',
+                            child:
+                                Text('O+', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: 'O-',
+                            child:
+                                Text('O-', style: TextStyle(fontSize: 14.sp))),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -1868,15 +2014,31 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         hintText: 'Civil status',
                       ),
                       items: [
-                        DropdownMenuItem(value: 'Single', child: Text('Single', style: TextStyle(fontSize: 14.sp))),
-                        DropdownMenuItem(value: 'Married', child: Text('Married', style: TextStyle(fontSize: 14.sp))),
-                        DropdownMenuItem(value: 'Widowed', child: Text('Widowed', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: 'Single',
+                            child: Text('Single',
+                                style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: 'Married',
+                            child: Text('Married',
+                                style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: 'Widowed',
+                            child: Text('Widowed',
+                                style: TextStyle(fontSize: 14.sp))),
                         DropdownMenuItem(
                           value: 'Separated',
-                          child: Text('Separated', style: TextStyle(fontSize: 14.sp)),
+                          child: Text('Separated',
+                              style: TextStyle(fontSize: 14.sp)),
                         ),
-                        DropdownMenuItem(value: 'Divorced', child: Text('Divorced', style: TextStyle(fontSize: 14.sp))),
-                        DropdownMenuItem(value: 'Annulled', child: Text('Annulled', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: 'Divorced',
+                            child: Text('Divorced',
+                                style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: 'Annulled',
+                            child: Text('Annulled',
+                                style: TextStyle(fontSize: 14.sp))),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -1932,7 +2094,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                       final theme = Theme.of(context);
                       final picked = await showDatePicker(
                         context: context,
-                        initialDate: _selectedDateOfBirth ?? DateTime(now.year - 18),
+                        initialDate:
+                            _selectedDateOfBirth ?? DateTime(now.year - 18),
                         firstDate: DateTime(1900),
                         lastDate: DateTime(now.year),
                         helpText: 'Select Date of Birth',
@@ -1963,7 +2126,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                       if (picked != null) {
                         setState(() {
                           _selectedDateOfBirth = picked;
-                          _dateOfBirthController.text = '${picked.day}/${picked.month}/${picked.year}';
+                          _dateOfBirthController.text =
+                              '${picked.day}/${picked.month}/${picked.year}';
                         });
                       }
                     },
@@ -2064,7 +2228,12 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onSurface,
                       shadows: isDark
-                          ? [Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 2, offset: const Offset(0, 1))]
+                          ? [
+                              Shadow(
+                                  color: Colors.black.withOpacity(0.5),
+                                  blurRadius: 2,
+                                  offset: const Offset(0, 1))
+                            ]
                           : [],
                     ),
                   ),
@@ -2087,7 +2256,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                                   fit: BoxFit.cover,
                                 ),
                               )
-                            : const Icon(Icons.person, size: 40, color: Colors.grey),
+                            : const Icon(Icons.person,
+                                size: 40, color: Colors.grey),
                       ),
                       const SizedBox(width: 16),
                       // Upload Button
@@ -2096,15 +2266,20 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             ElevatedButton.icon(
-                              onPressed: _isUploadingImage ? null : _pickAndUploadProfileImage,
+                              onPressed: _isUploadingImage
+                                  ? null
+                                  : _pickAndUploadProfileImage,
                               icon: _isUploadingImage
                                   ? const SizedBox(
                                       width: 16,
                                       height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
                                     )
                                   : const Icon(Icons.camera_alt),
-                              label: Text(_isUploadingImage ? 'Uploading...' : 'Upload Image'),
+                              label: Text(_isUploadingImage
+                                  ? 'Uploading...'
+                                  : 'Upload Image'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
                                 foregroundColor: Colors.white,
@@ -2145,7 +2320,10 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
-            border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
+            border: Border.all(
+                color: isDark
+                    ? colorScheme.outline.withOpacity(0.2)
+                    : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -2220,7 +2398,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                       if (picked != null) {
                         setState(() {
                           _selectedLicenseExpirationDate = picked;
-                          _driversLicenseExpirationDateController.text = '${picked.day}/${picked.month}/${picked.year}';
+                          _driversLicenseExpirationDateController.text =
+                              '${picked.day}/${picked.month}/${picked.year}';
                         });
                       }
                     },
@@ -2245,7 +2424,10 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
-            border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
+            border: Border.all(
+                color: isDark
+                    ? colorScheme.outline.withOpacity(0.2)
+                    : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -2287,8 +2469,14 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         hintText: 'Select membership type',
                       ),
                       items: [
-                        DropdownMenuItem(value: '2', child: Text('Admin', style: TextStyle(fontSize: 14.sp))),
-                        DropdownMenuItem(value: '3', child: Text('Member', style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: '2',
+                            child: Text('Admin',
+                                style: TextStyle(fontSize: 14.sp))),
+                        DropdownMenuItem(
+                            value: '3',
+                            child: Text('Member',
+                                style: TextStyle(fontSize: 14.sp))),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -2308,7 +2496,10 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
-            border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
+            border: Border.all(
+                color: isDark
+                    ? colorScheme.outline.withOpacity(0.2)
+                    : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -2337,7 +2528,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                       onChanged: (value) {
                         if (value.length == 6) {
                           try {
-                            final color = Color(int.parse('FF${value.toUpperCase()}', radix: 16));
+                            final color = Color(int.parse(
+                                'FF${value.toUpperCase()}',
+                                radix: 16));
                             setState(() {
                               _selectedVehicleColor = color;
                             });
@@ -2368,7 +2561,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                       ),
                       child: Icon(
                         Icons.palette,
-                        color: _selectedVehicleColor.computeLuminance() > 0.5 ? Colors.black54 : Colors.white54,
+                        color: _selectedVehicleColor.computeLuminance() > 0.5
+                            ? Colors.black54
+                            : Colors.white54,
                         size: 24,
                       ),
                     ),
@@ -2427,7 +2622,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                     },
                   ),
                 ),
-              if (_showSuggestions && _getFilteredVehicleMakes().isEmpty && _vehicleMakeController.text.isNotEmpty)
+              if (_showSuggestions &&
+                  _getFilteredVehicleMakes().isEmpty &&
+                  _vehicleMakeController.text.isNotEmpty)
                 Column(
                   children: [
                     const SizedBox(height: 10),
@@ -2453,7 +2650,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                     ),
                   ],
                 ),
-              if (!_showSuggestions && _selectedVehicleMake == null && !_showManualMakeEntry)
+              if (!_showSuggestions &&
+                  _selectedVehicleMake == null &&
+                  !_showManualMakeEntry)
                 TextButton.icon(
                   onPressed: () {
                     setState(() {
@@ -2473,7 +2672,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                       style: _buildTextStyle(),
                       decoration: _buildInputDecoration(
                         labelText: 'Enter Custom Vehicle Make',
-                        hintText: 'Type your custom vehicle make (e.g., Mitsubishi)',
+                        hintText:
+                            'Type your custom vehicle make (e.g., Mitsubishi)',
                         prefixIcon: const Icon(Icons.directions_car),
                       ),
                       onChanged: (value) {
@@ -2504,7 +2704,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                               ? null
                               : () {
                                   setState(() {
-                                    _selectedVehicleMake = _vehicleMakeController.text.trim();
+                                    _selectedVehicleMake =
+                                        _vehicleMakeController.text.trim();
                                     _showManualMakeEntry = false;
                                   });
                                 },
@@ -2680,7 +2881,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 children: [
                   Expanded(
                     child: Text(
-                      _selectedVehicleYear != null ? 'Vehicle Year: ${_selectedVehicleYear!}' : 'Select Vehicle Year',
+                      _selectedVehicleYear != null
+                          ? 'Vehicle Year: ${_selectedVehicleYear!}'
+                          : 'Select Vehicle Year',
                       style: TextStyle(
                         fontSize: 14.sp,
                         color: Colors.grey[700],
@@ -2704,18 +2907,30 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                           return Theme(
                             data: theme.copyWith(
                               textTheme: theme.textTheme.copyWith(
-                                headlineLarge: theme.textTheme.headlineLarge?.copyWith(fontSize: 24.sp),
-                                headlineMedium: theme.textTheme.headlineMedium?.copyWith(fontSize: 20.sp),
-                                headlineSmall: theme.textTheme.headlineSmall?.copyWith(fontSize: 18.sp),
-                                titleLarge: theme.textTheme.titleLarge?.copyWith(fontSize: 16.sp),
-                                titleMedium: theme.textTheme.titleMedium?.copyWith(fontSize: 14.sp),
-                                titleSmall: theme.textTheme.titleSmall?.copyWith(fontSize: 12.sp),
-                                bodyLarge: theme.textTheme.bodyLarge?.copyWith(fontSize: 14.sp),
-                                bodyMedium: theme.textTheme.bodyMedium?.copyWith(fontSize: 13.sp),
-                                bodySmall: theme.textTheme.bodySmall?.copyWith(fontSize: 12.sp),
-                                labelLarge: theme.textTheme.labelLarge?.copyWith(fontSize: 14.sp),
-                                labelMedium: theme.textTheme.labelMedium?.copyWith(fontSize: 12.sp),
-                                labelSmall: theme.textTheme.labelSmall?.copyWith(fontSize: 11.sp),
+                                headlineLarge: theme.textTheme.headlineLarge
+                                    ?.copyWith(fontSize: 24.sp),
+                                headlineMedium: theme.textTheme.headlineMedium
+                                    ?.copyWith(fontSize: 20.sp),
+                                headlineSmall: theme.textTheme.headlineSmall
+                                    ?.copyWith(fontSize: 18.sp),
+                                titleLarge: theme.textTheme.titleLarge
+                                    ?.copyWith(fontSize: 16.sp),
+                                titleMedium: theme.textTheme.titleMedium
+                                    ?.copyWith(fontSize: 14.sp),
+                                titleSmall: theme.textTheme.titleSmall
+                                    ?.copyWith(fontSize: 12.sp),
+                                bodyLarge: theme.textTheme.bodyLarge
+                                    ?.copyWith(fontSize: 14.sp),
+                                bodyMedium: theme.textTheme.bodyMedium
+                                    ?.copyWith(fontSize: 13.sp),
+                                bodySmall: theme.textTheme.bodySmall
+                                    ?.copyWith(fontSize: 12.sp),
+                                labelLarge: theme.textTheme.labelLarge
+                                    ?.copyWith(fontSize: 14.sp),
+                                labelMedium: theme.textTheme.labelMedium
+                                    ?.copyWith(fontSize: 12.sp),
+                                labelSmall: theme.textTheme.labelSmall
+                                    ?.copyWith(fontSize: 11.sp),
                               ),
                             ),
                             child: child!,
@@ -2741,7 +2956,10 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
-            border: Border.all(color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey.shade300),
+            border: Border.all(
+                color: isDark
+                    ? colorScheme.outline.withOpacity(0.2)
+                    : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -2788,7 +3006,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                                   fit: BoxFit.cover,
                                 ),
                               )
-                            : const Icon(Icons.directions_car, size: 40, color: Colors.grey),
+                            : const Icon(Icons.directions_car,
+                                size: 40, color: Colors.grey),
                       ),
                       const SizedBox(width: 16),
                       // Upload Button
@@ -2811,10 +3030,13 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                                   ? const SizedBox(
                                       width: 16,
                                       height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
                                     )
                                   : const Icon(Icons.camera_alt),
-                              label: Text(_isUploadingCarImage ? 'Uploading...' : 'Upload Main Image'),
+                              label: Text(_isUploadingCarImage
+                                  ? 'Uploading...'
+                                  : 'Upload Main Image'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
                                 foregroundColor: Colors.white,
@@ -2899,13 +3121,17 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                                   color: Colors.grey.shade100,
                                   child: Center(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        const Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                        const Icon(Icons.directions_car,
+                                            size: 32, color: Colors.grey),
                                         const SizedBox(height: 4),
                                         Text(
                                           'Car $imageNumber',
-                                          style: TextStyle(color: Colors.grey, fontSize: 12.sp),
+                                          style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 12.sp),
                                         ),
                                       ],
                                     ),
@@ -2917,7 +3143,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                           top: 4,
                           left: 4,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.black.withOpacity(0.7),
                               borderRadius: BorderRadius.circular(4),
@@ -2963,7 +3190,8 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               minimumSize: const Size(0, 24),
                             ),
                           ),
@@ -2981,7 +3209,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: _isCreatingUser ? null : _createUser,
-            child: _isCreatingUser ? const CircularProgressIndicator(color: Colors.white) : const Text('Create User'),
+            child: _isCreatingUser
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text('Create User'),
           ),
         ),
         if (_createUserMessage != null) ...[
@@ -2989,7 +3219,9 @@ class _CreateUserSectionState extends State<CreateUserSection> {
           Text(
             _createUserMessage!,
             style: TextStyle(
-              color: _createUserMessage!.startsWith('Error') ? Colors.red : Colors.green,
+              color: _createUserMessage!.startsWith('Error')
+                  ? Colors.red
+                  : Colors.green,
               fontWeight: FontWeight.bold,
             ),
           ),

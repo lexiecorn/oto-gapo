@@ -6,7 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// preventing repeated prompts for the same version.
 class VersionCheckService {
   /// Creates a [VersionCheckService] instance.
-  VersionCheckService({required SharedPreferences sharedPreferences}) : _sharedPreferences = sharedPreferences;
+  VersionCheckService({required SharedPreferences sharedPreferences})
+      : _sharedPreferences = sharedPreferences;
 
   static const String _keyDismissedVersion = 'dismissed_version';
 

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart' as meeting_cubit;
+import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart'
+    as meeting_cubit;
 import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/app/widgets/meeting_card.dart';
 
@@ -15,7 +16,8 @@ class MeetingsListPage extends StatefulWidget {
   State<MeetingsListPage> createState() => _MeetingsListPageState();
 }
 
-class _MeetingsListPageState extends State<MeetingsListPage> with SingleTickerProviderStateMixin {
+class _MeetingsListPageState extends State<MeetingsListPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ScrollController _upcomingScrollController = ScrollController();
   final ScrollController _pastScrollController = ScrollController();
@@ -43,24 +45,29 @@ class _MeetingsListPageState extends State<MeetingsListPage> with SingleTickerPr
   }
 
   void _onTabChanged() {
-    if (_tabController.index == 1 && context.read<meeting_cubit.MeetingCubit>().state.meetings.isEmpty) {
+    if (_tabController.index == 1 &&
+        context.read<meeting_cubit.MeetingCubit>().state.meetings.isEmpty) {
       context.read<meeting_cubit.MeetingCubit>().loadPastMeetings();
     }
   }
 
   void _onUpcomingScroll() {
-    if (_upcomingScrollController.position.pixels >= _upcomingScrollController.position.maxScrollExtent * 0.9) {
+    if (_upcomingScrollController.position.pixels >=
+        _upcomingScrollController.position.maxScrollExtent * 0.9) {
       final cubit = context.read<meeting_cubit.MeetingCubit>();
-      if (cubit.state.hasMore && cubit.state.status != meeting_cubit.MeetingStatus.loading) {
+      if (cubit.state.hasMore &&
+          cubit.state.status != meeting_cubit.MeetingStatus.loading) {
         cubit.loadUpcomingMeetings();
       }
     }
   }
 
   void _onPastScroll() {
-    if (_pastScrollController.position.pixels >= _pastScrollController.position.maxScrollExtent * 0.9) {
+    if (_pastScrollController.position.pixels >=
+        _pastScrollController.position.maxScrollExtent * 0.9) {
       final cubit = context.read<meeting_cubit.MeetingCubit>();
-      if (cubit.state.hasMore && cubit.state.status != meeting_cubit.MeetingStatus.loading) {
+      if (cubit.state.hasMore &&
+          cubit.state.status != meeting_cubit.MeetingStatus.loading) {
         cubit.loadPastMeetings();
       }
     }
@@ -76,7 +83,9 @@ class _MeetingsListPageState extends State<MeetingsListPage> with SingleTickerPr
             icon: const Icon(Icons.refresh),
             onPressed: () {
               if (_tabController.index == 0) {
-                context.read<meeting_cubit.MeetingCubit>().loadUpcomingMeetings();
+                context
+                    .read<meeting_cubit.MeetingCubit>()
+                    .loadUpcomingMeetings();
               } else {
                 context.read<meeting_cubit.MeetingCubit>().loadPastMeetings();
               }
@@ -88,16 +97,29 @@ class _MeetingsListPageState extends State<MeetingsListPage> with SingleTickerPr
           child: Theme(
             data: Theme.of(context).copyWith(
               textTheme: Theme.of(context).textTheme.copyWith(
-                    labelLarge: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).brightness == Brightness.light ? Colors.black87 : Colors.white,
+                    labelLarge: Theme.of(context)
+                        .textTheme
+                        .labelLarge
+                        ?.copyWith(
+                          color:
+                              Theme.of(context).brightness == Brightness.light
+                                  ? Colors.black87
+                                  : Colors.white,
                         ),
                   ),
             ),
             child: TabBar(
               controller: _tabController,
-              labelColor: Theme.of(context).brightness == Brightness.light ? Colors.black87 : Colors.white,
-              unselectedLabelColor: Theme.of(context).brightness == Brightness.light ? Colors.black54 : Colors.white70,
-              indicatorColor: Theme.of(context).brightness == Brightness.light ? Colors.black87 : Colors.white,
+              labelColor: Theme.of(context).brightness == Brightness.light
+                  ? Colors.black87
+                  : Colors.white,
+              unselectedLabelColor:
+                  Theme.of(context).brightness == Brightness.light
+                      ? Colors.black54
+                      : Colors.white70,
+              indicatorColor: Theme.of(context).brightness == Brightness.light
+                  ? Colors.black87
+                  : Colors.white,
               tabs: const [
                 Tab(text: 'Upcoming'),
                 Tab(text: 'Past'),
@@ -149,7 +171,8 @@ class _MeetingsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (state.status == meeting_cubit.MeetingStatus.loading && state.meetings.isEmpty) {
+    if (state.status == meeting_cubit.MeetingStatus.loading &&
+        state.meetings.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -182,7 +205,9 @@ class _MeetingsList extends StatelessWidget {
             SizedBox(height: 24.h),
             ElevatedButton.icon(
               onPressed: () {
-                context.read<meeting_cubit.MeetingCubit>().loadUpcomingMeetings();
+                context
+                    .read<meeting_cubit.MeetingCubit>()
+                    .loadUpcomingMeetings();
               },
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),

@@ -33,16 +33,25 @@ class VehicleSpecCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [Colors.grey.shade900.withOpacity(0.8), Colors.grey.shade800.withOpacity(0.6)]
-                : [Colors.grey.shade100.withOpacity(0.8), Colors.grey.shade200.withOpacity(0.6)],
+                ? [
+                    Colors.grey.shade900.withOpacity(0.8),
+                    Colors.grey.shade800.withOpacity(0.6)
+                  ]
+                : [
+                    Colors.grey.shade100.withOpacity(0.8),
+                    Colors.grey.shade200.withOpacity(0.6)
+                  ],
           ),
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: const Color(0xFFE61525).withOpacity(0.3), width: 1),
+          border: Border.all(
+              color: const Color(0xFFE61525).withOpacity(0.3), width: 1),
           boxShadow: [
             BoxShadow(
-              color: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.3), 
-              blurRadius: 8, 
-              spreadRadius: 0, 
+              color: isDark
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.grey.withOpacity(0.3),
+              blurRadius: 8,
+              spreadRadius: 0,
               offset: const Offset(0, 2),
             ),
           ],
@@ -58,9 +67,12 @@ class VehicleSpecCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFFE61525).withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8.r),
-                    border: Border.all(color: const Color(0xFFE61525).withOpacity(0.4), width: 1),
+                    border: Border.all(
+                        color: const Color(0xFFE61525).withOpacity(0.4),
+                        width: 1),
                   ),
-                  child: Icon(icon, size: 16.sp, color: const Color(0xFFE61525)),
+                  child:
+                      Icon(icon, size: 16.sp, color: const Color(0xFFE61525)),
                 ),
                 SizedBox(width: 8.w),
                 Expanded(
@@ -80,16 +92,19 @@ class VehicleSpecCard extends StatelessWidget {
             // Value
             if (isLoading)
               Container(
-                    height: 16.h,
-                    width: double.infinity,
-                    decoration: BoxDecoration(color: Colors.grey[700], borderRadius: BorderRadius.circular(4.r)),
-                    child: LinearProgressIndicator(
-                      backgroundColor: Colors.grey[700],
-                      valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFFE61525).withOpacity(0.3)),
-                    ),
-                  )
-                  .animate(onPlay: (controller) => controller.repeat())
-                  .shimmer(duration: 1500.ms, color: const Color(0xFFE61525).withOpacity(0.3))
+                height: 16.h,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                    color: Colors.grey[700],
+                    borderRadius: BorderRadius.circular(4.r)),
+                child: LinearProgressIndicator(
+                  backgroundColor: Colors.grey[700],
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                      const Color(0xFFE61525).withOpacity(0.3)),
+                ),
+              ).animate(onPlay: (controller) => controller.repeat()).shimmer(
+                  duration: 1500.ms,
+                  color: const Color(0xFFE61525).withOpacity(0.3))
             else
               Text(
                 value,
@@ -104,6 +119,9 @@ class VehicleSpecCard extends StatelessWidget {
           ],
         ),
       ),
-    ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.2, duration: 600.ms, curve: Curves.easeOutCubic);
+    )
+        .animate()
+        .fadeIn(duration: 600.ms)
+        .slideY(begin: 0.2, duration: 600.ms, curve: Curves.easeOutCubic);
   }
 }

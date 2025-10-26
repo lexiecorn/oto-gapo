@@ -52,7 +52,8 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
       final announcements = await pocketBaseService.getAnnouncements();
 
       if (announcements.isNotEmpty) {
-        _announcements = announcements.map((announcement) => announcement.data).toList();
+        _announcements =
+            announcements.map((announcement) => announcement.data).toList();
         // Sort by date (newest first)
         _announcements.sort((a, b) {
           final dateA = DateTime.parse(a['created'] as String);
@@ -77,12 +78,20 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
     setState(() {
       _filteredAnnouncements = _announcements.where((announcement) {
         // Filter by type
-        final matchesType = _selectedType == null || _selectedType == 'All' || announcement['type'] == _selectedType;
+        final matchesType = _selectedType == null ||
+            _selectedType == 'All' ||
+            announcement['type'] == _selectedType;
 
         // Filter by search query
         final matchesSearch = _searchQuery.isEmpty ||
-            (announcement['title'] as String?)?.toLowerCase().contains(_searchQuery.toLowerCase()) == true ||
-            (announcement['content'] as String?)?.toLowerCase().contains(_searchQuery.toLowerCase()) == true;
+            (announcement['title'] as String?)
+                    ?.toLowerCase()
+                    .contains(_searchQuery.toLowerCase()) ==
+                true ||
+            (announcement['content'] as String?)
+                    ?.toLowerCase()
+                    .contains(_searchQuery.toLowerCase()) ==
+                true;
 
         return matchesType && matchesSearch;
       }).toList();
@@ -184,7 +193,8 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
               itemCount: _announcementTypes.length,
               itemBuilder: (context, index) {
                 final type = _announcementTypes[index];
-                final isSelected = _selectedType == type || (_selectedType == null && type == 'All');
+                final isSelected = _selectedType == type ||
+                    (_selectedType == null && type == 'All');
 
                 return Padding(
                   padding: EdgeInsets.only(right: 8.w),
@@ -193,7 +203,11 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                       type == 'All' ? 'All' : type.toUpperCase(),
                       style: TextStyle(
                         fontSize: 11.sp,
-                        color: isSelected ? colorScheme.primary : (isDark ? colorScheme.onSurface : Colors.grey[700]),
+                        color: isSelected
+                            ? colorScheme.primary
+                            : (isDark
+                                ? colorScheme.onSurface
+                                : Colors.grey[700]),
                       ),
                     ),
                     selected: isSelected,
@@ -235,7 +249,9 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
               'Loading announcements...',
               style: TextStyle(
                 fontSize: 14.sp,
-                color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                color: isDark
+                    ? colorScheme.onSurface.withOpacity(0.7)
+                    : Colors.grey[600],
               ),
             ),
           ],
@@ -251,14 +267,18 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
             Icon(
               Icons.announcement_outlined,
               size: 64.sp,
-              color: isDark ? colorScheme.onSurface.withOpacity(0.3) : Colors.grey[300],
+              color: isDark
+                  ? colorScheme.onSurface.withOpacity(0.3)
+                  : Colors.grey[300],
             ),
             SizedBox(height: 16.h),
             Text(
               _errorMessage,
               style: TextStyle(
                 fontSize: 15.sp,
-                color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                color: isDark
+                    ? colorScheme.onSurface.withOpacity(0.5)
+                    : Colors.grey[500],
               ),
             ),
             SizedBox(height: 16.h),
@@ -280,23 +300,33 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
             Icon(
               Icons.search_off,
               size: 64.sp,
-              color: isDark ? colorScheme.onSurface.withOpacity(0.3) : Colors.grey[300],
+              color: isDark
+                  ? colorScheme.onSurface.withOpacity(0.3)
+                  : Colors.grey[300],
             ),
             SizedBox(height: 16.h),
             Text(
-              _announcements.isEmpty ? 'No announcements yet' : 'No matching announcements',
+              _announcements.isEmpty
+                  ? 'No announcements yet'
+                  : 'No matching announcements',
               style: TextStyle(
                 fontSize: 15.sp,
                 fontWeight: FontWeight.w500,
-                color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                color: isDark
+                    ? colorScheme.onSurface.withOpacity(0.5)
+                    : Colors.grey[500],
               ),
             ),
             SizedBox(height: 8.h),
             Text(
-              _announcements.isEmpty ? 'Check back later for updates' : 'Try adjusting your filters',
+              _announcements.isEmpty
+                  ? 'Check back later for updates'
+                  : 'Try adjusting your filters',
               style: TextStyle(
                 fontSize: 14.sp,
-                color: isDark ? colorScheme.onSurface.withOpacity(0.4) : Colors.grey[400],
+                color: isDark
+                    ? colorScheme.onSurface.withOpacity(0.4)
+                    : Colors.grey[400],
               ),
             ),
           ],
@@ -429,7 +459,9 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                                       style: TextStyle(
                                         fontSize: 15.sp,
                                         fontWeight: FontWeight.w600,
-                                        color: isDark ? colorScheme.onSurface : Colors.black87,
+                                        color: isDark
+                                            ? colorScheme.onSurface
+                                            : Colors.black87,
                                       ),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
@@ -441,7 +473,8 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                                       vertical: 4.h,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: _getTypeColor(type, isDark).withOpacity(0.1),
+                                      color: _getTypeColor(type, isDark)
+                                          .withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(12.r),
                                     ),
                                     child: Text(
@@ -460,7 +493,9 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                                 content,
                                 style: TextStyle(
                                   fontSize: 13.sp,
-                                  color: isDark ? colorScheme.onSurface.withOpacity(0.8) : Colors.grey[700],
+                                  color: isDark
+                                      ? colorScheme.onSurface.withOpacity(0.8)
+                                      : Colors.grey[700],
                                   height: 1.4,
                                 ),
                                 maxLines: 3,
@@ -474,7 +509,8 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                       // Footer with black background
                       Container(
                         width: double.infinity,
-                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16.w, vertical: 10.h),
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(0.8),
                         ),
@@ -487,7 +523,10 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                             ),
                             SizedBox(width: 6.w),
                             Text(
-                              date != null ? DateFormat('MMM dd, yyyy • h:mm a').format(date) : 'No date',
+                              date != null
+                                  ? DateFormat('MMM dd, yyyy • h:mm a')
+                                      .format(date)
+                                  : 'No date',
                               style: TextStyle(
                                 fontSize: 12.sp,
                                 color: Colors.white.withOpacity(0.9),
@@ -524,7 +563,9 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
     final dateString = announcement['created'] as String?;
     final date = dateString != null ? DateTime.parse(dateString) : null;
     final imageField = announcement['img'] as String?;
-    final imageUrl = imageField != null && imageField.isNotEmpty ? _buildImageUrl(announcement, '600x400t') : null;
+    final imageUrl = imageField != null && imageField.isNotEmpty
+        ? _buildImageUrl(announcement, '600x400t')
+        : null;
 
     showDialog<void>(
       context: context,
@@ -568,7 +609,9 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                             style: TextStyle(
                               fontSize: 18.sp,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? colorScheme.onSurface : Colors.black87,
+                              color: isDark
+                                  ? colorScheme.onSurface
+                                  : Colors.black87,
                             ),
                           ),
                           SizedBox(height: 4.h),
@@ -578,7 +621,8 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                               vertical: 4.h,
                             ),
                             decoration: BoxDecoration(
-                              color: _getTypeColor(type, isDark).withOpacity(0.1),
+                              color:
+                                  _getTypeColor(type, isDark).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12.r),
                             ),
                             child: Text(
@@ -597,7 +641,9 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                       onPressed: () => Navigator.of(context).pop(),
                       icon: Icon(
                         Icons.close_rounded,
-                        color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                        color: isDark
+                            ? colorScheme.onSurface.withOpacity(0.7)
+                            : Colors.grey[600],
                       ),
                     ),
                   ],
@@ -639,7 +685,9 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                   content,
                   style: TextStyle(
                     fontSize: 14.sp,
-                    color: isDark ? colorScheme.onSurface.withOpacity(0.9) : Colors.grey[800],
+                    color: isDark
+                        ? colorScheme.onSurface.withOpacity(0.9)
+                        : Colors.grey[800],
                     height: 1.5,
                   ),
                 ),
@@ -652,14 +700,21 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                     Icon(
                       Icons.schedule_rounded,
                       size: 16.sp,
-                      color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                      color: isDark
+                          ? colorScheme.onSurface.withOpacity(0.5)
+                          : Colors.grey[500],
                     ),
                     SizedBox(width: 8.w),
                     Text(
-                      date != null ? DateFormat('EEEE, MMMM dd, yyyy • h:mm a').format(date) : 'No date available',
+                      date != null
+                          ? DateFormat('EEEE, MMMM dd, yyyy • h:mm a')
+                              .format(date)
+                          : 'No date available',
                       style: TextStyle(
                         fontSize: 13.sp,
-                        color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600],
+                        color: isDark
+                            ? colorScheme.onSurface.withOpacity(0.6)
+                            : Colors.grey[600],
                       ),
                     ),
                   ],

@@ -84,7 +84,9 @@ class AnnouncementPopupDialog extends StatelessWidget {
                           'Important Announcement',
                           style: TextStyle(
                             fontSize: 10.sp,
-                            color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600],
+                            color: isDark
+                                ? colorScheme.onSurface.withOpacity(0.6)
+                                : Colors.grey[600],
                           ),
                         ),
                       ],
@@ -98,7 +100,9 @@ class AnnouncementPopupDialog extends StatelessWidget {
                     icon: Icon(
                       Icons.close_rounded,
                       size: 24.sp,
-                      color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                      color: isDark
+                          ? colorScheme.onSurface.withOpacity(0.7)
+                          : Colors.grey[600],
                     ),
                   ),
                 ],
@@ -130,14 +134,18 @@ class AnnouncementPopupDialog extends StatelessWidget {
                           Icon(
                             Icons.schedule_rounded,
                             size: 14.sp,
-                            color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                            color: isDark
+                                ? colorScheme.onSurface.withOpacity(0.5)
+                                : Colors.grey[500],
                           ),
                           SizedBox(width: 6.w),
                           Text(
                             DateFormat('MMMM dd, yyyy • h:mm a').format(date),
                             style: TextStyle(
                               fontSize: 12.sp,
-                              color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                              color: isDark
+                                  ? colorScheme.onSurface.withOpacity(0.5)
+                                  : Colors.grey[500],
                             ),
                           ),
                         ],
@@ -184,7 +192,9 @@ class AnnouncementPopupDialog extends StatelessWidget {
                       content,
                       style: TextStyle(
                         fontSize: 15.sp,
-                        color: isDark ? colorScheme.onSurface.withOpacity(0.9) : Colors.grey[800],
+                        color: isDark
+                            ? colorScheme.onSurface.withOpacity(0.9)
+                            : Colors.grey[800],
                         height: 1.6,
                       ),
                     ),
@@ -197,7 +207,9 @@ class AnnouncementPopupDialog extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(16.sp),
               decoration: BoxDecoration(
-                color: isDark ? colorScheme.surface.withOpacity(0.5) : Colors.grey[50],
+                color: isDark
+                    ? colorScheme.surface.withOpacity(0.5)
+                    : Colors.grey[50],
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(20.r),
                   bottomRight: Radius.circular(20.r),

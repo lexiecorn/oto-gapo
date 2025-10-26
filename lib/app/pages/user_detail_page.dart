@@ -78,9 +78,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
     // Check for profile image in multiple possible field names
     String? profileImageValue;
-    if (_editedData['profileImage'] != null && _editedData['profileImage'].toString().isNotEmpty) {
+    if (_editedData['profileImage'] != null &&
+        _editedData['profileImage'].toString().isNotEmpty) {
       profileImageValue = _editedData['profileImage'].toString();
-    } else if (_editedData['profile_image'] != null && _editedData['profile_image'].toString().isNotEmpty) {
+    } else if (_editedData['profile_image'] != null &&
+        _editedData['profile_image'].toString().isNotEmpty) {
       profileImageValue = _editedData['profile_image'].toString();
     }
 
@@ -90,8 +92,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
         _profileImageUrlFuture = Future.value(profileImageValue);
       } else {
         // It's a PocketBase filename, construct the URL
-        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-        _profileImageUrlFuture = Future.value('$pocketbaseUrl/api/files/users/${_editedData['id']}/$profileImageValue');
+        final pocketbaseUrl =
+            FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        _profileImageUrlFuture = Future.value(
+            '$pocketbaseUrl/api/files/users/${_editedData['id']}/$profileImageValue');
       }
     }
 
@@ -200,8 +204,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
       if (profileImageUrl != null) {
         // Construct the full URL
-        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-        final fullImageUrl = '$pocketbaseUrl/api/files/users/$userId/$profileImageUrl';
+        final pocketbaseUrl =
+            FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        final fullImageUrl =
+            '$pocketbaseUrl/api/files/users/$userId/$profileImageUrl';
         print('UserDetailPage - Full image URL: $fullImageUrl');
 
         // Update the user data
@@ -210,7 +216,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
           _profileImageUrlFuture = Future.value(fullImageUrl);
         });
       } else {
-        print('UserDetailPage - Warning: No profile image URL returned from PocketBase');
+        print(
+            'UserDetailPage - Warning: No profile image URL returned from PocketBase');
       }
 
       if (mounted) {
@@ -348,8 +355,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
       final carImageUrl = result.data['carImage$imageName'] as String?;
       if (carImageUrl != null) {
         // Construct the full URL
-        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-        final fullImageUrl = '$pocketbaseUrl/api/files/users/$userId/$carImageUrl';
+        final pocketbaseUrl =
+            FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        final fullImageUrl =
+            '$pocketbaseUrl/api/files/users/$userId/$carImageUrl';
 
         // Update the corresponding URL variable
         switch (imageName) {
@@ -490,13 +499,22 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 Center(
                   child: Stack(
                     children: [
-                      if ((_editedData['profileImage'] != null && _editedData['profileImage'].toString().isNotEmpty) ||
-                          (_editedData['profile_image'] != null && _editedData['profile_image'].toString().isNotEmpty))
+                      if ((_editedData['profileImage'] != null &&
+                              _editedData['profileImage']
+                                  .toString()
+                                  .isNotEmpty) ||
+                          (_editedData['profile_image'] != null &&
+                              _editedData['profile_image']
+                                  .toString()
+                                  .isNotEmpty))
                         FutureBuilder<String?>(
                           future: _profileImageUrlFuture,
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const CircleAvatar(radius: 60, child: CircularProgressIndicator());
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const CircleAvatar(
+                                  radius: 60,
+                                  child: CircularProgressIndicator());
                             }
                             if (snapshot.hasError) {
                               return CircleAvatar(
@@ -504,12 +522,15 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                 backgroundColor: Colors.red.shade100,
                                 child: Tooltip(
                                   message: snapshot.error.toString(),
-                                  child: const Icon(Icons.error, size: 60, color: Colors.red),
+                                  child: const Icon(Icons.error,
+                                      size: 60, color: Colors.red),
                                 ),
                               );
                             }
                             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                              return const CircleAvatar(radius: 60, child: Icon(Icons.person, size: 60));
+                              return const CircleAvatar(
+                                  radius: 60,
+                                  child: Icon(Icons.person, size: 60));
                             }
                             final imageUrl = snapshot.data!;
                             return CircleAvatar(
@@ -523,7 +544,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                   errorBuilder: (context, error, stackTrace) {
                                     return const Icon(Icons.person, size: 60);
                                   },
-                                  loadingBuilder: (context, child, loadingProgress) {
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
                                     if (loadingProgress == null) return child;
                                     return const CircularProgressIndicator();
                                   },
@@ -533,7 +555,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                           },
                         )
                       else
-                        const CircleAvatar(radius: 60, child: Icon(Icons.person, size: 60)),
+                        const CircleAvatar(
+                            radius: 60, child: Icon(Icons.person, size: 60)),
 
                       // Edit button overlay (only show when editing)
                       if (_isEditing)
@@ -554,12 +577,15 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                       height: 16,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white),
                                       ),
                                     ),
                                   )
                                 : IconButton(
-                                    icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                                    icon: const Icon(Icons.camera_alt,
+                                        color: Colors.white, size: 20),
                                     onPressed: _pickAndUploadImage,
                                     tooltip: 'Change Profile Image',
                                     padding: EdgeInsets.zero,
@@ -583,7 +609,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     _buildEditableField('Middle Name', 'middleName'),
                     _buildEditableField('Last Name', 'lastName'),
                     _buildEditableField('Age', 'age', isNumber: true),
-                    _buildEditableField('Date of Birth', 'dateOfBirth', isDate: true),
+                    _buildEditableField('Date of Birth', 'dateOfBirth',
+                        isDate: true),
                     _buildEditableField('Birthplace', 'birthplace'),
                     _buildEditableField('Contact Number', 'contactNumber'),
                     _buildEditableField('Nationality', 'nationality'),
@@ -605,7 +632,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   'Emergency Contact ',
                   [
                     _buildEditableField('Contact Name', 'emergencyContactName'),
-                    _buildEditableField('Contact Number', 'emergencyContactNumber'),
+                    _buildEditableField(
+                        'Contact Number', 'emergencyContactNumber'),
                   ],
                 ),
 
@@ -615,11 +643,14 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 _buildSection(
                   'Membership Information',
                   [
-                    _buildEditableField('Member Number', 'memberNumber', isNumber: true),
+                    _buildEditableField('Member Number', 'memberNumber',
+                        isNumber: true),
                     _buildEditableField('Membership Type', 'membership_type'),
-                    _buildEditableField('Is Active', 'isActive', isBoolean: true),
+                    _buildEditableField('Is Active', 'isActive',
+                        isBoolean: true),
                     _buildEditableField('Is Admin', 'isAdmin', isBoolean: true),
-                    _buildEditableField('Joined Date', 'joinedDate', isDate: true),
+                    _buildEditableField('Joined Date', 'joinedDate',
+                        isDate: true),
                   ],
                 ),
 
@@ -629,9 +660,14 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 _buildSection(
                   "Driver's License Information",
                   [
-                    _buildEditableField('License Number', 'driversLicenseNumber'),
-                    _buildEditableField('License Exp. Date', 'driversLicenseExpirationDate', isDate: true),
-                    _buildEditableField('License Restriction Code', 'driversLicenseRestrictionCode', isNumber: true),
+                    _buildEditableField(
+                        'License Number', 'driversLicenseNumber'),
+                    _buildEditableField(
+                        'License Exp. Date', 'driversLicenseExpirationDate',
+                        isDate: true),
+                    _buildEditableField('License Restriction Code',
+                        'driversLicenseRestrictionCode',
+                        isNumber: true),
                   ],
                 ),
 
@@ -642,7 +678,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   'Spouse Information',
                   [
                     _buildEditableField('Spouse Name', 'spouseName'),
-                    _buildEditableField('Spouse Contact Number', 'spouseContactNumber'),
+                    _buildEditableField(
+                        'Spouse Contact Number', 'spouseContactNumber'),
                   ],
                 ),
 
@@ -658,7 +695,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                       _buildDetailRow('Vehicle Year', firstVehicle['year']),
                       _buildDetailRow('Vehicle Color', firstVehicle['color']),
                       _buildDetailRow('Vehicle Type', firstVehicle['type']),
-                      _buildDetailRow('License Plate', firstVehicle['plateNumber']),
+                      _buildDetailRow(
+                          'License Plate', firstVehicle['plateNumber']),
                       if (_isEditing) ...[
                         const SizedBox(height: 16),
                         _buildCarImagesUploadSection(),
@@ -679,7 +717,16 @@ class _UserDetailPageState extends State<UserDetailPage> {
                       'Blood Type',
                       'bloodType',
                       isDropdown: true,
-                      dropdownOptions: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'],
+                      dropdownOptions: [
+                        'A+',
+                        'A-',
+                        'B+',
+                        'B-',
+                        'O+',
+                        'O-',
+                        'AB+',
+                        'AB-'
+                      ],
                     ),
                   ],
                 ),
@@ -705,12 +752,14 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     icon: const Icon(Icons.delete, color: Colors.white),
                     label: const Text(
                       'Delete',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(25),
                       ),
@@ -757,7 +806,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
             selectedDate = _selectedLicenseExpirationDate;
           } else if (field == 'joinedDate') {
             selectedDate = _selectedJoinedDate;
-          } else if (_editedData[field] is String && (_editedData[field] as String).isNotEmpty) {
+          } else if (_editedData[field] is String &&
+              (_editedData[field] as String).isNotEmpty) {
             selectedDate = DateTime.tryParse(_editedData[field] as String);
           } else if (_editedData[field] is DateTime) {
             selectedDate = _editedData[field] as DateTime;
@@ -796,11 +846,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
                           DateTime lastDate;
 
                           if (field == 'dateOfBirth') {
-                            initialDate = _selectedDateOfBirth ?? DateTime(now.year - 18);
+                            initialDate =
+                                _selectedDateOfBirth ?? DateTime(now.year - 18);
                             firstDate = DateTime(1900);
                             lastDate = DateTime(now.year);
                           } else if (field == 'driversLicenseExpirationDate') {
-                            initialDate = _selectedLicenseExpirationDate ?? DateTime(now.year + 1);
+                            initialDate = _selectedLicenseExpirationDate ??
+                                DateTime(now.year + 1);
                             firstDate = DateTime(now.year);
                             lastDate = DateTime(now.year + 10);
                           } else if (field == 'joinedDate') {
@@ -826,7 +878,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             setState(() {
                               if (field == 'dateOfBirth') {
                                 _selectedDateOfBirth = picked;
-                              } else if (field == 'driversLicenseExpirationDate') {
+                              } else if (field ==
+                                  'driversLicenseExpirationDate') {
                                 _selectedLicenseExpirationDate = picked;
                               } else if (field == 'joinedDate') {
                                 _selectedJoinedDate = picked;
@@ -890,7 +943,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     },
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                   ),
                 ),
@@ -927,7 +981,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     },
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                   ),
                 ),
@@ -952,11 +1007,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 Expanded(
                   child: TextFormField(
                     initialValue: _editedData[field]?.toString() ?? '',
-                    keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+                    keyboardType:
+                        isNumber ? TextInputType.number : TextInputType.text,
                     style: const TextStyle(fontSize: 14),
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                     onChanged: (value) {
                       setState(() {
@@ -1012,7 +1069,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => const Center(child: CircularProgressIndicator()),
+          builder: (context) =>
+              const Center(child: CircularProgressIndicator()),
         );
 
         // Upload car images if selected
@@ -1071,18 +1129,21 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
           // Convert DateTime to ISO string for PocketBase
           if (updateData['dateOfBirth'] is DateTime) {
-            updateData['dateOfBirth'] = (updateData['dateOfBirth'] as DateTime).toIso8601String();
+            updateData['dateOfBirth'] =
+                (updateData['dateOfBirth'] as DateTime).toIso8601String();
           }
           if (updateData['driversLicenseExpirationDate'] is DateTime) {
             updateData['driversLicenseExpirationDate'] =
-                (updateData['driversLicenseExpirationDate'] as DateTime).toIso8601String();
+                (updateData['driversLicenseExpirationDate'] as DateTime)
+                    .toIso8601String();
           }
 
           // Convert any remaining Timestamp objects to ISO strings
           _convertTimestampsToIso(updateData);
 
           // Handle vehicle data - always remove first, then add back only if valid
-          print('Debug: Vehicle data before processing: ${updateData['vehicle']}');
+          print(
+              'Debug: Vehicle data before processing: ${updateData['vehicle']}');
 
           // Always remove vehicle field first to avoid validation errors
           updateData.remove('vehicle');
@@ -1091,21 +1152,28 @@ class _UserDetailPageState extends State<UserDetailPage> {
           if (_editedData['vehicle'] != null) {
             Map<String, dynamic>? vehicle;
             if (_editedData['vehicle'] is Map<String, dynamic>) {
-              vehicle = Map<String, dynamic>.from(_editedData['vehicle'] as Map<String, dynamic>);
-            } else if (_editedData['vehicle'] is List && (_editedData['vehicle'] as List).isNotEmpty) {
+              vehicle = Map<String, dynamic>.from(
+                  _editedData['vehicle'] as Map<String, dynamic>);
+            } else if (_editedData['vehicle'] is List &&
+                (_editedData['vehicle'] as List).isNotEmpty) {
               final vehicleList = _editedData['vehicle'] as List;
-              vehicle = Map<String, dynamic>.from(vehicleList[0] as Map<String, dynamic>);
+              vehicle = Map<String, dynamic>.from(
+                  vehicleList[0] as Map<String, dynamic>);
             }
 
             if (vehicle != null) {
               // Check if vehicle has required fields before including it
-              final hasRequiredFields = vehicle['make'] != null && vehicle['model'] != null && vehicle['year'] != null;
+              final hasRequiredFields = vehicle['make'] != null &&
+                  vehicle['model'] != null &&
+                  vehicle['year'] != null;
 
               print('Debug: Vehicle has required fields: $hasRequiredFields');
-              print('Debug: Vehicle make: ${vehicle['make']}, model: ${vehicle['model']}, year: ${vehicle['year']}');
+              print(
+                  'Debug: Vehicle make: ${vehicle['make']}, model: ${vehicle['model']}, year: ${vehicle['year']}');
 
               if (hasRequiredFields) {
-                final existingPhotos = List<String>.from((vehicle['photos'] as List<dynamic>?) ?? []);
+                final existingPhotos = List<String>.from(
+                    (vehicle['photos'] as List<dynamic>?) ?? []);
 
                 // Add new car images to photos array
                 if (carImage1Url != null) existingPhotos.add(carImage1Url);
@@ -1123,7 +1191,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 updateData['vehicle'] = vehicle;
                 print('Debug: Added valid vehicle to updateData');
               } else {
-                print('Debug: Vehicle missing required fields, not including in update');
+                print(
+                    'Debug: Vehicle missing required fields, not including in update');
               }
             } else {
               print('Debug: Vehicle is null, not including in update');
@@ -1132,7 +1201,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
             print('Debug: No vehicle data in _editedData');
           }
 
-          print('Debug: Final updateData before sending to PocketBase: ${updateData.keys.toList()}');
+          print(
+              'Debug: Final updateData before sending to PocketBase: ${updateData.keys.toList()}');
           print('Debug: Vehicle field in final data: ${updateData['vehicle']}');
 
           // Update user in PocketBase
@@ -1194,7 +1264,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirm Delete'),
-          content: Text('Are you sure you want to delete $displayName? This action cannot be undone.'),
+          content: Text(
+              'Are you sure you want to delete $displayName? This action cannot be undone.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -1236,7 +1307,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
       final authState = context.read<AuthBloc>().state;
       if (authState.user != null && authState.user!.id == userId) {
         // Remove loading overlay
-        print('Attempting to delete own account, returning error result...'); // Debug log
+        print(
+            'Attempting to delete own account, returning error result...'); // Debug log
         Navigator.of(context).pop('error: Cannot delete your own account');
         print('Error result returned successfully'); // Debug log
         return;
@@ -1269,7 +1341,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
         if (pocketBaseError.toString().contains('permission-denied') ||
             pocketBaseError.toString().contains('permission') ||
             pocketBaseError.toString().contains('PERMISSION_DENIED')) {
-          throw Exception('Permission denied: Unable to delete user. Please check your permissions or try again.');
+          throw Exception(
+              'Permission denied: Unable to delete user. Please check your permissions or try again.');
         }
         rethrow; // Re-throw other errors
       }
@@ -1367,7 +1440,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
           final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
           final displayMinute = minute.toString().padLeft(2, '0');
 
-          displayValue = '$month $day, $year $displayHour:$displayMinute $period';
+          displayValue =
+              '$month $day, $year $displayHour:$displayMinute $period';
         } else {
           displayValue =
               '${value.day}/${value.month}/${value.year} ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
@@ -1400,7 +1474,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
             final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
             final displayMinute = minute.toString().padLeft(2, '0');
 
-            displayValue = '$month $day, $year $displayHour:$displayMinute $period';
+            displayValue =
+                '$month $day, $year $displayHour:$displayMinute $period';
           } else {
             displayValue =
                 '${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
@@ -1473,10 +1548,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               height: 150,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
-                                print('Network image error for $imageUrl: $error');
-                                return _buildCarImagePlaceholder(0, 'Failed', Colors.orange);
+                                print(
+                                    'Network image error for $imageUrl: $error');
+                                return _buildCarImagePlaceholder(
+                                    0, 'Failed', Colors.orange);
                               },
-                              loadingBuilder: (context, child, loadingProgress) {
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
                                 if (loadingProgress == null) return child;
                                 return Container(
                                   width: 200,
@@ -1519,7 +1597,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Car Images', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+        Text('Car Images',
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 16),
 
         // Main Car Image
@@ -1528,7 +1610,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
           children: [
             Text(
               'Primary Car Image',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Row(
@@ -1552,8 +1637,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
                       : FutureBuilder<String?>(
                           future: _loadMainCarImageFromStorage(),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator());
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
                             }
 
                             if (snapshot.hasData && snapshot.data != null) {
@@ -1569,8 +1656,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                       child: Image.network(
                                         'https://placehold.co/80x80/CCCCCC/666666?text=Main',
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return const Icon(Icons.directions_car, size: 40, color: Colors.grey);
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return const Icon(
+                                              Icons.directions_car,
+                                              size: 40,
+                                              color: Colors.grey);
                                         },
                                       ),
                                     );
@@ -1586,7 +1677,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                 'https://placehold.co/80x80/CCCCCC/666666?text=Main',
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(Icons.directions_car, size: 40, color: Colors.grey);
+                                  return const Icon(Icons.directions_car,
+                                      size: 40, color: Colors.grey);
                                 },
                               ),
                             );
@@ -1614,10 +1706,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             ? const SizedBox(
                                 width: 16,
                                 height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Icon(Icons.camera_alt),
-                        label: Text(_isUploadingCarImage ? 'Uploading...' : 'Change'),
+                        label: Text(
+                            _isUploadingCarImage ? 'Uploading...' : 'Change'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
@@ -1646,7 +1740,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
         // Additional Car Images Grid
         Text(
           'Additional Car Images (1-4)',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          style: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
 
@@ -1674,18 +1771,22 @@ class _UserDetailPageState extends State<UserDetailPage> {
               case 3:
                 selectedImage = _selectedCarImage3;
               case 4:
-                selectedImage = _selectedCarImage4; // 4th car image, separate from main
+                selectedImage =
+                    _selectedCarImage4; // 4th car image, separate from main
             }
 
             // If no locally selected image, try to load from PocketBase
             if (selectedImage == null) {
               final userId = _editedData['id'] as String?;
               if (userId != null) {
-                final carImageData = _editedData['carImage$imageNumber'] as String?;
+                final carImageData =
+                    _editedData['carImage$imageNumber'] as String?;
                 String? imageUrl;
                 if (carImageData != null && carImageData.isNotEmpty) {
-                  final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-                  imageUrl = '$pocketbaseUrl/api/files/users/$userId/$carImageData';
+                  final pocketbaseUrl = FlavorConfig
+                      .instance.variables['pocketbaseUrl'] as String;
+                  imageUrl =
+                      '$pocketbaseUrl/api/files/users/$userId/$carImageData';
                 }
 
                 return FutureBuilder<String?>(
@@ -1722,13 +1823,17 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                     color: Colors.grey.shade100,
                                     child: Center(
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
-                                          const Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                          const Icon(Icons.directions_car,
+                                              size: 32, color: Colors.grey),
                                           const SizedBox(height: 4),
                                           Text(
                                             'Car $imageNumber',
-                                            style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                            style: const TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 12),
                                           ),
                                         ],
                                       ),
@@ -1742,7 +1847,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               top: 4,
                               right: 4,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: Colors.black.withOpacity(0.7),
                                   borderRadius: BorderRadius.circular(4),
@@ -1788,7 +1894,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.blue,
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
                                   minimumSize: const Size(0, 24),
                                 ),
                               ),
@@ -1818,13 +1925,16 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                   color: Colors.grey.shade100,
                                   child: Center(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        const Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                        const Icon(Icons.directions_car,
+                                            size: 32, color: Colors.grey),
                                         const SizedBox(height: 4),
                                         Text(
                                           'Car $imageNumber',
-                                          style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                          style: const TextStyle(
+                                              color: Colors.grey, fontSize: 12),
                                         ),
                                       ],
                                     ),
@@ -1838,7 +1948,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             top: 4,
                             right: 4,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Colors.black.withOpacity(0.7),
                                 borderRadius: BorderRadius.circular(4),
@@ -1884,7 +1995,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 minimumSize: const Size(0, 24),
                               ),
                             ),
@@ -1927,11 +2039,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Icon(Icons.directions_car, size: 32, color: Colors.grey),
+                                      const Icon(Icons.directions_car,
+                                          size: 32, color: Colors.grey),
                                       const SizedBox(height: 4),
                                       Text(
                                         'Car $imageNumber',
-                                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                        style: const TextStyle(
+                                            color: Colors.grey, fontSize: 12),
                                       ),
                                     ],
                                   ),
@@ -1945,7 +2059,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     top: 4,
                     right: 4,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.7),
                         borderRadius: BorderRadius.circular(4),
@@ -1991,7 +2106,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         minimumSize: const Size(0, 24),
                       ),
                     ),
@@ -2017,7 +2133,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
       children: [
         Text(
           'Car Primary Image',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
+              ?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
 
@@ -2085,7 +2204,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               SizedBox(height: 8),
                               Text(
                                 'Failed to load main car image',
-                                style: TextStyle(color: Colors.grey, fontSize: 12),
+                                style:
+                                    TextStyle(color: Colors.grey, fontSize: 12),
                               ),
                             ],
                           ),
@@ -2118,11 +2238,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.directions_car, size: 48, color: Colors.grey),
+                            Icon(Icons.directions_car,
+                                size: 48, color: Colors.grey),
                             SizedBox(height: 8),
                             Text(
                               'No main car image',
-                              style: TextStyle(color: Colors.grey, fontSize: 14),
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 14),
                             ),
                           ],
                         ),
@@ -2138,7 +2260,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
         const SizedBox(height: 24),
 
         // Additional Car Images Grid (1-4)
-        Text('Car Images (1-4)', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+        Text('Car Images (1-4)',
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
 
         // Grid of car images
@@ -2157,14 +2283,16 @@ class _UserDetailPageState extends State<UserDetailPage> {
             final userId = _editedData['id'] as String?;
 
             if (userId == null) {
-              return _buildCarImagePlaceholder(imageNumber, 'No user ID', Colors.grey);
+              return _buildCarImagePlaceholder(
+                  imageNumber, 'No user ID', Colors.grey);
             }
 
             // Get car image from PocketBase
             final carImageData = _editedData['carImage$imageNumber'] as String?;
             String? imageUrl;
             if (carImageData != null && carImageData.isNotEmpty) {
-              final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+              final pocketbaseUrl =
+                  FlavorConfig.instance.variables['pocketbaseUrl'] as String;
               imageUrl = '$pocketbaseUrl/api/files/users/$userId/$carImageData';
             }
 
@@ -2183,7 +2311,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
                 // If image is missing (null), use placehold.co
                 if (snapshot.data == null) {
-                  final placeholderUrl = 'https://placehold.co/300x200/CCCCCC/666666?text=Car+$imageNumber';
+                  final placeholderUrl =
+                      'https://placehold.co/300x200/CCCCCC/666666?text=Car+$imageNumber';
                   return Container(
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey.shade300),
@@ -2199,7 +2328,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             width: double.infinity,
                             height: double.infinity,
                             errorBuilder: (context, error, stackTrace) {
-                              return _buildCarImagePlaceholder(imageNumber, 'Empty', Colors.grey);
+                              return _buildCarImagePlaceholder(
+                                  imageNumber, 'Empty', Colors.grey);
                             },
                           ),
                           // Image number overlay
@@ -2207,7 +2337,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             top: 4,
                             right: 4,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Colors.black.withOpacity(0.7),
                                 borderRadius: BorderRadius.circular(4),
@@ -2232,8 +2363,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 if (snapshot.hasError) {
                   final error = snapshot.error.toString();
                   // If it's a "not found" error, use placehold.co
-                  if (error.contains('not found') || error.contains('404') || error.contains('object does not exist')) {
-                    final placeholderUrl = 'https://placehold.co/300x200/CCCCCC/666666?text=Car+$imageNumber';
+                  if (error.contains('not found') ||
+                      error.contains('404') ||
+                      error.contains('object does not exist')) {
+                    final placeholderUrl =
+                        'https://placehold.co/300x200/CCCCCC/666666?text=Car+$imageNumber';
                     return Container(
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey.shade300),
@@ -2249,7 +2383,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               width: double.infinity,
                               height: double.infinity,
                               errorBuilder: (context, error, stackTrace) {
-                                return _buildCarImagePlaceholder(imageNumber, 'Empty', Colors.grey);
+                                return _buildCarImagePlaceholder(
+                                    imageNumber, 'Empty', Colors.grey);
                               },
                             ),
                             // Image number overlay
@@ -2257,7 +2392,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               top: 4,
                               right: 4,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: Colors.black.withOpacity(0.7),
                                   borderRadius: BorderRadius.circular(4),
@@ -2279,11 +2415,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   }
                   // For actual errors, show error state
                   // print('Error loading car image $imageNumber: $error');
-                  return _buildCarImagePlaceholder(imageNumber, 'Error', Colors.red);
+                  return _buildCarImagePlaceholder(
+                      imageNumber, 'Error', Colors.red);
                 }
 
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  final placeholderUrl = 'https://placehold.co/300x200/CCCCCC/666666?text=Car+$imageNumber';
+                  final placeholderUrl =
+                      'https://placehold.co/300x200/CCCCCC/666666?text=Car+$imageNumber';
                   return Container(
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey.shade300),
@@ -2299,7 +2437,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             width: double.infinity,
                             height: double.infinity,
                             errorBuilder: (context, error, stackTrace) {
-                              return _buildCarImagePlaceholder(imageNumber, 'Empty', Colors.grey);
+                              return _buildCarImagePlaceholder(
+                                  imageNumber, 'Empty', Colors.grey);
                             },
                           ),
                           // Image number overlay
@@ -2307,7 +2446,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             top: 4,
                             right: 4,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Colors.black.withOpacity(0.7),
                                 borderRadius: BorderRadius.circular(4),
@@ -2345,7 +2485,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                           height: double.infinity,
                           errorBuilder: (context, error, stackTrace) {
                             // print('Network image error for $imageNumber: $error');
-                            return _buildCarImagePlaceholder(imageNumber, 'Failed', Colors.orange);
+                            return _buildCarImagePlaceholder(
+                                imageNumber, 'Failed', Colors.orange);
                           },
                         ),
                         // Image number overlay
@@ -2353,7 +2494,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
                           top: 4,
                           right: 4,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.black.withOpacity(0.7),
                               borderRadius: BorderRadius.circular(4),
@@ -2380,7 +2522,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
     );
   }
 
-  Widget _buildCarImagePlaceholder(int imageNumber, String status, Color color) {
+  Widget _buildCarImagePlaceholder(
+      int imageNumber, String status, Color color) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: color),
@@ -2416,7 +2559,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
     // Check if user has car image data
     final carImageData = _editedData['carImagemain'] as String?;
     if (carImageData != null && carImageData.isNotEmpty) {
-      final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+      final pocketbaseUrl =
+          FlavorConfig.instance.variables['pocketbaseUrl'] as String;
       return '$pocketbaseUrl/api/files/users/$userId/$carImageData';
     }
 
@@ -2453,8 +2597,10 @@ class _UserDetailPageState extends State<UserDetailPage> {
           try {
             final carImageData = _editedData['carImage$imageName'] as String?;
             if (carImageData != null) {
-              final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-              final downloadUrl = '$pocketbaseUrl/api/files/users/$userId/$carImageData';
+              final pocketbaseUrl =
+                  FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+              final downloadUrl =
+                  '$pocketbaseUrl/api/files/users/$userId/$carImageData';
               print('Car image $imageName download URL: $downloadUrl');
             }
           } catch (e) {
@@ -2502,7 +2648,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
         return value;
       } else {
         // It's a PocketBase filename, construct the URL
-        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        final pocketbaseUrl =
+            FlavorConfig.instance.variables['pocketbaseUrl'] as String;
         return '$pocketbaseUrl/api/files/users/${_editedData['id']}/$value';
       }
     } catch (e) {

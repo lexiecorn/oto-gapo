@@ -51,7 +51,9 @@ class ReactionPickerWidget extends StatelessWidget {
                   duration: const Duration(milliseconds: 200),
                   padding: EdgeInsets.all(isSelected ? 12.w : 8.w),
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.transparent,
+                    color: isSelected
+                        ? Colors.blue.withOpacity(0.2)
+                        : Colors.transparent,
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: isSelected ? Colors.blue : Colors.transparent,
@@ -72,7 +74,8 @@ class ReactionPickerWidget extends StatelessWidget {
                         reaction.displayName,
                         style: TextStyle(
                           fontSize: 10.sp,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
                           color: isSelected ? Colors.blue : Colors.grey[600],
                         ),
                       ),

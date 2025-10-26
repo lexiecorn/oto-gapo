@@ -13,7 +13,8 @@ class VersionRepository {
 
   /// Gets the PocketBase instance for public access (no authentication required).
   PocketBase get _pocketBase {
-    final url = FlavorConfig.instance.variables['pocketbaseUrl'] as String? ?? 'https://pb.lexserver.org';
+    final url = FlavorConfig.instance.variables['pocketbaseUrl'] as String? ??
+        'https://pb.lexserver.org';
     return PocketBase(url);
   }
 
@@ -29,7 +30,8 @@ class VersionRepository {
 
       // Check if PocketBase is available
       if (pb.baseUrl.isEmpty) {
-        print('VersionRepository: PocketBase not initialized, skipping version check');
+        print(
+            'VersionRepository: PocketBase not initialized, skipping version check');
         return null;
       }
 
@@ -41,7 +43,8 @@ class VersionRepository {
           );
 
       if (result.items.isEmpty) {
-        print('VersionRepository: No version config found for platform $_platform');
+        print(
+            'VersionRepository: No version config found for platform $_platform');
         return null;
       }
 
@@ -72,7 +75,8 @@ class VersionRepository {
     required double minBuildNumber,
   }) {
     // Compare semantic versions
-    final versionComparison = _compareSemanticVersion(currentVersion, minVersion);
+    final versionComparison =
+        _compareSemanticVersion(currentVersion, minVersion);
 
     if (versionComparison < 0) {
       // Current version is older

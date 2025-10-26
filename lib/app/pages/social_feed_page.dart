@@ -21,7 +21,8 @@ class SocialFeedPage extends StatefulWidget {
   State<SocialFeedPage> createState() => _SocialFeedPageState();
 }
 
-class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProviderStateMixin {
+class _SocialFeedPageState extends State<SocialFeedPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late ScrollController _scrollController;
   late FeedCubit _feedCubit;
@@ -217,8 +218,11 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
                     child: AnimationLimiter(
                       child: ListView.builder(
                         controller: _scrollController,
-                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                        itemCount: state.hasMore ? state.posts.length + 1 : state.posts.length,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16.w, vertical: 16.h),
+                        itemCount: state.hasMore
+                            ? state.posts.length + 1
+                            : state.posts.length,
                         itemBuilder: (context, index) {
                           if (index >= state.posts.length) {
                             return Padding(
@@ -242,9 +246,11 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
                                   post: post,
                                   currentUserId: currentUserId,
                                   userReaction: userReaction,
-                                  onReactionTap: () => _showReactionPicker(context, post.id),
+                                  onReactionTap: () =>
+                                      _showReactionPicker(context, post.id),
                                   onCommentTap: () async {
-                                    await context.router.push(PostDetailPageRouter(postId: post.id));
+                                    await context.router.push(
+                                        PostDetailPageRouter(postId: post.id));
                                     // Refresh post after returning from detail page
                                     _feedCubit.refreshPost(post.id);
                                   },
@@ -255,7 +261,8 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
                                     );
                                   },
                                   onImageTap: () async {
-                                    await context.router.push(PostDetailPageRouter(postId: post.id));
+                                    await context.router.push(
+                                        PostDetailPageRouter(postId: post.id));
                                     // Refresh post after returning from detail page
                                     _feedCubit.refreshPost(post.id);
                                   },
@@ -267,10 +274,13 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
                                   onMentionTap: (mention) {
                                     // TODO: Navigate to user profile
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Mentioned: @$mention')),
+                                      SnackBar(
+                                          content:
+                                              Text('Mentioned: @$mention')),
                                     );
                                   },
-                                  onMoreTap: () => _showPostOptions(context, post),
+                                  onMoreTap: () =>
+                                      _showPostOptions(context, post),
                                 ),
                               ),
                             ),
@@ -325,13 +335,16 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
                     child: Container(
                       padding: EdgeInsets.all(8.w),
                       decoration: BoxDecoration(
-                        color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.transparent,
+                        color: isSelected
+                            ? Colors.blue.withOpacity(0.2)
+                            : Colors.transparent,
                         shape: BoxShape.circle,
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(reaction.emoji, style: TextStyle(fontSize: 28.sp)),
+                          Text(reaction.emoji,
+                              style: TextStyle(fontSize: 28.sp)),
                           SizedBox(height: 4.h),
                           Text(
                             reaction.displayName,
@@ -394,7 +407,8 @@ class _SocialFeedPageState extends State<SocialFeedPage> with SingleTickerProvid
     final authState = context.read<AuthBloc>().state;
     final currentUserId = authState.user?.id ?? '';
     final isOwner = post.userId == currentUserId;
-    final isAdmin = authState.user?.data['membership_type'] == 1 || authState.user?.data['membership_type'] == 2;
+    final isAdmin = authState.user?.data['membership_type'] == 1 ||
+        authState.user?.data['membership_type'] == 2;
 
     showModalBottomSheet<void>(
       context: context,

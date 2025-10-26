@@ -27,7 +27,8 @@ class AdminAnalyticsCubit extends Cubit<AdminAnalyticsState> {
         upcomingMeetings: statsMap['upcomingMeetings'] as int? ?? 0,
         pendingPayments: statsMap['pendingPayments'] as int? ?? 0,
         totalRevenue: (statsMap['totalRevenue'] as num?)?.toDouble() ?? 0.0,
-        averageAttendance: (statsMap['averageAttendance'] as num?)?.toDouble() ?? 0.0,
+        averageAttendance:
+            (statsMap['averageAttendance'] as num?)?.toDouble() ?? 0.0,
       );
 
       emit(

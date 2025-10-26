@@ -62,7 +62,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
         // Check if user was created this month
         if (data['created'] != null) {
           final createdAt = DateTime.parse(data['created'].toString());
-          if (createdAt.month == currentMonth && createdAt.year == currentYear) {
+          if (createdAt.month == currentMonth &&
+              createdAt.year == currentYear) {
             newThisMonth++;
           }
         }
@@ -147,43 +148,64 @@ class _UserManagementPageState extends State<UserManagementPage> {
             _buildHeaderSection()
                 .animate()
                 .fadeIn(duration: const Duration(milliseconds: 600))
-                .slideY(begin: -0.3, duration: const Duration(milliseconds: 600)),
+                .slideY(
+                    begin: -0.3, duration: const Duration(milliseconds: 600)),
 
             SizedBox(height: 24.sp),
 
             // Quick Stats Section
             _buildQuickStatsSection()
                 .animate()
-                .fadeIn(delay: const Duration(milliseconds: 200), duration: const Duration(milliseconds: 600))
+                .fadeIn(
+                    delay: const Duration(milliseconds: 200),
+                    duration: const Duration(milliseconds: 600))
                 .slideY(
-                    begin: -0.2, delay: const Duration(milliseconds: 200), duration: const Duration(milliseconds: 600),),
+                  begin: -0.2,
+                  delay: const Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 600),
+                ),
 
             SizedBox(height: 24.sp),
 
             // Main Actions Section
             _buildMainActionsSection(context)
                 .animate()
-                .fadeIn(delay: const Duration(milliseconds: 400), duration: const Duration(milliseconds: 600))
+                .fadeIn(
+                    delay: const Duration(milliseconds: 400),
+                    duration: const Duration(milliseconds: 600))
                 .slideY(
-                    begin: -0.2, delay: const Duration(milliseconds: 400), duration: const Duration(milliseconds: 600),),
+                  begin: -0.2,
+                  delay: const Duration(milliseconds: 400),
+                  duration: const Duration(milliseconds: 600),
+                ),
 
             SizedBox(height: 24.sp),
 
             // Quick Actions Section
             _buildQuickActionsSection(context)
                 .animate()
-                .fadeIn(delay: const Duration(milliseconds: 600), duration: const Duration(milliseconds: 600))
+                .fadeIn(
+                    delay: const Duration(milliseconds: 600),
+                    duration: const Duration(milliseconds: 600))
                 .slideY(
-                    begin: -0.2, delay: const Duration(milliseconds: 600), duration: const Duration(milliseconds: 600),),
+                  begin: -0.2,
+                  delay: const Duration(milliseconds: 600),
+                  duration: const Duration(milliseconds: 600),
+                ),
 
             SizedBox(height: 24.sp),
 
             // Theme Info Section
             _buildThemeInfoSection(context)
                 .animate()
-                .fadeIn(delay: const Duration(milliseconds: 800), duration: const Duration(milliseconds: 600))
+                .fadeIn(
+                    delay: const Duration(milliseconds: 800),
+                    duration: const Duration(milliseconds: 600))
                 .slideY(
-                    begin: -0.2, delay: const Duration(milliseconds: 800), duration: const Duration(milliseconds: 600),),
+                  begin: -0.2,
+                  delay: const Duration(milliseconds: 800),
+                  duration: const Duration(milliseconds: 600),
+                ),
           ],
         ),
       ),
@@ -214,7 +236,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
         borderRadius: BorderRadius.circular(16.sp),
         boxShadow: [
           BoxShadow(
-            color: (isDark ? colorScheme.primary : Colors.blue).withOpacity(0.3),
+            color:
+                (isDark ? colorScheme.primary : Colors.blue).withOpacity(0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -225,7 +248,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
           Container(
             padding: EdgeInsets.all(16.sp),
             decoration: BoxDecoration(
-              color: (isDark ? colorScheme.onPrimary : Colors.white).withOpacity(0.2),
+              color: (isDark ? colorScheme.onPrimary : Colors.white)
+                  .withOpacity(0.2),
               borderRadius: BorderRadius.circular(12.sp),
             ),
             child: Icon(
@@ -249,7 +273,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
             'Manage user accounts, permissions, and system access',
             style: TextStyle(
               fontSize: 14.sp,
-              color: (isDark ? colorScheme.onPrimary : Colors.white).withOpacity(0.9),
+              color: (isDark ? colorScheme.onPrimary : Colors.white)
+                  .withOpacity(0.9),
             ),
             textAlign: TextAlign.center,
           ),
@@ -316,7 +341,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
             offset: const Offset(0, 2),
           ),
         ],
-        border: isDark ? Border.all(color: colorScheme.outline.withOpacity(0.2)) : null,
+        border: isDark
+            ? Border.all(color: colorScheme.outline.withOpacity(0.2))
+            : null,
       ),
       child: Column(
         children: [
@@ -333,32 +360,39 @@ class _UserManagementPageState extends State<UserManagementPage> {
             ),
           ),
           SizedBox(height: 12.sp),
-          if (_isLoading) SizedBox(
-                  width: 20.sp,
-                  height: 20.sp,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
-                  ),
-                ) else Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 24.sp,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? colorScheme.onSurface : Colors.black87,
-                  ),
-                ),
+          if (_isLoading)
+            SizedBox(
+              width: 20.sp,
+              height: 20.sp,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+              ),
+            )
+          else
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 24.sp,
+                fontWeight: FontWeight.bold,
+                color: isDark ? colorScheme.onSurface : Colors.black87,
+              ),
+            ),
           Text(
             title,
             style: TextStyle(
               fontSize: 12.sp,
-              color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+              color: isDark
+                  ? colorScheme.onSurface.withOpacity(0.7)
+                  : Colors.grey[600],
             ),
             textAlign: TextAlign.center,
           ),
         ],
       ),
-    ).animate().fadeIn(delay: delay, duration: const Duration(milliseconds: 600));
+    )
+        .animate()
+        .fadeIn(delay: delay, duration: const Duration(milliseconds: 600));
   }
 
   Widget _buildMainActionsSection(BuildContext context) {
@@ -388,7 +422,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 color: Colors.blue,
                 onTap: () async {
                   await Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (context) => const UserListPage()),
+                    MaterialPageRoute<void>(
+                        builder: (context) => const UserListPage()),
                   );
                   // Refresh statistics when returning
                   _loadUserStatistics();
@@ -406,7 +441,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 color: Colors.green,
                 onTap: () async {
                   await Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (context) => const CreateUserPage()),
+                    MaterialPageRoute<void>(
+                        builder: (context) => const CreateUserPage()),
                   );
                   // Refresh statistics when returning
                   _loadUserStatistics();
@@ -480,7 +516,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 subtitle,
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                  color: isDark
+                      ? colorScheme.onSurface.withOpacity(0.7)
+                      : Colors.grey[600],
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -488,7 +526,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
           ),
         ),
       ),
-    ).animate().fadeIn(delay: delay, duration: const Duration(milliseconds: 400));
+    )
+        .animate()
+        .fadeIn(delay: delay, duration: const Duration(milliseconds: 400));
   }
 
   Widget _buildQuickActionsSection(BuildContext context) {
@@ -519,7 +559,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 offset: const Offset(0, 2),
               ),
             ],
-            border: isDark ? Border.all(color: colorScheme.outline.withOpacity(0.2)) : null,
+            border: isDark
+                ? Border.all(color: colorScheme.outline.withOpacity(0.2))
+                : null,
           ),
           child: Column(
             children: [
@@ -531,11 +573,16 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 onTap: () {
                   // TODO: Implement search functionality
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Search functionality coming soon!')),
+                    const SnackBar(
+                        content: Text('Search functionality coming soon!')),
                   );
                 },
               ),
-              Divider(height: 1, color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey[200]),
+              Divider(
+                  height: 1,
+                  color: isDark
+                      ? colorScheme.outline.withOpacity(0.2)
+                      : Colors.grey[200]),
               _buildQuickActionTile(
                 context: context,
                 icon: Icons.download,
@@ -544,11 +591,16 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 onTap: () {
                   // TODO: Implement export functionality
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Export functionality coming soon!')),
+                    const SnackBar(
+                        content: Text('Export functionality coming soon!')),
                   );
                 },
               ),
-              Divider(height: 1, color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey[200]),
+              Divider(
+                  height: 1,
+                  color: isDark
+                      ? colorScheme.outline.withOpacity(0.2)
+                      : Colors.grey[200]),
               _buildQuickActionTile(
                 context: context,
                 icon: Icons.settings,
@@ -557,7 +609,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 onTap: () {
                   // TODO: Implement bulk operations
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Bulk operations coming soon!')),
+                    const SnackBar(
+                        content: Text('Bulk operations coming soon!')),
                   );
                 },
               ),
@@ -590,7 +643,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
               Container(
                 padding: EdgeInsets.all(8.sp),
                 decoration: BoxDecoration(
-                  color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.grey[100],
+                  color: isDark
+                      ? colorScheme.primary.withOpacity(0.1)
+                      : Colors.grey[100],
                   borderRadius: BorderRadius.circular(8.sp),
                 ),
                 child: Icon(
@@ -616,7 +671,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
                       subtitle,
                       style: TextStyle(
                         fontSize: 12.sp,
-                        color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                        color: isDark
+                            ? colorScheme.onSurface.withOpacity(0.7)
+                            : Colors.grey[600],
                       ),
                     ),
                   ],
@@ -625,7 +682,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16.sp,
-                color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[400],
+                color: isDark
+                    ? colorScheme.onSurface.withOpacity(0.5)
+                    : Colors.grey[400],
               ),
             ],
           ),
@@ -644,7 +703,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
         backgroundColor: isDark ? colorScheme.surface : Colors.white,
         title: Row(
           children: [
-            Icon(Icons.help_outline, color: isDark ? colorScheme.primary : Colors.blue),
+            Icon(Icons.help_outline,
+                color: isDark ? colorScheme.primary : Colors.blue),
             SizedBox(width: 8.sp),
             Text(
               'User Management Help',
@@ -661,7 +721,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
             _buildHelpItem(
               icon: Icons.list_alt,
               title: 'User List',
-              description: 'View all registered users and manage their accounts.',
+              description:
+                  'View all registered users and manage their accounts.',
             ),
             SizedBox(height: 12.sp),
             _buildHelpItem(
@@ -673,7 +734,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
             _buildHelpItem(
               icon: Icons.search,
               title: 'Search Users',
-              description: 'Quickly find specific users by name or member number.',
+              description:
+                  'Quickly find specific users by name or member number.',
             ),
             SizedBox(height: 12.sp),
             _buildHelpItem(
@@ -709,7 +771,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20.sp, color: isDark ? colorScheme.primary : Colors.blue),
+        Icon(icon,
+            size: 20.sp, color: isDark ? colorScheme.primary : Colors.blue),
         SizedBox(width: 12.sp),
         Expanded(
           child: Column(
@@ -727,7 +790,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 description,
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                  color: isDark
+                      ? colorScheme.onSurface.withOpacity(0.7)
+                      : Colors.grey[600],
                 ),
               ),
             ],
@@ -760,7 +825,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
         borderRadius: BorderRadius.circular(16.sp),
         boxShadow: [
           BoxShadow(
-            color: (isDark ? colorScheme.secondary : Colors.purple).withOpacity(0.3),
+            color: (isDark ? colorScheme.secondary : Colors.purple)
+                .withOpacity(0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -771,7 +837,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
           Container(
             padding: EdgeInsets.all(16.sp),
             decoration: BoxDecoration(
-              color: (isDark ? colorScheme.onSecondary : Colors.white).withOpacity(0.2),
+              color: (isDark ? colorScheme.onSecondary : Colors.white)
+                  .withOpacity(0.2),
               borderRadius: BorderRadius.circular(12.sp),
             ),
             child: Icon(
@@ -795,7 +862,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
             'Current Theme: ${isDark ? 'Dark' : 'Light'} Mode',
             style: TextStyle(
               fontSize: 14.sp,
-              color: (isDark ? colorScheme.onSecondary : Colors.white).withOpacity(0.9),
+              color: (isDark ? colorScheme.onSecondary : Colors.white)
+                  .withOpacity(0.9),
             ),
             textAlign: TextAlign.center,
           ),
@@ -804,7 +872,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
             'Tap the theme icon in the app bar to switch themes',
             style: TextStyle(
               fontSize: 12.sp,
-              color: (isDark ? colorScheme.onSecondary : Colors.white).withOpacity(0.7),
+              color: (isDark ? colorScheme.onSecondary : Colors.white)
+                  .withOpacity(0.7),
             ),
             textAlign: TextAlign.center,
           ),

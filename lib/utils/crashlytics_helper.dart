@@ -154,7 +154,8 @@ class CrashlyticsHelper {
     try {
       await _crashlytics.setCrashlyticsCollectionEnabled(enabled);
       if (kDebugMode) {
-        developer.log('Crashlytics collection ${enabled ? 'enabled' : 'disabled'}');
+        developer
+            .log('Crashlytics collection ${enabled ? 'enabled' : 'disabled'}');
       }
     } catch (e) {
       if (kDebugMode) {

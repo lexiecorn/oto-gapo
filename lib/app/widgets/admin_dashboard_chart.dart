@@ -56,7 +56,9 @@ class AdminDashboardChart extends StatelessWidget {
             else
               SizedBox(
                 height: 200.h,
-                child: chartType == ChartType.line ? _buildLineChart() : _buildBarChart(),
+                child: chartType == ChartType.line
+                    ? _buildLineChart()
+                    : _buildBarChart(),
               ),
           ],
         ),
@@ -126,7 +128,11 @@ class AdminDashboardChart extends StatelessWidget {
         borderData: FlBorderData(show: false),
         lineBarsData: [
           LineChartBarData(
-            spots: data.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value.value)).toList(),
+            spots: data
+                .asMap()
+                .entries
+                .map((e) => FlSpot(e.key.toDouble(), e.value.value))
+                .toList(),
             isCurved: true,
             color: chartColor,
             barWidth: 3,
@@ -243,7 +249,9 @@ class AdminDashboardChart extends StatelessWidget {
                     ),
                     backDrawRodData: BackgroundBarChartRodData(
                       show: true,
-                      toY: data.map((e) => e.value).reduce((a, b) => a > b ? a : b),
+                      toY: data
+                          .map((e) => e.value)
+                          .reduce((a, b) => a > b ? a : b),
                       color: Colors.grey.shade200,
                     ),
                   ),

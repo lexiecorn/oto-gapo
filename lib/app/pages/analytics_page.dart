@@ -63,9 +63,11 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
       switch (_selectedRange) {
         case '6months':
-          startMonth = DateFormat('yyyy-MM').format(DateTime(now.year, now.month - 5));
+          startMonth =
+              DateFormat('yyyy-MM').format(DateTime(now.year, now.month - 5));
         case '12months':
-          startMonth = DateFormat('yyyy-MM').format(DateTime(now.year, now.month - 11));
+          startMonth =
+              DateFormat('yyyy-MM').format(DateTime(now.year, now.month - 11));
         case 'all':
           startMonth = null;
           endMonth = null;

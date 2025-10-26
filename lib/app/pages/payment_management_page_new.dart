@@ -13,7 +13,8 @@ class PaymentManagementPageNew extends StatefulWidget {
   const PaymentManagementPageNew({super.key});
 
   @override
-  State<PaymentManagementPageNew> createState() => _PaymentManagementPageNewState();
+  State<PaymentManagementPageNew> createState() =>
+      _PaymentManagementPageNewState();
 }
 
 class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
@@ -45,7 +46,8 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
       final users = await pocketBaseService.getAllUsers();
       print('Total users loaded: ${users.length}');
 
-      final activeUsers = users.where((user) => user.data['isActive'] == true).toList();
+      final activeUsers =
+          users.where((user) => user.data['isActive'] == true).toList();
       print('Active users: ${activeUsers.length}');
 
       // Log a few user IDs for debugging
@@ -112,12 +114,17 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
     // Apply search filter
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((user) {
-        final firstName = (user.data['firstName'] as String?)?.toLowerCase() ?? '';
-        final lastName = (user.data['lastName'] as String?)?.toLowerCase() ?? '';
-        final memberNumber = user.data['memberNumber']?.toString().toLowerCase() ?? '';
+        final firstName =
+            (user.data['firstName'] as String?)?.toLowerCase() ?? '';
+        final lastName =
+            (user.data['lastName'] as String?)?.toLowerCase() ?? '';
+        final memberNumber =
+            user.data['memberNumber']?.toString().toLowerCase() ?? '';
         final query = _searchQuery.toLowerCase();
 
-        return firstName.contains(query) || lastName.contains(query) || memberNumber.contains(query);
+        return firstName.contains(query) ||
+            lastName.contains(query) ||
+            memberNumber.contains(query);
       }).toList();
     }
 
@@ -169,15 +176,19 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Month selector
-            Text('Select Month', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
+            Text('Select Month',
+                style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
             SizedBox(height: 8.h),
             DropdownButtonFormField<String>(
               value: _selectedMonth,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
-              style: TextStyle(fontSize: 12.sp, color: Theme.of(context).textTheme.bodyLarge?.color),
+              style: TextStyle(
+                  fontSize: 12.sp,
+                  color: Theme.of(context).textTheme.bodyLarge?.color),
               dropdownColor: Theme.of(context).cardColor,
               items: _availableMonths.map((month) {
                 final date = DateTime.parse('$month-01');
@@ -308,14 +319,16 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
 
   // add vertical space
 
-  Widget _buildSummaryItem(String label, String value, IconData icon, Color color) {
+  Widget _buildSummaryItem(
+      String label, String value, IconData icon, Color color) {
     return Column(
       children: [
         Icon(icon, color: color, size: 24.sp),
         SizedBox(height: 4.h),
         Text(
           value,
-          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: color),
+          style: TextStyle(
+              fontSize: 14.sp, fontWeight: FontWeight.bold, color: color),
         ),
         Text(label, style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
       ],
@@ -350,7 +363,11 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
       }
     }
 
-    return {'paid': paidCount, 'pending': pendingCount, 'overdue': overdueCount};
+    return {
+      'paid': paidCount,
+      'pending': pendingCount,
+      'overdue': overdueCount
+    };
   }
 
   Widget _buildUsersList() {
@@ -378,7 +395,8 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
   Widget _buildUserCard(RecordModel user) {
     final userData = user.data;
     final userId = user.id;
-    final userName = '${userData['firstName'] ?? ''} ${userData['lastName'] ?? ''}'.trim();
+    final userName =
+        '${userData['firstName'] ?? ''} ${userData['lastName'] ?? ''}'.trim();
     final memberNumber = userData['memberNumber']?.toString() ?? '';
 
     return FutureBuilder<PaymentTransaction?>(
@@ -391,12 +409,15 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
         final now = DateTime.now();
         final currentMonth = DateTime(now.year, now.month);
         final selectedMonthDate = DateTime.parse('$_selectedMonth-01');
-        final isOverdue = !isPaid && !isWaived && selectedMonthDate.isBefore(currentMonth);
+        final isOverdue =
+            !isPaid && !isWaived && selectedMonthDate.isBefore(currentMonth);
 
         // Apply status filter
         if (_statusFilter == 'paid' && !isPaid) return const SizedBox.shrink();
-        if (_statusFilter == 'pending' && (isPaid || isWaived)) return const SizedBox.shrink();
-        if (_statusFilter == 'overdue' && !isOverdue) return const SizedBox.shrink();
+        if (_statusFilter == 'pending' && (isPaid || isWaived))
+          return const SizedBox.shrink();
+        if (_statusFilter == 'overdue' && !isOverdue)
+          return const SizedBox.shrink();
 
         final statusColor = isPaid
             ? Colors.green
@@ -474,9 +495,11 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
   }) {
     // Get profile image filename
     String? profileImageFileName;
-    if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
+    if (userData['profile_image'] != null &&
+        userData['profile_image'].toString().isNotEmpty) {
       profileImageFileName = userData['profile_image'].toString();
-    } else if (userData['profileImage'] != null && userData['profileImage'].toString().isNotEmpty) {
+    } else if (userData['profileImage'] != null &&
+        userData['profileImage'].toString().isNotEmpty) {
       profileImageFileName = userData['profileImage'].toString();
     }
 
@@ -488,8 +511,10 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
         profileImageUrl = profileImageFileName;
       } else {
         // It's a PocketBase filename, construct the URL
-        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-        profileImageUrl = '$pocketbaseUrl/api/files/users/$userId/$profileImageFileName';
+        final pocketbaseUrl =
+            FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        profileImageUrl =
+            '$pocketbaseUrl/api/files/users/$userId/$profileImageFileName';
       }
     }
 
@@ -589,7 +614,8 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
         print('Authentication check failed: $authError');
         if (mounted) {
           setState(() {
-            _errorMessage = 'Authentication error. Please try logging out and back in.';
+            _errorMessage =
+                'Authentication error. Please try logging out and back in.';
             _isLoading = false;
           });
         }
@@ -619,7 +645,8 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
         print('Error: User ${widget.userId} has no joinedDate field');
         if (mounted) {
           setState(() {
-            _errorMessage = 'User join date is not set. Please contact an administrator to update the user profile.';
+            _errorMessage =
+                'User join date is not set. Please contact an administrator to update the user profile.';
             _isLoading = false;
           });
         }
@@ -627,7 +654,8 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
       }
 
       final joinedDate = DateTime.parse(joinedDateString);
-      print('Loading payments for user ${widget.userId}, joined: $joinedDateString');
+      print(
+          'Loading payments for user ${widget.userId}, joined: $joinedDateString');
 
       final expectedMonths = pocketBaseService.getExpectedMonths(joinedDate);
       print('Expected months from join date: ${expectedMonths.length} months');
@@ -642,19 +670,23 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
         }
       }
 
-      print('Total available months (including future): ${expectedMonths.length}');
+      print(
+          'Total available months (including future): ${expectedMonths.length}');
 
       // Get all transactions for the user
-      final transactions = await pocketBaseService.getPaymentTransactions(widget.userId);
+      final transactions =
+          await pocketBaseService.getPaymentTransactions(widget.userId);
       print('Found ${transactions.length} existing payment transactions');
 
       final transactionMap = {for (var t in transactions) t.month: t};
 
       if (expectedMonths.isEmpty) {
-        print('Warning: No expected months generated for user ${widget.userId}');
+        print(
+            'Warning: No expected months generated for user ${widget.userId}');
         if (mounted) {
           setState(() {
-            _errorMessage = 'No payment months available for this user. This may indicate an issue with the join date.';
+            _errorMessage =
+                'No payment months available for this user. This may indicate an issue with the join date.';
             _isLoading = false;
           });
         }
@@ -665,7 +697,9 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
         setState(() {
           _availableMonths = expectedMonths;
           _transactions = transactionMap;
-          _selectedMonths = {widget.initialMonth}; // Pre-select the initial month
+          _selectedMonths = {
+            widget.initialMonth
+          }; // Pre-select the initial month
           _errorMessage = null;
           _isLoading = false;
         });
@@ -718,7 +752,8 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
         widget.onPaymentsUpdated();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Successfully recorded ${_selectedMonths.length} payment(s)'),
+            content: Text(
+                'Successfully recorded ${_selectedMonths.length} payment(s)'),
             backgroundColor: Colors.green,
           ),
         );
@@ -758,7 +793,8 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
     return Dialog(
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+        constraints:
+            BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -775,7 +811,8 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                       children: [
                         Text(
                           'Record Payments',
-                          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 16.sp, fontWeight: FontWeight.bold),
                         ),
                         Text(
                           widget.userName,
@@ -889,17 +926,22 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                           child: OutlinedButton.icon(
                             onPressed: _selectUnpaidMonths,
                             icon: const Icon(Icons.select_all, size: 16),
-                            label: const Text('Select All Unpaid', style: TextStyle(fontSize: 10)),
-                            style: OutlinedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 8.h)),
+                            label: const Text('Select All Unpaid',
+                                style: TextStyle(fontSize: 10)),
+                            style: OutlinedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(vertical: 8.h)),
                           ),
                         ),
                         SizedBox(width: 8.w),
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () => setState(() => _selectedMonths.clear()),
+                            onPressed: () =>
+                                setState(() => _selectedMonths.clear()),
                             icon: const Icon(Icons.clear_all, size: 16),
-                            label: const Text('Clear All', style: TextStyle(fontSize: 10)),
-                            style: OutlinedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 8.h)),
+                            label: const Text('Clear All',
+                                style: TextStyle(fontSize: 10)),
+                            style: OutlinedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(vertical: 8.h)),
                           ),
                         ),
                       ],
@@ -909,7 +951,8 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                     // Month checkboxes
                     ..._availableMonths.map((month) {
                       final monthDate = DateTime.parse('$month-01');
-                      final monthName = DateFormat('MMMM yyyy').format(monthDate);
+                      final monthName =
+                          DateFormat('MMMM yyyy').format(monthDate);
                       final transaction = _transactions[month];
                       final isPaid = transaction?.isPaid ?? false;
                       final isWaived = transaction?.isWaived ?? false;
@@ -917,7 +960,9 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
 
                       final now = DateTime.now();
                       final currentMonth = DateTime(now.year, now.month);
-                      final isOverdue = !isPaid && !isWaived && monthDate.isBefore(currentMonth);
+                      final isOverdue = !isPaid &&
+                          !isWaived &&
+                          monthDate.isBefore(currentMonth);
 
                       final statusColor = isPaid
                           ? Colors.green
@@ -949,11 +994,13 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                                   }
                                 });
                               },
-                        title: Text(monthName, style: TextStyle(fontSize: 12.sp)),
+                        title:
+                            Text(monthName, style: TextStyle(fontSize: 12.sp)),
                         subtitle: Row(
                           children: [
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 6.w, vertical: 2.h),
                               decoration: BoxDecoration(
                                 color: statusColor.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(8.r),
@@ -999,7 +1046,8 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                   children: [
                     Text(
                       'Payment Details',
-                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 12.sp, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 12.h),
 
@@ -1009,7 +1057,8 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                       decoration: InputDecoration(
                         labelText: 'Payment Method',
                         border: const OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12.w, vertical: 6.h),
                         labelStyle: TextStyle(fontSize: 11.sp),
                       ),
                       items: PaymentMethod.values.map((method) {
@@ -1019,7 +1068,8 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                             children: [
                               Icon(_getPaymentMethodIcon(method), size: 16.sp),
                               SizedBox(width: 8.w),
-                              Text(method.displayName, style: TextStyle(fontSize: 11.sp)),
+                              Text(method.displayName,
+                                  style: TextStyle(fontSize: 11.sp)),
                             ],
                           ),
                         );
@@ -1057,12 +1107,16 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.info_outline, color: Colors.blue, size: 16.sp),
+                          Icon(Icons.info_outline,
+                              color: Colors.blue, size: 16.sp),
                           SizedBox(width: 8.w),
                           Expanded(
                             child: Text(
                               '${_selectedMonths.length} month(s) selected • Total: ₱${_selectedMonths.length * 100}',
-                              style: TextStyle(fontSize: 10.sp, color: Colors.blue, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontSize: 10.sp,
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
                         ],
@@ -1081,22 +1135,27 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: _isProcessing ? null : () => Navigator.pop(context),
-                        child: Text('Cancel', style: TextStyle(fontSize: 12.sp)),
+                        onPressed:
+                            _isProcessing ? null : () => Navigator.pop(context),
+                        child:
+                            Text('Cancel', style: TextStyle(fontSize: 12.sp)),
                       ),
                     ),
                     SizedBox(width: 12.w),
                     Expanded(
                       flex: 2,
                       child: ElevatedButton.icon(
-                        onPressed: _isProcessing || _selectedMonths.isEmpty ? null : _processPayments,
+                        onPressed: _isProcessing || _selectedMonths.isEmpty
+                            ? null
+                            : _processPayments,
                         icon: _isProcessing
                             ? SizedBox(
                                 width: 16.sp,
                                 height: 16.sp,
                                 child: const CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
                                 ),
                               )
                             : const Icon(Icons.check),

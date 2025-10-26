@@ -71,11 +71,13 @@ class _SettingsPageState extends State<SettingsPage> {
       debugPrint('Settings Page - AuthBloc state: ${authState.runtimeType}');
 
       if (authState.user != null) {
-        debugPrint('Settings Page - User authenticated with PocketBase via AuthBloc');
+        debugPrint(
+            'Settings Page - User authenticated with PocketBase via AuthBloc');
         debugPrint('Settings Page - AuthBloc user ID: ${authState.user!.id}');
         try {
           final pocketBaseService = PocketBaseService();
-          final userRecord = await pocketBaseService.getUser(authState.user!.id);
+          final userRecord =
+              await pocketBaseService.getUser(authState.user!.id);
           if (userRecord == null) throw Exception('User record not found');
           final userData = userRecord.data;
 
@@ -85,10 +87,13 @@ class _SettingsPageState extends State<SettingsPage> {
             debugPrint(
               'Settings Page - PocketBase user membership_type: $membershipType (type: ${membershipType.runtimeType})',
             );
-            _isAdmin = membershipType == 1 || membershipType == 2 || membershipType == '1' || membershipType == '2';
+            _isAdmin = membershipType == 1 ||
+                membershipType == 2 ||
+                membershipType == '1' ||
+                membershipType == '2';
             debugPrint('Settings Page - _isAdmin: $_isAdmin');
-            _userName =
-                '${userData['firstName']?.toString() ?? ''} ' + '${userData['lastName']?.toString() ?? ''}'.trim();
+            _userName = '${userData['firstName']?.toString() ?? ''} ' +
+                '${userData['lastName']?.toString() ?? ''}'.trim();
             _userEmail = userData['email']?.toString() ?? '';
             _profileImage = userData['profileImage']?.toString();
             _isLoading = false;
@@ -107,7 +112,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
             if (profileState.user.uid.isNotEmpty) {
               debugPrint('Settings Page - Using ProfileCubit data as fallback');
-              debugPrint('Settings Page - ProfileCubit user UID: ${profileState.user.uid}');
+              debugPrint(
+                  'Settings Page - ProfileCubit user UID: ${profileState.user.uid}');
               debugPrint(
                 'Settings Page - ProfileCubit user membership_type: ${profileState.user.membership_type}',
               );
@@ -119,7 +125,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 );
                 _isAdmin = membershipType == 1 || membershipType == 2;
                 debugPrint('Settings Page - _isAdmin: $_isAdmin');
-                _userName = '${profileState.user.firstName} ${profileState.user.lastName}'.trim();
+                _userName =
+                    '${profileState.user.firstName} ${profileState.user.lastName}'
+                        .trim();
                 _userEmail = ''; // User model doesn't have email field
                 _isLoading = false;
               });
@@ -134,7 +142,8 @@ class _SettingsPageState extends State<SettingsPage> {
               });
             }
           } catch (profileError) {
-            debugPrint('Settings Page - ProfileCubit fallback also failed: $profileError');
+            debugPrint(
+                'Settings Page - ProfileCubit fallback also failed: $profileError');
             if (!mounted) return;
             setState(() {
               _isAdmin = false;
@@ -203,8 +212,12 @@ class _SettingsPageState extends State<SettingsPage> {
                         final imageUrl = snapshot.data;
                         return CircleAvatar(
                           radius: 40,
-                          backgroundColor: Theme.of(context).colorScheme.secondary,
-                          backgroundImage: imageUrl != null && imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.secondary,
+                          backgroundImage:
+                              imageUrl != null && imageUrl.isNotEmpty
+                                  ? NetworkImage(imageUrl)
+                                  : null,
                           child: imageUrl == null || imageUrl.isEmpty
                               ? const Icon(
                                   Icons.person,
@@ -225,7 +238,10 @@ class _SettingsPageState extends State<SettingsPage> {
                       Text(
                         _userEmail!,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.7),
                             ),
                       ),
                     const SizedBox(height: 8),
@@ -259,7 +275,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       icon: Icons.calendar_month,
                       label: 'Calendar View',
                       onTap: () {
-                        context.router.push(const AttendanceCalendarPageRouter());
+                        context.router
+                            .push(const AttendanceCalendarPageRouter());
                       },
                     ),
                   ),
@@ -272,7 +289,8 @@ class _SettingsPageState extends State<SettingsPage> {
             BlocBuilder<ProfileCubit, ProfileState>(
               builder: (context, profileState) {
                 // Only show if user is loaded
-                if (profileState.profileStatus == ProfileStatus.loaded && profileState.user.uid.isNotEmpty) {
+                if (profileState.profileStatus == ProfileStatus.loaded &&
+                    profileState.user.uid.isNotEmpty) {
                   return Column(
                     children: [
                       PaymentStatusCardNew(userId: profileState.user.uid),
@@ -294,7 +312,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   subtitle: 'View and edit your profile',
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute<void>(builder: (context) => const CurrentUserAccountPage()),
+                      MaterialPageRoute<void>(
+                          builder: (context) => const CurrentUserAccountPage()),
                     );
                   },
                 ),
@@ -304,9 +323,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 Consumer<ThemeProvider>(
                   builder: (context, themeProvider, child) {
                     return _buildSettingsCard(
-                      icon: themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                      icon: themeProvider.isDarkMode
+                          ? Icons.dark_mode
+                          : Icons.light_mode,
                       title: 'Theme',
-                      subtitle: themeProvider.isDarkMode ? 'Dark Mode' : 'Light Mode',
+                      subtitle:
+                          themeProvider.isDarkMode ? 'Dark Mode' : 'Light Mode',
                       onTap: () {
                         themeProvider.toggleTheme();
                       },
@@ -352,7 +374,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     subtitle: 'Access administrative functions',
                     onTap: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute<void>(builder: (context) => const AdminPage()),
+                        MaterialPageRoute<void>(
+                            builder: (context) => const AdminPage()),
                       );
                     },
                   ),
@@ -360,7 +383,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 ],
 
                 // Developer Tools Navigation (only in debug/staging)
-                if (kDebugMode || FlavorConfig.instance.name == 'DEVELOPMENT') ...[
+                if (kDebugMode ||
+                    FlavorConfig.instance.name == 'DEVELOPMENT') ...[
                   _buildSettingsCard(
                     icon: Icons.developer_mode,
                     title: 'Developer Tools',
@@ -393,7 +417,8 @@ class _SettingsPageState extends State<SettingsPage> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          content: const Text('Are you sure you want to logout?'),
+                          content:
+                              const Text('Are you sure you want to logout?'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(context).pop(false),
@@ -448,7 +473,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   'Version ${packageInfo.version} (Build ${packageInfo.buildNumber})',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.6),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -504,7 +532,9 @@ class _SettingsPageState extends State<SettingsPage> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    final color = title == 'Logout' ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.secondary;
+    final color = title == 'Logout'
+        ? Theme.of(context).colorScheme.error
+        : Theme.of(context).colorScheme.secondary;
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -532,7 +562,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   children: [
                     Text(
                       title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -584,7 +617,9 @@ class _QuickActionButton extends StatelessWidget {
               Icon(
                 icon,
                 size: 32.sp,
-                color: isDark ? theme.colorScheme.primary : theme.colorScheme.secondary,
+                color: isDark
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.secondary,
               ),
               SizedBox(height: 8.h),
               Text(

@@ -30,7 +30,8 @@ class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
     if (widget.state.vehicles.isEmpty) return [];
     final vehicle = widget.state.vehicles.first;
     final photos = vehicle.photos ?? [];
-    final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+    final pocketbaseUrl =
+        FlavorConfig.instance.variables['pocketbaseUrl'] as String;
 
     return photos.where((p) => p.isNotEmpty).map((filename) {
       if (filename.startsWith('http')) {
@@ -129,7 +130,8 @@ class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
           autoPlayAnimationDuration: Duration(milliseconds: 800),
           autoPlayCurve: Curves.fastOutSlowIn,
           enlargeCenterPage: false,
-          viewportFraction: 0.55, // Increased to show more of each image, making them appear closer
+          viewportFraction:
+              0.55, // Increased to show more of each image, making them appear closer
           enableInfiniteScroll: true,
           scrollDirection: Axis.horizontal,
         ),
@@ -140,7 +142,8 @@ class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
 
 // Import the private widget - Fixed container with scrollable content inside
 class _CarWidgetSpecsOnlyFixed extends StatelessWidget {
-  const _CarWidgetSpecsOnlyFixed({required this.state, required this.onRefresh});
+  const _CarWidgetSpecsOnlyFixed(
+      {required this.state, required this.onRefresh});
 
   final ProfileState state;
   final Future<void> Function() onRefresh;
@@ -156,18 +159,24 @@ class _CarWidgetSpecsOnlyFixed extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: isDark ? [Colors.black, Colors.grey.shade900] : [Colors.white, Colors.grey.shade100],
+          colors: isDark
+              ? [Colors.black, Colors.grey.shade900]
+              : [Colors.white, Colors.grey.shade100],
         ),
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black.withOpacity(0.4) : Colors.grey.withOpacity(0.4),
+            color: isDark
+                ? Colors.black.withOpacity(0.4)
+                : Colors.grey.withOpacity(0.4),
             blurRadius: 20,
             spreadRadius: 0,
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.3),
+            color: isDark
+                ? Colors.black.withOpacity(0.3)
+                : Colors.grey.withOpacity(0.3),
             blurRadius: 10,
             spreadRadius: 0,
             offset: const Offset(0, 4),
@@ -196,7 +205,8 @@ class ProfilePage extends StatefulWidget {
   ProfilePageState createState() => ProfilePageState();
 }
 
-class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin {
+class ProfilePageState extends State<ProfilePage>
+    with TickerProviderStateMixin {
   // Removed Firebase Storage - now using PocketBase for file storage
   String userProfile = '';
 
@@ -213,12 +223,14 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     });
 
     // Simplified animation controller
-    _pageAnimationController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
+    _pageAnimationController = AnimationController(
+        duration: const Duration(milliseconds: 300), vsync: this);
 
     _fadeAnimation = Tween<double>(
       begin: 0,
       end: 1,
-    ).animate(CurvedAnimation(parent: _pageAnimationController, curve: Curves.easeOut));
+    ).animate(CurvedAnimation(
+        parent: _pageAnimationController, curve: Curves.easeOut));
 
     // Start animation
     _pageAnimationController.forward();
@@ -235,11 +247,14 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
     } else {
       // Viewing own profile
       final authState = context.read<AuthBloc>().state;
-      if (authState.authStatus == AuthStatus.authenticated && authState.user != null) {
-        print('Profile Page - Initializing profile for authenticated user: ${authState.user!.id}');
+      if (authState.authStatus == AuthStatus.authenticated &&
+          authState.user != null) {
+        print(
+            'Profile Page - Initializing profile for authenticated user: ${authState.user!.id}');
         context.read<ProfileCubit>().getProfile();
       } else {
-        print('Profile Page - No authenticated user found, auth status: ${authState.authStatus}');
+        print(
+            'Profile Page - No authenticated user found, auth status: ${authState.authStatus}');
       }
     }
   }
@@ -259,8 +274,8 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
   Widget build(BuildContext context) {
     // Determine if viewing own profile or another user's profile
     final currentAuthUser = context.read<AuthBloc>().state.user;
-    final isViewingOwnProfile =
-        widget.userId == null || (currentAuthUser != null && widget.userId == currentAuthUser.id);
+    final isViewingOwnProfile = widget.userId == null ||
+        (currentAuthUser != null && widget.userId == currentAuthUser.id);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
@@ -279,10 +294,13 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
             builder: (context, state) {
               // Add debugging
               print('Profile Page - Profile Status: ${state.profileStatus}');
-              print('Profile Page - User Member Number: "${state.user.memberNumber}"');
-              print('Profile Page - User First Name: "${state.user.firstName}"');
+              print(
+                  'Profile Page - User Member Number: "${state.user.memberNumber}"');
+              print(
+                  'Profile Page - User First Name: "${state.user.firstName}"');
               print('Profile Page - User Last Name: "${state.user.lastName}"');
-              print('Profile Page - User Membership Type: ${state.user.membership_type}');
+              print(
+                  'Profile Page - User Membership Type: ${state.user.membership_type}');
               print('Profile Page - User UID: "${state.user.uid}"');
 
               // Only check for mismatch if viewing own profile
@@ -337,7 +355,8 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                     if (isViewingOwnProfile)
                       SliverToBoxAdapter(
                         child: Padding(
-                          padding: EdgeInsets.only(left: 8, right: 8, bottom: 4.h, top: 8.h),
+                          padding: EdgeInsets.only(
+                              left: 8, right: 8, bottom: 4.h, top: 8.h),
                           child: const ProfileCompletionCardWrapper(),
                         ),
                       ),
@@ -364,7 +383,9 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
                             if (isViewingOwnProfile) {
                               context.read<ProfileCubit>().getProfile();
                             } else {
-                              context.read<ProfileCubit>().getProfileByUserId(widget.userId!);
+                              context
+                                  .read<ProfileCubit>()
+                                  .getProfileByUserId(widget.userId!);
                             }
                           },
                         ),
@@ -395,15 +416,24 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
             height: 80,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(40),
-              gradient: LinearGradient(colors: [Colors.blue.withOpacity(0.8), Colors.purple.withOpacity(0.8)]),
+              gradient: LinearGradient(colors: [
+                Colors.blue.withOpacity(0.8),
+                Colors.purple.withOpacity(0.8)
+              ]),
             ),
             child: const Icon(Icons.person, color: Colors.white, size: 40),
-          ).animate().fadeIn(duration: 600.ms).scale(duration: 400.ms, curve: Curves.easeOutBack),
+          )
+              .animate()
+              .fadeIn(duration: 600.ms)
+              .scale(duration: 400.ms, curve: Curves.easeOutBack),
           SizedBox(height: 24.sp),
           // Simple loading text
           Text(
             'Loading Profile...',
-            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w500, color: Colors.grey[600]),
+            style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600]),
           ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
         ],
       ),
@@ -419,13 +449,21 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
           Container(
             width: 100,
             height: 100,
-            decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(50)),
+            decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(50)),
             child: Icon(Icons.error_outline, size: 60, color: Colors.red[400]),
-          ).animate().fadeIn(duration: 600.ms).scale(duration: 400.ms, curve: Curves.easeOutBack),
+          )
+              .animate()
+              .fadeIn(duration: 600.ms)
+              .scale(duration: 400.ms, curve: Curves.easeOutBack),
           SizedBox(height: 24.sp),
           Text(
             'Oops! Something went wrong',
-            style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.red[400]),
+            style: TextStyle(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.red[400]),
           ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
           SizedBox(height: 8.sp),
           Text(
@@ -446,25 +484,41 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
             Icons.person_off,
             size: 64,
             color: Colors.orange[400],
-          ).animate().fadeIn(duration: 600.ms).scale(duration: 400.ms, curve: Curves.easeOutBack),
+          )
+              .animate()
+              .fadeIn(duration: 600.ms)
+              .scale(duration: 400.ms, curve: Curves.easeOutBack),
           SizedBox(height: 16.sp),
           Text(
             'User data appears to be empty',
             style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
           ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
           SizedBox(height: 8.sp),
-          Text('UID: ${state.user.uid}').animate().fadeIn(delay: 300.ms, duration: 600.ms),
-          Text('Member Number: "${state.user.memberNumber}"').animate().fadeIn(delay: 400.ms, duration: 600.ms),
-          Text('Membership Type: ${state.user.membership_type}').animate().fadeIn(delay: 500.ms, duration: 600.ms),
-          Text('First Name: "${state.user.firstName}"').animate().fadeIn(delay: 600.ms, duration: 600.ms),
-          Text('Last Name: "${state.user.lastName}"').animate().fadeIn(delay: 700.ms, duration: 600.ms),
+          Text('UID: ${state.user.uid}')
+              .animate()
+              .fadeIn(delay: 300.ms, duration: 600.ms),
+          Text('Member Number: "${state.user.memberNumber}"')
+              .animate()
+              .fadeIn(delay: 400.ms, duration: 600.ms),
+          Text('Membership Type: ${state.user.membership_type}')
+              .animate()
+              .fadeIn(delay: 500.ms, duration: 600.ms),
+          Text('First Name: "${state.user.firstName}"')
+              .animate()
+              .fadeIn(delay: 600.ms, duration: 600.ms),
+          Text('Last Name: "${state.user.lastName}"')
+              .animate()
+              .fadeIn(delay: 700.ms, duration: 600.ms),
           SizedBox(height: 16.sp),
           ElevatedButton(
             onPressed: () {
               context.read<ProfileCubit>().getProfile();
             },
             child: const Text('Reload Profile'),
-          ).animate().fadeIn(delay: 800.ms, duration: 600.ms).scale(delay: 900.ms, duration: 300.ms),
+          )
+              .animate()
+              .fadeIn(delay: 800.ms, duration: 600.ms)
+              .scale(delay: 900.ms, duration: 300.ms),
         ],
       ),
     );

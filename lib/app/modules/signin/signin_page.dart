@@ -78,7 +78,8 @@ class SigninPageState extends State<SigninPage> {
               );
             } else if (state.signinStatus == SigninStatus.success) {
               // Navigate to splash page which will handle auth state transition
-              debugPrint('SigninPage - Signin successful, navigating to splash page');
+              debugPrint(
+                  'SigninPage - Signin successful, navigating to splash page');
               AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
             }
           },
@@ -127,7 +128,10 @@ class SigninPageState extends State<SigninPage> {
                               autocorrect: false,
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color,
                               ),
                               decoration: loginFormFeildDecor(context, 'Email'),
                               validator: (String? value) {
@@ -151,9 +155,13 @@ class SigninPageState extends State<SigninPage> {
                               obscureText: true,
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color,
                               ),
-                              decoration: loginFormFeildDecor(context, 'Password'),
+                              decoration:
+                                  loginFormFeildDecor(context, 'Password'),
                               validator: (String? value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return 'Password required';
@@ -173,7 +181,10 @@ class SigninPageState extends State<SigninPage> {
                               width: double.infinity,
                               child: ElevatedButton(
                                 // ignore: lines_longer_than_80_chars
-                                onPressed: state.signinStatus == SigninStatus.submitting ? null : _submit,
+                                onPressed: state.signinStatus ==
+                                        SigninStatus.submitting
+                                    ? null
+                                    : _submit,
                                 style: ElevatedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
@@ -182,15 +193,19 @@ class SigninPageState extends State<SigninPage> {
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                   ),
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 10),
                                   backgroundColor: Colors.amber,
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
                                   child: Text(
                                     submitBtnTxt(state),
-                                    style: OpstechTextTheme.heading3
-                                        .copyWith(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+                                    style: OpstechTextTheme.heading3.copyWith(
+                                        color: Colors.black,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ),
@@ -208,7 +223,8 @@ class SigninPageState extends State<SigninPage> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
                               child: Text(
                                 'OR',
                                 style: TextStyle(
@@ -231,9 +247,10 @@ class SigninPageState extends State<SigninPage> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: state.signinStatus == SigninStatus.submitting
-                                ? null
-                                : () => _handleGoogleSignIn(context),
+                            onPressed:
+                                state.signinStatus == SigninStatus.submitting
+                                    ? null
+                                    : () => _handleGoogleSignIn(context),
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
@@ -243,34 +260,39 @@ class SigninPageState extends State<SigninPage> {
                             ),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: state.signinStatus == SigninStatus.submitting
-                                  ? const SizedBox(
-                                      height: 24,
-                                      width: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-                                      ),
-                                    )
-                                  : Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Image.asset(
-                                          'assets/icons/goog.png',
+                              child:
+                                  state.signinStatus == SigninStatus.submitting
+                                      ? const SizedBox(
                                           height: 24,
                                           width: 24,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Text(
-                                          'Sign in with Google',
-                                          style: OpstechTextTheme.heading3.copyWith(
-                                            color: Colors.black87,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w600,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    Colors.grey),
                                           ),
+                                        )
+                                      : Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Image.asset(
+                                              'assets/icons/goog.png',
+                                              height: 24,
+                                              width: 24,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              'Sign in with Google',
+                                              style: OpstechTextTheme.heading3
+                                                  .copyWith(
+                                                color: Colors.black87,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
                             ),
                           ),
                         ),
@@ -287,7 +309,8 @@ class SigninPageState extends State<SigninPage> {
     );
   }
 
-  String submitBtnTxt(SigninState state) => state.signinStatus == SigninStatus.submitting ? 'Loading...' : 'Sign in';
+  String submitBtnTxt(SigninState state) =>
+      state.signinStatus == SigninStatus.submitting ? 'Loading...' : 'Sign in';
 
   InputDecoration loginFormFeildDecor(BuildContext context, [String? s]) {
     return InputDecoration(

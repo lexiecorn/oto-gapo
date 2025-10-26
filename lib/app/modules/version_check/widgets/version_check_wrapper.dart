@@ -64,8 +64,10 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
   }
 
   /// Shows the appropriate update dialog based on the state.
-  void _showUpdateDialog(BuildContext context, VersionCheckUpdateAvailable state) {
-    final versionString = '${state.config.currentVersion}+${state.config.currentBuildNumber.toInt()}';
+  void _showUpdateDialog(
+      BuildContext context, VersionCheckUpdateAvailable state) {
+    final versionString =
+        '${state.config.currentVersion}+${state.config.currentBuildNumber.toInt()}';
 
     // Check if this version was already dismissed
     if (!state.isForced && widget.service.isVersionDismissed(versionString)) {

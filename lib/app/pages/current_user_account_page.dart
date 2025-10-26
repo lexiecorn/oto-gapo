@@ -44,14 +44,17 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
         final userData = authState.user!.data;
         // Get profile image URL if it exists
         String? profileImageUrl;
-        if (userData['profileImage'] != null && userData['profileImage'].toString().isNotEmpty) {
+        if (userData['profileImage'] != null &&
+            userData['profileImage'].toString().isNotEmpty) {
           if (userData['profileImage'].toString().startsWith('http')) {
             // It's already a full URL
             profileImageUrl = userData['profileImage'].toString();
           } else {
             // It's a filename, construct the PocketBase file URL
-            final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-            profileImageUrl = '$pocketbaseUrl/api/files/users/${authState.user!.id}/${userData['profileImage']}';
+            final pocketbaseUrl =
+                FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+            profileImageUrl =
+                '$pocketbaseUrl/api/files/users/${authState.user!.id}/${userData['profileImage']}';
           }
         } else {
           profileImageUrl = 'assets/images/alex.png';
@@ -59,7 +62,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
 
         // Load vehicle data
         final pocketBaseService = PocketBaseService();
-        final vehicles = await pocketBaseService.getVehiclesByUser(authState.user!.id);
+        final vehicles =
+            await pocketBaseService.getVehiclesByUser(authState.user!.id);
 
         Map<String, dynamic>? vehicleData;
         String? vehiclePhotoUrl;
@@ -67,10 +71,12 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
 
         if (vehicles.isNotEmpty) {
           vehicleData = vehicles.first.data;
-          final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+          final pocketbaseUrl =
+              FlavorConfig.instance.variables['pocketbaseUrl'] as String;
 
           // Get primary photo URL if it exists
-          if (vehicleData['primaryPhoto'] != null && vehicleData['primaryPhoto'].toString().isNotEmpty) {
+          if (vehicleData['primaryPhoto'] != null &&
+              vehicleData['primaryPhoto'].toString().isNotEmpty) {
             vehiclePhotoUrl =
                 '$pocketbaseUrl/api/files/${vehicles.first.collectionId}/${vehicles.first.id}/${vehicleData['primaryPhoto']}';
           }
@@ -80,7 +86,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
             final photos = vehicleData['photos'];
             if (photos is List && photos.isNotEmpty) {
               vehiclePhotosUrls = photos
-                  .map((photo) => '$pocketbaseUrl/api/files/${vehicles.first.collectionId}/${vehicles.first.id}/$photo')
+                  .map((photo) =>
+                      '$pocketbaseUrl/api/files/${vehicles.first.collectionId}/${vehicles.first.id}/$photo')
                   .toList()
                   .cast<String>();
             }
@@ -308,7 +315,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
       }
 
       final pocketBaseService = PocketBaseService();
-      final vehicles = await pocketBaseService.getVehiclesByUser(authState.user!.id);
+      final vehicles =
+          await pocketBaseService.getVehiclesByUser(authState.user!.id);
 
       if (vehicles.isEmpty) {
         throw Exception('No vehicle found for this user');
@@ -322,7 +330,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
       });
 
       // Update local vehicle data
-      final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+      final pocketbaseUrl =
+          FlavorConfig.instance.variables['pocketbaseUrl'] as String;
       final vehiclePhotoUrl = updatedVehicle.data['primaryPhoto'] != null
           ? '$pocketbaseUrl/api/files/${updatedVehicle.collectionId}/${updatedVehicle.id}/${updatedVehicle.data['primaryPhoto']}'
           : null;
@@ -379,7 +388,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
             ? _userData!['birthDate'] as DateTime
             : DateTime.tryParse(_userData!['birthDate'].toString());
         if (selectedBirthDate != null) {
-          birthDateController.text = DateFormat('MMM dd, yyyy').format(selectedBirthDate);
+          birthDateController.text =
+              DateFormat('MMM dd, yyyy').format(selectedBirthDate);
         }
       } catch (e) {
         print('Error parsing birth date: $e');
@@ -441,7 +451,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         hintText: 'Enter middle name',
                         hintStyle: TextStyle(fontSize: 13.sp),
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12.sp, vertical: 10.sp),
                       ),
                       style: TextStyle(fontSize: 13.sp),
                     ),
@@ -461,7 +472,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         hintText: 'Enter gender',
                         hintStyle: TextStyle(fontSize: 13.sp),
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12.sp, vertical: 10.sp),
                       ),
                       style: TextStyle(fontSize: 13.sp),
                     ),
@@ -481,7 +493,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         hintText: 'Enter age',
                         hintStyle: TextStyle(fontSize: 13.sp),
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12.sp, vertical: 10.sp),
                       ),
                       style: TextStyle(fontSize: 13.sp),
                       keyboardType: TextInputType.number,
@@ -502,7 +515,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         hintText: 'Select birth date',
                         hintStyle: TextStyle(fontSize: 13.sp),
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12.sp, vertical: 10.sp),
                         suffixIcon: Icon(Icons.calendar_today, size: 18.sp),
                       ),
                       style: TextStyle(fontSize: 13.sp),
@@ -517,7 +531,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         if (pickedDate != null) {
                           setState(() {
                             selectedBirthDate = pickedDate;
-                            birthDateController.text = DateFormat('MMM dd, yyyy').format(pickedDate);
+                            birthDateController.text =
+                                DateFormat('MMM dd, yyyy').format(pickedDate);
                           });
                         }
                       },
@@ -538,7 +553,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         hintText: 'Enter nationality',
                         hintStyle: TextStyle(fontSize: 13.sp),
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12.sp, vertical: 10.sp),
                       ),
                       style: TextStyle(fontSize: 13.sp),
                     ),
@@ -558,7 +574,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         hintText: 'Enter civil status',
                         hintStyle: TextStyle(fontSize: 13.sp),
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12.sp, vertical: 10.sp),
                       ),
                       style: TextStyle(fontSize: 13.sp),
                     ),
@@ -578,7 +595,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         hintText: 'Enter blood type',
                         hintStyle: TextStyle(fontSize: 13.sp),
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12.sp, vertical: 10.sp),
                       ),
                       style: TextStyle(fontSize: 13.sp),
                     ),
@@ -598,7 +616,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         hintText: 'Enter religion',
                         hintStyle: TextStyle(fontSize: 13.sp),
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12.sp, vertical: 10.sp),
                       ),
                       style: TextStyle(fontSize: 13.sp),
                     ),
@@ -671,7 +690,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
 
         // Update personal information in PocketBase
         final pocketBaseService = PocketBaseService();
-        final updatedRecord = await pocketBaseService.updateUser(userId, updateData);
+        final updatedRecord =
+            await pocketBaseService.updateUser(userId, updateData);
 
         // Refresh the auth store with updated user data
         final pocketBaseAuthRepo = context.read<AuthBloc>().pocketBaseAuth;
@@ -765,7 +785,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                     hintText: 'Enter contact number',
                     hintStyle: TextStyle(fontSize: 13.sp),
                     border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                    contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12.sp, vertical: 10.sp),
                   ),
                   style: TextStyle(fontSize: 13.sp),
                   keyboardType: TextInputType.phone,
@@ -786,7 +807,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                     hintText: 'Enter emergency contact name',
                     hintStyle: TextStyle(fontSize: 13.sp),
                     border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                    contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12.sp, vertical: 10.sp),
                   ),
                   style: TextStyle(fontSize: 13.sp),
                 ),
@@ -806,7 +828,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                     hintText: 'Enter emergency contact number',
                     hintStyle: TextStyle(fontSize: 13.sp),
                     border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                    contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12.sp, vertical: 10.sp),
                   ),
                   style: TextStyle(fontSize: 13.sp),
                   keyboardType: TextInputType.phone,
@@ -827,7 +850,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                     hintText: 'Enter spouse name',
                     hintStyle: TextStyle(fontSize: 13.sp),
                     border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                    contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12.sp, vertical: 10.sp),
                   ),
                   style: TextStyle(fontSize: 13.sp),
                 ),
@@ -847,7 +871,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                     hintText: 'Enter spouse contact number',
                     hintStyle: TextStyle(fontSize: 13.sp),
                     border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                    contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12.sp, vertical: 10.sp),
                   ),
                   style: TextStyle(fontSize: 13.sp),
                   keyboardType: TextInputType.phone,
@@ -955,11 +980,14 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
 
     if (_userData!['driversLicenseExpirationDate'] != null) {
       try {
-        selectedExpirationDate = _userData!['driversLicenseExpirationDate'] is DateTime
-            ? _userData!['driversLicenseExpirationDate'] as DateTime
-            : DateTime.tryParse(_userData!['driversLicenseExpirationDate'].toString());
+        selectedExpirationDate =
+            _userData!['driversLicenseExpirationDate'] is DateTime
+                ? _userData!['driversLicenseExpirationDate'] as DateTime
+                : DateTime.tryParse(
+                    _userData!['driversLicenseExpirationDate'].toString());
         if (selectedExpirationDate != null) {
-          expirationDateController.text = DateFormat('MMM dd, yyyy').format(selectedExpirationDate);
+          expirationDateController.text =
+              DateFormat('MMM dd, yyyy').format(selectedExpirationDate);
         }
       } catch (e) {
         print('Error parsing expiration date: $e');
@@ -1000,7 +1028,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         hintText: 'Enter license number',
                         hintStyle: TextStyle(fontSize: 13.sp),
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12.sp, vertical: 10.sp),
                       ),
                       style: TextStyle(fontSize: 13.sp),
                     ),
@@ -1020,7 +1049,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         hintText: 'Select expiration date',
                         hintStyle: TextStyle(fontSize: 13.sp),
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12.sp, vertical: 10.sp),
                         suffixIcon: Icon(Icons.calendar_today, size: 18.sp),
                       ),
                       style: TextStyle(fontSize: 13.sp),
@@ -1028,14 +1058,17 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                       onTap: () async {
                         final pickedDate = await showDatePicker(
                           context: context,
-                          initialDate: selectedExpirationDate ?? DateTime.now().add(const Duration(days: 365)),
+                          initialDate: selectedExpirationDate ??
+                              DateTime.now().add(const Duration(days: 365)),
                           firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365 * 20)),
+                          lastDate: DateTime.now()
+                              .add(const Duration(days: 365 * 20)),
                         );
                         if (pickedDate != null) {
                           setState(() {
                             selectedExpirationDate = pickedDate;
-                            expirationDateController.text = DateFormat('MMM dd, yyyy').format(pickedDate);
+                            expirationDateController.text =
+                                DateFormat('MMM dd, yyyy').format(pickedDate);
                           });
                         }
                       },
@@ -1056,7 +1089,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         hintText: 'Enter restriction code',
                         hintStyle: TextStyle(fontSize: 13.sp),
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 10.sp),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12.sp, vertical: 10.sp),
                       ),
                       style: TextStyle(fontSize: 13.sp),
                     ),
@@ -1106,17 +1140,20 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
         // Prepare update data
         final updateData = <String, dynamic>{
           'driversLicenseNumber': licenseNumberController.text.trim(),
-          'driversLicenseRestrictionCode': restrictionCodeController.text.trim(),
+          'driversLicenseRestrictionCode':
+              restrictionCodeController.text.trim(),
         };
 
         // Add expiration date if selected
         if (selectedExpirationDate != null) {
-          updateData['driversLicenseExpirationDate'] = selectedExpirationDate!.toIso8601String();
+          updateData['driversLicenseExpirationDate'] =
+              selectedExpirationDate!.toIso8601String();
         }
 
         // Update driver's license information in PocketBase
         final pocketBaseService = PocketBaseService();
-        final updatedRecord = await pocketBaseService.updateUser(userId, updateData);
+        final updatedRecord =
+            await pocketBaseService.updateUser(userId, updateData);
 
         // Refresh the auth store with updated user data
         final pocketBaseAuthRepo = context.read<AuthBloc>().pocketBaseAuth;
@@ -1132,7 +1169,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Driver's license information updated successfully!"),
+              content:
+                  Text("Driver's license information updated successfully!"),
               backgroundColor: Colors.green,
             ),
           );
@@ -1181,7 +1219,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Maximum 6 photos allowed. Selected ${pickedFiles.length}, uploading first 6.'),
+              content: Text(
+                  'Maximum 6 photos allowed. Selected ${pickedFiles.length}, uploading first 6.'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -1189,7 +1228,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
       }
 
       // Convert to File list and take only first 6
-      final imageFiles = pickedFiles.take(6).map((xFile) => File(xFile.path)).toList();
+      final imageFiles =
+          pickedFiles.take(6).map((xFile) => File(xFile.path)).toList();
 
       // Get current user's vehicle
       final authState = context.read<AuthBloc>().state;
@@ -1198,7 +1238,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
       }
 
       final pocketBaseService = PocketBaseService();
-      final vehicles = await pocketBaseService.getVehiclesByUser(authState.user!.id);
+      final vehicles =
+          await pocketBaseService.getVehiclesByUser(authState.user!.id);
 
       if (vehicles.isEmpty) {
         throw Exception('No vehicle found for this user');
@@ -1212,11 +1253,13 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
       });
 
       // Update local vehicle data
-      final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+      final pocketbaseUrl =
+          FlavorConfig.instance.variables['pocketbaseUrl'] as String;
       final photos = updatedVehicle.data['photos'];
       final vehiclePhotosUrls = photos is List && photos.isNotEmpty
           ? photos
-              .map((photo) => '$pocketbaseUrl/api/files/${updatedVehicle.collectionId}/${updatedVehicle.id}/$photo')
+              .map((photo) =>
+                  '$pocketbaseUrl/api/files/${updatedVehicle.collectionId}/${updatedVehicle.id}/$photo')
               .toList()
               .cast<String>()
           : <String>[];
@@ -1229,7 +1272,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${imageFiles.length} photo(s) uploaded successfully!'),
+            content:
+                Text('${imageFiles.length} photo(s) uploaded successfully!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -1327,7 +1371,10 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                         'Member #${_userData!['memberNumber'] ?? ''}',
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.7),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -1344,19 +1391,32 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                 color: Colors.blue,
                 onEdit: _showEditPersonalInfoDialog,
                 children: [
-                  _buildInfoRow('First Name', (_userData!['firstName'] ?? 'N/A').toString()),
-                  _buildInfoRow('Last Name', (_userData!['lastName'] ?? 'N/A').toString()),
-                  if (_userData!['middleName'] != null && _userData!['middleName'].toString().isNotEmpty)
-                    _buildInfoRow('Middle Name', _userData!['middleName'].toString()),
-                  _buildInfoRow('Gender', (_userData!['gender'] ?? 'N/A').toString()),
-                  _buildInfoRow('Age', (_userData!['age']?.toString() ?? 'N/A')),
-                  _buildInfoRow('Birth Date', _formatDate(_userData!['birthDate'])),
-                  _buildInfoRow('Nationality', (_userData!['nationality'] ?? 'N/A').toString()),
-                  _buildInfoRow('Civil Status', (_userData!['civilStatus'] ?? 'N/A').toString()),
-                  if (_userData!['bloodType'] != null && _userData!['bloodType'].toString().isNotEmpty)
-                    _buildInfoRow('Blood Type', _userData!['bloodType'].toString()),
-                  if (_userData!['religion'] != null && _userData!['religion'].toString().isNotEmpty)
-                    _buildInfoRow('Religion', _userData!['religion'].toString()),
+                  _buildInfoRow('First Name',
+                      (_userData!['firstName'] ?? 'N/A').toString()),
+                  _buildInfoRow('Last Name',
+                      (_userData!['lastName'] ?? 'N/A').toString()),
+                  if (_userData!['middleName'] != null &&
+                      _userData!['middleName'].toString().isNotEmpty)
+                    _buildInfoRow(
+                        'Middle Name', _userData!['middleName'].toString()),
+                  _buildInfoRow(
+                      'Gender', (_userData!['gender'] ?? 'N/A').toString()),
+                  _buildInfoRow(
+                      'Age', (_userData!['age']?.toString() ?? 'N/A')),
+                  _buildInfoRow(
+                      'Birth Date', _formatDate(_userData!['birthDate'])),
+                  _buildInfoRow('Nationality',
+                      (_userData!['nationality'] ?? 'N/A').toString()),
+                  _buildInfoRow('Civil Status',
+                      (_userData!['civilStatus'] ?? 'N/A').toString()),
+                  if (_userData!['bloodType'] != null &&
+                      _userData!['bloodType'].toString().isNotEmpty)
+                    _buildInfoRow(
+                        'Blood Type', _userData!['bloodType'].toString()),
+                  if (_userData!['religion'] != null &&
+                      _userData!['religion'].toString().isNotEmpty)
+                    _buildInfoRow(
+                        'Religion', _userData!['religion'].toString()),
                 ],
               ),
               SizedBox(height: 16.sp),
@@ -1368,32 +1428,42 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                 color: Colors.green,
                 onEdit: _showEditContactDialog,
                 children: [
-                  _buildInfoRow('Contact Number', (_userData!['contactNumber'] ?? 'N/A').toString()),
-                  _buildInfoRow('Email', (_userData!['email'] ?? 'N/A').toString()),
+                  _buildInfoRow('Contact Number',
+                      (_userData!['contactNumber'] ?? 'N/A').toString()),
+                  _buildInfoRow(
+                      'Email', (_userData!['email'] ?? 'N/A').toString()),
                   if (_userData!['emergencyContactName'] != null &&
                       _userData!['emergencyContactName'].toString().isNotEmpty)
-                    _buildInfoRow('Emergency Contact Name', _userData!['emergencyContactName'].toString()),
+                    _buildInfoRow('Emergency Contact Name',
+                        _userData!['emergencyContactName'].toString()),
                   if (_userData!['emergencyContactNumber'] != null &&
-                      _userData!['emergencyContactNumber'].toString().isNotEmpty)
-                    _buildInfoRow('Emergency Contact Number', _userData!['emergencyContactNumber'].toString()),
+                      _userData!['emergencyContactNumber']
+                          .toString()
+                          .isNotEmpty)
+                    _buildInfoRow('Emergency Contact Number',
+                        _userData!['emergencyContactNumber'].toString()),
                 ],
               ),
               SizedBox(height: 16.sp),
 
               // Spouse Information Section (if available)
-              if (_userData!['spouseName'] != null && _userData!['spouseName'].toString().isNotEmpty)
+              if (_userData!['spouseName'] != null &&
+                  _userData!['spouseName'].toString().isNotEmpty)
                 _buildInfoSection(
                   title: 'Spouse Information',
                   icon: Icons.favorite,
                   color: Colors.pink,
                   children: [
-                    _buildInfoRow('Spouse Name', _userData!['spouseName'].toString()),
+                    _buildInfoRow(
+                        'Spouse Name', _userData!['spouseName'].toString()),
                     if (_userData!['spouseContactNumber'] != null &&
                         _userData!['spouseContactNumber'].toString().isNotEmpty)
-                      _buildInfoRow('Spouse Contact Number', _userData!['spouseContactNumber'].toString()),
+                      _buildInfoRow('Spouse Contact Number',
+                          _userData!['spouseContactNumber'].toString()),
                   ],
                 ),
-              if (_userData!['spouseName'] != null && _userData!['spouseName'].toString().isNotEmpty)
+              if (_userData!['spouseName'] != null &&
+                  _userData!['spouseName'].toString().isNotEmpty)
                 SizedBox(height: 16.sp),
 
               // Driver's License Information Section
@@ -1405,11 +1475,16 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                 children: [
                   if (_userData!['driversLicenseNumber'] != null &&
                       _userData!['driversLicenseNumber'].toString().isNotEmpty)
-                    _buildInfoRow('License Number', _userData!['driversLicenseNumber'].toString()),
-                  _buildInfoRow('License Expiration', _formatDate(_userData!['driversLicenseExpirationDate'])),
+                    _buildInfoRow('License Number',
+                        _userData!['driversLicenseNumber'].toString()),
+                  _buildInfoRow('License Expiration',
+                      _formatDate(_userData!['driversLicenseExpirationDate'])),
                   if (_userData!['driversLicenseRestrictionCode'] != null &&
-                      _userData!['driversLicenseRestrictionCode'].toString().isNotEmpty)
-                    _buildInfoRow('Restriction Code', _userData!['driversLicenseRestrictionCode'].toString()),
+                      _userData!['driversLicenseRestrictionCode']
+                          .toString()
+                          .isNotEmpty)
+                    _buildInfoRow('Restriction Code',
+                        _userData!['driversLicenseRestrictionCode'].toString()),
                 ],
               ),
               SizedBox(height: 16.sp),
@@ -1424,11 +1499,18 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                 icon: Icons.account_circle,
                 color: Colors.purple,
                 children: [
-                  _buildInfoRow('Member Number', (_userData!['memberNumber'] ?? 'N/A').toString()),
-                  _buildInfoRow('Membership Type', _getMembershipTypeText(_userData!['membership_type'])),
-                  _buildInfoRow('Account Status', (_userData!['isActive'] == true ? 'Active' : 'Inactive')),
-                  if (_userData!['created'] != null) _buildInfoRow('Member Since', _formatDate(_userData!['created'])),
-                  if (_userData!['updated'] != null) _buildInfoRow('Last Updated', _formatDate(_userData!['updated'])),
+                  _buildInfoRow('Member Number',
+                      (_userData!['memberNumber'] ?? 'N/A').toString()),
+                  _buildInfoRow('Membership Type',
+                      _getMembershipTypeText(_userData!['membership_type'])),
+                  _buildInfoRow('Account Status',
+                      (_userData!['isActive'] == true ? 'Active' : 'Inactive')),
+                  if (_userData!['created'] != null)
+                    _buildInfoRow(
+                        'Member Since', _formatDate(_userData!['created'])),
+                  if (_userData!['updated'] != null)
+                    _buildInfoRow(
+                        'Last Updated', _formatDate(_userData!['updated'])),
                 ],
               ),
               SizedBox(height: 32.sp),
@@ -1480,7 +1562,9 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
               child: Icon(
                 Icons.camera_alt,
                 size: 20.sp,
-                color: Theme.of(context).brightness == Brightness.light ? Colors.grey[800] : Colors.white,
+                color: Theme.of(context).brightness == Brightness.light
+                    ? Colors.grey[800]
+                    : Colors.white,
               ),
             ),
           ),
@@ -1536,7 +1620,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
               return Center(
                 child: CircularProgressIndicator(
                   value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
                       : null,
                   color: Colors.white,
                 ),
@@ -1698,14 +1783,20 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
             if (_vehicleData!['make'] != null || _vehicleData!['model'] != null)
               _buildInfoRow(
                 'Make & Model',
-                '${_vehicleData!['make'] ?? ''} ${_vehicleData!['model'] ?? ''}'.trim(),
+                '${_vehicleData!['make'] ?? ''} ${_vehicleData!['model'] ?? ''}'
+                    .trim(),
               ),
-            if (_vehicleData!['year'] != null) _buildInfoRow('Year', _vehicleData!['year'].toString()),
-            if (_vehicleData!['color'] != null && _vehicleData!['color'].toString().isNotEmpty)
+            if (_vehicleData!['year'] != null)
+              _buildInfoRow('Year', _vehicleData!['year'].toString()),
+            if (_vehicleData!['color'] != null &&
+                _vehicleData!['color'].toString().isNotEmpty)
               _buildInfoRow('Color', _vehicleData!['color'].toString()),
-            if (_vehicleData!['plateNumber'] != null && _vehicleData!['plateNumber'].toString().isNotEmpty)
-              _buildInfoRow('Plate Number', _vehicleData!['plateNumber'].toString()),
-            if (_vehicleData!['type'] != null && _vehicleData!['type'].toString().isNotEmpty)
+            if (_vehicleData!['plateNumber'] != null &&
+                _vehicleData!['plateNumber'].toString().isNotEmpty)
+              _buildInfoRow(
+                  'Plate Number', _vehicleData!['plateNumber'].toString()),
+            if (_vehicleData!['type'] != null &&
+                _vehicleData!['type'].toString().isNotEmpty)
               _buildInfoRow('Type', _vehicleData!['type'].toString()),
 
             // Additional Photos Section
@@ -1740,11 +1831,13 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                   ElevatedButton.icon(
                     onPressed: _uploadAdditionalVehiclePhotos,
                     icon: Icon(Icons.add_photo_alternate, size: 18.sp),
-                    label: Text('Add Photos', style: TextStyle(fontSize: 12.sp)),
+                    label:
+                        Text('Add Photos', style: TextStyle(fontSize: 12.sp)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.teal,
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 8.sp),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 12.sp, vertical: 8.sp),
                     ),
                   ),
               ],
@@ -1758,7 +1851,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                   children: [
                     CircularProgressIndicator(color: Colors.teal),
                     SizedBox(height: 8.sp),
-                    Text('Uploading photos...', style: TextStyle(fontSize: 12.sp)),
+                    Text('Uploading photos...',
+                        style: TextStyle(fontSize: 12.sp)),
                   ],
                 ),
               )
@@ -1782,7 +1876,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           color: Colors.grey[300],
-                          child: Icon(Icons.broken_image, color: Colors.grey[600]),
+                          child:
+                              Icon(Icons.broken_image, color: Colors.grey[600]),
                         );
                       },
                     ),
@@ -1795,7 +1890,8 @@ class _CurrentUserAccountPageState extends State<CurrentUserAccountPage> {
                   padding: EdgeInsets.symmetric(vertical: 16.sp),
                   child: Column(
                     children: [
-                      Icon(Icons.photo_library_outlined, size: 48.sp, color: Colors.grey),
+                      Icon(Icons.photo_library_outlined,
+                          size: 48.sp, color: Colors.grey),
                       SizedBox(height: 8.sp),
                       Text(
                         'No additional photos',

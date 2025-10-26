@@ -61,4 +61,3 @@ class AttendanceState extends Equatable {
         currentPage,
       ];
 }
-

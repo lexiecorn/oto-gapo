@@ -31,7 +31,8 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   int _selectedIndex = 2; // Changed from 0 to 2 to default to Social Feed
-  static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+  static const TextStyle optionStyle =
+      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   static const String _lastTabKey = 'last_selected_tab';
   bool _hasShownLoginAnnouncements = false;
 
@@ -59,12 +60,14 @@ class HomePageState extends State<HomePage> {
       if (!mounted) return;
 
       if (announcements.isNotEmpty) {
-        debugPrint('HomePage - Showing ${announcements.length} login announcements');
+        debugPrint(
+            'HomePage - Showing ${announcements.length} login announcements');
 
         _hasShownLoginAnnouncements = true;
 
         // Show the announcements
-        await AnnouncementPopupDialog.showLoginAnnouncements(context, announcements, pbService.getAnnouncementImageUrl);
+        await AnnouncementPopupDialog.showLoginAnnouncements(
+            context, announcements, pbService.getAnnouncementImageUrl);
       } else {
         debugPrint('HomePage - No login announcements to show');
       }
@@ -74,13 +77,21 @@ class HomePageState extends State<HomePage> {
   }
 
   final List<Widget> _widgetOptions = <Widget>[
-    Container(width: double.infinity, padding: EdgeInsets.zero, child: const HomeBody()),
+    Container(
+        width: double.infinity,
+        padding: EdgeInsets.zero,
+        child: const HomeBody()),
     const ProfilePage(),
     const SocialFeedPage(),
     const SettingsPage(),
   ];
 
-  final List<String> _pageTitles = ['OTOGAPO', 'My Profile', 'Social Feed', 'Settings'];
+  final List<String> _pageTitles = [
+    'OTOGAPO',
+    'My Profile',
+    'Social Feed',
+    'Settings'
+  ];
 
   final List<IconData> _pageIcons = [
     Icons.tire_repair,
@@ -177,11 +188,14 @@ class HomePageState extends State<HomePage> {
                           Flexible(
                             child: AppBar(
                               title: _selectedIndex == 0
-                                  ? Image.asset('assets/images/logo_sm.jpg', height: 40, fit: BoxFit.contain)
+                                  ? Image.asset('assets/images/logo_sm.jpg',
+                                      height: 40, fit: BoxFit.contain)
                                   : Text(
                                       _pageTitles.elementAt(_selectedIndex),
                                       style: const TextStyle(
-                                          color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                                          color: Colors.white,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold),
                                     ),
                               centerTitle: true,
                               backgroundColor: Colors.black,
@@ -189,13 +203,15 @@ class HomePageState extends State<HomePage> {
                               actions: _selectedIndex == 3
                                   ? [
                                       IconButton(
-                                        icon: const Icon(Icons.refresh, color: Colors.white),
+                                        icon: const Icon(Icons.refresh,
+                                            color: Colors.white),
                                         onPressed: () {
                                           // Optionally: trigger a refresh in SettingsPage
                                         },
                                       ),
                                       IconButton(
-                                        icon: const Icon(Icons.help_outline, color: Colors.white),
+                                        icon: const Icon(Icons.help_outline,
+                                            color: Colors.white),
                                         onPressed: () {
                                           // Optionally: show help dialog
                                         },
@@ -213,7 +229,11 @@ class HomePageState extends State<HomePage> {
                         // Page content - starts from top
                         _widgetOptions.elementAt(_selectedIndex),
                         // Connectivity Banner overlays on top
-                        Positioned(top: 0, left: 0, right: 0, child: const ConnectivityBanner()),
+                        Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: const ConnectivityBanner()),
                       ],
                     )
                   : _widgetOptions.elementAt(_selectedIndex),
@@ -234,7 +254,9 @@ class HomePageState extends State<HomePage> {
           duration: Duration(milliseconds: 600),
           curve: Curves.easeOutCubic,
         ),
-        FadeEffect(delay: Duration(milliseconds: 200), duration: Duration(milliseconds: 600)),
+        FadeEffect(
+            delay: Duration(milliseconds: 200),
+            duration: Duration(milliseconds: 600)),
       ],
       child: Container(
         decoration: BoxDecoration(
@@ -255,7 +277,8 @@ class HomePageState extends State<HomePage> {
               builder: (context, connectivityState) {
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: List.generate(_pageIcons.length, (index) => _buildNavItem(index, connectivityState)),
+                  children: List.generate(_pageIcons.length,
+                      (index) => _buildNavItem(index, connectivityState)),
                 );
               },
             ),
@@ -282,7 +305,8 @@ class HomePageState extends State<HomePage> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOutCubic,
-          padding: EdgeInsets.symmetric(horizontal: isSelected ? 20.w : 12.w, vertical: 10.h),
+          padding: EdgeInsets.symmetric(
+              horizontal: isSelected ? 20.w : 12.w, vertical: 10.h),
           decoration: BoxDecoration(
             gradient: isSelected
                 ? LinearGradient(
@@ -294,7 +318,12 @@ class HomePageState extends State<HomePage> {
             color: isSelected ? null : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
             boxShadow: isSelected
-                ? [BoxShadow(color: Colors.amber[300]!.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4))]
+                ? [
+                    BoxShadow(
+                        color: Colors.amber[300]!.withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4))
+                  ]
                 : null,
           ),
           child: Stack(
@@ -305,7 +334,12 @@ class HomePageState extends State<HomePage> {
                 children: [
                   Icon(
                     _pageIcons[index],
-                    color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    color: isSelected
+                        ? Colors.white
+                        : Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.6),
                     size: isSelected ? 26 : 24,
                   ),
                   if (isSelected) ...[
@@ -330,10 +364,16 @@ class HomePageState extends State<HomePage> {
                   child: Container(
                     width: 10.w,
                     height: 10.h,
-                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    decoration: const BoxDecoration(
+                        color: Colors.red, shape: BoxShape.circle),
                   )
-                      .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                      .scale(duration: 1000.ms, begin: const Offset(0.8, 0.8), end: const Offset(1.2, 1.2)),
+                      .animate(
+                          onPlay: (controller) =>
+                              controller.repeat(reverse: true))
+                      .scale(
+                          duration: 1000.ms,
+                          begin: const Offset(0.8, 0.8),
+                          end: const Offset(1.2, 1.2)),
                 ),
             ],
           ),

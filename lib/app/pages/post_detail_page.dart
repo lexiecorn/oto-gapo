@@ -115,7 +115,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
     if (_post == null) return;
 
     final pocketBaseService = PocketBaseService();
-    final imageUrl = '${pocketBaseService.baseUrl}/api/files/posts/${_post!.id}/${_post!.imageUrl}';
+    final imageUrl =
+        '${pocketBaseService.baseUrl}/api/files/posts/${_post!.id}/${_post!.imageUrl}';
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -176,12 +177,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       leading: GestureDetector(
                         onTap: () => _navigateToUserProfile(_post!.userId),
                         child: CircleAvatar(
-                          backgroundImage: _post!.userProfileImage != null && _post!.userProfileImage!.isNotEmpty
+                          backgroundImage: _post!.userProfileImage != null &&
+                                  _post!.userProfileImage!.isNotEmpty
                               ? CachedNetworkImageProvider(
                                   '${pocketBaseService.baseUrl}/api/files/users/${_post!.userId}/${_post!.userProfileImage}',
                                 )
                               : null,
-                          child: _post!.userProfileImage == null || _post!.userProfileImage!.isEmpty
+                          child: _post!.userProfileImage == null ||
+                                  _post!.userProfileImage!.isEmpty
                               ? const Icon(Icons.person)
                               : null,
                         ),
@@ -201,7 +204,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       GestureDetector(
                         onTap: _showFullImage,
                         child: CachedNetworkImage(
-                          imageUrl: '${pocketBaseService.baseUrl}/api/files/posts/${_post!.id}/${_post!.imageUrl}',
+                          imageUrl:
+                              '${pocketBaseService.baseUrl}/api/files/posts/${_post!.id}/${_post!.imageUrl}',
                           width: double.infinity,
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(
@@ -234,11 +238,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.w),
                         child: RichText(
-                          text: TextParsingUtils.parseTextWithMentionsAndHashtags(
+                          text:
+                              TextParsingUtils.parseTextWithMentionsAndHashtags(
                             _post!.caption!,
                             baseStyle: TextStyle(
                               fontSize: 14.sp,
-                              color: Theme.of(context).textTheme.bodyLarge?.color,
+                              color:
+                                  Theme.of(context).textTheme.bodyLarge?.color,
                             ),
                           ),
                         ),
@@ -296,22 +302,26 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
                             return ListTile(
                               leading: GestureDetector(
-                                onTap: () => _navigateToUserProfile(comment.userId),
+                                onTap: () =>
+                                    _navigateToUserProfile(comment.userId),
                                 child: CircleAvatar(
                                   radius: 16.r,
-                                  backgroundImage:
-                                      comment.userProfileImage != null && comment.userProfileImage!.isNotEmpty
-                                          ? CachedNetworkImageProvider(
-                                              '${pocketBaseService.baseUrl}/api/files/users/${comment.userId}/${comment.userProfileImage}',
-                                            )
-                                          : null,
-                                  child: comment.userProfileImage == null || comment.userProfileImage!.isEmpty
+                                  backgroundImage: comment.userProfileImage !=
+                                              null &&
+                                          comment.userProfileImage!.isNotEmpty
+                                      ? CachedNetworkImageProvider(
+                                          '${pocketBaseService.baseUrl}/api/files/users/${comment.userId}/${comment.userProfileImage}',
+                                        )
+                                      : null,
+                                  child: comment.userProfileImage == null ||
+                                          comment.userProfileImage!.isEmpty
                                       ? Icon(Icons.person, size: 16.sp)
                                       : null,
                                 ),
                               ),
                               title: GestureDetector(
-                                onTap: () => _navigateToUserProfile(comment.userId),
+                                onTap: () =>
+                                    _navigateToUserProfile(comment.userId),
                                 child: Text(
                                   comment.userName,
                                   style: TextStyle(
@@ -324,11 +334,15 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   RichText(
-                                    text: TextParsingUtils.parseTextWithMentionsAndHashtags(
+                                    text: TextParsingUtils
+                                        .parseTextWithMentionsAndHashtags(
                                       comment.commentText,
                                       baseStyle: TextStyle(
                                         fontSize: 13.sp,
-                                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.color,
                                       ),
                                     ),
                                   ),
@@ -348,7 +362,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                         Icons.more_vert,
                                         size: 16.sp,
                                       ),
-                                      onPressed: () => _showCommentOptions(context, comment),
+                                      onPressed: () =>
+                                          _showCommentOptions(context, comment),
                                     )
                                   : null,
                             );
@@ -474,7 +489,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   );
 
                   if (confirm == true && context.mounted) {
-                    await context.read<CommentCubit>().deleteComment(comment.id);
+                    await context
+                        .read<CommentCubit>()
+                        .deleteComment(comment.id);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Comment deleted')),

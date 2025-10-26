@@ -7,7 +7,8 @@ import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/models/custom_error.dart';
 
 /// Mock classes for testing
-class MockProfileCubit extends MockCubit<ProfileState> implements ProfileCubit {}
+class MockProfileCubit extends MockCubit<ProfileState>
+    implements ProfileCubit {}
 
 class MockProfileRepository extends Mock implements ProfileRepository {}
 

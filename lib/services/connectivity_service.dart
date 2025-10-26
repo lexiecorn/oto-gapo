@@ -24,13 +24,15 @@ class ConnectivityService {
   static final ConnectivityService _instance = ConnectivityService._internal();
 
   final Connectivity _connectivity = Connectivity();
-  final StreamController<ConnectivityStatus> _connectivityController = StreamController<ConnectivityStatus>.broadcast();
+  final StreamController<ConnectivityStatus> _connectivityController =
+      StreamController<ConnectivityStatus>.broadcast();
 
   ConnectivityStatus _currentStatus = ConnectivityStatus.online;
   StreamSubscription<ConnectivityResult>? _subscription;
 
   /// Stream of connectivity status changes
-  Stream<ConnectivityStatus> get connectivityStream => _connectivityController.stream;
+  Stream<ConnectivityStatus> get connectivityStream =>
+      _connectivityController.stream;
 
   /// Current connectivity status
   ConnectivityStatus get currentStatus => _currentStatus;

@@ -81,7 +81,8 @@ class PaymentMethodPieChart extends StatelessWidget {
                     children: [
                       for (var i = 0; i < paymentMethodStats.length; i++)
                         Padding(
-                          padding: EdgeInsets.symmetric(vertical: 2.h), // Reduced padding
+                          padding: EdgeInsets.symmetric(
+                              vertical: 2.h), // Reduced padding
                           child: _buildLegendItem(
                             paymentMethodStats[i],
                             _getMethodColor(i),

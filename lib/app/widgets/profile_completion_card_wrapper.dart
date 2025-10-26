@@ -8,10 +8,12 @@ class ProfileCompletionCardWrapper extends StatefulWidget {
   const ProfileCompletionCardWrapper({super.key});
 
   @override
-  State<ProfileCompletionCardWrapper> createState() => _ProfileCompletionCardWrapperState();
+  State<ProfileCompletionCardWrapper> createState() =>
+      _ProfileCompletionCardWrapperState();
 }
 
-class _ProfileCompletionCardWrapperState extends State<ProfileCompletionCardWrapper> {
+class _ProfileCompletionCardWrapperState
+    extends State<ProfileCompletionCardWrapper> {
   static const String _storageKey = 'profile_completion_card_last_shown';
   static const Duration _showInterval = Duration(days: 7); // Show once a week
 

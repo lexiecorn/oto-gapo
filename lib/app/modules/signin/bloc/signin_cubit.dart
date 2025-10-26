@@ -29,7 +29,8 @@ class SigninCubit extends Cubit<SigninState> {
       emit(
         state.copyWith(
           signinStatus: SigninStatus.error,
-          error: AuthFailure(message: friendly, code: 'Google Sign‑In Failed', plugin: ''),
+          error: AuthFailure(
+              message: friendly, code: 'Google Sign‑In Failed', plugin: ''),
         ),
       );
     } catch (e) {
@@ -38,7 +39,8 @@ class SigninCubit extends Cubit<SigninState> {
         state.copyWith(
           signinStatus: SigninStatus.error,
           error: AuthFailure(
-            message: 'Google Sign‑In failed. Please try again or use Email Sign‑In. If the problem persists, contact the administrator.',
+            message:
+                'Google Sign‑In failed. Please try again or use Email Sign‑In. If the problem persists, contact the administrator.',
             code: 'Google Sign‑In Failed',
             plugin: 'pocketbase_google_oauth',
           ),
@@ -46,7 +48,6 @@ class SigninCubit extends Cubit<SigninState> {
       );
     }
   }
-
 
   Future<void> signin({
     required String email,
@@ -62,14 +63,16 @@ class SigninCubit extends Cubit<SigninState> {
     } on AuthFailure catch (e) {
       // Map PocketBase's generic 400 to a friendlier message
       final raw = e.message.toString();
-      final friendly = (raw.contains('Failed to authenticate') || raw.contains('status: 400'))
+      final friendly = (raw.contains('Failed to authenticate') ||
+              raw.contains('status: 400'))
           ? 'Invalid email or password, or your account is not yet registered/activated.\nPlease verify your credentials or contact the administrator.'
           : raw;
       log('signin cubit error: $raw');
       emit(
         state.copyWith(
           signinStatus: SigninStatus.error,
-          error: AuthFailure(message: friendly, code: 'Invalid User', plugin: ''),
+          error:
+              AuthFailure(message: friendly, code: 'Invalid User', plugin: ''),
         ),
       );
     } catch (e) {
@@ -78,7 +81,8 @@ class SigninCubit extends Cubit<SigninState> {
         state.copyWith(
           signinStatus: SigninStatus.error,
           error: AuthFailure(
-            message: 'Sign in failed. Please check your email and password, or contact the administrator.',
+            message:
+                'Sign in failed. Please check your email and password, or contact the administrator.',
             code: 'authentication_error',
             plugin: 'pocketbase_auth',
           ),

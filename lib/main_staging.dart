@@ -74,7 +74,8 @@ Future<void> main() async {
         FlavorConfig(
           name: 'STAGING',
           variables: {
-            'pkgInfoVersion': 'Ver:${packageInfo.version} Build:${packageInfo.buildNumber}',
+            'pkgInfoVersion':
+                'Ver:${packageInfo.version} Build:${packageInfo.buildNumber}',
             'pocketbaseUrl': 'https://pb.lexserver.org',
           },
         );
@@ -87,6 +88,7 @@ Future<void> main() async {
     );
   }, (exception, stackTrace) async {
     // Report to Crashlytics
-    await CrashlyticsHelper.logError(exception, stackTrace, reason: 'Main function error');
+    await CrashlyticsHelper.logError(exception, stackTrace,
+        reason: 'Main function error');
   });
 }

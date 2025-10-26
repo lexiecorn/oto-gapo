@@ -48,18 +48,23 @@ class MonthlyDues {
 
   factory MonthlyDues.fromRecord(RecordModel record) {
     print('MonthlyDues.fromRecord - Raw data: ${record.data}');
-    print('MonthlyDues.fromRecord - payment_date raw: ${record.data['payment_date']}');
+    print(
+        'MonthlyDues.fromRecord - payment_date raw: ${record.data['payment_date']}');
 
     final paymentDateRaw = record.data['payment_date'];
-    final paymentDate = paymentDateRaw != null ? _parseDate(paymentDateRaw as String) : null;
+    final paymentDate =
+        paymentDateRaw != null ? _parseDate(paymentDateRaw as String) : null;
 
     print('MonthlyDues.fromRecord - payment_date parsed: $paymentDate');
-    print('MonthlyDues.fromRecord - payment_date != null: ${paymentDate != null}');
+    print(
+        'MonthlyDues.fromRecord - payment_date != null: ${paymentDate != null}');
 
     return MonthlyDues(
       id: record.id,
       amount: (record.data['amount'] as num?)?.toDouble() ?? 0.0,
-      dueForMonth: record.data['due_for_month'] != null ? _parseDate(record.data['due_for_month'] as String) : null,
+      dueForMonth: record.data['due_for_month'] != null
+          ? _parseDate(record.data['due_for_month'] as String)
+          : null,
       paymentDate: paymentDate,
       notes: record.data['notes'] as String?,
       userId: record.data['user'] as String,

@@ -1,11 +1,12 @@
 class User {
-
   User({
     required this.id,
     required this.phoneNumber,
     required this.name,
     required this.email,
-    required this.createdAt, required this.updatedAt, this.profilePicture,
+    required this.createdAt,
+    required this.updatedAt,
+    this.profilePicture,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {

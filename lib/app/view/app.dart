@@ -83,13 +83,16 @@ class App extends StatelessWidget {
         return MultiRepositoryProvider(
           providers: [
             RepositoryProvider<AuthRepository>.value(value: _authRepository),
-            RepositoryProvider<PocketBaseAuthRepository>.value(value: _pocketBaseAuthRepository),
+            RepositoryProvider<PocketBaseAuthRepository>.value(
+                value: _pocketBaseAuthRepository),
             RepositoryProvider<ProfileRepository>(
-              create: (context) => ProfileRepository(pocketBaseAuth: context.read<PocketBaseAuthRepository>()),
+              create: (context) => ProfileRepository(
+                  pocketBaseAuth: context.read<PocketBaseAuthRepository>()),
             ),
             RepositoryProvider<AttendanceRepository>(
-              create: (context) =>
-                  AttendanceRepository(pocketBase: context.read<PocketBaseAuthRepository>().pocketBase),
+              create: (context) => AttendanceRepository(
+                  pocketBase:
+                      context.read<PocketBaseAuthRepository>().pocketBase),
             ),
             // RepositoryProvider(
             //   create: (context) => PickListsRepository(
@@ -125,29 +128,39 @@ class App extends StatelessWidget {
                 ),
               ),
               BlocProvider<SigninCubit>(
-                create: (context) => SigninCubit(pocketBaseAuth: context.read<PocketBaseAuthRepository>()),
+                create: (context) => SigninCubit(
+                    pocketBaseAuth: context.read<PocketBaseAuthRepository>()),
               ),
               BlocProvider<SignupCubit>(
-                create: (context) => SignupCubit(authRepository: context.read<AuthRepository>()),
+                create: (context) =>
+                    SignupCubit(authRepository: context.read<AuthRepository>()),
               ),
               BlocProvider<ProfileCubit>(
-                create: (context) => ProfileCubit(profileRepository: context.read<ProfileRepository>()),
+                create: (context) => ProfileCubit(
+                    profileRepository: context.read<ProfileRepository>()),
               ),
               BlocProvider<MeetingCubit>(
-                create: (context) => MeetingCubit(attendanceRepository: context.read<AttendanceRepository>()),
+                create: (context) => MeetingCubit(
+                    attendanceRepository: context.read<AttendanceRepository>()),
               ),
               BlocProvider<AttendanceCubit>(
-                create: (context) => AttendanceCubit(attendanceRepository: context.read<AttendanceRepository>()),
+                create: (context) => AttendanceCubit(
+                    attendanceRepository: context.read<AttendanceRepository>()),
               ),
               // New Cubits for advanced features
               BlocProvider<ConnectivityCubit>(
-                create: (context) =>
-                    ConnectivityCubit(connectivityService: ConnectivityService(), syncService: SyncService()),
+                create: (context) => ConnectivityCubit(
+                    connectivityService: ConnectivityService(),
+                    syncService: SyncService()),
               ),
-              BlocProvider<CalendarCubit>(create: (context) => CalendarCubit(pocketBaseService: PocketBaseService())),
-              BlocProvider<ProfileProgressCubit>(create: (context) => ProfileProgressCubit()),
+              BlocProvider<CalendarCubit>(
+                  create: (context) =>
+                      CalendarCubit(pocketBaseService: PocketBaseService())),
+              BlocProvider<ProfileProgressCubit>(
+                  create: (context) => ProfileProgressCubit()),
               BlocProvider<AdminAnalyticsCubit>(
-                create: (context) => AdminAnalyticsCubit(pocketBaseService: PocketBaseService()),
+                create: (context) =>
+                    AdminAnalyticsCubit(pocketBaseService: PocketBaseService()),
               ),
               BlocProvider<VersionCheckCubit>(
                 create: (context) {
@@ -160,7 +173,9 @@ class App extends StatelessWidget {
                 },
               ),
             ],
-            child: ChangeNotifierProvider(create: (context) => ThemeProvider(prefs!), child: const AppView()),
+            child: ChangeNotifierProvider(
+                create: (context) => ThemeProvider(prefs!),
+                child: const AppView()),
           ),
         );
       },

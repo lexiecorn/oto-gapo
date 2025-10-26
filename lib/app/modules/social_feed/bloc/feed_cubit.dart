@@ -40,7 +40,8 @@ class FeedCubit extends Cubit<FeedState> {
       // Check if cubit is still open after async operation
       if (isClosed) return;
 
-      final posts = result.items.map((record) => Post.fromRecord(record)).toList();
+      final posts =
+          result.items.map((record) => Post.fromRecord(record)).toList();
 
       if (refresh || page == 1) {
         emit(
@@ -102,7 +103,8 @@ class FeedCubit extends Cubit<FeedState> {
       // Check if cubit is still open after async operation
       if (isClosed) return;
 
-      final posts = result.items.map((record) => Post.fromRecord(record)).toList();
+      final posts =
+          result.items.map((record) => Post.fromRecord(record)).toList();
 
       if (page == 1) {
         emit(
@@ -158,7 +160,8 @@ class FeedCubit extends Cubit<FeedState> {
       // Check if cubit is still open after async operation
       if (isClosed) return;
 
-      final posts = result.items.map((record) => Post.fromRecord(record)).toList();
+      final posts =
+          result.items.map((record) => Post.fromRecord(record)).toList();
 
       if (page == 1) {
         emit(
@@ -197,7 +200,8 @@ class FeedCubit extends Cubit<FeedState> {
   Future<void> createPost(String caption, File? imageFile) async {
     try {
       // Check if user is banned
-      final ban = await pocketBaseService.checkUserBan(currentUserId, banType: 'post');
+      final ban =
+          await pocketBaseService.checkUserBan(currentUserId, banType: 'post');
       if (ban != null) {
         throw Exception('You are banned from creating posts');
       }
@@ -211,8 +215,10 @@ class FeedCubit extends Cubit<FeedState> {
 
       // Compress image if provided
       if (imageFile != null) {
-        compressedImage = await ImageCompressionUtils.compressForSocialFeed(imageFile);
-        final dimensions = await ImageCompressionUtils.getImageDimensions(compressedImage);
+        compressedImage =
+            await ImageCompressionUtils.compressForSocialFeed(imageFile);
+        final dimensions =
+            await ImageCompressionUtils.getImageDimensions(compressedImage);
         imageWidth = dimensions['width']!;
         imageHeight = dimensions['height']!;
       }
@@ -285,7 +291,8 @@ class FeedCubit extends Cubit<FeedState> {
   Future<void> toggleReaction(String postId, ReactionType type) async {
     try {
       final currentReaction = state.userReactions[postId];
-      print('FeedCubit - Current reaction: ${currentReaction?.reactionType.value}');
+      print(
+          'FeedCubit - Current reaction: ${currentReaction?.reactionType.value}');
       print('FeedCubit - New reaction type: ${type.value}');
 
       if (currentReaction?.reactionType == type) {
@@ -300,7 +307,8 @@ class FeedCubit extends Cubit<FeedState> {
         if (isClosed) return;
 
         // Update local state - remove reaction
-        final updatedReactions = Map<String, PostReaction?>.from(state.userReactions);
+        final updatedReactions =
+            Map<String, PostReaction?>.from(state.userReactions);
         updatedReactions[postId] = null;
 
         // Decrement count
@@ -337,10 +345,12 @@ class FeedCubit extends Cubit<FeedState> {
         if (isClosed) return;
 
         final reaction = PostReaction.fromRecord(record);
-        print('FeedCubit - Got reaction from record: ${reaction.reactionType.value}');
+        print(
+            'FeedCubit - Got reaction from record: ${reaction.reactionType.value}');
 
         // Update local state with new reaction
-        final updatedReactions = Map<String, PostReaction?>.from(state.userReactions);
+        final updatedReactions =
+            Map<String, PostReaction?>.from(state.userReactions);
         updatedReactions[postId] = reaction;
 
         // Update count (only if it was a new reaction, not changing)
@@ -352,7 +362,8 @@ class FeedCubit extends Cubit<FeedState> {
           );
         }
 
-        print('FeedCubit - Emitting state with reaction: ${reaction.reactionType.value}');
+        print(
+            'FeedCubit - Emitting state with reaction: ${reaction.reactionType.value}');
 
         // Force a complete state update by creating entirely new state
         emit(FeedState(
@@ -366,7 +377,8 @@ class FeedCubit extends Cubit<FeedState> {
         ));
       }
 
-      print('FeedCubit - State after toggle: ${state.userReactions[postId]?.reactionType.value}');
+      print(
+          'FeedCubit - State after toggle: ${state.userReactions[postId]?.reactionType.value}');
     } catch (e) {
       print('Error toggling reaction: $e');
       rethrow;
@@ -382,7 +394,8 @@ class FeedCubit extends Cubit<FeedState> {
         // Check if cubit is still open before each async operation
         if (isClosed) return;
 
-        final reaction = await pocketBaseService.getUserReaction(postId, currentUserId);
+        final reaction =
+            await pocketBaseService.getUserReaction(postId, currentUserId);
         if (reaction != null) {
           reactions[postId] = PostReaction.fromRecord(reaction);
         } else {
@@ -393,7 +406,8 @@ class FeedCubit extends Cubit<FeedState> {
       // Check if cubit is still open before emitting
       if (isClosed) return;
 
-      final updatedReactions = Map<String, PostReaction?>.from(state.userReactions);
+      final updatedReactions =
+          Map<String, PostReaction?>.from(state.userReactions);
       updatedReactions.addAll(reactions);
 
       emit(state.copyWith(userReactions: updatedReactions));

@@ -24,10 +24,12 @@ Widget buildAttendanceProfileAvatar({
     } else {
       // It's a PocketBase filename, construct the URL
       try {
-        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        final pocketbaseUrl =
+            FlavorConfig.instance.variables['pocketbaseUrl'] as String;
         // Use userId from attendance if available
         if (attendance.userId.isNotEmpty) {
-          profileImageUrl = '$pocketbaseUrl/api/files/users/${attendance.userId}/$profileImageFileName';
+          profileImageUrl =
+              '$pocketbaseUrl/api/files/users/${attendance.userId}/$profileImageFileName';
         }
       } catch (e) {
         // If FlavorConfig is not available, just use null
@@ -169,7 +171,9 @@ class AttendanceCard extends StatelessWidget {
                     Icon(
                       Icons.qr_code_scanner,
                       size: 16.sp,
-                      color: theme.brightness == Brightness.dark ? Colors.green.shade300 : Colors.green.shade700,
+                      color: theme.brightness == Brightness.dark
+                          ? Colors.green.shade300
+                          : Colors.green.shade700,
                     ),
                   ],
                 ],
@@ -301,9 +305,14 @@ class AttendanceMemberItem extends StatelessWidget {
                         style: TextStyle(fontSize: 12.sp),
                       ),
                       labelPadding: EdgeInsets.symmetric(horizontal: 4.w),
-                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                      backgroundColor: isSelected ? theme.colorScheme.primaryContainer : null,
-                      side: isSelected ? BorderSide(color: theme.colorScheme.primary) : null,
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                      backgroundColor: isSelected
+                          ? theme.colorScheme.primaryContainer
+                          : null,
+                      side: isSelected
+                          ? BorderSide(color: theme.colorScheme.primary)
+                          : null,
                       onPressed: () => onStatusChanged(status),
                     );
                   }).toList(),
@@ -318,7 +327,8 @@ class AttendanceMemberItem extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (attendance.notes != null && attendance.notes!.isNotEmpty) ...[
+                if (attendance.notes != null &&
+                    attendance.notes!.isNotEmpty) ...[
                   SizedBox(height: 8.h),
                   Text(
                     'Notes: ${attendance.notes}',

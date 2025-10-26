@@ -19,7 +19,8 @@ class CarDetailsPage extends StatefulWidget {
   State<CarDetailsPage> createState() => _CarDetailsPageState();
 }
 
-class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStateMixin {
+class _CarDetailsPageState extends State<CarDetailsPage>
+    with TickerProviderStateMixin {
   late PageController _pageController;
   late AnimationController _animationController;
   int _currentImageIndex = 0;
@@ -28,7 +29,8 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
   void initState() {
     super.initState();
     _pageController = PageController();
-    _animationController = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
+    _animationController = AnimationController(
+        duration: const Duration(milliseconds: 1000), vsync: this);
     _animationController.forward();
   }
 
@@ -44,7 +46,8 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
       final photos = widget.vehicle.photos ?? <String>[];
       if (photos.isEmpty) return [];
 
-      final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+      final pocketbaseUrl =
+          FlavorConfig.instance.variables['pocketbaseUrl'] as String;
       final vehicleId = widget.vehicle.id;
 
       return photos.where((p) => p.isNotEmpty).map((filename) {
@@ -64,21 +67,23 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
-                height: 300.h,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [const Color(0xFF1a1e3f), const Color(0xFF2a2f4f)],
-                  ),
-                  borderRadius: BorderRadius.circular(16.r),
-                ),
-                child: Center(
-                  child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFF00d4ff))),
-                ),
-              )
-              .animate(onPlay: (controller) => controller.repeat())
-              .shimmer(duration: 1500.ms, color: const Color(0xFF00d4ff).withOpacity(0.3));
+            height: 300.h,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [const Color(0xFF1a1e3f), const Color(0xFF2a2f4f)],
+              ),
+              borderRadius: BorderRadius.circular(16.r),
+            ),
+            child: Center(
+              child: CircularProgressIndicator(
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(const Color(0xFF00d4ff))),
+            ),
+          ).animate(onPlay: (controller) => controller.repeat()).shimmer(
+              duration: 1500.ms,
+              color: const Color(0xFF00d4ff).withOpacity(0.3));
         }
 
         final imageUrls = snapshot.data ?? [];
@@ -98,7 +103,9 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.photo_library_outlined, size: 64.sp, color: const Color(0xFF00d4ff).withOpacity(0.5)),
+                  Icon(Icons.photo_library_outlined,
+                      size: 64.sp,
+                      color: const Color(0xFF00d4ff).withOpacity(0.5)),
                   SizedBox(height: 16.h),
                   Text(
                     'No vehicle photos',
@@ -159,7 +166,9 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
                         width: 8.w,
                         height: 8.h,
                         decoration: BoxDecoration(
-                          color: _currentImageIndex == index ? const Color(0xFF00d4ff) : Colors.white.withOpacity(0.3),
+                          color: _currentImageIndex == index
+                              ? const Color(0xFF00d4ff)
+                              : Colors.white.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(4.r),
                         ),
                       ),
@@ -180,10 +189,14 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [const Color(0xFF1e2340).withOpacity(0.8), const Color(0xFF2a2f4f).withOpacity(0.6)],
+          colors: [
+            const Color(0xFF1e2340).withOpacity(0.8),
+            const Color(0xFF2a2f4f).withOpacity(0.6)
+          ],
         ),
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: const Color(0xFF00d4ff).withOpacity(0.3), width: 1),
+        border: Border.all(
+            color: const Color(0xFF00d4ff).withOpacity(0.3), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,7 +210,9 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(30.r),
-                  border: Border.all(color: const Color(0xFF00d4ff).withOpacity(0.3), width: 1),
+                  border: Border.all(
+                      color: const Color(0xFF00d4ff).withOpacity(0.3),
+                      width: 1),
                 ),
                 padding: EdgeInsets.all(12.sp),
                 child: ClipRRect(
@@ -206,7 +221,8 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
                     CarLogoHelper.getCarLogoSource(widget.vehicle.make),
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
-                      return Icon(Icons.directions_car, size: 28.sp, color: const Color(0xFF00d4ff));
+                      return Icon(Icons.directions_car,
+                          size: 28.sp, color: const Color(0xFF00d4ff));
                     },
                   ),
                 ),
@@ -218,17 +234,22 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
                   children: [
                     Text(
                       '${widget.vehicle.make} ${widget.vehicle.model}',
-                      style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.w900, color: Colors.white),
+                      style: TextStyle(
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white),
                     ),
                     SizedBox(height: 4.h),
                     Text(
                       '${widget.vehicle.year} • ${widget.vehicle.color}',
-                      style: TextStyle(fontSize: 16.sp, color: Colors.grey[300]),
+                      style:
+                          TextStyle(fontSize: 16.sp, color: Colors.grey[300]),
                     ),
                     SizedBox(height: 4.h),
                     Text(
                       'Plate: ${widget.vehicle.plateNumber}',
-                      style: TextStyle(fontSize: 14.sp, color: Colors.grey[400]),
+                      style:
+                          TextStyle(fontSize: 14.sp, color: Colors.grey[400]),
                     ),
                   ],
                 ),
@@ -245,15 +266,27 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
       {
         'icon': Icons.speed,
         'label': 'Max Speed',
-        'value': widget.vehicle.maxSpeed != null ? '${widget.vehicle.maxSpeed} km/h' : 'Not specified',
+        'value': widget.vehicle.maxSpeed != null
+            ? '${widget.vehicle.maxSpeed} km/h'
+            : 'Not specified',
       },
-      {'icon': Icons.local_gas_station, 'label': 'Fuel Type', 'value': widget.vehicle.fuelType ?? 'Not specified'},
+      {
+        'icon': Icons.local_gas_station,
+        'label': 'Fuel Type',
+        'value': widget.vehicle.fuelType ?? 'Not specified'
+      },
       {
         'icon': Icons.speed,
         'label': 'Mileage',
-        'value': widget.vehicle.mileage != null ? '${widget.vehicle.mileage} km' : 'Not specified',
+        'value': widget.vehicle.mileage != null
+            ? '${widget.vehicle.mileage} km'
+            : 'Not specified',
       },
-      {'icon': Icons.settings, 'label': 'Wheel Size', 'value': widget.vehicle.wheelSize ?? 'Not specified'},
+      {
+        'icon': Icons.settings,
+        'label': 'Wheel Size',
+        'value': widget.vehicle.wheelSize ?? 'Not specified'
+      },
       {
         'icon': Icons.settings_outlined,
         'label': 'Transmission',
@@ -262,9 +295,15 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
       {
         'icon': Icons.power,
         'label': 'Horsepower',
-        'value': widget.vehicle.horsepower != null ? '${widget.vehicle.horsepower} HP' : 'Not specified',
+        'value': widget.vehicle.horsepower != null
+            ? '${widget.vehicle.horsepower} HP'
+            : 'Not specified',
       },
-      {'icon': Icons.engineering, 'label': 'Engine', 'value': widget.vehicle.engineDisplacement ?? 'Not specified'},
+      {
+        'icon': Icons.engineering,
+        'label': 'Engine',
+        'value': widget.vehicle.engineDisplacement ?? 'Not specified'
+      },
       {'icon': Icons.category, 'label': 'Type', 'value': widget.vehicle.type},
     ];
 
@@ -273,7 +312,10 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
       children: [
         Text(
           'Detailed Specifications',
-          style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w700, color: Colors.white),
+          style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w700,
+              color: Colors.white),
         ),
         SizedBox(height: 16.h),
         GridView.builder(
@@ -289,13 +331,17 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
           itemBuilder: (context, index) {
             final spec = specs[index];
             return VehicleSpecCard(
-                  icon: spec['icon'] as IconData,
-                  label: spec['label'] as String,
-                  value: spec['value'] as String,
-                )
+              icon: spec['icon'] as IconData,
+              label: spec['label'] as String,
+              value: spec['value'] as String,
+            )
                 .animate()
                 .fadeIn(delay: (200 + (index * 100)).ms, duration: 600.ms)
-                .slideY(begin: 0.2, delay: (200 + (index * 100)).ms, duration: 600.ms, curve: Curves.easeOutCubic);
+                .slideY(
+                    begin: 0.2,
+                    delay: (200 + (index * 100)).ms,
+                    duration: 600.ms,
+                    curve: Curves.easeOutCubic);
           },
         ),
       ],
@@ -311,14 +357,19 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
       children: [
         Text(
           'Awards & Achievements',
-          style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w700, color: Colors.white),
+          style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w700,
+              color: Colors.white),
         ),
         SizedBox(height: 16.h),
         AwardsTrophyRow(
           awardCount: awardCount,
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Awards page coming soon!'), backgroundColor: Color(0xFF00d4ff)),
+              const SnackBar(
+                  content: Text('Awards page coming soon!'),
+                  backgroundColor: Color(0xFF00d4ff)),
             );
           },
         ),
@@ -339,7 +390,10 @@ class _CarDetailsPageState extends State<CarDetailsPage> with TickerProviderStat
         ),
         title: Text(
           'Vehicle Details',
-          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600, color: Colors.white),
+          style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.white),
         ),
         centerTitle: true,
       ),

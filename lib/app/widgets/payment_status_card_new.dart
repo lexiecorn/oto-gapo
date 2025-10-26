@@ -33,7 +33,8 @@ class _PaymentStatusCardNewState extends State<PaymentStatusCardNew> {
 
     try {
       final pocketBaseService = PocketBaseService();
-      final statistics = await pocketBaseService.getPaymentStatistics(widget.userId);
+      final statistics =
+          await pocketBaseService.getPaymentStatistics(widget.userId);
 
       if (mounted) {
         setState(() {
@@ -109,10 +110,12 @@ class _PaymentStatusCardNewState extends State<PaymentStatusCardNew> {
                   SizedBox(width: 8.w),
                   Text(
                     'Payment Status',
-                    style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
+                    style:
+                        TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
-                  Icon(Icons.arrow_forward_ios, size: 14.sp, color: Colors.grey),
+                  Icon(Icons.arrow_forward_ios,
+                      size: 14.sp, color: Colors.grey),
                 ],
               ),
               SizedBox(height: 12.h),
@@ -183,14 +186,16 @@ class _PaymentStatusCardNewState extends State<PaymentStatusCardNew> {
     );
   }
 
-  Widget _buildSummaryItem(String label, String value, IconData icon, Color color) {
+  Widget _buildSummaryItem(
+      String label, String value, IconData icon, Color color) {
     return Column(
       children: [
         Icon(icon, color: color, size: 16.sp),
         SizedBox(height: 4.h),
         Text(
           value,
-          style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold, color: color),
+          style: TextStyle(
+              fontSize: 11.sp, fontWeight: FontWeight.bold, color: color),
         ),
         Text(label, style: TextStyle(fontSize: 8.sp, color: Colors.grey)),
       ],

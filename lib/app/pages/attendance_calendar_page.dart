@@ -63,7 +63,8 @@ class _AttendanceCalendarPageState extends State<AttendanceCalendarPage> {
           }
 
           if (state.status == CalendarStatus.error) {
-            return _buildErrorState(state.errorMessage ?? 'Failed to load calendar');
+            return _buildErrorState(
+                state.errorMessage ?? 'Failed to load calendar');
           }
 
           return RefreshIndicator(
@@ -78,7 +79,8 @@ class _AttendanceCalendarPageState extends State<AttendanceCalendarPage> {
               child: Column(
                 children: [
                   // Streak Card
-                  if (state.streak.hasActiveStreak) _buildStreakCard(state.streak),
+                  if (state.streak.hasActiveStreak)
+                    _buildStreakCard(state.streak),
 
                   // Calendar
                   _buildCalendar(state, userId),
@@ -482,8 +484,12 @@ class _AttendanceCalendarPageState extends State<AttendanceCalendarPage> {
                 'Check-in Time',
                 DateFormat('h:mm a').format(attendance.checkInTime!),
               ),
-            _buildDetailRow('Method', _getCheckInMethodLabel(attendance.checkInMethod ?? CheckInMethod.manual)),
-            if (attendance.notes != null && attendance.notes!.isNotEmpty) _buildDetailRow('Notes', attendance.notes!),
+            _buildDetailRow(
+                'Method',
+                _getCheckInMethodLabel(
+                    attendance.checkInMethod ?? CheckInMethod.manual)),
+            if (attendance.notes != null && attendance.notes!.isNotEmpty)
+              _buildDetailRow('Notes', attendance.notes!),
           ],
         ),
       ),

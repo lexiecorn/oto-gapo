@@ -46,7 +46,8 @@ class ProfileProgressState extends Equatable {
   final List<ProfileSuggestion> suggestions;
 
   bool get isFullyCompleted => completionPercentage >= 100.0;
-  bool get hasOptionalFields => missingFields.length < ProfileField.values.length;
+  bool get hasOptionalFields =>
+      missingFields.length < ProfileField.values.length;
 
   ProfileProgressState copyWith({
     double? completionPercentage,

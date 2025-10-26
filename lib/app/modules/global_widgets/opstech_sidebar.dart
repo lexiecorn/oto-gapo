@@ -17,7 +17,8 @@ class PickerSideBar extends StatefulWidget {
 }
 
 class _PickerSideBarState extends State<PickerSideBar> {
-  final String pkgInfo = FlavorConfig.instance.variables['pkgInfoVersion'].toString();
+  final String pkgInfo =
+      FlavorConfig.instance.variables['pkgInfoVersion'].toString();
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +48,8 @@ class _PickerSideBarState extends State<PickerSideBar> {
                           ),
                           Builder(
                             builder: (context) => IconButton(
-                              onPressed: () => Scaffold.of(context).closeDrawer(),
+                              onPressed: () =>
+                                  Scaffold.of(context).closeDrawer(),
                               icon: const Icon(
                                 Icons.arrow_back,
                                 color: OpstechColors.black,
@@ -98,7 +100,9 @@ class _PickerSideBarState extends State<PickerSideBar> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            (context.read<AuthBloc>().state.user?.data['email'] as String?) ?? '',
+                            (context.read<AuthBloc>().state.user?.data['email']
+                                    as String?) ??
+                                '',
                             style: OpstechTextTheme.heading4,
                           ),
                           Text(
@@ -120,14 +124,17 @@ class _PickerSideBarState extends State<PickerSideBar> {
                           builder: (BuildContext context) {
                             return AlertDialog(
                               title: const Text('Confirm Logout'),
-                              content: const Text('Are you sure you want to logout?'),
+                              content: const Text(
+                                  'Are you sure you want to logout?'),
                               actions: [
                                 TextButton(
-                                  onPressed: () => Navigator.of(context).pop(false),
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
                                   child: const Text('Cancel'),
                                 ),
                                 TextButton(
-                                  onPressed: () => Navigator.of(context).pop(true),
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
                                   child: const Text('Logout'),
                                 ),
                               ],
@@ -144,7 +151,8 @@ class _PickerSideBarState extends State<PickerSideBar> {
                           // Wait for the logout to complete
                           await authBloc.stream
                               .firstWhere(
-                            (state) => state.authStatus == AuthStatus.unauthenticated,
+                            (state) =>
+                                state.authStatus == AuthStatus.unauthenticated,
                             orElse: () => authBloc.state,
                           )
                               .timeout(
@@ -155,11 +163,13 @@ class _PickerSideBarState extends State<PickerSideBar> {
                             },
                           );
 
-                          debugPrint('Logout completed, navigating to signin page');
+                          debugPrint(
+                              'Logout completed, navigating to signin page');
 
                           // Navigate directly to signin page after logout completes
                           if (context.mounted) {
-                            AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
+                            AutoRouter.of(context)
+                                .replaceAll([const SigninPageRouter()]);
                           }
                         }
                       },
@@ -176,14 +186,17 @@ class _PickerSideBarState extends State<PickerSideBar> {
                           builder: (BuildContext context) {
                             return AlertDialog(
                               title: const Text('Confirm Logout'),
-                              content: const Text('Are you sure you want to logout?'),
+                              content: const Text(
+                                  'Are you sure you want to logout?'),
                               actions: [
                                 TextButton(
-                                  onPressed: () => Navigator.of(context).pop(false),
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
                                   child: const Text('Cancel'),
                                 ),
                                 TextButton(
-                                  onPressed: () => Navigator.of(context).pop(true),
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
                                   child: const Text('Logout'),
                                 ),
                               ],
@@ -200,7 +213,8 @@ class _PickerSideBarState extends State<PickerSideBar> {
                           // Wait for the logout to complete
                           await authBloc.stream
                               .firstWhere(
-                            (state) => state.authStatus == AuthStatus.unauthenticated,
+                            (state) =>
+                                state.authStatus == AuthStatus.unauthenticated,
                             orElse: () => authBloc.state,
                           )
                               .timeout(
@@ -211,11 +225,13 @@ class _PickerSideBarState extends State<PickerSideBar> {
                             },
                           );
 
-                          debugPrint('Logout completed, navigating to signin page');
+                          debugPrint(
+                              'Logout completed, navigating to signin page');
 
                           // Navigate directly to signin page after logout completes
                           if (context.mounted) {
-                            AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
+                            AutoRouter.of(context)
+                                .replaceAll([const SigninPageRouter()]);
                           }
                         }
                       },

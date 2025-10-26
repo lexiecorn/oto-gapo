@@ -1,5 +1,4 @@
 class Announcement {
-
   Announcement({
     required this.title,
     required this.subtitle,

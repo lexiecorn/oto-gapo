@@ -156,7 +156,8 @@ class UserQRCodePage extends StatelessWidget {
                         SizedBox(height: 8.h),
                         _InfoRow(
                           label: 'Member Type',
-                          value: _getMembershipTypeName(user.membership_type?.toInt() ?? 3),
+                          value: _getMembershipTypeName(
+                              user.membership_type?.toInt() ?? 3),
                         ),
                       ],
                     ),
@@ -237,7 +238,8 @@ class _InfoRow extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                 ),
           ),
         ),

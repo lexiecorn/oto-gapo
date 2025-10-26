@@ -178,14 +178,16 @@ class ComplianceChart extends StatelessWidget {
                         ),
                         children: [
                           TextSpan(
-                            text: '${compliance.compliancePercentage.toStringAsFixed(1)}%\n',
+                            text:
+                                '${compliance.compliancePercentage.toStringAsFixed(1)}%\n',
                             style: TextStyle(
                               fontSize: 14.sp,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           TextSpan(
-                            text: '${compliance.paidCount + compliance.waivedCount}/${compliance.totalExpected} paid',
+                            text:
+                                '${compliance.paidCount + compliance.waivedCount}/${compliance.totalExpected} paid',
                             style: TextStyle(
                               fontSize: 11.sp,
                               fontWeight: FontWeight.normal,
@@ -247,4 +249,3 @@ class ComplianceChart extends StatelessWidget {
     }
   }
 }
-

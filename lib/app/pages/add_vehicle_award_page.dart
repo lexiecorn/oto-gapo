@@ -87,7 +87,9 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
     if (_selectedDate == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Please select an event date'), backgroundColor: Colors.red));
+      ).showSnackBar(const SnackBar(
+          content: Text('Please select an event date'),
+          backgroundColor: Colors.red));
       return;
     }
 
@@ -102,7 +104,9 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.award != null ? 'Award updated successfully!' : 'Award added successfully!'),
+            content: Text(widget.award != null
+                ? 'Award updated successfully!'
+                : 'Award added successfully!'),
             backgroundColor: const Color(0xFF00d4ff),
           ),
         );
@@ -112,7 +116,9 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Failed to save award: $e'), backgroundColor: Colors.red));
+        ).showSnackBar(SnackBar(
+            content: Text('Failed to save award: $e'),
+            backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) {
@@ -135,7 +141,10 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.white),
+          style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.white),
         ),
         SizedBox(height: 8.h),
         TextFormField(
@@ -150,11 +159,13 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
             fillColor: const Color(0xFF1e2340).withOpacity(0.8),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: const Color(0xFF00d4ff).withOpacity(0.3)),
+              borderSide:
+                  BorderSide(color: const Color(0xFF00d4ff).withOpacity(0.3)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: const Color(0xFF00d4ff).withOpacity(0.3)),
+              borderSide:
+                  BorderSide(color: const Color(0xFF00d4ff).withOpacity(0.3)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
@@ -164,7 +175,8 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(color: Colors.red),
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
           ),
         ),
       ],
@@ -177,7 +189,10 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
       children: [
         Text(
           'Event Date',
-          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.white),
+          style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.white),
         ),
         SizedBox(height: 8.h),
         GestureDetector(
@@ -187,21 +202,28 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
             decoration: BoxDecoration(
               color: const Color(0xFF1e2340).withOpacity(0.8),
               borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: const Color(0xFF00d4ff).withOpacity(0.3)),
+              border:
+                  Border.all(color: const Color(0xFF00d4ff).withOpacity(0.3)),
             ),
             child: Row(
               children: [
-                Icon(Icons.calendar_today, size: 20.sp, color: const Color(0xFF00d4ff)),
+                Icon(Icons.calendar_today,
+                    size: 20.sp, color: const Color(0xFF00d4ff)),
                 SizedBox(width: 12.w),
                 Expanded(
                   child: Text(
                     _selectedDate != null
                         ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
                         : 'Select event date',
-                    style: TextStyle(fontSize: 16.sp, color: _selectedDate != null ? Colors.white : Colors.grey[400]),
+                    style: TextStyle(
+                        fontSize: 16.sp,
+                        color: _selectedDate != null
+                            ? Colors.white
+                            : Colors.grey[400]),
                   ),
                 ),
-                Icon(Icons.arrow_drop_down, size: 20.sp, color: Colors.grey[400]),
+                Icon(Icons.arrow_drop_down,
+                    size: 20.sp, color: Colors.grey[400]),
               ],
             ),
           ),
@@ -223,7 +245,10 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
         ),
         title: Text(
           widget.award != null ? 'Edit Award' : 'Add Award',
-          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600, color: Colors.white),
+          style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.white),
         ),
         centerTitle: true,
       ),
@@ -241,10 +266,15 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [const Color(0xFF2a1a0e).withOpacity(0.8), const Color(0xFF3d2815).withOpacity(0.6)],
+                    colors: [
+                      const Color(0xFF2a1a0e).withOpacity(0.8),
+                      const Color(0xFF3d2815).withOpacity(0.6)
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(16.r),
-                  border: Border.all(color: const Color(0xFFffd700).withOpacity(0.3), width: 1),
+                  border: Border.all(
+                      color: const Color(0xFFffd700).withOpacity(0.3),
+                      width: 1),
                 ),
                 child: Row(
                   children: [
@@ -254,7 +284,8 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
                         color: const Color(0xFFffd700).withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12.r),
                       ),
-                      child: Icon(Icons.emoji_events, size: 24.sp, color: const Color(0xFFffd700)),
+                      child: Icon(Icons.emoji_events,
+                          size: 24.sp, color: const Color(0xFFffd700)),
                     ),
                     SizedBox(width: 16.w),
                     Expanded(
@@ -262,7 +293,9 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.award != null ? 'Edit Award' : 'Add New Award',
+                            widget.award != null
+                                ? 'Edit Award'
+                                : 'Add New Award',
                             style: TextStyle(
                               fontSize: 18.sp,
                               fontWeight: FontWeight.w700,
@@ -272,14 +305,16 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
                           SizedBox(height: 4.h),
                           Text(
                             '${widget.vehicle.make} ${widget.vehicle.model}',
-                            style: TextStyle(fontSize: 14.sp, color: Colors.grey[300]),
+                            style: TextStyle(
+                                fontSize: 14.sp, color: Colors.grey[300]),
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-              ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.2, duration: 600.ms, curve: Curves.easeOutCubic),
+              ).animate().fadeIn(duration: 600.ms).slideY(
+                  begin: 0.2, duration: 600.ms, curve: Curves.easeOutCubic),
               SizedBox(height: 24.h),
               // Form fields
               _buildFormField(
@@ -339,7 +374,8 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF00d4ff),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r)),
                     elevation: 0,
                   ),
                   child: _isLoading
@@ -348,12 +384,14 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
                           height: 20.w,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : Text(
                           widget.award != null ? 'Update Award' : 'Add Award',
-                          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                              fontSize: 16.sp, fontWeight: FontWeight.w600),
                         ),
                 ),
               ),

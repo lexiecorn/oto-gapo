@@ -69,7 +69,9 @@ void main() {
             (state) => state.status == AttendanceStateStatus.loading,
           ),
           predicate<AttendanceState>(
-            (state) => state.status == AttendanceStateStatus.loaded && state.attendances.isNotEmpty,
+            (state) =>
+                state.status == AttendanceStateStatus.loaded &&
+                state.attendances.isNotEmpty,
           ),
         ],
       );
@@ -125,7 +127,9 @@ void main() {
             (state) => state.status == AttendanceStateStatus.submitting,
           ),
           predicate<AttendanceState>(
-            (state) => state.status == AttendanceStateStatus.success && state.attendances.isNotEmpty,
+            (state) =>
+                state.status == AttendanceStateStatus.success &&
+                state.attendances.isNotEmpty,
           ),
         ],
       );
@@ -166,7 +170,9 @@ void main() {
             (state) => state.status == AttendanceStateStatus.submitting,
           ),
           predicate<AttendanceState>(
-            (state) => state.status == AttendanceStateStatus.error && state.errorMessage != null,
+            (state) =>
+                state.status == AttendanceStateStatus.error &&
+                state.errorMessage != null,
           ),
         ],
       );
@@ -190,7 +196,8 @@ void main() {
       blocTest<AttendanceCubit, AttendanceState>(
         'loads summary successfully',
         build: () {
-          when(() => mockRepository.getAttendanceSummary(any())).thenAnswer((_) async => mockSummary);
+          when(() => mockRepository.getAttendanceSummary(any()))
+              .thenAnswer((_) async => mockSummary);
 
           return cubit;
         },
@@ -200,7 +207,9 @@ void main() {
             (state) => state.status == AttendanceStateStatus.loading,
           ),
           predicate<AttendanceState>(
-            (state) => state.status == AttendanceStateStatus.loaded && state.summary != null,
+            (state) =>
+                state.status == AttendanceStateStatus.loaded &&
+                state.summary != null,
           ),
         ],
       );

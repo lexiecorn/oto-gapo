@@ -45,8 +45,10 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
       }
 
       final pocketBaseService = PocketBaseService();
-      final transactions = await pocketBaseService.getPaymentTransactions(authState.user!.id);
-      final statistics = await pocketBaseService.getPaymentStatistics(authState.user!.id);
+      final transactions =
+          await pocketBaseService.getPaymentTransactions(authState.user!.id);
+      final statistics =
+          await pocketBaseService.getPaymentStatistics(authState.user!.id);
 
       if (mounted) {
         setState(() {
@@ -188,7 +190,10 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
                   Expanded(
                     child: Text(
                       'Payment Rate: ${_statistics!.paymentPercentage.toStringAsFixed(1)}%',
-                      style: TextStyle(fontSize: 12.sp, color: Colors.blue, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -200,14 +205,16 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
     );
   }
 
-  Widget _buildSummaryItem(String label, String value, IconData icon, Color color) {
+  Widget _buildSummaryItem(
+      String label, String value, IconData icon, Color color) {
     return Column(
       children: [
         Icon(icon, color: color, size: 20.sp),
         SizedBox(height: 4.h),
         Text(
           value,
-          style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: color),
+          style: TextStyle(
+              fontSize: 12.sp, fontWeight: FontWeight.bold, color: color),
         ),
         Text(label, style: TextStyle(fontSize: 9.sp, color: Colors.grey)),
       ],
@@ -321,7 +328,8 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
                     children: [
                       Text(
                         monthName,
-                        style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 14.sp, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 4.h),
                       Text(

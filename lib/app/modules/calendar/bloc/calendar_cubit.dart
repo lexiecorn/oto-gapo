@@ -104,7 +104,8 @@ class CalendarCubit extends Cubit<CalendarState> {
     }
 
     final totalDays = attendanceMap.length;
-    final attendanceRate = totalDays > 0 ? (presentDays + lateDays) / totalDays * 100 : 0.0;
+    final attendanceRate =
+        totalDays > 0 ? (presentDays + lateDays) / totalDays * 100 : 0.0;
 
     return MonthlyStats(
       totalDays: totalDays,

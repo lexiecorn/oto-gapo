@@ -37,7 +37,8 @@ class ModerationCubit extends Cubit<ModerationState> {
         perPage: 20,
       );
 
-      final reports = result.items.map((record) => PostReport.fromRecord(record)).toList();
+      final reports =
+          result.items.map((record) => PostReport.fromRecord(record)).toList();
 
       if (page == 1) {
         emit(
@@ -213,7 +214,8 @@ class ModerationCubit extends Cubit<ModerationState> {
         perPage: 20,
       );
 
-      final bans = result.items.map((record) => UserBan.fromRecord(record)).toList();
+      final bans =
+          result.items.map((record) => UserBan.fromRecord(record)).toList();
 
       if (page == 1) {
         emit(
@@ -250,7 +252,8 @@ class ModerationCubit extends Cubit<ModerationState> {
       emit(state.copyWith(status: ModerationStatus.loading));
 
       final bans = await pocketBaseService.getUserBans(userId);
-      final userBans = bans.map((record) => UserBan.fromRecord(record)).toList();
+      final userBans =
+          bans.map((record) => UserBan.fromRecord(record)).toList();
 
       emit(
         state.copyWith(

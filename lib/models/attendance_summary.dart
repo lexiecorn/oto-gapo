@@ -53,7 +53,8 @@ class AttendanceSummary {
       totalAbsent: (record.data['totalAbsent'] as num?)?.toInt() ?? 0,
       totalLate: (record.data['totalLate'] as num?)?.toInt() ?? 0,
       totalExcused: (record.data['totalExcused'] as num?)?.toInt() ?? 0,
-      attendanceRate: (record.data['attendanceRate'] as num?)?.toDouble() ?? 0.0,
+      attendanceRate:
+          (record.data['attendanceRate'] as num?)?.toDouble() ?? 0.0,
       created: DateTime.parse(record.created),
       updated: DateTime.parse(record.updated),
     );
@@ -164,4 +165,3 @@ class AttendanceSummary {
         'attendanceRate: $attendanceRateDisplay)';
   }
 }
-

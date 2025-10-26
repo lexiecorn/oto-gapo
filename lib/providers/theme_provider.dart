@@ -3,7 +3,9 @@ import 'package:otogapo_core/otogapo_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeProvider with ChangeNotifier {
-  ThemeProvider(this._prefs) : _isDarkMode = _prefs.getBool(_themeKey) ?? false; // Default to light mode
+  ThemeProvider(this._prefs)
+      : _isDarkMode =
+            _prefs.getBool(_themeKey) ?? false; // Default to light mode
   static const String _themeKey = 'theme_mode';
 
   final SharedPreferences _prefs;
@@ -17,5 +19,6 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  ThemeData get theme => _isDarkMode ? OpstechTheme.darkTheme : OpstechTheme.lightTheme;
+  ThemeData get theme =>
+      _isDarkMode ? OpstechTheme.darkTheme : OpstechTheme.lightTheme;
 }

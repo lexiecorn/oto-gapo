@@ -21,7 +21,8 @@ void main() {
       mockSyncService = MockSyncService();
 
       // Setup default return values
-      when(() => mockConnectivityService.currentStatus).thenReturn(ConnectivityStatus.online);
+      when(() => mockConnectivityService.currentStatus)
+          .thenReturn(ConnectivityStatus.online);
       when(() => mockConnectivityService.connectivityStream).thenAnswer(
         (_) => Stream.value(ConnectivityStatus.online),
       );
@@ -55,7 +56,8 @@ void main() {
     blocTest<ConnectivityCubit, ConnectivityState>(
       'triggerSync calls syncService when online',
       build: () {
-        when(() => mockSyncService.syncPendingActions()).thenAnswer((_) async {});
+        when(() => mockSyncService.syncPendingActions())
+            .thenAnswer((_) async {});
         return cubit;
       },
       act: (cubit) => cubit.triggerSync(),

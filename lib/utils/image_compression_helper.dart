@@ -36,7 +36,8 @@ class ImageCompressionHelper {
 
       // Get temporary directory for compressed image
       final tempDir = await getTemporaryDirectory();
-      final targetPath = '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final targetPath =
+          '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
       // First, check if we need to resize
       final originalImage = img.decodeImage(await file.readAsBytes());
@@ -51,8 +52,11 @@ class ImageCompressionHelper {
       // Resize if width exceeds maximum
       if (originalImage.width > maxImageWidth) {
         targetWidth = maxImageWidth;
-        targetHeight = (originalImage.height * maxImageWidth / originalImage.width).round();
-        debugPrint('Resizing from ${originalImage.width}x${originalImage.height} '
+        targetHeight =
+            (originalImage.height * maxImageWidth / originalImage.width)
+                .round();
+        debugPrint(
+            'Resizing from ${originalImage.width}x${originalImage.height} '
             'to ${targetWidth}x$targetHeight');
       }
 
@@ -97,7 +101,8 @@ class ImageCompressionHelper {
     try {
       final file = File(originalPath);
       final tempDir = await getTemporaryDirectory();
-      final aggressivePath = '${tempDir.path}/aggressive_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final aggressivePath =
+          '${tempDir.path}/aggressive_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
       // Try with lower quality
       var quality = 75;
@@ -114,7 +119,8 @@ class ImageCompressionHelper {
 
         if (result != null) {
           final size = await result.length();
-          debugPrint('Compressed at quality $quality: ${size / 1024 / 1024} MB');
+          debugPrint(
+              'Compressed at quality $quality: ${size / 1024 / 1024} MB');
 
           if (size <= maxFileSizeBytes) {
             return result.path;

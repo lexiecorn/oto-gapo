@@ -27,18 +27,21 @@ class ImageCompressionUtils {
 
       // Get image dimensions first
       final dimensions = await getImageDimensions(imageFile);
-      print('ImageCompression - Original dimensions: ${dimensions['width']}x${dimensions['height']}');
+      print(
+          'ImageCompression - Original dimensions: ${dimensions['width']}x${dimensions['height']}');
 
       // Calculate target dimensions maintaining aspect ratio
       final targetDimensions = _calculateTargetDimensions(
         dimensions['width']!,
         dimensions['height']!,
       );
-      print('ImageCompression - Target dimensions: ${targetDimensions['width']}x${targetDimensions['height']}');
+      print(
+          'ImageCompression - Target dimensions: ${targetDimensions['width']}x${targetDimensions['height']}');
 
       // Get temporary directory
       final tempDir = await getTemporaryDirectory();
-      final targetPath = '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final targetPath =
+          '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
       // Compress image
       final compressedFile = await FlutterImageCompress.compressAndGetFile(
@@ -60,7 +63,8 @@ class ImageCompressionUtils {
 
       // If still too large, reduce quality further
       if (fileSize > maxFileSizeBytes) {
-        print('ImageCompression - File still too large, reducing quality further');
+        print(
+            'ImageCompression - File still too large, reducing quality further');
         final furtherCompressed = await _compressWithReducedQuality(
           File(compressedFile.path),
           targetPath,
@@ -176,7 +180,8 @@ class ImageCompressionUtils {
       }
 
       final fileSize = await compressed.length();
-      print('ImageCompression - Trying quality $quality: ${fileSize / 1024} KB');
+      print(
+          'ImageCompression - Trying quality $quality: ${fileSize / 1024} KB');
 
       if (fileSize <= maxFileSizeBytes) {
         print('ImageCompression - Success with quality $quality');

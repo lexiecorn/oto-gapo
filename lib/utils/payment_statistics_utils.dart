@@ -29,10 +29,12 @@ class PaymentStatisticsUtils {
 
     for (final due in monthlyDues) {
       if (due.dueForMonth != null) {
-        final dueMonth = DateTime(due.dueForMonth!.year, due.dueForMonth!.month);
+        final dueMonth =
+            DateTime(due.dueForMonth!.year, due.dueForMonth!.month);
 
         if (due.isPaid) {
-          if (dueMonth.isBefore(currentMonth) || dueMonth.isAtSameMomentAs(currentMonth)) {
+          if (dueMonth.isBefore(currentMonth) ||
+              dueMonth.isAtSameMomentAs(currentMonth)) {
             paidMonths.add(dueMonth);
           } else {
             // Future months with payments are advance payments
@@ -93,14 +95,16 @@ class PaymentStatisticsUtils {
 
     for (final due in monthlyDues) {
       if (due.dueForMonth != null) {
-        final dueMonth = DateTime(due.dueForMonth!.year, due.dueForMonth!.month);
+        final dueMonth =
+            DateTime(due.dueForMonth!.year, due.dueForMonth!.month);
 
         // Only consider months within the specified range
         if (dueMonth.isAtSameMomentAs(startMonth) ||
             (dueMonth.isAfter(startMonth) && dueMonth.isBefore(endMonth)) ||
             dueMonth.isAtSameMomentAs(endMonth)) {
           if (due.isPaid) {
-            if (dueMonth.isBefore(endMonth) || dueMonth.isAtSameMomentAs(endMonth)) {
+            if (dueMonth.isBefore(endMonth) ||
+                dueMonth.isAtSameMomentAs(endMonth)) {
               paidMonths.add(dueMonth);
             } else {
               advanceMonths.add(dueMonth);
@@ -115,7 +119,8 @@ class PaymentStatisticsUtils {
     var advance = advanceMonths.length;
 
     // Count months from the later of joinedDate or startDate to endDate
-    var currentCheckMonth = joinedMonth.isAfter(startMonth) ? joinedMonth : startMonth;
+    var currentCheckMonth =
+        joinedMonth.isAfter(startMonth) ? joinedMonth : startMonth;
     while (!currentCheckMonth.isAfter(endMonth)) {
       if (paidMonths.contains(currentCheckMonth)) {
         paid++;
@@ -163,7 +168,8 @@ class PaymentStatisticsUtils {
     // Find the dues record for this month
     for (final due in monthlyDues) {
       if (due.dueForMonth != null) {
-        final dueMonth = DateTime(due.dueForMonth!.year, due.dueForMonth!.month);
+        final dueMonth =
+            DateTime(due.dueForMonth!.year, due.dueForMonth!.month);
         if (dueMonth.isAtSameMomentAs(month)) {
           return due.isPaid;
         }

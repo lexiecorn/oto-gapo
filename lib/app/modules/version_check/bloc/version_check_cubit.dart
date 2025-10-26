@@ -46,7 +46,8 @@ class VersionCheckCubit extends Cubit<VersionCheckState> {
       print('VersionCheck: Config min_version: ${config.minVersion}');
       print('VersionCheck: Config min_build_number: ${config.minBuildNumber}');
       print('VersionCheck: Config current_version: ${config.currentVersion}');
-      print('VersionCheck: Config current_build_number: ${config.currentBuildNumber}');
+      print(
+          'VersionCheck: Config current_build_number: ${config.currentBuildNumber}');
       print('VersionCheck: Config force_update: ${config.forceUpdate}');
 
       // Compare against current_build_number (latest available), not min_build_number

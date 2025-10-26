@@ -93,7 +93,10 @@ class TextParsingUtils {
                 color: Colors.blue,
                 fontWeight: FontWeight.w600,
               ),
-          recognizer: onMentionTap != null ? (TapGestureRecognizer()..onTap = () => onMentionTap(match.value)) : null,
+          recognizer: onMentionTap != null
+              ? (TapGestureRecognizer()
+                ..onTap = () => onMentionTap(match.value))
+              : null,
         ));
       } else {
         spans.add(TextSpan(
@@ -103,7 +106,10 @@ class TextParsingUtils {
                 color: Colors.blueAccent,
                 fontWeight: FontWeight.w600,
               ),
-          recognizer: onHashtagTap != null ? (TapGestureRecognizer()..onTap = () => onHashtagTap(match.value)) : null,
+          recognizer: onHashtagTap != null
+              ? (TapGestureRecognizer()
+                ..onTap = () => onHashtagTap(match.value))
+              : null,
         ));
       }
 

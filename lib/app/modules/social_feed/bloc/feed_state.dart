@@ -53,7 +53,9 @@ class FeedState extends Equatable {
   List<Object?> get props => [
         status,
         posts.length,
-        posts.map((p) => '${p.id}-${p.likesCount}-${p.commentsCount}').join(','),
+        posts
+            .map((p) => '${p.id}-${p.likesCount}-${p.commentsCount}')
+            .join(','),
         currentPage,
         hasMore,
         errorMessage,

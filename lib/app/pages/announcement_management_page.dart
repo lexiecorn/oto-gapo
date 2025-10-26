@@ -15,10 +15,12 @@ class AnnouncementManagementPage extends StatefulWidget {
   const AnnouncementManagementPage({super.key});
 
   @override
-  State<AnnouncementManagementPage> createState() => _AnnouncementManagementPageState();
+  State<AnnouncementManagementPage> createState() =>
+      _AnnouncementManagementPageState();
 }
 
-class _AnnouncementManagementPageState extends State<AnnouncementManagementPage> {
+class _AnnouncementManagementPageState
+    extends State<AnnouncementManagementPage> {
   final PocketBaseService _pbService = PocketBaseService();
   List<RecordModel> _announcements = [];
   bool _isLoading = true;
@@ -51,7 +53,8 @@ class _AnnouncementManagementPageState extends State<AnnouncementManagementPage>
         if (userRecord != null) {
           final userData = userRecord.data;
           setState(() {
-            _isAdmin = userData['membership_type'] == 1 || userData['membership_type'] == 2;
+            _isAdmin = userData['membership_type'] == 1 ||
+                userData['membership_type'] == 2;
           });
         }
 
@@ -412,7 +415,8 @@ class _AnnouncementManagementPageState extends State<AnnouncementManagementPage>
                     ),
                     filled: true,
                     fillColor: isDark ? Colors.grey[800] : Colors.grey[100],
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
                   ),
                 ),
 
@@ -437,7 +441,8 @@ class _AnnouncementManagementPageState extends State<AnnouncementManagementPage>
                         return Padding(
                           padding: EdgeInsets.only(right: 8.w),
                           child: FilterChip(
-                            label: Text(type.toUpperCase(), style: TextStyle(fontSize: 11.sp)),
+                            label: Text(type.toUpperCase(),
+                                style: TextStyle(fontSize: 11.sp)),
                             selected: _filterType == type,
                             onSelected: (selected) {
                               setState(() {
@@ -468,7 +473,9 @@ class _AnnouncementManagementPageState extends State<AnnouncementManagementPage>
                         ),
                         SizedBox(height: 16.h),
                         Text(
-                          _announcements.isEmpty ? 'No announcements yet' : 'No matching announcements',
+                          _announcements.isEmpty
+                              ? 'No announcements yet'
+                              : 'No matching announcements',
                           style: TextStyle(
                             fontSize: 18.sp,
                             color: Colors.grey.shade600,
@@ -751,7 +758,8 @@ class _AnnouncementDialogState extends State<_AnnouncementDialog> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.initialTitle ?? '');
-    _contentController = TextEditingController(text: widget.initialContent ?? '');
+    _contentController =
+        TextEditingController(text: widget.initialContent ?? '');
 
     // Ensure the selected type is valid, default to 'general' if not in list
     final initialType = widget.initialType ?? 'general';
@@ -783,7 +791,9 @@ class _AnnouncementDialogState extends State<_AnnouncementDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(
-        widget.initialTitle == null ? 'Create Announcement' : 'Edit Announcement',
+        widget.initialTitle == null
+            ? 'Create Announcement'
+            : 'Edit Announcement',
         style: TextStyle(fontSize: 16.sp),
       ),
       content: SingleChildScrollView(
@@ -825,7 +835,9 @@ class _AnnouncementDialogState extends State<_AnnouncementDialog> {
               // Type Dropdown
               DropdownButtonFormField<String>(
                 value: _selectedType,
-                style: TextStyle(fontSize: 13.sp, color: Theme.of(context).textTheme.bodyLarge?.color),
+                style: TextStyle(
+                    fontSize: 13.sp,
+                    color: Theme.of(context).textTheme.bodyLarge?.color),
                 decoration: InputDecoration(
                   labelText: 'Type',
                   labelStyle: TextStyle(fontSize: 12.sp),
@@ -834,7 +846,8 @@ class _AnnouncementDialogState extends State<_AnnouncementDialog> {
                 items: _types.map((type) {
                   return DropdownMenuItem(
                     value: type,
-                    child: Text(type.toUpperCase(), style: TextStyle(fontSize: 12.sp)),
+                    child: Text(type.toUpperCase(),
+                        style: TextStyle(fontSize: 12.sp)),
                   );
                 }).toList(),
                 onChanged: (value) {
@@ -858,7 +871,8 @@ class _AnnouncementDialogState extends State<_AnnouncementDialog> {
                     ),
                   ),
                   SizedBox(height: 8.h),
-                  if (_selectedImagePath != null || widget.existingImageUrl != null)
+                  if (_selectedImagePath != null ||
+                      widget.existingImageUrl != null)
                     Container(
                       height: 120.h,
                       width: double.infinity,
@@ -872,12 +886,14 @@ class _AnnouncementDialogState extends State<_AnnouncementDialog> {
                             ? Image.file(
                                 File(_selectedImagePath!),
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(Icons.broken_image),
                               )
                             : CachedNetworkImage(
                                 imageUrl: widget.existingImageUrl!,
                                 fit: BoxFit.cover,
-                                errorWidget: (context, url, error) => const Icon(Icons.broken_image),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.broken_image),
                                 placeholder: (context, url) => const Center(
                                   child: CircularProgressIndicator(),
                                 ),
@@ -889,7 +905,10 @@ class _AnnouncementDialogState extends State<_AnnouncementDialog> {
                     onPressed: _pickImage,
                     icon: Icon(Icons.image, size: 16.sp),
                     label: Text(
-                      _selectedImagePath != null || widget.existingImageUrl != null ? 'Change Image' : 'Add Image',
+                      _selectedImagePath != null ||
+                              widget.existingImageUrl != null
+                          ? 'Change Image'
+                          : 'Add Image',
                       style: TextStyle(fontSize: 12.sp),
                     ),
                   ),

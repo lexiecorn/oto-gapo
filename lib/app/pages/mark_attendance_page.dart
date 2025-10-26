@@ -78,7 +78,9 @@ class _MarkAttendancePageState extends State<MarkAttendancePage> {
     if (!_formKey.currentState!.validate()) return;
 
     // Validate user selection
-    if (_selectedUserId == null || _selectedMemberNumber == null || _selectedMemberName == null) {
+    if (_selectedUserId == null ||
+        _selectedMemberNumber == null ||
+        _selectedMemberName == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select a member first'),
@@ -96,7 +98,9 @@ class _MarkAttendancePageState extends State<MarkAttendancePage> {
           meetingDate: DateTime.now(), // Should get from meeting
           status: _selectedStatus.value,
           checkInMethod: 'qr_scan',
-          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+          notes: _notesController.text.trim().isEmpty
+              ? null
+              : _notesController.text.trim(),
         );
   }
 
@@ -120,7 +124,8 @@ class _MarkAttendancePageState extends State<MarkAttendancePage> {
           } else if (state.status == AttendanceStateStatus.error) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.errorMessage ?? 'Failed to mark attendance'),
+                content:
+                    Text(state.errorMessage ?? 'Failed to mark attendance'),
                 backgroundColor: Colors.red,
               ),
             );
@@ -282,7 +287,11 @@ class _MarkAttendancePageState extends State<MarkAttendancePage> {
                     label: Text(
                       status.displayName,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: isSelected ? (isDark ? theme.colorScheme.onPrimary : Colors.white) : null,
+                        color: isSelected
+                            ? (isDark
+                                ? theme.colorScheme.onPrimary
+                                : Colors.white)
+                            : null,
                       ),
                     ),
                     selected: isSelected,
@@ -316,7 +325,9 @@ class _MarkAttendancePageState extends State<MarkAttendancePage> {
               BlocBuilder<AttendanceCubit, AttendanceState>(
                 builder: (context, state) {
                   return ElevatedButton(
-                    onPressed: state.status == AttendanceStateStatus.submitting ? null : _markAttendance,
+                    onPressed: state.status == AttendanceStateStatus.submitting
+                        ? null
+                        : _markAttendance,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 16.h),
                     ),
@@ -465,7 +476,8 @@ class _UserBrowserModalState extends State<_UserBrowserModal> {
           final data = user.data as Map<String, dynamic>;
           final firstName = data['firstName']?.toString().toLowerCase() ?? '';
           final lastName = data['lastName']?.toString().toLowerCase() ?? '';
-          final memberNumber = data['memberNumber']?.toString().toLowerCase() ?? '';
+          final memberNumber =
+              data['memberNumber']?.toString().toLowerCase() ?? '';
           final searchLower = query.toLowerCase();
 
           return firstName.contains(searchLower) ||
@@ -603,33 +615,45 @@ class _UserBrowserModalState extends State<_UserBrowserModal> {
                             itemBuilder: (context, index) {
                               final user = _filteredUsers[index];
                               final data = user.data as Map<String, dynamic>;
-                              final firstName = data['firstName']?.toString() ?? '';
-                              final lastName = data['lastName']?.toString() ?? '';
-                              final memberNumber = data['memberNumber']?.toString() ?? '';
-                              final profileImage = data['profile_image']?.toString();
+                              final firstName =
+                                  data['firstName']?.toString() ?? '';
+                              final lastName =
+                                  data['lastName']?.toString() ?? '';
+                              final memberNumber =
+                                  data['memberNumber']?.toString() ?? '';
+                              final profileImage =
+                                  data['profile_image']?.toString();
 
                               // Validate profile image URL
                               final hasValidImage = profileImage != null &&
                                   profileImage.isNotEmpty &&
-                                  (profileImage.startsWith('http://') || profileImage.startsWith('https://'));
+                                  (profileImage.startsWith('http://') ||
+                                      profileImage.startsWith('https://'));
 
                               return ListTile(
                                 leading: CircleAvatar(
                                   radius: 20.r,
-                                  backgroundColor:
-                                      hasValidImage ? Colors.transparent : theme.colorScheme.inverseSurface,
-                                  backgroundImage: hasValidImage ? NetworkImage(profileImage) : null,
+                                  backgroundColor: hasValidImage
+                                      ? Colors.transparent
+                                      : theme.colorScheme.inverseSurface,
+                                  backgroundImage: hasValidImage
+                                      ? NetworkImage(profileImage)
+                                      : null,
                                   child: !hasValidImage
                                       ? Container(
                                           decoration: BoxDecoration(
-                                            color: theme.colorScheme.inverseSurface,
+                                            color: theme
+                                                .colorScheme.inverseSurface,
                                             shape: BoxShape.circle,
                                           ),
                                           child: Center(
                                             child: Text(
-                                              memberNumber.isNotEmpty ? memberNumber : '?',
+                                              memberNumber.isNotEmpty
+                                                  ? memberNumber
+                                                  : '?',
                                               style: TextStyle(
-                                                color: theme.colorScheme.onInverseSurface,
+                                                color: theme.colorScheme
+                                                    .onInverseSurface,
                                                 fontSize: 10.sp,
                                                 fontWeight: FontWeight.bold,
                                               ),

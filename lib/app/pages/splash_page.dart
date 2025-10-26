@@ -59,7 +59,8 @@ class _SplashPageState extends State<SplashPage> {
       // Listen to every state change to avoid missing transitions
       listenWhen: (previous, current) {
         // Always listen to state changes
-        debugPrint('SplashPage - State change: ${previous.authStatus} -> ${current.authStatus}');
+        debugPrint(
+            'SplashPage - State change: ${previous.authStatus} -> ${current.authStatus}');
         return true;
       },
       listener: (context, state) {
@@ -86,7 +87,8 @@ class _SplashPageState extends State<SplashPage> {
             }
           });
         } else {
-          debugPrint('SplashPage - Auth status is unknown, keeping loading state');
+          debugPrint(
+              'SplashPage - Auth status is unknown, keeping loading state');
         }
         // If status is still unknown, keep showing loading
       },
@@ -102,8 +104,8 @@ class _SplashPageState extends State<SplashPage> {
                   state.authStatus == AuthStatus.unknown
                       ? 'Checking authentication...'
                       : state.authStatus == AuthStatus.unauthenticated
-                      ? 'Redirecting to login...'
-                      : 'Loading...',
+                          ? 'Redirecting to login...'
+                          : 'Loading...',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],

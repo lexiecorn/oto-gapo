@@ -33,10 +33,12 @@ class ConnectivityCubit extends Cubit<ConnectivityState> {
     );
 
     // Listen to connectivity changes
-    _connectivitySubscription = _connectivityService.connectivityStream.listen(_onConnectivityChanged);
+    _connectivitySubscription =
+        _connectivityService.connectivityStream.listen(_onConnectivityChanged);
 
     // Listen to sync status changes
-    _syncSubscription = _syncService.syncStatusStream.listen(_onSyncStatusChanged);
+    _syncSubscription =
+        _syncService.syncStatusStream.listen(_onSyncStatusChanged);
   }
 
   void _onConnectivityChanged(ConnectivityStatus status) {
@@ -53,7 +55,8 @@ class ConnectivityCubit extends Cubit<ConnectivityState> {
       state.copyWith(
         syncStatus: status,
         pendingActionsCount: _syncService.pendingActionsCount,
-        lastSyncTime: status == SyncStatus.synced ? DateTime.now() : state.lastSyncTime,
+        lastSyncTime:
+            status == SyncStatus.synced ? DateTime.now() : state.lastSyncTime,
       ),
     );
   }

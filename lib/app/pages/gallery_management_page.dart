@@ -36,7 +36,8 @@ class _GalleryManagementPageState extends State<GalleryManagementPage> {
         if (userRecord != null) {
           final userData = userRecord.data;
           setState(() {
-            _isAdmin = userData['membership_type'] == 1 || userData['membership_type'] == 2;
+            _isAdmin = userData['membership_type'] == 1 ||
+                userData['membership_type'] == 2;
           });
         }
 
@@ -254,7 +255,9 @@ class _GalleryManagementPageState extends State<GalleryManagementPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            currentActive ? 'Image hidden from carousel' : 'Image shown in carousel',
+            currentActive
+                ? 'Image hidden from carousel'
+                : 'Image shown in carousel',
           ),
         ),
       );
@@ -377,7 +380,8 @@ class _GalleryManagementPageState extends State<GalleryManagementPage> {
                                 imageUrl,
                                 fit: BoxFit.cover,
                                 width: double.infinity,
-                                errorBuilder: (context, error, stackTrace) => Container(
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
                                   color: Colors.grey.shade300,
                                   child: const Icon(
                                     Icons.broken_image,
@@ -448,12 +452,15 @@ class _GalleryManagementPageState extends State<GalleryManagementPage> {
                               children: [
                                 IconButton(
                                   icon: Icon(
-                                    isActive ? Icons.visibility : Icons.visibility_off,
+                                    isActive
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
                                     size: 20,
                                   ),
                                   onPressed: () => _toggleActive(image),
                                   tooltip: isActive ? 'Hide' : 'Show',
-                                  color: isActive ? Colors.green : Colors.orange,
+                                  color:
+                                      isActive ? Colors.green : Colors.orange,
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.edit, size: 20),
@@ -513,7 +520,8 @@ class _ImageMetadataDialogState extends State<_ImageMetadataDialog> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.initialTitle ?? '');
-    _descriptionController = TextEditingController(text: widget.initialDescription ?? '');
+    _descriptionController =
+        TextEditingController(text: widget.initialDescription ?? '');
     _displayOrderController = TextEditingController(
       text: widget.initialDisplayOrder?.toString() ?? '',
     );
@@ -576,7 +584,8 @@ class _ImageMetadataDialogState extends State<_ImageMetadataDialog> {
             const SizedBox(height: 16),
             SwitchListTile(
               title: const Text('Active', style: TextStyle(fontSize: 14)),
-              subtitle: const Text('Show in carousel', style: TextStyle(fontSize: 12)),
+              subtitle: const Text('Show in carousel',
+                  style: TextStyle(fontSize: 12)),
               value: _isActive,
               onChanged: (value) {
                 setState(() {
@@ -595,8 +604,12 @@ class _ImageMetadataDialogState extends State<_ImageMetadataDialog> {
         ElevatedButton(
           onPressed: () {
             final metadata = <String, dynamic>{
-              'title': _titleController.text.trim().isEmpty ? null : _titleController.text.trim(),
-              'description': _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
+              'title': _titleController.text.trim().isEmpty
+                  ? null
+                  : _titleController.text.trim(),
+              'description': _descriptionController.text.trim().isEmpty
+                  ? null
+                  : _descriptionController.text.trim(),
               'isActive': _isActive,
             };
 

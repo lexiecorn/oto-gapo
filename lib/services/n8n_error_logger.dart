@@ -16,8 +16,10 @@ import 'package:otogapo/utils/network_helper.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class N8nErrorLogger {
-  static const String _productionWebhookUrl = 'https://n8n.lexserver.org/webhook/af1310af-d54b-461a-a982-9f58b6ae4d30';
-  static const String _testWebhookUrl = 'https://n8n.lexserver.org/webhook-test/af1310af-d54b-461a-a982-9f58b6ae4d30';
+  static const String _productionWebhookUrl =
+      'https://n8n.lexserver.org/webhook/af1310af-d54b-461a-a982-9f58b6ae4d30';
+  static const String _testWebhookUrl =
+      'https://n8n.lexserver.org/webhook-test/af1310af-d54b-461a-a982-9f58b6ae4d30';
 
   /// Send error data to n8n webhook
   ///
@@ -64,19 +66,23 @@ class N8nErrorLogger {
         ),
       );
 
-      if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      if (response.statusCode != null &&
+          response.statusCode! >= 200 &&
+          response.statusCode! < 300) {
         if (kDebugMode) {
           developer.log('N8N Error Logger: Successfully sent error log');
         }
       } else {
         if (kDebugMode) {
-          developer.log('N8N Error Logger: Failed to send error log: ${response.statusCode} ${response.data}');
+          developer.log(
+              'N8N Error Logger: Failed to send error log: ${response.statusCode} ${response.data}');
         }
       }
     } catch (e) {
       // Handle cases where the phone can't reach the n8n webhook (e.g., no network)
       if (kDebugMode) {
-        developer.log('N8N Error Logger: Exception caught while sending error log: $e');
+        developer.log(
+            'N8N Error Logger: Exception caught while sending error log: $e');
       }
       // Don't rethrow - this is a logging service, not critical functionality
     }

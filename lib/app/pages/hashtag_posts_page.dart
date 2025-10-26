@@ -102,10 +102,12 @@ class _HashtagPostsPageState extends State<HashtagPostsPage> {
             }
 
             return RefreshIndicator(
-              onRefresh: () => _feedCubit.loadHashtagPosts(widget.hashtag, page: 1),
+              onRefresh: () =>
+                  _feedCubit.loadHashtagPosts(widget.hashtag, page: 1),
               child: ListView.builder(
                 controller: _scrollController,
-                itemCount: state.hasMore ? state.posts.length + 1 : state.posts.length,
+                itemCount:
+                    state.hasMore ? state.posts.length + 1 : state.posts.length,
                 itemBuilder: (context, index) {
                   if (index >= state.posts.length) {
                     return Padding(
@@ -125,7 +127,8 @@ class _HashtagPostsPageState extends State<HashtagPostsPage> {
                       // Show reaction picker
                     },
                     onCommentTap: () {
-                      context.router.push(PostDetailPageRouter(postId: post.id));
+                      context.router
+                          .push(PostDetailPageRouter(postId: post.id));
                     },
                     onUserTap: () {
                       context.router.push(
@@ -133,7 +136,8 @@ class _HashtagPostsPageState extends State<HashtagPostsPage> {
                       );
                     },
                     onImageTap: () {
-                      context.router.push(PostDetailPageRouter(postId: post.id));
+                      context.router
+                          .push(PostDetailPageRouter(postId: post.id));
                     },
                     onHashtagTap: (hashtag) {
                       if (hashtag != widget.hashtag) {

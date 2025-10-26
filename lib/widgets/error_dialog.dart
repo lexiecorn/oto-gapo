@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class ErrorDialog extends StatelessWidget {
-
   const ErrorDialog({
-    required this.message, super.key,
+    required this.message,
+    super.key,
     this.onRetry,
   });
   final String message;

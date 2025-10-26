@@ -61,4 +61,3 @@ class MeetingState extends Equatable {
         currentPage,
       ];
 }
-

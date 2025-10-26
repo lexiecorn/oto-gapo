@@ -113,7 +113,8 @@ class _UserPostsPageState extends State<UserPostsPage> {
                     context.router.push(PostDetailPageRouter(postId: post.id));
                   },
                   child: CachedNetworkImage(
-                    imageUrl: '${pocketBaseService.baseUrl}/api/files/posts/${post.id}/${post.imageUrl}?thumb=400x400',
+                    imageUrl:
+                        '${pocketBaseService.baseUrl}/api/files/posts/${post.id}/${post.imageUrl}?thumb=400x400',
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
                       color: Colors.grey[300],

@@ -84,11 +84,13 @@ class PaymentTransaction {
       userId: record.data['user'] as String,
       month: record.data['month'] as String,
       amount: (record.data['amount'] as num?)?.toDouble() ?? 100.0,
-      status: PaymentStatus.fromString(record.data['status'] as String? ?? 'pending'),
-      paymentDate: record.data['payment_date'] != null 
+      status: PaymentStatus.fromString(
+          record.data['status'] as String? ?? 'pending'),
+      paymentDate: record.data['payment_date'] != null
           ? DateTime.parse(record.data['payment_date'] as String)
           : null,
-      paymentMethod: PaymentMethod.fromString(record.data['payment_method'] as String?),
+      paymentMethod:
+          PaymentMethod.fromString(record.data['payment_method'] as String?),
       recordedBy: record.data['recorded_by'] as String?,
       notes: record.data['notes'] as String?,
       created: DateTime.parse(record.created),
@@ -179,4 +181,3 @@ class PaymentTransaction {
         'amount: $amount, status: ${status.value}, paymentDate: $paymentDate)';
   }
 }
-

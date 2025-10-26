@@ -43,7 +43,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
     final hashtags = TextParsingUtils.extractHashtags(caption);
     final mentions = TextParsingUtils.extractMentions(caption);
 
-    if (hashtags.join(',') != _detectedHashtags.join(',') || mentions.join(',') != _detectedMentions.join(',')) {
+    if (hashtags.join(',') != _detectedHashtags.join(',') ||
+        mentions.join(',') != _detectedMentions.join(',')) {
       setState(() {
         _detectedHashtags = hashtags;
         _detectedMentions = mentions;
@@ -137,7 +138,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: Text('Choose from Gallery', style: TextStyle(fontSize: 14.sp)),
+                title: Text('Choose from Gallery',
+                    style: TextStyle(fontSize: 14.sp)),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.gallery);
@@ -283,7 +285,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
                   ),
 
                   // Detected hashtags and mentions
-                  if (_detectedHashtags.isNotEmpty || _detectedMentions.isNotEmpty)
+                  if (_detectedHashtags.isNotEmpty ||
+                      _detectedMentions.isNotEmpty)
                     Container(
                       margin: EdgeInsets.only(top: 12.h),
                       padding: EdgeInsets.all(12.w),

@@ -82,9 +82,11 @@ class _UserListPageState extends State<UserListPage> {
   }) {
     // Get profile image filename
     String? profileImageFileName;
-    if (userData['profile_image'] != null && userData['profile_image'].toString().isNotEmpty) {
+    if (userData['profile_image'] != null &&
+        userData['profile_image'].toString().isNotEmpty) {
       profileImageFileName = userData['profile_image'].toString();
-    } else if (userData['profileImage'] != null && userData['profileImage'].toString().isNotEmpty) {
+    } else if (userData['profileImage'] != null &&
+        userData['profileImage'].toString().isNotEmpty) {
       profileImageFileName = userData['profileImage'].toString();
     }
 
@@ -96,8 +98,10 @@ class _UserListPageState extends State<UserListPage> {
         profileImageUrl = profileImageFileName;
       } else {
         // It's a PocketBase filename, construct the URL
-        final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
-        profileImageUrl = '$pocketbaseUrl/api/files/users/$userId/$profileImageFileName';
+        final pocketbaseUrl =
+            FlavorConfig.instance.variables['pocketbaseUrl'] as String;
+        profileImageUrl =
+            '$pocketbaseUrl/api/files/users/$userId/$profileImageFileName';
       }
     }
 
@@ -107,7 +111,8 @@ class _UserListPageState extends State<UserListPage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24.sp),
         border: Border.all(
-          color: isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey[300]!,
+          color:
+              isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey[300]!,
           width: 1,
         ),
       ),
@@ -118,7 +123,9 @@ class _UserListPageState extends State<UserListPage> {
                 imageUrl: profileImageUrl,
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
-                  color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
+                  color: isDark
+                      ? colorScheme.primary.withOpacity(0.1)
+                      : Colors.blue.withOpacity(0.1),
                   child: Center(
                     child: SizedBox(
                       width: 20.sp,
@@ -131,10 +138,14 @@ class _UserListPageState extends State<UserListPage> {
                   ),
                 ),
                 errorWidget: (context, url, error) => Container(
-                  color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
+                  color: isDark
+                      ? colorScheme.primary.withOpacity(0.1)
+                      : Colors.blue.withOpacity(0.1),
                   child: Center(
                     child: Text(
-                      displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+                      displayName.isNotEmpty
+                          ? displayName[0].toUpperCase()
+                          : '?',
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
@@ -145,7 +156,9 @@ class _UserListPageState extends State<UserListPage> {
                 ),
               )
             : Container(
-                color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
+                color: isDark
+                    ? colorScheme.primary.withOpacity(0.1)
+                    : Colors.blue.withOpacity(0.1),
                 child: Center(
                   child: Text(
                     displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
@@ -171,7 +184,8 @@ class _UserListPageState extends State<UserListPage> {
       final firstName = (data['firstName'] ?? '').toString().toLowerCase();
       final lastName = (data['lastName'] ?? '').toString().toLowerCase();
       final email = (data['email'] ?? '').toString().toLowerCase();
-      final memberNumber = (data['memberNumber'] ?? '').toString().toLowerCase();
+      final memberNumber =
+          (data['memberNumber'] ?? '').toString().toLowerCase();
 
       return firstName.contains(_searchQuery) ||
           lastName.contains(_searchQuery) ||
@@ -193,14 +207,20 @@ class _UserListPageState extends State<UserListPage> {
             Icon(
               _searchQuery.isNotEmpty ? Icons.search_off : Icons.people_outline,
               size: 64.sp,
-              color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[400],
+              color: isDark
+                  ? colorScheme.onSurface.withOpacity(0.6)
+                  : Colors.grey[400],
             ),
             SizedBox(height: 16.sp),
             Text(
-              _searchQuery.isNotEmpty ? 'No users found matching "$_searchQuery"' : 'No users found',
+              _searchQuery.isNotEmpty
+                  ? 'No users found matching "$_searchQuery"'
+                  : 'No users found',
               style: TextStyle(
                 fontSize: 16.sp,
-                color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                color: isDark
+                    ? colorScheme.onSurface.withOpacity(0.7)
+                    : Colors.grey[600],
               ),
             ),
             if (_searchQuery.isNotEmpty) ...[
@@ -230,12 +250,14 @@ class _UserListPageState extends State<UserListPage> {
         final user = filteredUsers[index];
         final userData = user.data;
 
-        return _buildUserCard(user, userData as Map<String, dynamic>, isDark, colorScheme);
+        return _buildUserCard(
+            user, userData as Map<String, dynamic>, isDark, colorScheme);
       },
     );
   }
 
-  Widget _buildUserCard(dynamic user, Map<String, dynamic> userData, bool isDark, ColorScheme colorScheme) {
+  Widget _buildUserCard(dynamic user, Map<String, dynamic> userData,
+      bool isDark, ColorScheme colorScheme) {
     final firstName = (userData['firstName'] ?? '').toString();
     final lastName = (userData['lastName'] ?? '').toString();
     final fullName = '$firstName $lastName'.trim();
@@ -243,7 +265,8 @@ class _UserListPageState extends State<UserListPage> {
     final displayName = titleCaseName.isEmpty ? '(no_name)' : titleCaseName;
     final email = (userData['email'] ?? '').toString();
     final memberNumber = (userData['memberNumber'] ?? '').toString();
-    final displayMemberNumber = memberNumber == memberNumber ? 'OM-$memberNumber' : memberNumber;
+    final displayMemberNumber =
+        memberNumber == memberNumber ? 'OM-$memberNumber' : memberNumber;
 
     var creationDate = 'Unknown';
     if (userData['created'] != null) {
@@ -301,7 +324,8 @@ class _UserListPageState extends State<UserListPage> {
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? colorScheme.onSurface : Colors.black87,
+                          color:
+                              isDark ? colorScheme.onSurface : Colors.black87,
                         ),
                       ),
                       SizedBox(height: 4.sp),
@@ -310,7 +334,9 @@ class _UserListPageState extends State<UserListPage> {
                           email,
                           style: TextStyle(
                             fontSize: 14.sp,
-                            color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                            color: isDark
+                                ? colorScheme.onSurface.withOpacity(0.7)
+                                : Colors.grey[600],
                           ),
                         ),
                       SizedBox(height: 2.sp),
@@ -318,9 +344,12 @@ class _UserListPageState extends State<UserListPage> {
                         children: [
                           if (displayMemberNumber.isNotEmpty) ...[
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 8.sp, vertical: 2.sp),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8.sp, vertical: 2.sp),
                               decoration: BoxDecoration(
-                                color: isDark ? colorScheme.primary.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
+                                color: isDark
+                                    ? colorScheme.primary.withOpacity(0.1)
+                                    : Colors.blue.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(4.sp),
                               ),
                               child: Text(
@@ -328,7 +357,9 @@ class _UserListPageState extends State<UserListPage> {
                                 style: TextStyle(
                                   fontSize: 12.sp,
                                   fontWeight: FontWeight.w500,
-                                  color: isDark ? colorScheme.primary : Colors.blue,
+                                  color: isDark
+                                      ? colorScheme.primary
+                                      : Colors.blue,
                                 ),
                               ),
                             ),
@@ -338,7 +369,9 @@ class _UserListPageState extends State<UserListPage> {
                             'Joined: $creationDate',
                             style: TextStyle(
                               fontSize: 12.sp,
-                              color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                              color: isDark
+                                  ? colorScheme.onSurface.withOpacity(0.5)
+                                  : Colors.grey[500],
                             ),
                           ),
                         ],
@@ -350,7 +383,9 @@ class _UserListPageState extends State<UserListPage> {
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 16.sp,
-                  color: isDark ? colorScheme.onSurface.withOpacity(0.3) : Colors.grey[400],
+                  color: isDark
+                      ? colorScheme.onSurface.withOpacity(0.3)
+                      : Colors.grey[400],
                 ),
               ],
             ),
@@ -391,7 +426,9 @@ class _UserListPageState extends State<UserListPage> {
               Icon(
                 Icons.lock_outline,
                 size: 64.sp,
-                color: isDark ? colorScheme.onSurface.withOpacity(0.3) : Colors.grey[400],
+                color: isDark
+                    ? colorScheme.onSurface.withOpacity(0.3)
+                    : Colors.grey[400],
               ),
               SizedBox(height: 16.sp),
               Text(
@@ -399,7 +436,9 @@ class _UserListPageState extends State<UserListPage> {
                 style: TextStyle(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                  color: isDark
+                      ? colorScheme.onSurface.withOpacity(0.7)
+                      : Colors.grey[600],
                 ),
               ),
               SizedBox(height: 8.sp),
@@ -407,7 +446,9 @@ class _UserListPageState extends State<UserListPage> {
                 'You need to be authenticated to access this page',
                 style: TextStyle(
                   fontSize: 14.sp,
-                  color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                  color: isDark
+                      ? colorScheme.onSurface.withOpacity(0.5)
+                      : Colors.grey[500],
                 ),
               ),
             ],
@@ -454,9 +495,14 @@ class _UserListPageState extends State<UserListPage> {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isDark ? colorScheme.surfaceContainerHighest : Colors.grey[100],
+                      color: isDark
+                          ? colorScheme.surfaceContainerHighest
+                          : Colors.grey[100],
                       borderRadius: BorderRadius.circular(12.sp),
-                      border: isDark ? Border.all(color: colorScheme.outline.withOpacity(0.2)) : null,
+                      border: isDark
+                          ? Border.all(
+                              color: colorScheme.outline.withOpacity(0.2))
+                          : null,
                     ),
                     child: TextField(
                       controller: _searchController,
@@ -469,11 +515,15 @@ class _UserListPageState extends State<UserListPage> {
                         hintText: 'Search users...',
                         hintStyle: TextStyle(
                           fontSize: 13.sp,
-                          color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[400],
+                          color: isDark
+                              ? colorScheme.onSurface.withOpacity(0.5)
+                              : Colors.grey[400],
                         ),
                         prefixIcon: Icon(
                           Icons.search,
-                          color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600],
+                          color: isDark
+                              ? colorScheme.onSurface.withOpacity(0.6)
+                              : Colors.grey[600],
                         ),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(
@@ -486,7 +536,10 @@ class _UserListPageState extends State<UserListPage> {
                 ),
                 if (_searchQuery.isNotEmpty)
                   IconButton(
-                    icon: Icon(Icons.clear, color: isDark ? colorScheme.onSurface.withOpacity(0.6) : Colors.grey[600]),
+                    icon: Icon(Icons.clear,
+                        color: isDark
+                            ? colorScheme.onSurface.withOpacity(0.6)
+                            : Colors.grey[600]),
                     onPressed: () {
                       _searchController.clear();
                       _onSearchChanged('');
@@ -504,14 +557,17 @@ class _UserListPageState extends State<UserListPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(isDark ? colorScheme.primary : Colors.blue),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              isDark ? colorScheme.primary : Colors.blue),
                         ),
                         SizedBox(height: 16.sp),
                         Text(
                           'Loading users...',
                           style: TextStyle(
                             fontSize: 14.sp,
-                            color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                            color: isDark
+                                ? colorScheme.onSurface.withOpacity(0.7)
+                                : Colors.grey[600],
                           ),
                         ),
                       ],
@@ -525,7 +581,9 @@ class _UserListPageState extends State<UserListPage> {
                             Icon(
                               Icons.people_outline,
                               size: 64.sp,
-                              color: isDark ? colorScheme.onSurface.withOpacity(0.3) : Colors.grey[400],
+                              color: isDark
+                                  ? colorScheme.onSurface.withOpacity(0.3)
+                                  : Colors.grey[400],
                             ),
                             SizedBox(height: 16.sp),
                             Text(
@@ -533,7 +591,9 @@ class _UserListPageState extends State<UserListPage> {
                               style: TextStyle(
                                 fontSize: 16.sp,
                                 fontWeight: FontWeight.w500,
-                                color: isDark ? colorScheme.onSurface.withOpacity(0.7) : Colors.grey[600],
+                                color: isDark
+                                    ? colorScheme.onSurface.withOpacity(0.7)
+                                    : Colors.grey[600],
                               ),
                             ),
                             SizedBox(height: 8.sp),
@@ -541,7 +601,9 @@ class _UserListPageState extends State<UserListPage> {
                               'Users will appear here once they are added',
                               style: TextStyle(
                                 fontSize: 14.sp,
-                                color: isDark ? colorScheme.onSurface.withOpacity(0.5) : Colors.grey[500],
+                                color: isDark
+                                    ? colorScheme.onSurface.withOpacity(0.5)
+                                    : Colors.grey[500],
                               ),
                             ),
                           ],

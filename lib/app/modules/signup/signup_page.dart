@@ -136,7 +136,9 @@ class SignupPageState extends State<SignupPage> {
                           prefixIcon: const Icon(Icons.lock),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                             ),
                             onPressed: () {
                               setState(() {
@@ -168,11 +170,14 @@ class SignupPageState extends State<SignupPage> {
                           prefixIcon: const Icon(Icons.lock),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                              _obscureConfirmPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                             ),
                             onPressed: () {
                               setState(() {
-                                _obscureConfirmPassword = !_obscureConfirmPassword;
+                                _obscureConfirmPassword =
+                                    !_obscureConfirmPassword;
                               });
                             },
                           ),
@@ -186,7 +191,9 @@ class SignupPageState extends State<SignupPage> {
                       ),
                       const SizedBox(height: 20),
                       ElevatedButton(
-                        onPressed: state.signupStatus == SignupStatus.submitting ? null : _submit,
+                        onPressed: state.signupStatus == SignupStatus.submitting
+                            ? null
+                            : _submit,
                         style: ElevatedButton.styleFrom(
                           textStyle: const TextStyle(
                             fontSize: 20,
@@ -197,7 +204,9 @@ class SignupPageState extends State<SignupPage> {
                           ),
                         ),
                         child: Text(
-                          state.signupStatus == SignupStatus.submitting ? 'Loading...' : 'Sign Up',
+                          state.signupStatus == SignupStatus.submitting
+                              ? 'Loading...'
+                              : 'Sign Up',
                         ),
                       ),
                       const SizedBox(height: 10),

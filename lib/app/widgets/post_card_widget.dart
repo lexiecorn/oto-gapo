@@ -40,7 +40,8 @@ class PostCardWidget extends StatelessWidget {
 
     // Debug: Print image URL construction
     if (post.imageUrl.isNotEmpty) {
-      final fullUrl = '${pocketBaseService.baseUrl}/api/files/posts/${post.id}/${post.imageUrl}';
+      final fullUrl =
+          '${pocketBaseService.baseUrl}/api/files/posts/${post.id}/${post.imageUrl}';
       print('PostCard - Full image URL: $fullUrl');
       print('PostCard - Base URL: ${pocketBaseService.baseUrl}');
       print('PostCard - Image filename: ${post.imageUrl}');
@@ -61,12 +62,14 @@ class PostCardWidget extends StatelessWidget {
               onTap: onUserTap,
               child: CircleAvatar(
                 radius: 20.r,
-                backgroundImage: post.userProfileImage != null && post.userProfileImage!.isNotEmpty
+                backgroundImage: post.userProfileImage != null &&
+                        post.userProfileImage!.isNotEmpty
                     ? CachedNetworkImageProvider(
                         '${pocketBaseService.baseUrl}/api/files/users/${post.userId}/${post.userProfileImage}',
                       )
                     : null,
-                child: post.userProfileImage == null || post.userProfileImage!.isEmpty
+                child: post.userProfileImage == null ||
+                        post.userProfileImage!.isEmpty
                     ? Icon(Icons.person, size: 20.sp)
                     : null,
               ),
@@ -99,10 +102,12 @@ class PostCardWidget extends StatelessWidget {
             GestureDetector(
               onTap: onImageTap,
               child: CachedNetworkImage(
-                imageUrl: '${pocketBaseService.baseUrl}/api/files/posts/${post.id}/${post.imageUrl}?thumb=800x800',
+                imageUrl:
+                    '${pocketBaseService.baseUrl}/api/files/posts/${post.id}/${post.imageUrl}?thumb=800x800',
                 errorListener: (error) {
                   print('Image load error: $error');
-                  print('Image URL: ${pocketBaseService.baseUrl}/api/files/posts/${post.id}/${post.imageUrl}');
+                  print(
+                      'Image URL: ${pocketBaseService.baseUrl}/api/files/posts/${post.id}/${post.imageUrl}');
                 },
                 width: double.infinity,
                 fit: BoxFit.cover,
@@ -151,7 +156,9 @@ class PostCardWidget extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w600,
-                            color: userReaction != null ? Colors.blue : Colors.grey[700],
+                            color: userReaction != null
+                                ? Colors.blue
+                                : Colors.grey[700],
                           ),
                         ),
                       ],

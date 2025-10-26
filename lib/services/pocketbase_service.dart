@@ -47,9 +47,11 @@ class PocketBaseService {
   Future<void> _ensureAuthenticated() async {
     if (!pb.authStore.isValid) {
       print('PocketBaseService - Not authenticated with PocketBase');
-      throw Exception('PocketBase authentication required. Please log in first.');
+      throw Exception(
+          'PocketBase authentication required. Please log in first.');
     } else {
-      print('PocketBaseService - Already authenticated with user ID: ${pb.authStore.model?.id}');
+      print(
+          'PocketBaseService - Already authenticated with user ID: ${pb.authStore.model?.id}');
     }
 
     // Check the authenticated user's membership_type
@@ -57,8 +59,10 @@ class PocketBaseService {
       final currentUser = pb.authStore.model;
       if (currentUser != null) {
         print('PocketBaseService - Current user data: ${currentUser.data}');
-        print('PocketBaseService - Current user membership_type: ${currentUser.data['membership_type']}');
-        print('PocketBaseService - Current user email: ${currentUser.data['email']}');
+        print(
+            'PocketBaseService - Current user membership_type: ${currentUser.data['membership_type']}');
+        print(
+            'PocketBaseService - Current user email: ${currentUser.data['email']}');
       }
     } catch (e) {
       print('PocketBaseService - Error getting current user data: $e');
@@ -132,7 +136,8 @@ class PocketBaseService {
   }
 
   // Update user data
-  Future<RecordModel> updateUser(String userId, Map<String, dynamic> data) async {
+  Future<RecordModel> updateUser(
+      String userId, Map<String, dynamic> data) async {
     await _ensureAuthenticated();
 
     // Separate file uploads from regular data updates
@@ -148,7 +153,8 @@ class PocketBaseService {
     }
 
     print('PocketBaseService - Updating user $userId');
-    print('PocketBaseService - Regular data keys: ${regularData.keys.toList()}');
+    print(
+        'PocketBaseService - Regular data keys: ${regularData.keys.toList()}');
     print('PocketBaseService - File fields: ${fileFields.keys.toList()}');
 
     try {
@@ -191,7 +197,8 @@ class PocketBaseService {
   }
 
   // Upload file for user
-  Future<RecordModel> _uploadUserFile(String userId, String fieldName, File file) async {
+  Future<RecordModel> _uploadUserFile(
+      String userId, String fieldName, File file) async {
     try {
       print('PocketBaseService - Starting file upload for field: $fieldName');
       print('PocketBaseService - User ID: $userId');
@@ -218,14 +225,18 @@ class PocketBaseService {
       print('PocketBaseService - File uploaded successfully');
       return result;
     } catch (e) {
-      print('PocketBaseService - Error uploading file for field $fieldName: $e');
+      print(
+          'PocketBaseService - Error uploading file for field $fieldName: $e');
       print('PocketBaseService - Error type: ${e.runtimeType}');
 
       // If we get a permission error, try to provide more helpful information
       if (e.toString().contains('403') || e.toString().contains('permission')) {
-        print('PocketBaseService - Permission denied. User may not have rights to update this field.');
-        print('PocketBaseService - Ensure PocketBase collection rules allow users to update their own records.');
-        print('PocketBaseService - Current update rule should include: || @request.auth.id = id');
+        print(
+            'PocketBaseService - Permission denied. User may not have rights to update this field.');
+        print(
+            'PocketBaseService - Ensure PocketBase collection rules allow users to update their own records.');
+        print(
+            'PocketBaseService - Current update rule should include: || @request.auth.id = id');
       }
 
       rethrow;
@@ -245,7 +256,8 @@ class PocketBaseService {
     } catch (e) {
       // Handle 404 errors gracefully - user might not exist
       if (e.toString().contains('404') || e.toString().contains('not found')) {
-        print('User $userId not found in getUser method - attempting getList fallback');
+        print(
+            'User $userId not found in getUser method - attempting getList fallback');
 
         // Fallback: Try using getList with filter for admin access
         // This helps when getOne has stricter permissions than getList
@@ -325,7 +337,8 @@ class PocketBaseService {
   }
 
   // Update vehicle
-  Future<RecordModel> updateVehicle(String vehicleId, Map<String, dynamic> data) async {
+  Future<RecordModel> updateVehicle(
+      String vehicleId, Map<String, dynamic> data) async {
     // Separate file uploads from regular data updates
     final fileFields = <String, dynamic>{};
     final regularData = <String, dynamic>{};
@@ -339,7 +352,8 @@ class PocketBaseService {
     }
 
     print('PocketBaseService - Updating vehicle $vehicleId');
-    print('PocketBaseService - Regular data keys: ${regularData.keys.toList()}');
+    print(
+        'PocketBaseService - Regular data keys: ${regularData.keys.toList()}');
     print('PocketBaseService - File fields: ${fileFields.keys.toList()}');
 
     try {
@@ -347,7 +361,9 @@ class PocketBaseService {
 
       // First update regular data if any
       if (regularData.isNotEmpty) {
-        result = await pb.collection('vehicles').update(vehicleId, body: regularData);
+        result = await pb
+            .collection('vehicles')
+            .update(vehicleId, body: regularData);
         print('PocketBaseService - Regular vehicle data updated successfully');
       } else {
         result = await pb.collection('vehicles').getOne(vehicleId);
@@ -363,9 +379,11 @@ class PocketBaseService {
 
           if (value is File) {
             // Single file
-            print('PocketBaseService - Uploading single vehicle file for field: $fieldName');
+            print(
+                'PocketBaseService - Uploading single vehicle file for field: $fieldName');
             final fileBytes = await value.readAsBytes();
-            print('PocketBaseService - Vehicle file size: ${fileBytes.length} bytes');
+            print(
+                'PocketBaseService - Vehicle file size: ${fileBytes.length} bytes');
 
             multipartFiles.add(
               http.MultipartFile.fromBytes(
@@ -376,11 +394,13 @@ class PocketBaseService {
             );
           } else if (value is List<File>) {
             // Multiple files
-            print('PocketBaseService - Uploading ${value.length} vehicle files for field: $fieldName');
+            print(
+                'PocketBaseService - Uploading ${value.length} vehicle files for field: $fieldName');
 
             for (final file in value) {
               final fileBytes = await file.readAsBytes();
-              print('PocketBaseService - Vehicle file size: ${fileBytes.length} bytes');
+              print(
+                  'PocketBaseService - Vehicle file size: ${fileBytes.length} bytes');
 
               multipartFiles.add(
                 http.MultipartFile.fromBytes(
@@ -399,7 +419,8 @@ class PocketBaseService {
                   files: multipartFiles,
                 );
 
-            print('PocketBaseService - Vehicle file(s) for $fieldName uploaded successfully');
+            print(
+                'PocketBaseService - Vehicle file(s) for $fieldName uploaded successfully');
           }
         }
       }
@@ -544,7 +565,8 @@ class PocketBaseService {
 
     final request = http.MultipartRequest(
       'PATCH',
-      Uri.parse('${pb.baseUrl}/api/collections/Announcements/records/$announcementId'),
+      Uri.parse(
+          '${pb.baseUrl}/api/collections/Announcements/records/$announcementId'),
     );
 
     // Add authorization header
@@ -564,7 +586,8 @@ class PocketBaseService {
     if (title != null) request.fields['title'] = title;
     if (content != null) request.fields['content'] = content;
     if (type != null) request.fields['type'] = type;
-    if (showOnLogin != null) request.fields['showOnLogin'] = showOnLogin.toString();
+    if (showOnLogin != null)
+      request.fields['showOnLogin'] = showOnLogin.toString();
     if (isActive != null) request.fields['isActive'] = isActive.toString();
 
     // Send request
@@ -709,13 +732,19 @@ class PocketBaseService {
     if (gender != null) data['gender'] = gender;
     if (nationality != null) data['nationality'] = nationality;
     if (religion != null) data['religion'] = religion;
-    if (driversLicenseNumber != null) data['driversLicenseNumber'] = driversLicenseNumber;
-    if (driversLicenseExpirationDate != null) data['driversLicenseExpirationDate'] = driversLicenseExpirationDate;
-    if (driversLicenseRestrictionCode != null) data['driversLicenseRestrictionCode'] = driversLicenseRestrictionCode;
-    if (emergencyContactName != null) data['emergencyContactName'] = emergencyContactName;
-    if (emergencyContactNumber != null) data['emergencyContactNumber'] = emergencyContactNumber;
+    if (driversLicenseNumber != null)
+      data['driversLicenseNumber'] = driversLicenseNumber;
+    if (driversLicenseExpirationDate != null)
+      data['driversLicenseExpirationDate'] = driversLicenseExpirationDate;
+    if (driversLicenseRestrictionCode != null)
+      data['driversLicenseRestrictionCode'] = driversLicenseRestrictionCode;
+    if (emergencyContactName != null)
+      data['emergencyContactName'] = emergencyContactName;
+    if (emergencyContactNumber != null)
+      data['emergencyContactNumber'] = emergencyContactNumber;
     if (spouseName != null) data['spouseName'] = spouseName;
-    if (spouseContactNumber != null) data['spouseContactNumber'] = spouseContactNumber;
+    if (spouseContactNumber != null)
+      data['spouseContactNumber'] = spouseContactNumber;
     if (memberNumber != null) data['memberNumber'] = memberNumber;
     if (membershipType != null) data['membership_type'] = membershipType;
     if (isActive != null) data['isActive'] = isActive;
@@ -727,7 +756,8 @@ class PocketBaseService {
   }
 
   // Subscribe to real-time updates
-  Future<UnsubscribeFunc> subscribeToUsers(void Function(RecordModel) onUpdate) async {
+  Future<UnsubscribeFunc> subscribeToUsers(
+      void Function(RecordModel) onUpdate) async {
     return pb.collection('users').subscribe('*', (e) {
       if ((e.action == 'create' || e.action == 'update') && e.record != null) {
         onUpdate(e.record!);
@@ -736,7 +766,8 @@ class PocketBaseService {
   }
 
   // Subscribe to announcements
-  Future<UnsubscribeFunc> subscribeToAnnouncements(void Function(RecordModel) onUpdate) async {
+  Future<UnsubscribeFunc> subscribeToAnnouncements(
+      void Function(RecordModel) onUpdate) async {
     return pb.collection('Announcements').subscribe('*', (e) {
       if ((e.action == 'create' || e.action == 'update') && e.record != null) {
         onUpdate(e.record!);
@@ -749,7 +780,8 @@ class PocketBaseService {
   // Get monthly dues for a specific user
   Future<List<MonthlyDues>> getMonthlyDuesForUser(String userId) async {
     try {
-      print('PocketBaseService.getMonthlyDuesForUser - Searching for userId: "$userId"');
+      print(
+          'PocketBaseService.getMonthlyDuesForUser - Searching for userId: "$userId"');
 
       // Ensure authentication first
       await _ensureAuthenticated();
@@ -760,11 +792,13 @@ class PocketBaseService {
               sort: '-due_for_month',
             );
 
-        print('PocketBaseService.getMonthlyDuesForUser - Total monthly dues records in database: ${allResult.length}');
+        print(
+            'PocketBaseService.getMonthlyDuesForUser - Total monthly dues records in database: ${allResult.length}');
 
         // Debug: Print ALL monthly dues records
         for (final record in allResult) {
-          print('PocketBaseService.getMonthlyDuesForUser - Monthly due record:');
+          print(
+              'PocketBaseService.getMonthlyDuesForUser - Monthly due record:');
           print('  - ID: ${record.id}');
           print('  - User field: "${record.data['user']}"');
           print('  - Amount: ${record.data['amount']}');
@@ -775,7 +809,8 @@ class PocketBaseService {
         // Now filter by userId in the app
         final filteredRecords = allResult.where((record) {
           final userField = record.data['user'];
-          print('PocketBaseService.getMonthlyDuesForUser - Comparing: "$userField" == "$userId"');
+          print(
+              'PocketBaseService.getMonthlyDuesForUser - Comparing: "$userField" == "$userId"');
           return userField == userId;
         }).toList();
 
@@ -785,7 +820,8 @@ class PocketBaseService {
 
         return filteredRecords.map(MonthlyDues.fromRecord).toList();
       } catch (e) {
-        print('PocketBaseService.getMonthlyDuesForUser - Error getting monthly dues: $e');
+        print(
+            'PocketBaseService.getMonthlyDuesForUser - Error getting monthly dues: $e');
         return [];
       }
     } catch (e) {
@@ -795,10 +831,12 @@ class PocketBaseService {
   }
 
   // Get monthly dues for a specific user and month
-  Future<MonthlyDues?> getMonthlyDuesForUserAndMonth(String userId, DateTime month) async {
+  Future<MonthlyDues?> getMonthlyDuesForUserAndMonth(
+      String userId, DateTime month) async {
     try {
       final monthString = month.toIso8601String().split('T')[0];
-      print('PocketBase - getMonthlyDuesForUserAndMonth: userId=$userId, month=$month, monthString=$monthString');
+      print(
+          'PocketBase - getMonthlyDuesForUserAndMonth: userId=$userId, month=$month, monthString=$monthString');
 
       // Also try with time component to match database format
       final monthStringWithTime = '${monthString} 00:00:00 UTC';
@@ -808,12 +846,15 @@ class PocketBaseService {
       // Try both date formats to match database
       final result = await pb.collection('monthly_dues').getList(
             page: 1,
-            perPage: 100, // Should be enough for any reasonable number of duplicates
-            filter: 'user = "$userId" && (due_for_month = "$monthString" || due_for_month = "$monthStringWithTime")',
+            perPage:
+                100, // Should be enough for any reasonable number of duplicates
+            filter:
+                'user = "$userId" && (due_for_month = "$monthString" || due_for_month = "$monthStringWithTime")',
             expand: 'user',
           );
 
-      print('PocketBase - getMonthlyDuesForUserAndMonth: Found ${result.items.length} records');
+      print(
+          'PocketBase - getMonthlyDuesForUserAndMonth: Found ${result.items.length} records');
       for (int i = 0; i < result.items.length; i++) {
         final item = result.items[i];
         print(
@@ -832,10 +873,12 @@ class PocketBaseService {
             'PocketBase - Found ${result.items.length} duplicate records for user $userId, month $monthString. Cleaning up...');
 
         // Keep the most recent record (highest created timestamp)
-        result.items.sort((a, b) => DateTime.parse(b.created).compareTo(DateTime.parse(a.created)));
+        result.items.sort((a, b) =>
+            DateTime.parse(b.created).compareTo(DateTime.parse(a.created)));
         final recordToKeep = result.items.first;
 
-        print('PocketBase - Keeping record: ${recordToKeep.id} (created: ${recordToKeep.created})');
+        print(
+            'PocketBase - Keeping record: ${recordToKeep.id} (created: ${recordToKeep.created})');
 
         // Delete all other duplicate records
         for (int i = 1; i < result.items.length; i++) {
@@ -843,13 +886,16 @@ class PocketBaseService {
             print(
                 'PocketBase - Deleting duplicate record: ${result.items[i].id} (created: ${result.items[i].created})');
             await pb.collection('monthly_dues').delete(result.items[i].id);
-            print('PocketBase - Successfully deleted duplicate record: ${result.items[i].id}');
+            print(
+                'PocketBase - Successfully deleted duplicate record: ${result.items[i].id}');
           } catch (e) {
-            print('PocketBase - Error deleting duplicate record ${result.items[i].id}: $e');
+            print(
+                'PocketBase - Error deleting duplicate record ${result.items[i].id}: $e');
           }
         }
 
-        print('PocketBase - Cleanup completed, returning record: ${recordToKeep.id}');
+        print(
+            'PocketBase - Cleanup completed, returning record: ${recordToKeep.id}');
         return MonthlyDues.fromRecord(recordToKeep);
       }
 
@@ -870,10 +916,12 @@ class PocketBaseService {
     String? existingId,
   }) async {
     // Since we're using PocketBase authentication, userId should be the PocketBase record ID
-    print('PocketBaseService.createOrUpdateMonthlyDues - Using userId: "$userId"');
+    print(
+        'PocketBaseService.createOrUpdateMonthlyDues - Using userId: "$userId"');
 
     final data = {
-      'user': userId, // Use the PocketBase record ID directly since it's a relation field
+      'user':
+          userId, // Use the PocketBase record ID directly since it's a relation field
       'due_for_month': dueForMonth.toIso8601String().split('T')[0],
       'amount': amount,
       'payment_date': paymentDate?.toIso8601String().split('T')[0],
@@ -889,12 +937,14 @@ class PocketBaseService {
 
     RecordModel record;
     if (existingId != null) {
-      record = await pb.collection('monthly_dues').update(existingId, body: data);
+      record =
+          await pb.collection('monthly_dues').update(existingId, body: data);
     } else {
       record = await pb.collection('monthly_dues').create(body: data);
     }
 
-    print('PocketBaseService.createOrUpdateMonthlyDues - Record created/updated:');
+    print(
+        'PocketBaseService.createOrUpdateMonthlyDues - Record created/updated:');
     print('  - id: ${record.id}');
     print('  - payment_date in record: ${record.data['payment_date']}');
     print('  - amount in record: ${record.data['amount']}');
@@ -910,18 +960,21 @@ class PocketBaseService {
     DateTime? paymentDate,
     String? notes,
   }) async {
-    print('PocketBase - markPaymentStatus called for user: $userId, month: $month, isPaid: $isPaid');
+    print(
+        'PocketBase - markPaymentStatus called for user: $userId, month: $month, isPaid: $isPaid');
 
     final existingDues = await getMonthlyDuesForUserAndMonth(userId, month);
     print('PocketBase - Existing dues found: ${existingDues?.id}');
-    print('PocketBase - Existing dues payment date: ${existingDues?.paymentDate}');
+    print(
+        'PocketBase - Existing dues payment date: ${existingDues?.paymentDate}');
     print('PocketBase - Existing dues isPaid: ${existingDues?.isPaid}');
 
     // If marking as unpaid (isPaid = false)
     if (!isPaid) {
       if (existingDues != null) {
         // Delete existing record
-        print('PocketBase - Deleting payment record for user: $userId, month: $month, record ID: ${existingDues.id}');
+        print(
+            'PocketBase - Deleting payment record for user: $userId, month: $month, record ID: ${existingDues.id}');
         try {
           await deleteMonthlyDues(existingDues.id);
           print('PocketBase - Payment record deleted successfully');
@@ -932,7 +985,8 @@ class PocketBaseService {
         }
       } else {
         // No existing record, nothing to do
-        print('PocketBase - No existing record to delete for user: $userId, month: $month');
+        print(
+            'PocketBase - No existing record to delete for user: $userId, month: $month');
         return null; // Return null to indicate no action needed
       }
     }
@@ -957,7 +1011,8 @@ class PocketBaseService {
       );
     } else {
       // Create new record - but first check again for duplicates
-      print('PocketBase - Creating new record, but first checking for duplicates...');
+      print(
+          'PocketBase - Creating new record, but first checking for duplicates...');
 
       // Double-check for duplicates before creating
       final duplicateCheck = await getMonthlyDuesForUserAndMonth(userId, month);
@@ -993,7 +1048,8 @@ class PocketBaseService {
   // Clean up all duplicate monthly dues records across the system
   Future<void> cleanupDuplicateMonthlyDues() async {
     try {
-      print('PocketBase - Starting cleanup of duplicate monthly dues records...');
+      print(
+          'PocketBase - Starting cleanup of duplicate monthly dues records...');
 
       // Get all monthly dues records
       final allRecords = await pb.collection('monthly_dues').getList(
@@ -1022,10 +1078,12 @@ class PocketBaseService {
         final records = entry.value;
 
         if (records.length > 1) {
-          print('PocketBase - Found ${records.length} duplicates for key: ${entry.key}');
+          print(
+              'PocketBase - Found ${records.length} duplicates for key: ${entry.key}');
 
           // Sort by created date (keep the most recent)
-          records.sort((a, b) => DateTime.parse(b.created).compareTo(DateTime.parse(a.created)));
+          records.sort((a, b) =>
+              DateTime.parse(b.created).compareTo(DateTime.parse(a.created)));
 
           // Delete all other records
           for (int i = 1; i < records.length; i++) {
@@ -1034,13 +1092,15 @@ class PocketBaseService {
               totalDuplicatesRemoved++;
               print('PocketBase - Deleted duplicate record: ${records[i].id}');
             } catch (e) {
-              print('PocketBase - Error deleting duplicate record ${records[i].id}: $e');
+              print(
+                  'PocketBase - Error deleting duplicate record ${records[i].id}: $e');
             }
           }
         }
       }
 
-      print('PocketBase - Cleanup completed. Removed $totalDuplicatesRemoved duplicate records.');
+      print(
+          'PocketBase - Cleanup completed. Removed $totalDuplicatesRemoved duplicate records.');
     } catch (e) {
       print('PocketBase - Error during cleanup: $e');
     }
@@ -1057,7 +1117,8 @@ class PocketBaseService {
       // Get user details to find joinedDate
       final userRecord = await getUser(userId);
       if (userRecord == null) {
-        print('User $userId not found in getPaymentStatusForMonth - returning null');
+        print(
+            'User $userId not found in getPaymentStatusForMonth - returning null');
         return null;
       }
 
@@ -1071,7 +1132,8 @@ class PocketBaseService {
       final joinedDate = DateTime.parse(joinedDateString);
       final dues = await getMonthlyDuesForUser(userId);
 
-      print('getPaymentStatusForMonth - User: $userId, Month: $monthDate, Joined: $joinedDate');
+      print(
+          'getPaymentStatusForMonth - User: $userId, Month: $monthDate, Joined: $joinedDate');
       print('getPaymentStatusForMonth - Found ${dues.length} dues records');
 
       // Use the utility class to get payment status
@@ -1086,7 +1148,8 @@ class PocketBaseService {
     } catch (e) {
       // Handle 404 errors gracefully - user might not exist
       if (e.toString().contains('404') || e.toString().contains('not found')) {
-        print('User $userId not found in getPaymentStatusForMonth - returning null');
+        print(
+            'User $userId not found in getPaymentStatusForMonth - returning null');
         return null;
       }
       print('Error getting payment status for month: $e');
@@ -1156,7 +1219,8 @@ class PocketBaseService {
 
       // Use the authenticated user's ID instead of the passed userId
       final authenticatedUserId = pb.authStore.model?.id;
-      print('Using authenticated user ID: $authenticatedUserId (instead of passed userId: $userId)');
+      print(
+          'Using authenticated user ID: $authenticatedUserId (instead of passed userId: $userId)');
 
       if (authenticatedUserId == null) {
         print('ERROR: No authenticated user found!');
@@ -1208,9 +1272,13 @@ class PocketBaseService {
   }
 
   // Subscribe to monthly dues updates
-  Future<UnsubscribeFunc> subscribeToMonthlyDues(void Function(RecordModel) onUpdate) async {
+  Future<UnsubscribeFunc> subscribeToMonthlyDues(
+      void Function(RecordModel) onUpdate) async {
     return pb.collection('monthly_dues').subscribe('*', (e) {
-      if ((e.action == 'create' || e.action == 'update' || e.action == 'delete') && e.record != null) {
+      if ((e.action == 'create' ||
+              e.action == 'update' ||
+              e.action == 'delete') &&
+          e.record != null) {
         onUpdate(e.record!);
       }
     });
@@ -1265,7 +1333,8 @@ class PocketBaseService {
       // Read file bytes
       final file = File(imageFilePath);
       final fileBytes = await file.readAsBytes();
-      print('PocketBaseService - Gallery image file size: ${fileBytes.length} bytes');
+      print(
+          'PocketBaseService - Gallery image file size: ${fileBytes.length} bytes');
 
       // Create multipart request manually
       final request = http.MultipartRequest(
@@ -1304,14 +1373,17 @@ class PocketBaseService {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
-      print('PocketBaseService - Gallery image creation response status: ${response.statusCode}');
-      print('PocketBaseService - Gallery image creation response body: ${response.body}');
+      print(
+          'PocketBaseService - Gallery image creation response status: ${response.statusCode}');
+      print(
+          'PocketBaseService - Gallery image creation response body: ${response.body}');
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final responseData = json.decode(response.body) as Map<String, dynamic>;
         return RecordModel.fromJson(responseData);
       } else {
-        throw Exception('Gallery image creation failed: ${response.statusCode} - ${response.body}');
+        throw Exception(
+            'Gallery image creation failed: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       print('Error creating gallery image: $e');
@@ -1338,12 +1410,14 @@ class PocketBaseService {
         // Read file bytes
         final file = File(imageFilePath);
         final fileBytes = await file.readAsBytes();
-        print('PocketBaseService - Gallery image update file size: ${fileBytes.length} bytes');
+        print(
+            'PocketBaseService - Gallery image update file size: ${fileBytes.length} bytes');
 
         // Create multipart request manually
         final request = http.MultipartRequest(
           'PATCH',
-          Uri.parse('${pb.baseURL}/api/collections/gallery_images/records/$imageId'),
+          Uri.parse(
+              '${pb.baseURL}/api/collections/gallery_images/records/$imageId'),
         );
 
         // Add authorization header
@@ -1373,20 +1447,25 @@ class PocketBaseService {
           request.fields['is_active'] = isActive.toString();
         }
 
-        print('PocketBaseService - Sending gallery image update request with file');
+        print(
+            'PocketBaseService - Sending gallery image update request with file');
 
         // Send the request
         final streamedResponse = await request.send();
         final response = await http.Response.fromStream(streamedResponse);
 
-        print('PocketBaseService - Gallery image update response status: ${response.statusCode}');
-        print('PocketBaseService - Gallery image update response body: ${response.body}');
+        print(
+            'PocketBaseService - Gallery image update response status: ${response.statusCode}');
+        print(
+            'PocketBaseService - Gallery image update response body: ${response.body}');
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
-          final responseData = json.decode(response.body) as Map<String, dynamic>;
+          final responseData =
+              json.decode(response.body) as Map<String, dynamic>;
           return RecordModel.fromJson(responseData);
         } else {
-          throw Exception('Gallery image update failed: ${response.statusCode} - ${response.body}');
+          throw Exception(
+              'Gallery image update failed: ${response.statusCode} - ${response.body}');
         }
       } else {
         // No file upload, use regular PocketBase update
@@ -1406,7 +1485,9 @@ class PocketBaseService {
         }
 
         print('PocketBaseService - Updating gallery image metadata only');
-        return await pb.collection('gallery_images').update(imageId, body: body);
+        return await pb
+            .collection('gallery_images')
+            .update(imageId, body: body);
       }
     } catch (e) {
       print('Error updating gallery image: $e');
@@ -1427,7 +1508,8 @@ class PocketBaseService {
   }
 
   /// Reorder gallery images by updating display_order
-  Future<void> reorderGalleryImages(List<Map<String, dynamic>> imageOrders) async {
+  Future<void> reorderGalleryImages(
+      List<Map<String, dynamic>> imageOrders) async {
     try {
       for (final order in imageOrders) {
         await pb.collection('gallery_images').update(
@@ -1463,9 +1545,13 @@ class PocketBaseService {
   }
 
   /// Subscribe to gallery images updates
-  Future<UnsubscribeFunc> subscribeToGalleryImages(void Function(RecordModel) onUpdate) async {
+  Future<UnsubscribeFunc> subscribeToGalleryImages(
+      void Function(RecordModel) onUpdate) async {
     return pb.collection('gallery_images').subscribe('*', (e) {
-      if ((e.action == 'create' || e.action == 'update' || e.action == 'delete') && e.record != null) {
+      if ((e.action == 'create' ||
+              e.action == 'update' ||
+              e.action == 'delete') &&
+          e.record != null) {
         onUpdate(e.record!);
       }
     });
@@ -1512,7 +1598,8 @@ class PocketBaseService {
       if (result.items.isEmpty) return null;
       return PaymentTransaction.fromRecord(result.items.first);
     } catch (e) {
-      print('Error getting payment transaction for user $userId, month $month: $e');
+      print(
+          'Error getting payment transaction for user $userId, month $month: $e');
       return null;
     }
   }
@@ -1645,7 +1732,8 @@ class PocketBaseService {
           if (transaction.isPaid) {
             paidCount++;
             totalPaidAmount += transaction.amount;
-            if (lastPaymentDate == null || (transaction.paymentDate?.isAfter(lastPaymentDate) ?? false)) {
+            if (lastPaymentDate == null ||
+                (transaction.paymentDate?.isAfter(lastPaymentDate) ?? false)) {
               lastPaymentDate = transaction.paymentDate;
               lastPaymentMethod = transaction.paymentMethod?.displayName;
             }
@@ -1712,7 +1800,8 @@ class PocketBaseService {
   }
 
   /// Initialize payment records for a user (creates pending records for all expected months)
-  Future<void> initializePaymentRecords(String userId, DateTime joinedDate) async {
+  Future<void> initializePaymentRecords(
+      String userId, DateTime joinedDate) async {
     try {
       await _ensureAuthenticated();
 
@@ -1741,7 +1830,10 @@ class PocketBaseService {
     void Function(RecordModel) onUpdate,
   ) async {
     return pb.collection('payment_transactions').subscribe('*', (e) {
-      if ((e.action == 'create' || e.action == 'update' || e.action == 'delete') && e.record != null) {
+      if ((e.action == 'create' ||
+              e.action == 'update' ||
+              e.action == 'delete') &&
+          e.record != null) {
         onUpdate(e.record!);
       }
     });
@@ -1812,9 +1904,13 @@ class PocketBaseService {
       }
 
       // Calculate overall statistics
-      final paidTransactions = transactions.where((t) => t.status == PaymentStatus.paid).toList();
-      final totalRevenue = paidTransactions.fold<double>(0, (sum, t) => sum + t.amount);
-      final avgPayment = paidTransactions.isEmpty ? 0.0 : totalRevenue / paidTransactions.length;
+      final paidTransactions =
+          transactions.where((t) => t.status == PaymentStatus.paid).toList();
+      final totalRevenue =
+          paidTransactions.fold<double>(0, (sum, t) => sum + t.amount);
+      final avgPayment = paidTransactions.isEmpty
+          ? 0.0
+          : totalRevenue / paidTransactions.length;
 
       // Group by month for monthly revenue
       final monthlyRevenueMap = <String, MonthlyRevenue>{};
@@ -1834,16 +1930,19 @@ class PocketBaseService {
         } else {
           monthlyRevenueMap[month] = MonthlyRevenue(
             month: month,
-            totalAmount: existing.totalAmount + (transaction.isPaid ? transaction.amount : 0),
+            totalAmount: existing.totalAmount +
+                (transaction.isPaid ? transaction.amount : 0),
             transactionCount: existing.transactionCount + 1,
             paidCount: existing.paidCount + (transaction.isPaid ? 1 : 0),
-            pendingCount: existing.pendingCount + (transaction.isPending ? 1 : 0),
+            pendingCount:
+                existing.pendingCount + (transaction.isPending ? 1 : 0),
             waivedCount: existing.waivedCount + (transaction.isWaived ? 1 : 0),
           );
         }
       }
 
-      final monthlyRevenues = monthlyRevenueMap.values.toList()..sort((a, b) => a.month.compareTo(b.month));
+      final monthlyRevenues = monthlyRevenueMap.values.toList()
+        ..sort((a, b) => a.month.compareTo(b.month));
 
       // Calculate payment method statistics
       final methodCounts = <PaymentMethod, int>{};
@@ -1853,7 +1952,8 @@ class PocketBaseService {
         if (transaction.paymentMethod != null) {
           final method = transaction.paymentMethod!;
           methodCounts[method] = (methodCounts[method] ?? 0) + 1;
-          methodAmounts[method] = (methodAmounts[method] ?? 0) + transaction.amount;
+          methodAmounts[method] =
+              (methodAmounts[method] ?? 0) + transaction.amount;
         }
       }
 
@@ -1868,7 +1968,8 @@ class PocketBaseService {
               method: method,
               count: count,
               totalAmount: methodAmounts[method] ?? 0,
-              percentage: totalPaidCount > 0 ? (count / totalPaidCount) * 100 : 0,
+              percentage:
+                  totalPaidCount > 0 ? (count / totalPaidCount) * 100 : 0,
             ),
           );
         }
@@ -1887,7 +1988,8 @@ class PocketBaseService {
             paidCount: transaction.isPaid ? 1 : 0,
             waivedCount: transaction.isWaived ? 1 : 0,
             pendingCount: transaction.isPending ? 1 : 0,
-            overdueCount: transaction.isPending && transaction.isOverdue ? 1 : 0,
+            overdueCount:
+                transaction.isPending && transaction.isOverdue ? 1 : 0,
           );
         } else {
           complianceMap[month] = ComplianceRate(
@@ -1895,18 +1997,23 @@ class PocketBaseService {
             totalExpected: existing.totalExpected + 1,
             paidCount: existing.paidCount + (transaction.isPaid ? 1 : 0),
             waivedCount: existing.waivedCount + (transaction.isWaived ? 1 : 0),
-            pendingCount: existing.pendingCount + (transaction.isPending ? 1 : 0),
-            overdueCount: existing.overdueCount + (transaction.isPending && transaction.isOverdue ? 1 : 0),
+            pendingCount:
+                existing.pendingCount + (transaction.isPending ? 1 : 0),
+            overdueCount: existing.overdueCount +
+                (transaction.isPending && transaction.isOverdue ? 1 : 0),
           );
         }
       }
 
-      final complianceRates = complianceMap.values.toList()..sort((a, b) => a.month.compareTo(b.month));
+      final complianceRates = complianceMap.values.toList()
+        ..sort((a, b) => a.month.compareTo(b.month));
 
       // Calculate overall compliance rate
       final totalExpected = transactions.length;
-      final totalPaid = transactions.where((t) => t.isPaid || t.isWaived).length;
-      final overallCompliance = totalExpected > 0 ? (totalPaid / totalExpected) * 100.0 : 0.0;
+      final totalPaid =
+          transactions.where((t) => t.isPaid || t.isWaived).length;
+      final overallCompliance =
+          totalExpected > 0 ? (totalPaid / totalExpected) * 100.0 : 0.0;
 
       return PaymentAnalytics(
         totalRevenue: totalRevenue,
@@ -1941,7 +2048,9 @@ class PocketBaseService {
       if (startMonth != null && endMonth != null) {
         transactions = transactions
             .where(
-              (t) => t.month.compareTo(startMonth) >= 0 && t.month.compareTo(endMonth) <= 0,
+              (t) =>
+                  t.month.compareTo(startMonth) >= 0 &&
+                  t.month.compareTo(endMonth) <= 0,
             )
             .toList();
       }
@@ -1951,9 +2060,13 @@ class PocketBaseService {
       }
 
       // Calculate overall statistics
-      final paidTransactions = transactions.where((t) => t.status == PaymentStatus.paid).toList();
-      final totalRevenue = paidTransactions.fold<double>(0, (sum, t) => sum + t.amount);
-      final avgPayment = paidTransactions.isEmpty ? 0.0 : totalRevenue / paidTransactions.length;
+      final paidTransactions =
+          transactions.where((t) => t.status == PaymentStatus.paid).toList();
+      final totalRevenue =
+          paidTransactions.fold<double>(0, (sum, t) => sum + t.amount);
+      final avgPayment = paidTransactions.isEmpty
+          ? 0.0
+          : totalRevenue / paidTransactions.length;
 
       // Monthly revenue (user version)
       final monthlyRevenueMap = <String, MonthlyRevenue>{};
@@ -1968,7 +2081,8 @@ class PocketBaseService {
         );
       }
 
-      final monthlyRevenues = monthlyRevenueMap.values.toList()..sort((a, b) => a.month.compareTo(b.month));
+      final monthlyRevenues = monthlyRevenueMap.values.toList()
+        ..sort((a, b) => a.month.compareTo(b.month));
 
       // Payment method statistics for user
       final methodCounts = <PaymentMethod, int>{};
@@ -1978,7 +2092,8 @@ class PocketBaseService {
         if (transaction.paymentMethod != null) {
           final method = transaction.paymentMethod!;
           methodCounts[method] = (methodCounts[method] ?? 0) + 1;
-          methodAmounts[method] = (methodAmounts[method] ?? 0) + transaction.amount;
+          methodAmounts[method] =
+              (methodAmounts[method] ?? 0) + transaction.amount;
         }
       }
 
@@ -1993,7 +2108,8 @@ class PocketBaseService {
               method: method,
               count: count,
               totalAmount: methodAmounts[method] ?? 0,
-              percentage: totalPaidCount > 0 ? (count / totalPaidCount) * 100 : 0,
+              percentage:
+                  totalPaidCount > 0 ? (count / totalPaidCount) * 100 : 0,
             ),
           );
         }
@@ -2012,12 +2128,15 @@ class PocketBaseService {
         );
       }
 
-      final complianceRates = complianceMap.values.toList()..sort((a, b) => a.month.compareTo(b.month));
+      final complianceRates = complianceMap.values.toList()
+        ..sort((a, b) => a.month.compareTo(b.month));
 
       // Overall compliance
       final totalExpected = transactions.length;
-      final totalPaid = transactions.where((t) => t.isPaid || t.isWaived).length;
-      final overallCompliance = totalExpected > 0 ? (totalPaid / totalExpected) * 100.0 : 0.0;
+      final totalPaid =
+          transactions.where((t) => t.isPaid || t.isWaived).length;
+      final overallCompliance =
+          totalExpected > 0 ? (totalPaid / totalExpected) * 100.0 : 0.0;
 
       return PaymentAnalytics(
         totalRevenue: totalRevenue,
@@ -2099,13 +2218,16 @@ class PocketBaseService {
         final streamedResponse = await request.send();
         final response = await http.Response.fromStream(streamedResponse);
 
-        print('PocketBaseService - Post creation response status: ${response.statusCode}');
+        print(
+            'PocketBaseService - Post creation response status: ${response.statusCode}');
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
-          final responseData = json.decode(response.body) as Map<String, dynamic>;
+          final responseData =
+              json.decode(response.body) as Map<String, dynamic>;
           return RecordModel.fromJson(responseData);
         } else {
-          throw Exception('Post creation failed: ${response.statusCode} - ${response.body}');
+          throw Exception(
+              'Post creation failed: ${response.statusCode} - ${response.body}');
         }
       } else {
         // Text-only post
@@ -2123,7 +2245,9 @@ class PocketBaseService {
         );
 
         // Fetch the created record with expanded user data
-        return await pb.collection('posts').getOne(record.id, expand: 'user_id');
+        return await pb
+            .collection('posts')
+            .getOne(record.id, expand: 'user_id');
       }
     } catch (e) {
       print('Error creating post: $e');
@@ -2174,7 +2298,9 @@ class PocketBaseService {
   Future<void> hidePost(String postId, bool hide) async {
     try {
       await _ensureAuthenticated();
-      await pb.collection('posts').update(postId, body: {'is_hidden_by_admin': hide});
+      await pb
+          .collection('posts')
+          .update(postId, body: {'is_hidden_by_admin': hide});
     } catch (e) {
       print('Error hiding/unhiding post: $e');
       rethrow;
@@ -2192,7 +2318,8 @@ class PocketBaseService {
       await _ensureAuthenticated();
 
       final defaultFilter = 'is_active = true && is_hidden_by_admin = false';
-      final combinedFilter = filter != null ? '$defaultFilter && $filter' : defaultFilter;
+      final combinedFilter =
+          filter != null ? '$defaultFilter && $filter' : defaultFilter;
 
       final result = await pb.collection('posts').getList(
             page: page,
@@ -2213,7 +2340,8 @@ class PocketBaseService {
               // Manually set the expand data
               post.expand['user_id'] = [userRecord];
             } catch (e) {
-              print('PocketBaseService.getPosts - Error fetching user $userId: $e');
+              print(
+                  'PocketBaseService.getPosts - Error fetching user $userId: $e');
             }
           }
         }
@@ -2488,7 +2616,8 @@ class PocketBaseService {
       return await pb.collection('post_comments').getList(
             page: page,
             perPage: perPage,
-            filter: 'post_id = "$postId" && is_active = true && is_hidden_by_admin = false',
+            filter:
+                'post_id = "$postId" && is_active = true && is_hidden_by_admin = false',
             sort: '-created',
             expand: 'user_id',
           );
@@ -2810,14 +2939,17 @@ class PocketBaseService {
         }
 
         // Hashtag filter
-        if (filters['hashtags'] != null && (filters['hashtags'] as List).isNotEmpty) {
+        if (filters['hashtags'] != null &&
+            (filters['hashtags'] as List).isNotEmpty) {
           final hashtags = filters['hashtags'] as List<String>;
-          final hashtagFilters = hashtags.map((tag) => 'content ~ "#$tag"').join(' || ');
+          final hashtagFilters =
+              hashtags.map((tag) => 'content ~ "#$tag"').join(' || ');
           filterParts.add('($hashtagFilters)');
         }
       }
 
-      final filterString = filterParts.isNotEmpty ? filterParts.join(' && ') : '';
+      final filterString =
+          filterParts.isNotEmpty ? filterParts.join(' && ') : '';
 
       print('PocketBaseService - Search posts with filter: $filterString');
 
@@ -2895,7 +3027,8 @@ class PocketBaseService {
         }
       }
 
-      print('PocketBaseService - Loaded ${attendanceMap.length} attendance records for ${month.year}-${month.month}');
+      print(
+          'PocketBaseService - Loaded ${attendanceMap.length} attendance records for ${month.year}-${month.month}');
       return attendanceMap;
     } catch (e) {
       print('PocketBaseService - Error loading monthly attendance: $e');
@@ -2950,7 +3083,8 @@ class PocketBaseService {
           tempStreak++;
           if (i == 1) currentStreak = tempStreak;
         } else {
-          longestStreak = tempStreak > longestStreak ? tempStreak : longestStreak;
+          longestStreak =
+              tempStreak > longestStreak ? tempStreak : longestStreak;
           tempStreak = 1;
         }
 
@@ -2997,11 +3131,13 @@ class PocketBaseService {
       final activeToday = activeResult.totalItems;
 
       // Get meetings stats
-      final meetingsResult = await pb.collection('meetings').getList(perPage: 1);
+      final meetingsResult =
+          await pb.collection('meetings').getList(perPage: 1);
       final totalMeetings = meetingsResult.totalItems;
 
       final upcomingResult = await pb.collection('meetings').getList(
-            filter: 'meetingDate >= "${DateTime.now().toIso8601String()}" && status = "scheduled"',
+            filter:
+                'meetingDate >= "${DateTime.now().toIso8601String()}" && status = "scheduled"',
             perPage: 1,
           );
       final upcomingMeetings = upcomingResult.totalItems;
@@ -3011,10 +3147,11 @@ class PocketBaseService {
       double totalRevenue = 0;
 
       try {
-        final pendingPaymentsResult = await pb.collection('payment_transactions').getList(
-              filter: 'status = "pending"',
-              perPage: 1,
-            );
+        final pendingPaymentsResult =
+            await pb.collection('payment_transactions').getList(
+                  filter: 'status = "pending"',
+                  perPage: 1,
+                );
         pendingPayments = pendingPaymentsResult.totalItems;
 
         // Calculate total revenue
@@ -3029,10 +3166,11 @@ class PocketBaseService {
       } catch (e) {
         // Fallback to monthly_dues if payment_transactions doesn't exist
         try {
-          final pendingPaymentsResult = await pb.collection('monthly_dues').getList(
-                filter: 'isPaid = false',
-                perPage: 1,
-              );
+          final pendingPaymentsResult =
+              await pb.collection('monthly_dues').getList(
+                    filter: 'isPaid = false',
+                    perPage: 1,
+                  );
           pendingPayments = pendingPaymentsResult.totalItems;
 
           final paidResult = await pb.collection('monthly_dues').getList(
@@ -3065,7 +3203,8 @@ class PocketBaseService {
           completedMeetings++;
         }
       }
-      final averageAttendance = completedMeetings > 0 ? totalAttendanceRate / completedMeetings : 0;
+      final averageAttendance =
+          completedMeetings > 0 ? totalAttendanceRate / completedMeetings : 0;
 
       return {
         'totalUsers': totalUsers,
@@ -3165,7 +3304,8 @@ class PocketBaseService {
       }
 
       final meetings = await pb.collection('meetings').getList(
-            filter: 'meetingDate >= "${startDate.toIso8601String()}" && status = "completed"',
+            filter:
+                'meetingDate >= "${startDate.toIso8601String()}" && status = "completed"',
             perPage: 100,
             sort: 'meetingDate',
           );
@@ -3212,16 +3352,19 @@ class PocketBaseService {
       // Try payment_transactions first, fallback to monthly_dues
       List<dynamic> payments = [];
       try {
-        final paymentsResult = await pb.collection('payment_transactions').getList(
-              filter: 'status = "paid" && created >= "${startDate.toIso8601String()}"',
-              perPage: 500,
-              sort: 'created',
-            );
+        final paymentsResult =
+            await pb.collection('payment_transactions').getList(
+                  filter:
+                      'status = "paid" && created >= "${startDate.toIso8601String()}"',
+                  perPage: 500,
+                  sort: 'created',
+                );
         payments = paymentsResult.items;
       } catch (e) {
         try {
           final paymentsResult = await pb.collection('monthly_dues').getList(
-                filter: 'isPaid = true && paidDate >= "${startDate.toIso8601String()}"',
+                filter:
+                    'isPaid = true && paidDate >= "${startDate.toIso8601String()}"',
                 perPage: 500,
                 sort: 'paidDate',
               );
@@ -3235,7 +3378,8 @@ class PocketBaseService {
       // Group by date
       final dataMap = <String, double>{};
       for (final payment in payments) {
-        final paidDateStr = payment.data['paidDate'] as String? ?? payment.data['created'] as String?;
+        final paidDateStr = payment.data['paidDate'] as String? ??
+            payment.data['created'] as String?;
         final amount = payment.data['amount'] as num? ?? 0;
         if (paidDateStr != null) {
           final paidDate = DateTime.parse(paidDateStr);

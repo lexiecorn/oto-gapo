@@ -41,7 +41,10 @@ class RevenueTrendChart extends StatelessWidget {
     // Calculate max Y value with some padding
     final maxY = monthlyRevenues.isEmpty
         ? 1000.0
-        : monthlyRevenues.map((e) => e.totalAmount).reduce((a, b) => a > b ? a : b) * 1.2;
+        : monthlyRevenues
+                .map((e) => e.totalAmount)
+                .reduce((a, b) => a > b ? a : b) *
+            1.2;
 
     return Padding(
       padding: EdgeInsets.all(16.w),
@@ -174,7 +177,8 @@ class RevenueTrendChart extends StatelessWidget {
 
                         final revenue = monthlyRevenues[index];
                         final monthDate = revenue.monthDate;
-                        final monthStr = DateFormat('MMM yyyy').format(monthDate);
+                        final monthStr =
+                            DateFormat('MMM yyyy').format(monthDate);
 
                         return LineTooltipItem(
                           '$monthStr\n₱${revenue.totalAmount.toStringAsFixed(2)}',
@@ -196,4 +200,3 @@ class RevenueTrendChart extends StatelessWidget {
     );
   }
 }
-

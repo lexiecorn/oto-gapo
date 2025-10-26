@@ -4,7 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:otogapo/app/modules/attendance/bloc/attendance_cubit.dart';
-import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart' as meeting_cubit;
+import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart'
+    as meeting_cubit;
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 
 @RoutePage(name: 'QRScannerPageRouter')
@@ -40,7 +41,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
     try {
       // Validate QR code
-      final meeting = await context.read<meeting_cubit.MeetingCubit>().validateQRCode(code);
+      final meeting =
+          await context.read<meeting_cubit.MeetingCubit>().validateQRCode(code);
 
       if (meeting == null) {
         if (mounted) {

@@ -11,10 +11,12 @@ class CarouselViewFromPocketbase extends StatefulWidget {
   const CarouselViewFromPocketbase({super.key});
 
   @override
-  State<CarouselViewFromPocketbase> createState() => _CarouselViewFromPocketbaseState();
+  State<CarouselViewFromPocketbase> createState() =>
+      _CarouselViewFromPocketbaseState();
 }
 
-class _CarouselViewFromPocketbaseState extends State<CarouselViewFromPocketbase> {
+class _CarouselViewFromPocketbaseState
+    extends State<CarouselViewFromPocketbase> {
   List<RecordModel> _galleryImages = [];
   bool _isLoading = true;
   bool _hasTriedFetching = false;
@@ -31,7 +33,9 @@ class _CarouselViewFromPocketbaseState extends State<CarouselViewFromPocketbase>
     final authState = context.read<AuthBloc>().state;
 
     // Only fetch if user is authenticated and we haven't tried yet
-    if (authState.authStatus == AuthStatus.authenticated && authState.user != null && !_hasTriedFetching) {
+    if (authState.authStatus == AuthStatus.authenticated &&
+        authState.user != null &&
+        !_hasTriedFetching) {
       _hasTriedFetching = true;
       _fetchImagesFromPocketBase();
     }
@@ -68,7 +72,8 @@ class _CarouselViewFromPocketbaseState extends State<CarouselViewFromPocketbase>
 
     // If user is not authenticated yet, show loading
     final authState = context.read<AuthBloc>().state;
-    if (authState.authStatus != AuthStatus.authenticated || authState.user == null) {
+    if (authState.authStatus != AuthStatus.authenticated ||
+        authState.user == null) {
       return const Center(child: CircularProgressIndicator());
     }
 

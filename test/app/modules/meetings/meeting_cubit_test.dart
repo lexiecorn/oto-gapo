@@ -74,7 +74,9 @@ void main() {
             (state) => state.status == MeetingStatus.loading,
           ),
           predicate<MeetingState>(
-            (state) => state.status == MeetingStatus.loaded && state.meetings.isNotEmpty,
+            (state) =>
+                state.status == MeetingStatus.loaded &&
+                state.meetings.isNotEmpty,
           ),
         ],
       );
@@ -104,7 +106,9 @@ void main() {
             (state) => state.status == MeetingStatus.loading,
           ),
           predicate<MeetingState>(
-            (state) => state.status == MeetingStatus.error && state.errorMessage == 'Test error',
+            (state) =>
+                state.status == MeetingStatus.error &&
+                state.errorMessage == 'Test error',
           ),
         ],
       );
@@ -220,7 +224,8 @@ void main() {
       blocTest<MeetingCubit, MeetingState>(
         'generates QR code successfully',
         build: () {
-          when(() => mockRepository.generateQRCode(any())).thenAnswer((_) async => mockMeeting);
+          when(() => mockRepository.generateQRCode(any()))
+              .thenAnswer((_) async => mockMeeting);
 
           return cubit;
         },

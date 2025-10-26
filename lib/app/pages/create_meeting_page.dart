@@ -2,7 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart' as meeting_cubit;
+import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart'
+    as meeting_cubit;
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/models/meeting.dart';
 
@@ -46,17 +47,22 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
         return Theme(
           data: theme.copyWith(
             textTheme: theme.textTheme.copyWith(
-              headlineLarge: theme.textTheme.headlineLarge?.copyWith(fontSize: 24.sp),
-              headlineMedium: theme.textTheme.headlineMedium?.copyWith(fontSize: 20.sp),
-              headlineSmall: theme.textTheme.headlineSmall?.copyWith(fontSize: 18.sp),
+              headlineLarge:
+                  theme.textTheme.headlineLarge?.copyWith(fontSize: 24.sp),
+              headlineMedium:
+                  theme.textTheme.headlineMedium?.copyWith(fontSize: 20.sp),
+              headlineSmall:
+                  theme.textTheme.headlineSmall?.copyWith(fontSize: 18.sp),
               titleLarge: theme.textTheme.titleLarge?.copyWith(fontSize: 16.sp),
-              titleMedium: theme.textTheme.titleMedium?.copyWith(fontSize: 14.sp),
+              titleMedium:
+                  theme.textTheme.titleMedium?.copyWith(fontSize: 14.sp),
               titleSmall: theme.textTheme.titleSmall?.copyWith(fontSize: 12.sp),
               bodyLarge: theme.textTheme.bodyLarge?.copyWith(fontSize: 14.sp),
               bodyMedium: theme.textTheme.bodyMedium?.copyWith(fontSize: 13.sp),
               bodySmall: theme.textTheme.bodySmall?.copyWith(fontSize: 12.sp),
               labelLarge: theme.textTheme.labelLarge?.copyWith(fontSize: 14.sp),
-              labelMedium: theme.textTheme.labelMedium?.copyWith(fontSize: 12.sp),
+              labelMedium:
+                  theme.textTheme.labelMedium?.copyWith(fontSize: 12.sp),
               labelSmall: theme.textTheme.labelSmall?.copyWith(fontSize: 11.sp),
             ),
           ),
@@ -78,17 +84,22 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
         return Theme(
           data: theme.copyWith(
             textTheme: theme.textTheme.copyWith(
-              headlineLarge: theme.textTheme.headlineLarge?.copyWith(fontSize: 24.sp),
-              headlineMedium: theme.textTheme.headlineMedium?.copyWith(fontSize: 20.sp),
-              headlineSmall: theme.textTheme.headlineSmall?.copyWith(fontSize: 18.sp),
+              headlineLarge:
+                  theme.textTheme.headlineLarge?.copyWith(fontSize: 24.sp),
+              headlineMedium:
+                  theme.textTheme.headlineMedium?.copyWith(fontSize: 20.sp),
+              headlineSmall:
+                  theme.textTheme.headlineSmall?.copyWith(fontSize: 18.sp),
               titleLarge: theme.textTheme.titleLarge?.copyWith(fontSize: 16.sp),
-              titleMedium: theme.textTheme.titleMedium?.copyWith(fontSize: 14.sp),
+              titleMedium:
+                  theme.textTheme.titleMedium?.copyWith(fontSize: 14.sp),
               titleSmall: theme.textTheme.titleSmall?.copyWith(fontSize: 12.sp),
               bodyLarge: theme.textTheme.bodyLarge?.copyWith(fontSize: 14.sp),
               bodyMedium: theme.textTheme.bodyMedium?.copyWith(fontSize: 13.sp),
               bodySmall: theme.textTheme.bodySmall?.copyWith(fontSize: 12.sp),
               labelLarge: theme.textTheme.labelLarge?.copyWith(fontSize: 14.sp),
-              labelMedium: theme.textTheme.labelMedium?.copyWith(fontSize: 12.sp),
+              labelMedium:
+                  theme.textTheme.labelMedium?.copyWith(fontSize: 12.sp),
               labelSmall: theme.textTheme.labelSmall?.copyWith(fontSize: 11.sp),
             ),
           ),
@@ -110,17 +121,22 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
         return Theme(
           data: theme.copyWith(
             textTheme: theme.textTheme.copyWith(
-              headlineLarge: theme.textTheme.headlineLarge?.copyWith(fontSize: 24.sp),
-              headlineMedium: theme.textTheme.headlineMedium?.copyWith(fontSize: 20.sp),
-              headlineSmall: theme.textTheme.headlineSmall?.copyWith(fontSize: 18.sp),
+              headlineLarge:
+                  theme.textTheme.headlineLarge?.copyWith(fontSize: 24.sp),
+              headlineMedium:
+                  theme.textTheme.headlineMedium?.copyWith(fontSize: 20.sp),
+              headlineSmall:
+                  theme.textTheme.headlineSmall?.copyWith(fontSize: 18.sp),
               titleLarge: theme.textTheme.titleLarge?.copyWith(fontSize: 16.sp),
-              titleMedium: theme.textTheme.titleMedium?.copyWith(fontSize: 14.sp),
+              titleMedium:
+                  theme.textTheme.titleMedium?.copyWith(fontSize: 14.sp),
               titleSmall: theme.textTheme.titleSmall?.copyWith(fontSize: 12.sp),
               bodyLarge: theme.textTheme.bodyLarge?.copyWith(fontSize: 14.sp),
               bodyMedium: theme.textTheme.bodyMedium?.copyWith(fontSize: 13.sp),
               bodySmall: theme.textTheme.bodySmall?.copyWith(fontSize: 12.sp),
               labelLarge: theme.textTheme.labelLarge?.copyWith(fontSize: 14.sp),
-              labelMedium: theme.textTheme.labelMedium?.copyWith(fontSize: 12.sp),
+              labelMedium:
+                  theme.textTheme.labelMedium?.copyWith(fontSize: 12.sp),
               labelSmall: theme.textTheme.labelSmall?.copyWith(fontSize: 11.sp),
             ),
           ),
@@ -173,10 +189,14 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
           meetingType: _selectedType.value,
           title: _titleController.text.trim(),
           createdBy: user.uid,
-          location: _locationController.text.trim().isEmpty ? null : _locationController.text.trim(),
+          location: _locationController.text.trim().isEmpty
+              ? null
+              : _locationController.text.trim(),
           startTime: startDateTime,
           endTime: endDateTime,
-          description: _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
+          description: _descriptionController.text.trim().isEmpty
+              ? null
+              : _descriptionController.text.trim(),
           totalExpectedMembers: _expectedMembersController.text.trim().isEmpty
               ? null
               : int.tryParse(_expectedMembersController.text.trim()),
@@ -191,7 +211,8 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
       appBar: AppBar(
         title: const Text('Create Meeting'),
       ),
-      body: BlocListener<meeting_cubit.MeetingCubit, meeting_cubit.MeetingState>(
+      body:
+          BlocListener<meeting_cubit.MeetingCubit, meeting_cubit.MeetingState>(
         listener: (context, state) {
           if (state.status == meeting_cubit.MeetingStatus.success) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -234,7 +255,8 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
               // Meeting Type
               DropdownButtonFormField<MeetingType>(
                 value: _selectedType,
-                style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface),
+                style: TextStyle(
+                    fontSize: 14.sp, color: theme.colorScheme.onSurface),
                 decoration: InputDecoration(
                   labelText: 'Meeting Type',
                   labelStyle: TextStyle(fontSize: 14.sp),
@@ -244,7 +266,8 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
                 items: MeetingType.values.map((type) {
                   return DropdownMenuItem(
                     value: type,
-                    child: Text(type.displayName, style: TextStyle(fontSize: 14.sp)),
+                    child: Text(type.displayName,
+                        style: TextStyle(fontSize: 14.sp)),
                   );
                 }).toList(),
                 onChanged: (value) {
@@ -271,7 +294,9 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
                         : 'Select date',
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: _selectedDate == null ? theme.colorScheme.onSurfaceVariant : theme.colorScheme.onSurface,
+                      color: _selectedDate == null
+                          ? theme.colorScheme.onSurfaceVariant
+                          : theme.colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -289,10 +314,14 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
                     prefixIcon: const Icon(Icons.access_time),
                   ),
                   child: Text(
-                    _startTime != null ? _startTime!.format(context) : 'Select time',
+                    _startTime != null
+                        ? _startTime!.format(context)
+                        : 'Select time',
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: _startTime == null ? theme.colorScheme.onSurfaceVariant : theme.colorScheme.onSurface,
+                      color: _startTime == null
+                          ? theme.colorScheme.onSurfaceVariant
+                          : theme.colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -310,10 +339,14 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
                     prefixIcon: const Icon(Icons.access_time),
                   ),
                   child: Text(
-                    _endTime != null ? _endTime!.format(context) : 'Select time',
+                    _endTime != null
+                        ? _endTime!.format(context)
+                        : 'Select time',
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: _endTime == null ? theme.colorScheme.onSurfaceVariant : theme.colorScheme.onSurface,
+                      color: _endTime == null
+                          ? theme.colorScheme.onSurfaceVariant
+                          : theme.colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -362,22 +395,28 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
               SizedBox(height: 24.h),
 
               // Submit Button
-              BlocBuilder<meeting_cubit.MeetingCubit, meeting_cubit.MeetingState>(
+              BlocBuilder<meeting_cubit.MeetingCubit,
+                  meeting_cubit.MeetingState>(
                 builder: (context, state) {
                   return ElevatedButton(
-                    onPressed: state.status == meeting_cubit.MeetingStatus.submitting ? null : _createMeeting,
+                    onPressed:
+                        state.status == meeting_cubit.MeetingStatus.submitting
+                            ? null
+                            : _createMeeting,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 16.h),
                     ),
-                    child: state.status == meeting_cubit.MeetingStatus.submitting
-                        ? SizedBox(
-                            height: 20.h,
-                            width: 20.w,
-                            child: const CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Text('Create Meeting', style: TextStyle(fontSize: 16.sp)),
+                    child:
+                        state.status == meeting_cubit.MeetingStatus.submitting
+                            ? SizedBox(
+                                height: 20.h,
+                                width: 20.w,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text('Create Meeting',
+                                style: TextStyle(fontSize: 16.sp)),
                   );
                 },
               ),

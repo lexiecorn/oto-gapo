@@ -11,10 +11,12 @@ class VehicleAwardsManagementPage extends StatefulWidget {
   const VehicleAwardsManagementPage({super.key});
 
   @override
-  State<VehicleAwardsManagementPage> createState() => _VehicleAwardsManagementPageState();
+  State<VehicleAwardsManagementPage> createState() =>
+      _VehicleAwardsManagementPageState();
 }
 
-class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPage> {
+class _VehicleAwardsManagementPageState
+    extends State<VehicleAwardsManagementPage> {
   List<VehicleAward> _allAwards = [];
   List<Vehicle> _vehicles = [];
   List<dynamic> _allUsers = [];
@@ -39,14 +41,16 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
 
     try {
       // Load all users
-      final usersResponse =
-          await _pocketBaseService.pb.collection('users').getList(page: 1, perPage: 500, sort: 'firstName');
+      final usersResponse = await _pocketBaseService.pb
+          .collection('users')
+          .getList(page: 1, perPage: 500, sort: 'firstName');
 
       _allUsers = usersResponse.items;
 
       // Load all vehicles
-      final vehiclesResponse =
-          await _pocketBaseService.pb.collection('vehicles').getList(page: 1, perPage: 500, sort: '-created');
+      final vehiclesResponse = await _pocketBaseService.pb
+          .collection('vehicles')
+          .getList(page: 1, perPage: 500, sort: '-created');
 
       _vehicles = vehiclesResponse.items.map<Vehicle>((item) {
         final data = Map<String, dynamic>.from(item.data);
@@ -57,7 +61,11 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
       // Load all awards
       final awardsResponse = await _pocketBaseService.pb
           .collection('vehicle_awards')
-          .getList(page: 1, perPage: 500, sort: '-event_date', expand: 'vehicle_id,created_by');
+          .getList(
+              page: 1,
+              perPage: 500,
+              sort: '-event_date',
+              expand: 'vehicle_id,created_by');
 
       _allAwards = awardsResponse.items.map<VehicleAward>((item) {
         final data = Map<String, dynamic>.from(item.data);
@@ -123,7 +131,9 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
     var filtered = _allAwards;
 
     if (_selectedVehicleId != null) {
-      filtered = filtered.where((award) => award.vehicleId == _selectedVehicleId).toList();
+      filtered = filtered
+          .where((award) => award.vehicleId == _selectedVehicleId)
+          .toList();
     }
 
     return filtered;
@@ -138,7 +148,8 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
         backgroundColor: colorScheme.surface,
         title: Text(
           'Delete Award',
-          style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              color: colorScheme.onSurface, fontWeight: FontWeight.bold),
         ),
         content: Text(
           'Are you sure you want to delete "${award.awardName}"?',
@@ -147,7 +158,9 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel', style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7))),
+            child: Text('Cancel',
+                style:
+                    TextStyle(color: colorScheme.onSurface.withOpacity(0.7))),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -161,18 +174,24 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
     if (confirmed != true || !mounted) return;
 
     try {
-      await _pocketBaseService.pb.collection('vehicle_awards').delete(award.id!);
+      await _pocketBaseService.pb
+          .collection('vehicle_awards')
+          .delete(award.id!);
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Award deleted successfully'), backgroundColor: Colors.green));
+        ).showSnackBar(const SnackBar(
+            content: Text('Award deleted successfully'),
+            backgroundColor: Colors.green));
         _loadData();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Failed to delete award: $e'), backgroundColor: Colors.red));
+        ).showSnackBar(SnackBar(
+            content: Text('Failed to delete award: $e'),
+            backgroundColor: Colors.red));
       }
     }
   }
@@ -180,13 +199,15 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
   Future<void> _showEditDialog(VehicleAward award) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
-    final blueAccent = isDark ? const Color(0xFF00d4ff) : const Color(0xFF0095c7);
+    final blueAccent =
+        isDark ? const Color(0xFF00d4ff) : const Color(0xFF0095c7);
 
     final awardNameController = TextEditingController(text: award.awardName);
     final eventNameController = TextEditingController(text: award.eventName);
     final categoryController = TextEditingController(text: award.category);
     final placementController = TextEditingController(text: award.placement);
-    final descriptionController = TextEditingController(text: award.description);
+    final descriptionController =
+        TextEditingController(text: award.description);
     DateTime selectedDate = award.eventDate;
 
     final result = await showDialog<bool>(
@@ -196,7 +217,8 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
           backgroundColor: colorScheme.surface,
           title: Text(
             'Edit Award',
-            style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: colorScheme.onSurface, fontWeight: FontWeight.bold),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -207,11 +229,14 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                   style: TextStyle(color: colorScheme.onSurface),
                   decoration: InputDecoration(
                     labelText: 'Award Name *',
-                    labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                    labelStyle: TextStyle(
+                        color: colorScheme.onSurface.withOpacity(0.7)),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                          color: colorScheme.onSurface.withOpacity(0.3)),
                     ),
-                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: blueAccent, width: 2)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: blueAccent, width: 2)),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -220,11 +245,14 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                   style: TextStyle(color: colorScheme.onSurface),
                   decoration: InputDecoration(
                     labelText: 'Event Name *',
-                    labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                    labelStyle: TextStyle(
+                        color: colorScheme.onSurface.withOpacity(0.7)),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                          color: colorScheme.onSurface.withOpacity(0.3)),
                     ),
-                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: blueAccent, width: 2)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: blueAccent, width: 2)),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -255,11 +283,14 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                   style: TextStyle(color: colorScheme.onSurface),
                   decoration: InputDecoration(
                     labelText: 'Category',
-                    labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                    labelStyle: TextStyle(
+                        color: colorScheme.onSurface.withOpacity(0.7)),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                          color: colorScheme.onSurface.withOpacity(0.3)),
                     ),
-                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: blueAccent, width: 2)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: blueAccent, width: 2)),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -268,11 +299,14 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                   style: TextStyle(color: colorScheme.onSurface),
                   decoration: InputDecoration(
                     labelText: 'Placement',
-                    labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                    labelStyle: TextStyle(
+                        color: colorScheme.onSurface.withOpacity(0.7)),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                          color: colorScheme.onSurface.withOpacity(0.3)),
                     ),
-                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: blueAccent, width: 2)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: blueAccent, width: 2)),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -282,11 +316,14 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                   maxLines: 3,
                   decoration: InputDecoration(
                     labelText: 'Description',
-                    labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                    labelStyle: TextStyle(
+                        color: colorScheme.onSurface.withOpacity(0.7)),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                          color: colorScheme.onSurface.withOpacity(0.3)),
                     ),
-                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: blueAccent, width: 2)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: blueAccent, width: 2)),
                   ),
                 ),
               ],
@@ -295,7 +332,9 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text('Cancel', style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7))),
+              child: Text('Cancel',
+                  style:
+                      TextStyle(color: colorScheme.onSurface.withOpacity(0.7))),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
@@ -316,23 +355,33 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
           'award_name': awardNameController.text,
           'event_name': eventNameController.text,
           'event_date': selectedDate.toIso8601String(),
-          'category': categoryController.text.isNotEmpty ? categoryController.text : null,
-          'placement': placementController.text.isNotEmpty ? placementController.text : null,
-          'description': descriptionController.text.isNotEmpty ? descriptionController.text : null,
+          'category': categoryController.text.isNotEmpty
+              ? categoryController.text
+              : null,
+          'placement': placementController.text.isNotEmpty
+              ? placementController.text
+              : null,
+          'description': descriptionController.text.isNotEmpty
+              ? descriptionController.text
+              : null,
         },
       );
 
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Award updated successfully'), backgroundColor: Colors.green));
+        ).showSnackBar(const SnackBar(
+            content: Text('Award updated successfully'),
+            backgroundColor: Colors.green));
         _loadData();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Failed to update award: $e'), backgroundColor: Colors.red));
+        ).showSnackBar(SnackBar(
+            content: Text('Failed to update award: $e'),
+            backgroundColor: Colors.red));
       }
     }
   }
@@ -349,7 +398,8 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
   Future<void> _showCreateAwardDialog() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
-    final blueAccent = isDark ? const Color(0xFF00d4ff) : const Color(0xFF0095c7);
+    final blueAccent =
+        isDark ? const Color(0xFF00d4ff) : const Color(0xFF0095c7);
 
     String? selectedUserId;
     Vehicle? selectedVehicle;
@@ -377,11 +427,13 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
 
             try {
               // Get user's vehicle using the same method as ProfileRepository
-              final vehicleRecords =
-                  await _pocketBaseService.pb.collection('vehicles').getList(filter: 'user = "$userId"');
+              final vehicleRecords = await _pocketBaseService.pb
+                  .collection('vehicles')
+                  .getList(filter: 'user = "$userId"');
 
               if (vehicleRecords.items.isNotEmpty) {
-                final vehicleData = Map<String, dynamic>.from(vehicleRecords.items.first.data);
+                final vehicleData =
+                    Map<String, dynamic>.from(vehicleRecords.items.first.data);
                 vehicleData['id'] = vehicleRecords.items.first.id;
 
                 // Convert year from number to String if needed
@@ -412,9 +464,13 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
             backgroundColor: colorScheme.surface,
             title: Text(
               'Create Award',
-              style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             content: ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width * 0.85,
@@ -429,20 +485,28 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                     DropdownButtonFormField<String?>(
                       value: selectedUserId,
                       dropdownColor: colorScheme.surface,
-                      style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
+                      style:
+                          TextStyle(color: colorScheme.onSurface, fontSize: 14),
                       decoration: InputDecoration(
                         labelText: 'Select User *',
-                        labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
+                        labelStyle: TextStyle(
+                            color: colorScheme.onSurface.withOpacity(0.7),
+                            fontSize: 12),
                         filled: true,
-                        fillColor: isDark ? colorScheme.background : Colors.grey[100],
+                        fillColor:
+                            isDark ? colorScheme.background : Colors.grey[100],
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
+                          borderSide: BorderSide(
+                              color: colorScheme.onSurface.withOpacity(0.3)),
                         ),
-                        focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: blueAccent, width: 2)),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: blueAccent, width: 2)),
                         prefixIcon: Icon(Icons.person, color: blueAccent),
                       ),
                       items: [
-                        const DropdownMenuItem<String?>(value: null, child: Text('Select a user...')),
+                        const DropdownMenuItem<String?>(
+                            value: null, child: Text('Select a user...')),
                         ...filteredUsers.map((user) {
                           final firstName = user.data['firstName'] ?? '';
                           final lastName = user.data['lastName'] ?? '';
@@ -473,7 +537,8 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                           decoration: BoxDecoration(
                             color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: colorScheme.onSurface.withOpacity(0.3)),
+                            border: Border.all(
+                                color: colorScheme.onSurface.withOpacity(0.3)),
                           ),
                           child: Row(
                             children: [
@@ -488,7 +553,10 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                               const SizedBox(width: 12),
                               Text(
                                 'Loading vehicle...',
-                                style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
+                                style: TextStyle(
+                                    color:
+                                        colorScheme.onSurface.withOpacity(0.7),
+                                    fontSize: 12),
                               ),
                             ],
                           ),
@@ -499,11 +567,13 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                           decoration: BoxDecoration(
                             color: blueAccent.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: blueAccent.withOpacity(0.3)),
+                            border:
+                                Border.all(color: blueAccent.withOpacity(0.3)),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.directions_car, color: blueAccent, size: 24),
+                              Icon(Icons.directions_car,
+                                  color: blueAccent, size: 24),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
@@ -531,7 +601,8 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                                       Text(
                                         'Plate: ${selectedVehicle!.plateNumber}',
                                         style: TextStyle(
-                                          color: colorScheme.onSurface.withOpacity(0.7),
+                                          color: colorScheme.onSurface
+                                              .withOpacity(0.7),
                                           fontSize: 10,
                                         ),
                                         overflow: TextOverflow.ellipsis,
@@ -553,12 +624,14 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                           ),
                           child: const Row(
                             children: [
-                              Icon(Icons.warning, color: Colors.orange, size: 20),
+                              Icon(Icons.warning,
+                                  color: Colors.orange, size: 20),
                               SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   'This user has no vehicles. Please add a vehicle first.',
-                                  style: TextStyle(color: Colors.orange, fontSize: 10),
+                                  style: TextStyle(
+                                      color: Colors.orange, fontSize: 10),
                                 ),
                               ),
                             ],
@@ -574,32 +647,47 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                       const SizedBox(height: 12),
                       Text(
                         'Award Details',
-                        style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14),
+                        style: TextStyle(
+                            color: colorScheme.onSurface,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14),
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: awardNameController,
-                        style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
+                        style: TextStyle(
+                            color: colorScheme.onSurface, fontSize: 14),
                         decoration: InputDecoration(
                           labelText: 'Award Name *',
-                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
+                          labelStyle: TextStyle(
+                              color: colorScheme.onSurface.withOpacity(0.7),
+                              fontSize: 12),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                                color: colorScheme.onSurface.withOpacity(0.3)),
                           ),
-                          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: blueAccent, width: 2)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: blueAccent, width: 2)),
                         ),
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: eventNameController,
-                        style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
+                        style: TextStyle(
+                            color: colorScheme.onSurface, fontSize: 14),
                         decoration: InputDecoration(
                           labelText: 'Event Name *',
-                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
+                          labelStyle: TextStyle(
+                              color: colorScheme.onSurface.withOpacity(0.7),
+                              fontSize: 12),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                                color: colorScheme.onSurface.withOpacity(0.3)),
                           ),
-                          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: blueAccent, width: 2)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: blueAccent, width: 2)),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -609,7 +697,8 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                           selectedDate != null
                               ? 'Event Date: ${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
                               : 'Select Event Date *',
-                          style: TextStyle(color: colorScheme.onSurface, fontSize: 12),
+                          style: TextStyle(
+                              color: colorScheme.onSurface, fontSize: 12),
                         ),
                         trailing: Icon(Icons.calendar_today, color: blueAccent),
                         onTap: () async {
@@ -629,45 +718,67 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                       const SizedBox(height: 12),
                       TextField(
                         controller: categoryController,
-                        style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
+                        style: TextStyle(
+                            color: colorScheme.onSurface, fontSize: 14),
                         decoration: InputDecoration(
                           labelText: 'Category',
                           hintText: 'e.g., Modified, Classic, Best in Show',
-                          hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.4), fontSize: 10),
-                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
+                          hintStyle: TextStyle(
+                              color: colorScheme.onSurface.withOpacity(0.4),
+                              fontSize: 10),
+                          labelStyle: TextStyle(
+                              color: colorScheme.onSurface.withOpacity(0.7),
+                              fontSize: 12),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                                color: colorScheme.onSurface.withOpacity(0.3)),
                           ),
-                          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: blueAccent, width: 2)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: blueAccent, width: 2)),
                         ),
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: placementController,
-                        style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
+                        style: TextStyle(
+                            color: colorScheme.onSurface, fontSize: 14),
                         decoration: InputDecoration(
                           labelText: 'Placement',
                           hintText: 'e.g., 1st Place, Winner, Champion',
-                          hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.4), fontSize: 10),
-                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
+                          hintStyle: TextStyle(
+                              color: colorScheme.onSurface.withOpacity(0.4),
+                              fontSize: 10),
+                          labelStyle: TextStyle(
+                              color: colorScheme.onSurface.withOpacity(0.7),
+                              fontSize: 12),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                                color: colorScheme.onSurface.withOpacity(0.3)),
                           ),
-                          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: blueAccent, width: 2)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: blueAccent, width: 2)),
                         ),
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: descriptionController,
-                        style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
+                        style: TextStyle(
+                            color: colorScheme.onSurface, fontSize: 14),
                         maxLines: 3,
                         decoration: InputDecoration(
                           labelText: 'Description',
-                          labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
+                          labelStyle: TextStyle(
+                              color: colorScheme.onSurface.withOpacity(0.7),
+                              fontSize: 12),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                                color: colorScheme.onSurface.withOpacity(0.3)),
                           ),
-                          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: blueAccent, width: 2)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: blueAccent, width: 2)),
                         ),
                       ),
                     ],
@@ -676,7 +787,9 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+              TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel')),
               TextButton(
                 onPressed: selectedVehicle == null ||
                         awardNameController.text.isEmpty ||
@@ -702,7 +815,9 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
         selectedDate == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please fill in all required fields'), backgroundColor: Colors.red),
+          const SnackBar(
+              content: Text('Please fill in all required fields'),
+              backgroundColor: Colors.red),
         );
       }
       return;
@@ -715,9 +830,15 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
           'award_name': awardNameController.text,
           'event_name': eventNameController.text,
           'event_date': selectedDate!.toIso8601String(),
-          'category': categoryController.text.isNotEmpty ? categoryController.text : null,
-          'placement': placementController.text.isNotEmpty ? placementController.text : null,
-          'description': descriptionController.text.isNotEmpty ? descriptionController.text : null,
+          'category': categoryController.text.isNotEmpty
+              ? categoryController.text
+              : null,
+          'placement': placementController.text.isNotEmpty
+              ? placementController.text
+              : null,
+          'description': descriptionController.text.isNotEmpty
+              ? descriptionController.text
+              : null,
           'created_by': _pocketBaseService.pb.authStore.model?.id,
         },
       );
@@ -725,14 +846,18 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Award created successfully'), backgroundColor: Colors.green));
+        ).showSnackBar(const SnackBar(
+            content: Text('Award created successfully'),
+            backgroundColor: Colors.green));
         _loadData();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Failed to create award: $e'), backgroundColor: Colors.red));
+        ).showSnackBar(SnackBar(
+            content: Text('Failed to create award: $e'),
+            backgroundColor: Colors.red));
       }
     }
   }
@@ -763,7 +888,8 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                     borderRadius: BorderRadius.circular(8.r),
                     border: Border.all(color: goldColor.withOpacity(0.3)),
                   ),
-                  child: Icon(Icons.emoji_events, color: goldColor, size: 24.sp),
+                  child:
+                      Icon(Icons.emoji_events, color: goldColor, size: 24.sp),
                 ),
                 SizedBox(width: 12.w),
                 Expanded(
@@ -772,11 +898,16 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                     children: [
                       Text(
                         award.awardName,
-                        style: TextStyle(color: goldColor, fontSize: 16.sp, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            color: goldColor,
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold),
                       ),
                       Text(
                         award.eventName,
-                        style: TextStyle(color: colorScheme.onSurface.withOpacity(0.8), fontSize: 14.sp),
+                        style: TextStyle(
+                            color: colorScheme.onSurface.withOpacity(0.8),
+                            fontSize: 14.sp),
                       ),
                       Text(
                         _getVehicleName(award.vehicleId),
@@ -786,7 +917,8 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                   ),
                 ),
                 PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert, color: colorScheme.onSurface.withOpacity(0.6)),
+                  icon: Icon(Icons.more_vert,
+                      color: colorScheme.onSurface.withOpacity(0.6)),
                   color: colorScheme.surface,
                   onSelected: (value) {
                     if (value == 'edit') {
@@ -802,7 +934,8 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                         children: [
                           Icon(Icons.edit, color: blueAccent),
                           const SizedBox(width: 8),
-                          Text('Edit', style: TextStyle(color: colorScheme.onSurface)),
+                          Text('Edit',
+                              style: TextStyle(color: colorScheme.onSurface)),
                         ],
                       ),
                     ),
@@ -812,7 +945,8 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                         children: [
                           Icon(Icons.delete, color: colorScheme.error),
                           const SizedBox(width: 8),
-                          Text('Delete', style: TextStyle(color: colorScheme.onSurface)),
+                          Text('Delete',
+                              style: TextStyle(color: colorScheme.onSurface)),
                         ],
                       ),
                     ),
@@ -825,7 +959,8 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
               children: [
                 if (award.category != null) ...[
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                     decoration: BoxDecoration(
                       color: purpleAccent.withOpacity(isDark ? 0.2 : 0.15),
                       borderRadius: BorderRadius.circular(4.r),
@@ -833,14 +968,18 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                     ),
                     child: Text(
                       award.category!,
-                      style: TextStyle(color: purpleAccent, fontSize: 12.sp, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                          color: purpleAccent,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500),
                     ),
                   ),
                   SizedBox(width: 8.w),
                 ],
                 if (award.placement != null)
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                     decoration: BoxDecoration(
                       color: blueAccent.withOpacity(isDark ? 0.2 : 0.15),
                       borderRadius: BorderRadius.circular(4.r),
@@ -848,7 +987,10 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                     ),
                     child: Text(
                       award.placement!,
-                      style: TextStyle(color: blueAccent, fontSize: 12.sp, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                          color: blueAccent,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500),
                     ),
                   ),
               ],
@@ -856,11 +998,14 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
             SizedBox(height: 8.h),
             Row(
               children: [
-                Icon(Icons.calendar_today, size: 14.sp, color: colorScheme.onSurface.withOpacity(0.6)),
+                Icon(Icons.calendar_today,
+                    size: 14.sp, color: colorScheme.onSurface.withOpacity(0.6)),
                 SizedBox(width: 4.w),
                 Text(
                   '${award.eventDate.day}/${award.eventDate.month}/${award.eventDate.year}',
-                  style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 12.sp),
+                  style: TextStyle(
+                      color: colorScheme.onSurface.withOpacity(0.6),
+                      fontSize: 12.sp),
                 ),
               ],
             ),
@@ -868,7 +1013,9 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
               SizedBox(height: 8.h),
               Text(
                 award.description!,
-                style: TextStyle(color: colorScheme.onSurface.withOpacity(0.8), fontSize: 12.sp),
+                style: TextStyle(
+                    color: colorScheme.onSurface.withOpacity(0.8),
+                    fontSize: 12.sp),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -885,9 +1032,12 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
     final colorScheme = Theme.of(context).colorScheme;
 
     // Award accent colors (adjusted for light/dark modes)
-    final goldColor = isDark ? const Color(0xFFffd700) : const Color(0xFFd4af37);
-    final blueAccent = isDark ? const Color(0xFF00d4ff) : const Color(0xFF0095c7);
-    final purpleAccent = isDark ? const Color(0xFFa855f7) : const Color(0xFF8b3fc7);
+    final goldColor =
+        isDark ? const Color(0xFFffd700) : const Color(0xFFd4af37);
+    final blueAccent =
+        isDark ? const Color(0xFF00d4ff) : const Color(0xFF0095c7);
+    final purpleAccent =
+        isDark ? const Color(0xFFa855f7) : const Color(0xFF8b3fc7);
 
     return Scaffold(
       backgroundColor: colorScheme.background,
@@ -896,7 +1046,10 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
         elevation: 0,
         title: Text(
           'Vehicle Awards Management',
-          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+          style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface),
         ),
         actions: [
           IconButton(
@@ -924,18 +1077,24 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                   style: TextStyle(color: colorScheme.onSurface),
                   decoration: InputDecoration(
                     labelText: 'Filter by Vehicle',
-                    labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                    labelStyle: TextStyle(
+                        color: colorScheme.onSurface.withOpacity(0.7)),
                     filled: true,
-                    fillColor: isDark ? colorScheme.background : Colors.grey[100],
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: BorderSide.none),
+                    fillColor:
+                        isDark ? colorScheme.background : Colors.grey[100],
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: BorderSide.none),
                     prefixIcon: Icon(Icons.directions_car, color: blueAccent),
                   ),
                   items: [
-                    const DropdownMenuItem<String?>(value: null, child: Text('All Vehicles')),
+                    const DropdownMenuItem<String?>(
+                        value: null, child: Text('All Vehicles')),
                     ..._vehicles.map(
                       (vehicle) => DropdownMenuItem(
                         value: vehicle.id,
-                        child: Text('${vehicle.make} ${vehicle.model} (${vehicle.year})'),
+                        child: Text(
+                            '${vehicle.make} ${vehicle.model} (${vehicle.year})'),
                       ),
                     ),
                   ],
@@ -955,7 +1114,8 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
               color: colorScheme.surface,
               border: Border(
                 top: BorderSide(color: colorScheme.onSurface.withOpacity(0.1)),
-                bottom: BorderSide(color: colorScheme.onSurface.withOpacity(0.1)),
+                bottom:
+                    BorderSide(color: colorScheme.onSurface.withOpacity(0.1)),
               ),
             ),
             child: Row(
@@ -965,37 +1125,58 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                   children: [
                     Text(
                       '${_allAwards.length}',
-                      style: TextStyle(color: goldColor, fontSize: 24.sp, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: goldColor,
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.bold),
                     ),
                     Text(
                       'Total Awards',
-                      style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 12.sp),
+                      style: TextStyle(
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                          fontSize: 12.sp),
                     ),
                   ],
                 ),
-                Container(width: 1, height: 40.h, color: colorScheme.onSurface.withOpacity(0.2)),
+                Container(
+                    width: 1,
+                    height: 40.h,
+                    color: colorScheme.onSurface.withOpacity(0.2)),
                 Column(
                   children: [
                     Text(
                       '${_vehicles.length}',
-                      style: TextStyle(color: blueAccent, fontSize: 24.sp, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: blueAccent,
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.bold),
                     ),
                     Text(
                       'Vehicles',
-                      style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 12.sp),
+                      style: TextStyle(
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                          fontSize: 12.sp),
                     ),
                   ],
                 ),
-                Container(width: 1, height: 40.h, color: colorScheme.onSurface.withOpacity(0.2)),
+                Container(
+                    width: 1,
+                    height: 40.h,
+                    color: colorScheme.onSurface.withOpacity(0.2)),
                 Column(
                   children: [
                     Text(
                       '${_filteredAwards.length}',
-                      style: TextStyle(color: purpleAccent, fontSize: 24.sp, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: purpleAccent,
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.bold),
                     ),
                     Text(
                       'Filtered',
-                      style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 12.sp),
+                      style: TextStyle(
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                          fontSize: 12.sp),
                     ),
                   ],
                 ),
@@ -1011,22 +1192,28 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.error_outline, size: 64.sp, color: colorScheme.error),
+                            Icon(Icons.error_outline,
+                                size: 64.sp, color: colorScheme.error),
                             SizedBox(height: 16.h),
                             Text(
                               'Error loading awards',
-                              style: TextStyle(color: colorScheme.onSurface, fontSize: 16.sp),
+                              style: TextStyle(
+                                  color: colorScheme.onSurface,
+                                  fontSize: 16.sp),
                             ),
                             SizedBox(height: 8.h),
                             Text(
                               _error!,
-                              style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 12.sp),
+                              style: TextStyle(
+                                  color: colorScheme.onSurface.withOpacity(0.6),
+                                  fontSize: 12.sp),
                               textAlign: TextAlign.center,
                             ),
                             SizedBox(height: 16.h),
                             ElevatedButton(
                               onPressed: _loadData,
-                              style: ElevatedButton.styleFrom(backgroundColor: blueAccent),
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: blueAccent),
                               child: const Text('Retry'),
                             ),
                           ],
@@ -1038,11 +1225,16 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.emoji_events_outlined,
-                                    size: 64.sp, color: colorScheme.onSurface.withOpacity(0.3)),
+                                    size: 64.sp,
+                                    color:
+                                        colorScheme.onSurface.withOpacity(0.3)),
                                 SizedBox(height: 16.h),
                                 Text(
                                   'No awards found',
-                                  style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6), fontSize: 16.sp),
+                                  style: TextStyle(
+                                      color: colorScheme.onSurface
+                                          .withOpacity(0.6),
+                                      fontSize: 16.sp),
                                 ),
                               ],
                             ),
@@ -1052,10 +1244,15 @@ class _VehicleAwardsManagementPageState extends State<VehicleAwardsManagementPag
                             itemCount: _filteredAwards.length,
                             itemBuilder: (context, index) {
                               final award = _filteredAwards[index];
-                              return _buildAwardCard(award, isDark, colorScheme, goldColor, blueAccent, purpleAccent)
+                              return _buildAwardCard(award, isDark, colorScheme,
+                                      goldColor, blueAccent, purpleAccent)
                                   .animate()
-                                  .fadeIn(delay: (50 * index).ms, duration: 300.ms)
-                                  .slideX(begin: 0.2, delay: (50 * index).ms, duration: 300.ms);
+                                  .fadeIn(
+                                      delay: (50 * index).ms, duration: 300.ms)
+                                  .slideX(
+                                      begin: 0.2,
+                                      delay: (50 * index).ms,
+                                      duration: 300.ms);
                             },
                           ),
           ),

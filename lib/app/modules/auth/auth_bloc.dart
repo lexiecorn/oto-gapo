@@ -11,7 +11,8 @@ part 'auth_event.dart';
 part 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc({required this.authRepository, required this.pocketBaseAuth}) : super(AuthState.unknown()) {
+  AuthBloc({required this.authRepository, required this.pocketBaseAuth})
+      : super(AuthState.unknown()) {
     _isLoggingOut = false;
 
     // Listen to PocketBase auth changes
@@ -25,7 +26,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthStateChangedEvent>((event, emit) {
       log('auth state changing');
       if (event.user != null) {
-        emit(state.copyWith(authStatus: AuthStatus.authenticated, user: event.user));
+        emit(state.copyWith(
+            authStatus: AuthStatus.authenticated, user: event.user));
       } else {
         emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
       }
@@ -34,7 +36,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignInRequestedEvent>((event, emit) async {
       try {
         emit(state.copyWith(authStatus: AuthStatus.unknown));
-        await pocketBaseAuth.signIn(email: event.email, password: event.password);
+        await pocketBaseAuth.signIn(
+            email: event.email, password: event.password);
         // Auth state will be updated via the stream listener
       } catch (e) {
         emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
@@ -108,7 +111,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           log('Current user: ${user?.id}');
           if (user != null) {
             log('User found, setting authenticated state');
-            emit(state.copyWith(authStatus: AuthStatus.authenticated, user: user));
+            emit(state.copyWith(
+                authStatus: AuthStatus.authenticated, user: user));
           } else {
             log('No user found despite being authenticated, setting unauthenticated');
             emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
