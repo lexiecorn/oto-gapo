@@ -61,10 +61,13 @@ class HomeBodyState extends State<HomeBody> {
             print('Home Body - User UID: "${state.user.uid}"');
 
             // Check if the current authenticated user is different from the profile user
-            final currentAuthUser = context.read<AuthBloc>().state.user;
-            if (currentAuthUser != null && state.user.uid.isNotEmpty && state.user.uid != currentAuthUser.id) {
+            final authState = context.read<AuthBloc>().state;
+            if (authState.authStatus == AuthStatus.authenticated &&
+                authState.user != null &&
+                state.user.uid.isNotEmpty &&
+                state.user.uid != authState.user!.id) {
               print('Home Body - User mismatch detected!');
-              print('Home Body - Auth user UID: ${currentAuthUser.id}');
+              print('Home Body - Auth user UID: ${authState.user!.id}');
               print('Home Body - Profile user UID: ${state.user.uid}');
               print('Home Body - Force clearing profile for new user');
               context.read<ProfileCubit>().forceClear();

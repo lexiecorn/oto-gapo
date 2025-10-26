@@ -13,6 +13,11 @@ import 'package:otogapo/app/pages/social_feed_page.dart';
 import 'package:otogapo/app/widgets/connectivity_banner.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:otogapo/widgets/announcement_popup_dialog.dart';
+import 'package:otogapo/app/modules/version_check/widgets/version_check_wrapper.dart';
+import 'package:otogapo/app/modules/version_check/bloc/version_check_cubit.dart';
+import 'package:otogapo/app/modules/version_check/bloc/version_check_state.dart';
+import 'package:otogapo/services/version_check_service.dart';
+import 'package:otogapo/bootstrap.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 @RoutePage(name: 'HomePageRouter')
@@ -142,67 +147,81 @@ class HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      // onWillPop: () async => false,
-      canPop: false,
-      child: Scaffold(
-        // backgroundColor: Colors.grey.shade100,
-        // backgroundColor: Colors.grey.shade100
-        // ,
-        appBar: _selectedIndex == 1 || _selectedIndex == 2
-            ? null // No AppBar for Profile and Social Feed pages
-            : PreferredSize(
-                preferredSize: Size.fromHeight(kToolbarHeight),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Connectivity Banner
-                    const ConnectivityBanner(),
-                    // AppBar
-                    Flexible(
-                      child: AppBar(
-                        title: _selectedIndex == 0
-                            ? Image.asset('assets/images/logo_sm.jpg', height: 40, fit: BoxFit.contain)
-                            : Text(
-                                _pageTitles.elementAt(_selectedIndex),
-                                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                              ),
-                        centerTitle: true,
-                        backgroundColor: Colors.black,
-                        elevation: 0,
-                        actions: _selectedIndex == 3
-                            ? [
-                                IconButton(
-                                  icon: const Icon(Icons.refresh, color: Colors.white),
-                                  onPressed: () {
-                                    // Optionally: trigger a refresh in SettingsPage
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.help_outline, color: Colors.white),
-                                  onPressed: () {
-                                    // Optionally: show help dialog
-                                  },
-                                ),
-                              ]
-                            : [],
+    final cubit = context.read<VersionCheckCubit>();
+    final service = VersionCheckService(
+      sharedPreferences: getIt<SharedPreferences>(),
+    );
+
+    return BlocBuilder<VersionCheckCubit, VersionCheckState>(
+      builder: (context, versionState) {
+        return VersionCheckWrapper(
+          cubit: cubit,
+          service: service,
+          child: PopScope(
+            // onWillPop: () async => false,
+            canPop: false,
+            child: Scaffold(
+              // backgroundColor: Colors.grey.shade100,
+              // backgroundColor: Colors.grey.shade100
+              // ,
+              appBar: _selectedIndex == 1 || _selectedIndex == 2
+                  ? null // No AppBar for Profile and Social Feed pages
+                  : PreferredSize(
+                      preferredSize: Size.fromHeight(kToolbarHeight),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Connectivity Banner
+                          const ConnectivityBanner(),
+                          // AppBar
+                          Flexible(
+                            child: AppBar(
+                              title: _selectedIndex == 0
+                                  ? Image.asset('assets/images/logo_sm.jpg', height: 40, fit: BoxFit.contain)
+                                  : Text(
+                                      _pageTitles.elementAt(_selectedIndex),
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                                    ),
+                              centerTitle: true,
+                              backgroundColor: Colors.black,
+                              elevation: 0,
+                              actions: _selectedIndex == 3
+                                  ? [
+                                      IconButton(
+                                        icon: const Icon(Icons.refresh, color: Colors.white),
+                                        onPressed: () {
+                                          // Optionally: trigger a refresh in SettingsPage
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.help_outline, color: Colors.white),
+                                        onPressed: () {
+                                          // Optionally: show help dialog
+                                        },
+                                      ),
+                                    ]
+                                  : [],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-        body: _selectedIndex == 1 || _selectedIndex == 2
-            ? Stack(
-                children: [
-                  // Page content - starts from top
-                  _widgetOptions.elementAt(_selectedIndex),
-                  // Connectivity Banner overlays on top
-                  Positioned(top: 0, left: 0, right: 0, child: const ConnectivityBanner()),
-                ],
-              )
-            : _widgetOptions.elementAt(_selectedIndex),
-        bottomNavigationBar: _buildBottomNavigationBar(),
-      ),
+              body: _selectedIndex == 1 || _selectedIndex == 2
+                  ? Stack(
+                      children: [
+                        // Page content - starts from top
+                        _widgetOptions.elementAt(_selectedIndex),
+                        // Connectivity Banner overlays on top
+                        Positioned(top: 0, left: 0, right: 0, child: const ConnectivityBanner()),
+                      ],
+                    )
+                  : _widgetOptions.elementAt(_selectedIndex),
+              bottomNavigationBar: _buildBottomNavigationBar(),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -308,14 +327,13 @@ class HomePageState extends State<HomePage> {
                 Positioned(
                   right: -4,
                   top: -4,
-                  child:
-                      Container(
-                            width: 10.w,
-                            height: 10.h,
-                            decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                          )
-                          .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                          .scale(duration: 1000.ms, begin: const Offset(0.8, 0.8), end: const Offset(1.2, 1.2)),
+                  child: Container(
+                    width: 10.w,
+                    height: 10.h,
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                  )
+                      .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                      .scale(duration: 1000.ms, begin: const Offset(0.8, 0.8), end: const Offset(1.2, 1.2)),
                 ),
             ],
           ),

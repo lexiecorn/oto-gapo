@@ -17,8 +17,9 @@ class ProfileRepository {
     try {
       print('ProfileRepository.getProfile - Getting current user profile');
 
-      // Check if user is authenticated
-      if (!pocketBaseAuth.isAuthenticated) {
+      // Check if user is authenticated - use more robust check
+      final authUser = pocketBaseAuth.currentUser;
+      if (authUser == null) {
         print('ProfileRepository.getProfile - User not authenticated with PocketBase');
         print(
           'ProfileRepository.getProfile - PocketBase auth store valid: ${pocketBaseAuth.pocketBase.authStore.isValid}',
@@ -98,9 +99,9 @@ class ProfileRepository {
       userData.remove('dateOfBirth');
       userData.remove('birthplace');
 
-      final currentUser = my_auth_repo.User.fromJson(userData);
+      final user = my_auth_repo.User.fromJson(userData);
       print('ProfileRepository.getProfile - User created successfully');
-      return currentUser;
+      return user;
     } catch (e) {
       print('ProfileRepository.getProfile - Exception: $e');
       throw ProfileFailure(
@@ -115,6 +116,15 @@ class ProfileRepository {
   Future<List<my_auth_repo.Vehicle>> getUserVehicles(String userId) async {
     try {
       print('ProfileRepository.getUserVehicles - Getting vehicles for user: $userId');
+
+      // Ensure user is authenticated before making API calls
+      if (pocketBaseAuth.currentUser == null) {
+        throw ProfileFailure(
+          code: 'Not Authenticated',
+          message: 'User is not authenticated with PocketBase',
+          plugin: 'pocketbase_auth',
+        );
+      }
 
       // Query vehicles where owner field matches the user ID
       final vehicleRecords = await pocketBaseAuth.getVehiclesByOwner(userId);
@@ -314,6 +324,15 @@ class ProfileRepository {
   Future<List<my_auth_repo.VehicleAward>> getUserVehicleAwards(String userId) async {
     try {
       print('ProfileRepository.getUserVehicleAwards - Getting awards for user: $userId');
+
+      // Ensure user is authenticated before making API calls
+      if (pocketBaseAuth.currentUser == null) {
+        throw ProfileFailure(
+          code: 'Not Authenticated',
+          message: 'User is not authenticated with PocketBase',
+          plugin: 'pocketbase_auth',
+        );
+      }
 
       // First get the user's vehicles
       final vehicles = await getUserVehicles(userId);

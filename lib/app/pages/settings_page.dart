@@ -12,8 +12,10 @@ import 'package:otogapo/app/pages/current_user_account_page.dart';
 import 'package:otogapo/app/pages/developer_tools_page.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/app/widgets/payment_status_card_new.dart';
+import 'package:otogapo/bootstrap.dart';
 import 'package:otogapo/providers/theme_provider.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 
@@ -166,6 +168,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Get package info for version display
+    final packageInfo = getIt<PackageInfo>();
+
     if (_isLoading) {
       return const Scaffold(
         body: Center(
@@ -433,14 +438,19 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
 
+            const SizedBox(height: 24),
+
             // Footer
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Version 1.0.0',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSecondary,
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              child: Center(
+                child: Text(
+                  'Version ${packageInfo.version} (Build ${packageInfo.buildNumber})',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),

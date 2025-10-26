@@ -22,8 +22,9 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:get_it/get_it.dart';
-import 'package:local_storage/local_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:local_storage/local_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:otogapo/app/routes/app_router.dart';
 import 'package:otogapo/models/cached_data.dart';
 import 'package:otogapo/services/connectivity_service.dart';
@@ -195,6 +196,9 @@ Future<void> bootstrap(
     log('Sync service initialization error: $e - continuing with app startup');
   }
 
+  // Initialize SharedPreferences for version check service
+  final sharedPreferences = await SharedPreferences.getInstance();
+
   // Initialized the router.
   getIt
     // Make the dio client available globally.
@@ -202,7 +206,9 @@ Future<void> bootstrap(
     ..registerSingleton<Dio>(dio)
     ..registerSingleton<PocketBaseService>(pocketBaseService)
     ..registerSingleton<ConnectivityService>(connectivityService)
-    ..registerSingleton<SyncService>(syncService);
+    ..registerSingleton<SyncService>(syncService)
+    ..registerSingleton<SharedPreferences>(sharedPreferences)
+    ..registerSingleton<PackageInfo>(packageInfo);
 
   // Initialize repositories
   final authRepository = AuthRepository(

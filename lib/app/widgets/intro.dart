@@ -55,10 +55,19 @@ class _IntroPageState extends State<IntroPage> {
     scheduleMicrotask(() {
       if (!mounted) return;
 
-      final uid = context.read<AuthBloc>().state.user!.id;
-      print('Intro Widget - Getting profile for UID: $uid');
-      print('Intro Widget - AuthBloc state user: ${context.read<AuthBloc>().state.user}');
+      final authState = context.read<AuthBloc>().state;
+      print('Intro Widget - Auth status: ${authState.authStatus}');
+      print('Intro Widget - Auth user: ${authState.user}');
       print('Intro Widget - Current ProfileCubit state: ${context.read<ProfileCubit>().state}');
+
+      // Check if user is authenticated before trying to get profile
+      if (authState.authStatus != AuthStatus.authenticated || authState.user == null) {
+        print('Intro Widget - User not authenticated, skipping profile fetch');
+        return;
+      }
+
+      final uid = authState.user!.id;
+      print('Intro Widget - Getting profile for UID: $uid');
 
       // Force clear profile state first to prevent cached data issues
       print('Intro Widget - Force clearing profile state');
@@ -113,6 +122,9 @@ class _IntroPageState extends State<IntroPage> {
                 _getProfile();
               }
             });
+          } else if (authState.authStatus == AuthStatus.unauthenticated) {
+            print('Intro Widget - User not authenticated, clearing profile state');
+            context.read<ProfileCubit>().forceClear();
           }
         },
         child: BlocConsumer<ProfileCubit, ProfileState>(

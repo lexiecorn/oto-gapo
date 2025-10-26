@@ -68,13 +68,21 @@ The OtoGapo application uses the following PocketBase collections:
 - **attendance** - Attendance records
 - **attendance_summary** - User attendance statistics
 
-### Social Feed Collections (NEW - v1.3.0)
+### Social Feed Collections (v1.3.0)
 
 - **posts** - User posts with images and captions
 - **post_reactions** - User reactions (like, love, wow, haha, sad, angry)
 - **post_comments** - Comments with @mentions and #hashtags
 - **post_reports** - Content reports for moderation
 - **user_bans** - Admin bans for users who violate guidelines
+
+### App Management Collections
+
+- **app_version_config** - App version control and update management (NEW)
+  - Configure minimum required versions
+  - Set force update flags
+  - Manage release notes and store URLs
+  - Platform-specific (Android/iOS) configuration
 
 ## Notes
 

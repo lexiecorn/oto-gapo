@@ -1,5 +1,6 @@
 import 'package:authentication_repository/authentication_repository.dart' as my_auth_repo;
 import 'package:authentication_repository/authentication_repository.dart';
+import 'package:authentication_repository/src/profile_failure.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:otogapo/models/custom_error.dart';
@@ -42,6 +43,19 @@ class ProfileCubit extends Cubit<ProfileState> {
         ),
       );
       print('ProfileCubit.getProfile - State updated to loaded');
+    } on ProfileFailure catch (e) {
+      print('ProfileCubit.getProfile - ProfileFailure: ${e.message}');
+      emit(
+        state.copyWith(
+          profileStatus: ProfileStatus.error,
+          error: CustomError(
+            code: e.code,
+            message: e.message,
+            plugin: e.plugin,
+          ),
+        ),
+      );
+      print('ProfileCubit.getProfile - State updated to error');
     } on CustomError catch (e) {
       print('ProfileCubit.getProfile - CustomError: ${e.message}');
       emit(
@@ -96,6 +110,19 @@ class ProfileCubit extends Cubit<ProfileState> {
         ),
       );
       print('ProfileCubit.getProfileByUserId - State updated to loaded');
+    } on ProfileFailure catch (e) {
+      print('ProfileCubit.getProfileByUserId - ProfileFailure: ${e.message}');
+      emit(
+        state.copyWith(
+          profileStatus: ProfileStatus.error,
+          error: CustomError(
+            code: e.code,
+            message: e.message,
+            plugin: e.plugin,
+          ),
+        ),
+      );
+      print('ProfileCubit.getProfileByUserId - State updated to error');
     } on CustomError catch (e) {
       print('ProfileCubit.getProfileByUserId - CustomError: ${e.message}');
       emit(

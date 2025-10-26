@@ -234,12 +234,12 @@ class ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin 
       context.read<ProfileCubit>().getProfileByUserId(widget.userId!);
     } else {
       // Viewing own profile
-      final currentAuthUser = context.read<AuthBloc>().state.user;
-      if (currentAuthUser != null) {
-        print('Profile Page - Initializing profile for authenticated user: ${currentAuthUser.id}');
+      final authState = context.read<AuthBloc>().state;
+      if (authState.authStatus == AuthStatus.authenticated && authState.user != null) {
+        print('Profile Page - Initializing profile for authenticated user: ${authState.user!.id}');
         context.read<ProfileCubit>().getProfile();
       } else {
-        print('Profile Page - No authenticated user found');
+        print('Profile Page - No authenticated user found, auth status: ${authState.authStatus}');
       }
     }
   }

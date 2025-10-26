@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:attendance_repository/attendance_repository.dart';
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
@@ -17,11 +15,14 @@ import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/modules/profile_progress/bloc/profile_progress_cubit.dart';
 import 'package:otogapo/app/modules/signin/bloc/signin_cubit.dart';
 import 'package:otogapo/app/modules/signup/signup_cubit.dart';
+import 'package:otogapo/app/modules/version_check/bloc/version_check_cubit.dart';
 import 'package:otogapo/app/routes/app_router.dart';
+import 'package:otogapo/repositories/version_repository.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:otogapo/bootstrap.dart';
 import 'package:otogapo/providers/theme_provider.dart';
 import 'package:otogapo/services/connectivity_service.dart';
-import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:otogapo/services/sync_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,8 +32,8 @@ class App extends StatelessWidget {
     required AuthRepository authRepository,
     required PocketBaseAuthRepository pocketBaseAuthRepository,
     super.key,
-  }) : _authRepository = authRepository,
-       _pocketBaseAuthRepository = pocketBaseAuthRepository;
+  })  : _authRepository = authRepository,
+        _pocketBaseAuthRepository = pocketBaseAuthRepository;
 
   final AuthRepository _authRepository;
   final PocketBaseAuthRepository _pocketBaseAuthRepository;
@@ -147,6 +148,16 @@ class App extends StatelessWidget {
               BlocProvider<ProfileProgressCubit>(create: (context) => ProfileProgressCubit()),
               BlocProvider<AdminAnalyticsCubit>(
                 create: (context) => AdminAnalyticsCubit(pocketBaseService: PocketBaseService()),
+              ),
+              BlocProvider<VersionCheckCubit>(
+                create: (context) {
+                  final versionRepository = VersionRepository();
+                  final packageInfo = getIt<PackageInfo>();
+                  return VersionCheckCubit(
+                    versionRepository: versionRepository,
+                    packageInfo: packageInfo,
+                  );
+                },
               ),
             ],
             child: ChangeNotifierProvider(create: (context) => ThemeProvider(prefs!), child: const AppView()),

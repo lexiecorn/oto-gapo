@@ -1,0 +1,164 @@
+[
+    {
+        "id": "pbc_288389427",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": "@request.auth.id != ''",
+        "updateRule": "@request.auth.id != ''",
+        "deleteRule": "@request.auth.id != ''",
+        "name": "app_version_config",
+        "type": "base",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "select961728715",
+                "maxSelect": 1,
+                "name": "platform",
+                "presentable": false,
+                "required": true,
+                "system": false,
+                "type": "select",
+                "values": [
+                    "android",
+                    "ios"
+                ]
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text3890410120",
+                "max": 0,
+                "min": 0,
+                "name": "min_version",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": false,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "number4220991022",
+                "max": null,
+                "min": null,
+                "name": "min_build_number",
+                "onlyInt": false,
+                "presentable": false,
+                "required": true,
+                "system": false,
+                "type": "number"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text353457734",
+                "max": 0,
+                "min": 0,
+                "name": "current_version",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": false,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "bool2360682215",
+                "name": "force_update",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "bool"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text2189808891",
+                "max": 0,
+                "min": 0,
+                "name": "release_notes",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": false,
+                "system": false,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text4121075559",
+                "max": 0,
+                "min": 0,
+                "name": "store_url",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": false,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "bool1358543748",
+                "name": "enabled",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "bool"
+            },
+            {
+                "hidden": false,
+                "id": "number4273184880",
+                "max": null,
+                "min": null,
+                "name": "current_build_number",
+                "onlyInt": false,
+                "presentable": false,
+                "required": true,
+                "system": false,
+                "type": "number"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_unique_platform` ON `app_version_config` (`platform`)"
+        ],
+        "system": false
+    }
+]
