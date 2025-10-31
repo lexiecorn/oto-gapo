@@ -96,8 +96,35 @@ genhtml coverage/lcov.info -o coverage/html
 
 ### Run in Watch Mode
 
+Watch mode automatically reruns tests when you save changes, providing fast feedback during TDD:
+
 ```bash
 flutter test --watch
+```
+
+**TDD Workflow with Watch Mode:**
+
+1. **Start watch mode** in a terminal: `flutter test --watch`
+2. **Write a failing test** first (red phase)
+3. **Implement the code** to make the test pass (green phase)
+4. **Refactor** while tests remain green
+5. **Watch mode automatically reruns** tests on save, giving instant feedback
+
+**Tips:**
+- Keep watch mode running while coding for instant feedback
+- Tests run automatically when you save any test or source file
+- Press `q` to quit watch mode
+- Press `r` to manually rerun tests
+- Press `Enter` to run all tests again
+
+**Running Specific Tests in Watch Mode:**
+
+```bash
+# Watch mode for specific test file
+flutter test --watch test/app/modules/auth/auth_bloc_test.dart
+
+# Watch mode for tests matching a pattern
+flutter test --watch --plain-name "auth"
 ```
 
 ## Writing Tests
@@ -605,14 +632,85 @@ flutter test integration_test/
 - [bloc_test Package](https://pub.dev/packages/bloc_test)
 - [Very Good Engineering Testing Best Practices](https://verygood.ventures/blog/flutter-testing-best-practices)
 
+## Test-Driven Development (TDD) Workflow
+
+### What is TDD?
+
+TDD is a development practice where you write tests before implementing code:
+
+1. **Red**: Write a failing test that describes desired behavior
+2. **Green**: Write minimal code to make the test pass
+3. **Refactor**: Improve code while keeping tests green
+
+### When to Use TDD
+
+✅ **Recommended for:**
+- **Blocs/Cubits**: State management logic with clear state transitions
+- **Business logic**: Validators, formatters, calculations
+- **Repositories**: Data access and transformation logic
+- **Services**: Pure functions and utility methods
+
+⏭️ **Pragmatic approach for:**
+- **Complex UI widgets**: Write behavior-focused tests after UI stabilizes
+- **Exploratory features**: Spike first, then add tests
+
+### TDD Example: AuthBloc
+
+```dart
+// 1. RED: Write failing test first
+blocTest<AuthBloc, AuthState>(
+  'emits authenticated state when sign-in succeeds',
+  setUp: () {
+    when(() => mockPocketBaseAuth.signIn(...))
+        .thenAnswer((_) async {});
+    when(() => mockPocketBaseAuth.user)
+        .thenAnswer((_) => Stream.value(mockUser));
+  },
+  build: () => AuthBloc(...),
+  act: (bloc) => bloc.add(SignInRequestedEvent(...)),
+  expect: () => [
+    AuthState(authStatus: AuthStatus.unknown),
+    AuthState(authStatus: AuthStatus.authenticated, user: mockUser),
+  ],
+);
+
+// 2. GREEN: Implement minimal code to pass
+// (In AuthBloc, implement SignInRequestedEvent handler)
+
+// 3. REFACTOR: Improve code while tests remain green
+```
+
+### TDD Best Practices
+
+1. **Start with the simplest test** that fails
+2. **Write one test at a time** - watch mode helps with this
+3. **Make tests pass with minimal code** - avoid over-engineering
+4. **Refactor only when tests are green** - safe refactoring
+5. **Keep tests fast** - use mocks, avoid I/O in tests
+
+### Running TDD Workflow
+
+```bash
+# Terminal 1: Start watch mode
+flutter test --watch
+
+# Terminal 2: Edit code
+# - Write failing test
+# - Watch test fail (RED)
+# - Implement code
+# - Watch test pass (GREEN)
+# - Refactor if needed
+```
+
 ## Contributing
 
 When adding new features:
 
-1. ✅ Write tests for new widgets
-2. ✅ Use existing test helpers
-3. ✅ Follow the testing patterns in this guide
-4. ✅ Aim for >80% code coverage
-5. ✅ Run tests before committing: `flutter test`
+1. ✅ **Use TDD for Blocs/Cubits and business logic** - write tests first
+2. ✅ Write tests for new widgets
+3. ✅ Use existing test helpers
+4. ✅ Follow the testing patterns in this guide
+5. ✅ Aim for >80% code coverage for widgets, 90%+ for Blocs/Cubits
+6. ✅ Run tests before committing: `flutter test`
 
 Happy testing! 🧪

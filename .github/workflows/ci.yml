@@ -64,6 +64,25 @@ jobs:
             - name: Run tests
               run: flutter test --coverage --test-randomize-ordering-seed random
 
+            - name: Check coverage threshold
+              run: |
+                  # Install lcov if not available
+                  sudo apt-get update && sudo apt-get install -y lcov
+                  # Generate coverage summary
+                  lcov --summary coverage/lcov.info || true
+                  # Extract coverage percentage using sed (more portable than grep -P)
+                  COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep -i "lines" | sed -E 's/.*lines[^0-9]*([0-9]+\.[0-9]+)%.*/\1/')
+                  echo "Current coverage: ${COVERAGE}%"
+                  # Fail if coverage is below 50% (starting threshold, can be raised over time)
+                  MIN_COVERAGE=50
+                  COVERAGE_INT=$(echo "$COVERAGE" | cut -d. -f1)
+                  if [ "$COVERAGE_INT" -lt "$MIN_COVERAGE" ]; then
+                    echo "Coverage ${COVERAGE}% is below minimum threshold ${MIN_COVERAGE}%"
+                    exit 1
+                  else
+                    echo "Coverage ${COVERAGE}% meets minimum threshold ${MIN_COVERAGE}%"
+                  fi
+
             - name: Upload coverage to Codecov
               uses: codecov/codecov-action@v4
               with:
@@ -71,6 +90,20 @@ jobs:
                   flags: unittests
                   name: codecov-umbrella
                   fail_ci_if_error: false
+
+            - name: Generate coverage HTML report
+              run: |
+                  # Generate HTML report
+                  genhtml coverage/lcov.info -o coverage/html
+                  echo "Coverage HTML report generated in coverage/html/"
+
+            - name: Upload coverage HTML report
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: coverage-report
+                  path: coverage/html
+                  retention-days: 7
 
             - name: Build Development APK
               run: |

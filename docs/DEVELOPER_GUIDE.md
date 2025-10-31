@@ -378,7 +378,57 @@ class CounterCubit extends Cubit<int> {
 
 ## Testing Guidelines
 
+### Test-Driven Development (TDD) Workflow
+
+We follow a pragmatic TDD approach for core business logic and state management:
+
+1. **Red**: Write a failing test that describes the desired behavior
+2. **Green**: Write minimal code to make the test pass
+3. **Refactor**: Improve code while keeping tests green
+
+#### When to Use TDD
+
+✅ **Recommended for:**
+- **Blocs/Cubits**: State management with clear state transitions
+- **Business logic**: Validators, formatters, calculations
+- **Repositories**: Data access and transformation logic
+- **Services**: Pure functions and utility methods
+
+⏭️ **Pragmatic approach for:**
+- **Complex UI widgets**: Write behavior-focused tests after UI stabilizes
+- **Exploratory features**: Spike first, then add tests
+
+#### Running TDD Workflow
+
+```bash
+# Terminal 1: Start watch mode for instant feedback
+flutter test --watch
+
+# Terminal 2: Edit code
+# - Write failing test
+# - Watch test fail (RED)
+# - Implement code
+# - Watch test pass (GREEN)
+# - Refactor if needed
+```
+
+**Watch Mode Tips:**
+- Tests automatically rerun when you save files
+- Press `q` to quit watch mode
+- Press `r` to manually rerun tests
+- Keep watch mode running while coding for instant feedback
+
+See [test/README.md](../test/README.md) for detailed TDD workflow and examples.
+
 ### Unit Tests
+
+#### Coverage Goals
+
+- **Widget Tests**: Aim for >80% coverage
+- **Cubit/Bloc Tests**: Aim for 90%+ coverage of state transitions
+- **Critical Business Logic**: Aim for 100% coverage
+
+CI enforces minimum 50% coverage threshold (can be raised over time).
 
 #### BLoC Testing
 

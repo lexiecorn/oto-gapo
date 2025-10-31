@@ -1,16 +1,28 @@
 // ignore_for_file: public_member_api_docs
 
 import 'package:authentication_repository/authentication_repository.dart';
+// ignore: implementation_imports
+import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/models/custom_error.dart';
+import 'package:pocketbase/pocketbase.dart';
 
 /// Mock classes for testing
 class MockProfileCubit extends MockCubit<ProfileState>
     implements ProfileCubit {}
 
 class MockProfileRepository extends Mock implements ProfileRepository {}
+
+class MockAuthRepository extends Mock implements AuthRepository {}
+
+class MockPocketBaseAuthRepository extends Mock
+    implements PocketBaseAuthRepository {}
+
+class MockRecordModel extends Mock implements RecordModel {}
+
+class MockAuthFailure extends Mock implements AuthFailure {}
 
 /// Factory for creating test Vehicle instances.
 ///
@@ -147,4 +159,49 @@ MockProfileCubit createMockProfileCubitWithState(ProfileState state) {
   final cubit = MockProfileCubit();
   when(() => cubit.state).thenReturn(state);
   return cubit;
+}
+
+/// Creates a mock RecordModel (PocketBase user) with test data.
+///
+/// Provides sensible defaults that can be overridden.
+RecordModel createMockRecordModel({
+  String? id,
+  String? email,
+  String? firstName,
+  String? lastName,
+  Map<String, dynamic>? additionalData,
+}) {
+  final mockRecord = MockRecordModel();
+  final recordId = id ?? 'test_user_id_123';
+  final recordEmail = email ?? 'test@example.com';
+  final recordFirstName = firstName ?? 'Test';
+  final recordLastName = lastName ?? 'User';
+
+  when(() => mockRecord.id).thenReturn(recordId);
+  when(() => mockRecord.collectionId).thenReturn('users');
+  when(() => mockRecord.collectionName).thenReturn('users');
+  when(() => mockRecord.data).thenReturn({
+    'id': recordId,
+    'email': recordEmail,
+    'firstName': recordFirstName,
+    'lastName': recordLastName,
+    'created': DateTime.now().toIso8601String(),
+    'updated': DateTime.now().toIso8601String(),
+    ...?additionalData,
+  });
+
+  return mockRecord;
+}
+
+/// Creates a mock AuthFailure with test data.
+AuthFailure createMockAuthFailure({
+  String code = 'test_error',
+  String message = 'Test error message',
+  String plugin = 'test_plugin',
+}) {
+  return AuthFailure(
+    code: code,
+    message: message,
+    plugin: plugin,
+  );
 }
