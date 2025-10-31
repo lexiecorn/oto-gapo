@@ -52,6 +52,7 @@ Future<void> main() async {
             'pkgInfoVersion':
                 'Ver:${packageInfo.version} Build:${packageInfo.buildNumber}',
             'pocketbaseUrl': 'https://pb.lexserver.org',
+            'clarityProjectId': 'tyroze7rek',
           },
         );
 

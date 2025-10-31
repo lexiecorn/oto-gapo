@@ -1,6 +1,6 @@
 # Documentation Status - OtoGapo
 
-Last Updated: 2025-10-21
+Last Updated: 2025-10-31
 
 ## Overview
 
@@ -97,7 +97,7 @@ This document provides a comprehensive overview of the documentation status for 
 
 #### ✅ DEPLOYMENT.md
 
-- **Status**: Complete with CI/CD
+- **Status**: Complete with CI/CD (updated)
 - **Contents**:
   - Environment setup
   - Firebase configuration
@@ -112,6 +112,7 @@ This document provides a comprehensive overview of the documentation status for 
   - Monitoring and analytics
   - Automated release workflow
   - Version management
+  - Microsoft Clarity notes (optional telemetry)
 
 #### ✅ WEB_DEPLOYMENT.md
 
@@ -281,6 +282,7 @@ This document provides a comprehensive overview of the documentation status for 
 - ✅ PaymentStatisticsUtils fully documented
 - ✅ ImageCompressionHelper fully documented ✨ NEW
 - ✅ AnnouncementTypeHelper fully documented ✨ NEW
+ - ✅ DebugHelper usage documented in README ✨ NEW
 
 ### 6. Configuration Documentation
 
@@ -339,6 +341,7 @@ All rules are properly documented and referenced in workspace.
 1. Add class-level documentation to custom widgets as they are created/updated
 2. Document complex UI components with usage examples
 3. Consider adding a "Common Patterns" guide for frequently used code patterns
+4. Add a short guide for telemetry configuration (Clarity) per environment
 
 ## Documentation Tools
 

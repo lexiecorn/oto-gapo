@@ -44,7 +44,10 @@ Future<void> main() async {
       // Set up flavor configuration before bootstrap
       FlavorConfig(
           name: 'PROD',
-          variables: {'pocketbaseUrl': 'https://pb.lexserver.org'},);
+          variables: {
+            'pocketbaseUrl': 'https://pb.lexserver.org',
+            'clarityProjectId': 'tyroze7rek',
+          },);
       developer.Timeline.finishSync();
       developer.Timeline.startSync('bootstrap');
 
@@ -62,6 +65,7 @@ Future<void> main() async {
             'pkgInfoVersion':
                 'Ver:${packageInfo.version} Build:${packageInfo.buildNumber}',
             'pocketbaseUrl': 'https://pb.lexserver.org',
+            'clarityProjectId': 'tyroze7rek',
           },
         );
 

@@ -32,6 +32,7 @@ import 'package:otogapo/services/sync_service.dart';
 import 'package:otogapo/utils/crashlytics_helper.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:otogapo/utils/clarity_helper.dart';
 
 /// Global GetIt instance for dependency injection.
 final getIt = GetIt.instance;
@@ -236,13 +237,18 @@ Future<void> bootstrap(
     ..registerSingleton<PocketBaseAuthRepository>(pocketBaseAuthRepository);
 
   // PocketBase is now initialized with persistent auth store
-  runApp(
-    await builder(
-      authRepository,
-      pocketBaseAuthRepository,
-      dio,
-      packageInfo,
-      storage,
-    ),
+  final appWidget = await builder(
+    authRepository,
+    pocketBaseAuthRepository,
+    dio,
+    packageInfo,
+    storage,
   );
+
+  final wrappedApp = ClarityHelper.wrapWithClarity(
+    appWidget,
+    // Optionally pass userId if available at startup
+  );
+
+  runApp(wrappedApp);
 }

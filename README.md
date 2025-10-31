@@ -170,6 +170,7 @@ The app follows a clean architecture pattern with:
 
 - Flutter SDK (>=3.3.0)
 - Dart SDK (>=3.3.0)
+- Optional: [FVM](https://fvm.app/) for consistent Flutter versions (`.fvmrc` included)
 - Firebase project setup
 - PocketBase instance
 
@@ -387,6 +388,37 @@ Access the URL in your code:
 ```dart
 final pocketbaseUrl = FlavorConfig.instance.variables['pocketbaseUrl'] as String;
 ```
+
+### Microsoft Clarity (Optional Telemetry)
+
+The app supports Microsoft Clarity analytics via `clarity_flutter`.
+
+- Configure per flavor using `clarityProjectId` in `FlavorConfig`:
+
+```dart
+FlavorConfig(
+  name: 'PROD',
+  variables: {
+    'pocketbaseUrl': 'https://pb.lexserver.org',
+    'clarityProjectId': 'YOUR_PROJECT_ID',
+  },
+);
+```
+
+- Optionally wrap the app with `ClarityHelper`:
+
+```dart
+import 'package:otogapo/utils/clarity_helper.dart';
+
+return ClarityHelper.wrapWithClarity(
+  App(
+    authRepository: authRepository,
+    pocketBaseAuthRepository: pocketBaseAuthRepository,
+  ),
+);
+```
+
+If `clarityProjectId` is missing or empty, Clarity is disabled.
 
 ## 🧪 Testing
 

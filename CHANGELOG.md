@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Microsoft Clarity analytics integration via `clarity_flutter` and `ClarityHelper`
+  - Configure per flavor using `FlavorConfig.variables['clarityProjectId']`
+
+### Changed
+
+- Centralized logging with `DebugHelper` and `AppLogging` initialization in mains
+- Deployment documentation updates and clarifications
+
+### Fixed
+
+- Sign-in reliability improvements, including Google Sign-In flow fixes
+
+### Development
+
+- Dependency updates in `pubspec.lock`
+- Added `.fvmrc` (FVM support) and `.cursor/mcp.json` for workspace tooling
+
 ## [1.0.0+30] - 2025-11-25
 
 ### Changed

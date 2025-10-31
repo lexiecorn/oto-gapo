@@ -8,6 +8,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:otogapo/utils/crashlytics_helper.dart';
+import 'package:otogapo/utils/clarity_helper.dart';
 import 'package:pocketbase/pocketbase.dart';
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -40,6 +41,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthStateChangedEvent>((event, emit) {
       log('auth state changing');
       if (event.user != null) {
+        // Best-effort: set Clarity user id when authenticated
+        final userId = event.user!.id;
+        // Fire and forget
+        // ignore: discarded_futures
+        ClarityHelper.setUserId(userId);
         emit(
           state.copyWith(
             authStatus: AuthStatus.authenticated,
