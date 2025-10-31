@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:image_picker/image_picker.dart';
@@ -1547,31 +1548,27 @@ class _UserDetailPageState extends State<UserDetailPage> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              imageUrl,
+                            child: CachedNetworkImage(
+                              imageUrl: imageUrl,
                               width: 200,
                               height: 150,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
+                              placeholder: (context, url) => Container(
+                                width: 200,
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) {
                                 print(
                                     'Network image error for $imageUrl: $error',);
                                 return _buildCarImagePlaceholder(
                                     0, 'Failed', Colors.orange,);
-                              },
-                              loadingBuilder:
-                                  (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Container(
-                                  width: 200,
-                                  height: 150,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                );
                               },
                             ),
                           ),
@@ -2380,12 +2377,17 @@ class _UserDetailPageState extends State<UserDetailPage> {
                         borderRadius: BorderRadius.circular(8),
                         child: Stack(
                           children: [
-                            Image.network(
-                              placeholderUrl,
+                            CachedNetworkImage(
+                              imageUrl: placeholderUrl,
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: double.infinity,
-                              errorBuilder: (context, error, stackTrace) {
+                              placeholder: (context, url) => Container(
+                                color: Colors.grey.shade300,
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                              errorWidget: (context, url, error) {
                                 return _buildCarImagePlaceholder(
                                     imageNumber, 'Empty', Colors.grey,);
                               },

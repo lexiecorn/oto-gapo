@@ -1,6 +1,6 @@
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:otogapo_core/src/widgets/opstech_cached_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
@@ -306,43 +306,11 @@ class _HeroImageCard extends StatelessWidget {
     if (imageUrl != null) {
       return Stack(
         children: [
-          CachedNetworkImage(
+          OpstechCachedImage(
             imageUrl: imageUrl,
             width: double.infinity,
             height: double.infinity,
             fit: BoxFit.cover,
-            placeholder: (context, url) => Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: isDark
-                      ? [Colors.grey.shade900, Colors.grey.shade800]
-                      : [Colors.grey.shade200, Colors.grey.shade300],
-                ),
-              ),
-              child: const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE61525)),
-                ),
-              ),
-            ),
-            errorWidget: (context, url, error) => Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: isDark
-                      ? [Colors.grey.shade900, Colors.grey.shade800]
-                      : [Colors.grey.shade200, Colors.grey.shade300],
-                ),
-              ),
-              child: Center(
-                child: Icon(Icons.directions_car,
-                    size: 80.sp,
-                    color: const Color(0xFFE61525).withOpacity(0.5),),
-              ),
-            ),
           ),
           // Dark gradient overlay
           Container(

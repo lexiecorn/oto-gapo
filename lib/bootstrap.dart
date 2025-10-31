@@ -21,6 +21,7 @@ import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_performance_dio/firebase_performance_dio.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -140,6 +141,11 @@ Future<void> bootstrap(
   Bloc.observer = const AppBlocObserver();
 
   // Add cross-flavor configuration here
+  // Tune Flutter in-memory image cache to balance performance and memory.
+  // These values can be adjusted per product needs.
+  PaintingBinding.instance.imageCache
+    ..maximumSize = 400
+    ..maximumSizeBytes = 100 * 1024 * 1024; // 100 MB
 
   final packageInfo = await PackageInfo.fromPlatform();
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
@@ -376,11 +377,15 @@ class _GalleryManagementPageState extends State<GalleryManagementPage> {
                               borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(12),
                               ),
-                              child: Image.network(
-                                imageUrl,
+                              child: CachedNetworkImage(
+                                imageUrl: imageUrl,
                                 fit: BoxFit.cover,
                                 width: double.infinity,
-                                errorBuilder: (context, error, stackTrace) =>
+                                placeholder: (context, url) =>
+                                    ColoredBox(
+                                  color: Colors.grey.shade300,
+                                ),
+                                errorWidget: (context, url, error) =>
                                     ColoredBox(
                                   color: Colors.grey.shade300,
                                   child: const Icon(

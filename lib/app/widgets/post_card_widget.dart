@@ -1,3 +1,4 @@
+import 'package:otogapo_core/src/widgets/opstech_cached_image.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -101,28 +102,11 @@ class PostCardWidget extends StatelessWidget {
           if (post.imageUrl.isNotEmpty && post.imageUrl != '')
             GestureDetector(
               onTap: onImageTap,
-              child: CachedNetworkImage(
+              child: OpstechCachedImage(
                 imageUrl:
                     '${pocketBaseService.baseUrl}/api/files/posts/${post.id}/${post.imageUrl}?thumb=800x800',
-                errorListener: (error) {
-                  print('Image load error: $error');
-                  print(
-                      'Image URL: ${pocketBaseService.baseUrl}/api/files/posts/${post.id}/${post.imageUrl}',);
-                },
                 width: double.infinity,
                 fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  height: 300.h,
-                  color: Colors.grey[300],
-                  child: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  height: 300.h,
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.error),
-                ),
               ),
             )
           else if (post.caption != null && post.caption!.isNotEmpty)
