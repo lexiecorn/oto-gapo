@@ -46,8 +46,8 @@ class ImageCompressionHelper {
         return imagePath;
       }
 
-      int targetWidth = originalImage.width;
-      int targetHeight = originalImage.height;
+      var targetWidth = originalImage.width;
+      var targetHeight = originalImage.height;
 
       // Resize if width exceeds maximum
       if (originalImage.width > maxImageWidth) {
@@ -67,7 +67,6 @@ class ImageCompressionHelper {
         quality: compressionQuality,
         minWidth: targetWidth,
         minHeight: targetHeight,
-        format: CompressFormat.jpeg,
       );
 
       if (result == null) {
@@ -113,14 +112,12 @@ class ImageCompressionHelper {
           file.absolute.path,
           aggressivePath,
           quality: quality,
-          minWidth: maxImageWidth,
-          format: CompressFormat.jpeg,
         );
 
         if (result != null) {
           final size = await result.length();
           debugPrint(
-              'Compressed at quality $quality: ${size / 1024 / 1024} MB');
+              'Compressed at quality $quality: ${size / 1024 / 1024} MB',);
 
           if (size <= maxFileSizeBytes) {
             return result.path;

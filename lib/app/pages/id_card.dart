@@ -122,7 +122,7 @@ class _IdCardState extends State<IdCard> with TickerProviderStateMixin {
       onExit: (_) => _onHover(false),
       child: AnimatedBuilder(
         animation: Listenable.merge(
-            [_cardAnimationController, _hoverAnimationController]),
+            [_cardAnimationController, _hoverAnimationController],),
         builder: (context, child) {
           final hoverScale = 1.0 + (_hoverAnimationController.value * 0.02);
           final currentScale = _scaleAnimation.value * hoverScale;
@@ -156,10 +156,10 @@ class _IdCardState extends State<IdCard> with TickerProviderStateMixin {
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(
-                              0.1 + (_shadowAnimation.value * 0.2)),
+                              0.1 + (_shadowAnimation.value * 0.2),),
                           blurRadius: 8 + (_hoverAnimationController.value * 4),
                           offset: Offset(
-                              0, 4 + (_hoverAnimationController.value * 2)),
+                              0, 4 + (_hoverAnimationController.value * 2),),
                         ),
                       ],
                     ),
@@ -192,7 +192,7 @@ class _IdCardState extends State<IdCard> with TickerProviderStateMixin {
                                   .scale(
                                       delay: 700.ms,
                                       duration: 600.ms,
-                                      curve: Curves.easeOutBack),
+                                      curve: Curves.easeOutBack,),
                               const SizedBox(height: 10),
                               Container(
                                 alignment: Alignment.center,

@@ -513,7 +513,7 @@ class _SocialFeedModerationPageState extends State<SocialFeedModerationPage>
       // Get the user ID from the report
       // For now, we'll need to get it from the content being reported
       // This is a placeholder - in production, you'd get the actual content creator
-      final userIdToBan = 'USER_ID_HERE'; // TODO: Get from reported content
+      const userIdToBan = 'USER_ID_HERE'; // TODO: Get from reported content
 
       await _moderationCubit.banUser(
         userIdToBan,

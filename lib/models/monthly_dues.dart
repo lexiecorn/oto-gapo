@@ -49,7 +49,7 @@ class MonthlyDues {
   factory MonthlyDues.fromRecord(RecordModel record) {
     print('MonthlyDues.fromRecord - Raw data: ${record.data}');
     print(
-        'MonthlyDues.fromRecord - payment_date raw: ${record.data['payment_date']}');
+        'MonthlyDues.fromRecord - payment_date raw: ${record.data['payment_date']}',);
 
     final paymentDateRaw = record.data['payment_date'];
     final paymentDate =
@@ -57,7 +57,7 @@ class MonthlyDues {
 
     print('MonthlyDues.fromRecord - payment_date parsed: $paymentDate');
     print(
-        'MonthlyDues.fromRecord - payment_date != null: ${paymentDate != null}');
+        'MonthlyDues.fromRecord - payment_date != null: ${paymentDate != null}',);
 
     return MonthlyDues(
       id: record.id,

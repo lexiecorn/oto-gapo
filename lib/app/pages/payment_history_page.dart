@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
-import 'package:otogapo/models/payment_transaction.dart';
 import 'package:otogapo/models/payment_statistics.dart';
+import 'package:otogapo/models/payment_transaction.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 
 class PaymentHistoryPage extends StatefulWidget {
@@ -193,7 +193,7 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
                       style: TextStyle(
                           fontSize: 12.sp,
                           color: Colors.blue,
-                          fontWeight: FontWeight.bold),
+                          fontWeight: FontWeight.bold,),
                     ),
                   ),
                 ],
@@ -206,7 +206,7 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
   }
 
   Widget _buildSummaryItem(
-      String label, String value, IconData icon, Color color) {
+      String label, String value, IconData icon, Color color,) {
     return Column(
       children: [
         Icon(icon, color: color, size: 20.sp),
@@ -214,7 +214,7 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
         Text(
           value,
           style: TextStyle(
-              fontSize: 12.sp, fontWeight: FontWeight.bold, color: color),
+              fontSize: 12.sp, fontWeight: FontWeight.bold, color: color,),
         ),
         Text(label, style: TextStyle(fontSize: 9.sp, color: Colors.grey)),
       ],
@@ -329,7 +329,7 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
                       Text(
                         monthName,
                         style: TextStyle(
-                            fontSize: 14.sp, fontWeight: FontWeight.bold),
+                            fontSize: 14.sp, fontWeight: FontWeight.bold,),
                       ),
                       SizedBox(height: 4.h),
                       Text(

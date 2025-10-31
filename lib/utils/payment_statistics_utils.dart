@@ -46,7 +46,7 @@ class PaymentStatisticsUtils {
 
     var paid = 0;
     var unpaid = 0;
-    var advance = advanceMonths.length;
+    final advance = advanceMonths.length;
 
     // Count all months from joinedDate to current month
     var currentCheckMonth = joinedMonth;
@@ -116,7 +116,7 @@ class PaymentStatisticsUtils {
 
     var paid = 0;
     var unpaid = 0;
-    var advance = advanceMonths.length;
+    final advance = advanceMonths.length;
 
     // Count months from the later of joinedDate or startDate to endDate
     var currentCheckMonth =
@@ -219,7 +219,7 @@ class PaymentStatisticsUtils {
     final total = stats['total'] ?? 0;
     final paid = stats['paid'] ?? 0;
 
-    if (total == 0) return 0.0;
+    if (total == 0) return 0;
     return (paid / total) * 100.0;
   }
 

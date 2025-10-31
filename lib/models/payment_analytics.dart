@@ -81,16 +81,6 @@ class PaymentAnalytics {
     required this.endMonth,
   });
 
-  final double totalRevenue;
-  final int totalTransactions;
-  final double averagePaymentAmount;
-  final double overallComplianceRate;
-  final List<MonthlyRevenue> monthlyRevenues;
-  final List<PaymentMethodStats> paymentMethodStats;
-  final List<ComplianceRate> complianceRates;
-  final String startMonth;
-  final String endMonth;
-
   /// Create an empty analytics object
   factory PaymentAnalytics.empty() {
     return const PaymentAnalytics(
@@ -105,6 +95,16 @@ class PaymentAnalytics {
       endMonth: '',
     );
   }
+
+  final double totalRevenue;
+  final int totalTransactions;
+  final double averagePaymentAmount;
+  final double overallComplianceRate;
+  final List<MonthlyRevenue> monthlyRevenues;
+  final List<PaymentMethodStats> paymentMethodStats;
+  final List<ComplianceRate> complianceRates;
+  final String startMonth;
+  final String endMonth;
 
   /// Check if analytics data is available
   bool get isEmpty => totalTransactions == 0;

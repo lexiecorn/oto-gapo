@@ -25,7 +25,7 @@ class OtogapoNavigationCards extends StatelessWidget {
               },
             ).animate().fadeIn(duration: 400.ms).scale(
                   begin: const Offset(0.8, 0.8),
-                  end: const Offset(1.0, 1.0),
+                  end: const Offset(1, 1),
                   duration: 400.ms,
                   curve: Curves.easeOut,
                 ),
@@ -42,7 +42,7 @@ class OtogapoNavigationCards extends StatelessWidget {
               },
             ).animate().fadeIn(duration: 400.ms, delay: 100.ms).scale(
                   begin: const Offset(0.8, 0.8),
-                  end: const Offset(1.0, 1.0),
+                  end: const Offset(1, 1),
                   duration: 400.ms,
                   delay: 100.ms,
                   curve: Curves.easeOut,

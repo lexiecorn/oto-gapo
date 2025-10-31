@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
+import 'package:otogapo/app/pages/admin_page.dart';
 import 'package:otogapo/services/n8n_error_logger.dart';
 import 'package:otogapo/widgets/crashlytics_test_button.dart';
-import 'package:otogapo/app/pages/admin_page.dart';
 
 class DeveloperToolsPage extends StatelessWidget {
   const DeveloperToolsPage({super.key});
@@ -40,13 +40,13 @@ class DeveloperToolsPage extends StatelessWidget {
                     const SizedBox(height: 12),
                     _buildInfoRow('Debug Mode', kDebugMode.toString()),
                     _buildInfoRow(
-                        'Flavor', FlavorConfig.instance.name ?? 'Unknown'),
+                        'Flavor', FlavorConfig.instance.name ?? 'Unknown',),
                     _buildInfoRow(
                         'Show Developer Tools',
                         (kDebugMode ||
                                 (FlavorConfig.instance.name ?? '') ==
                                     'DEVELOPMENT')
-                            .toString()),
+                            .toString(),),
                     _buildInfoRow('Platform', defaultTargetPlatform.name),
                   ],
                 ),
@@ -156,12 +156,12 @@ class DeveloperToolsPage extends StatelessWidget {
                 child: Column(
                   children: [
                     ElevatedButton(
-                      onPressed: () => _testPocketBaseConnection(),
+                      onPressed: _testPocketBaseConnection,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.purple,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 24),
+                            vertical: 12, horizontal: 24,),
                       ),
                       child: const Text('Test PocketBase Connection'),
                     ),
@@ -205,7 +205,7 @@ class DeveloperToolsPage extends StatelessWidget {
                         backgroundColor: Colors.amber,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 24),
+                            vertical: 12, horizontal: 24,),
                       ),
                       child: const Text('Show Debug Info'),
                     ),
@@ -249,7 +249,7 @@ class DeveloperToolsPage extends StatelessWidget {
                         backgroundColor: Colors.indigo,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 24),
+                            vertical: 12, horizontal: 24,),
                       ),
                       child: const Text('Admin Panel (Override)'),
                     ),
@@ -293,7 +293,7 @@ class DeveloperToolsPage extends StatelessWidget {
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 24),
+                            vertical: 12, horizontal: 24,),
                       ),
                       child: const Text('Show App Info'),
                     ),
@@ -347,7 +347,6 @@ class DeveloperToolsPage extends StatelessWidget {
           '  at DeveloperToolsPage.build (developer_tools_page.dart:1)\n'
           '  at _DeveloperToolsPageState.build (developer_tools_page.dart:1)',
       reason: 'Manual test from Developer Tools page',
-      fatal: false,
       useTestUrl: useTestUrl,
     );
   }
@@ -401,7 +400,7 @@ class DeveloperToolsPage extends StatelessWidget {
                   'Show Developer Tools',
                   (kDebugMode ||
                           (FlavorConfig.instance.name ?? '') == 'DEVELOPMENT')
-                      .toString()),
+                      .toString(),),
             ],
           ),
         ),

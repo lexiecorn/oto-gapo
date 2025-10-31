@@ -34,7 +34,7 @@ class HomeBodyState extends State<HomeBody> {
       print('Home Body - AuthBloc user UID: ${authBloc.state.user?.id}');
       if (authBloc.state.user != null) {
         print(
-            'Home Body - AuthBloc user email: ${authBloc.state.user!.data['email']}');
+            'Home Body - AuthBloc user email: ${authBloc.state.user!.data['email']}',);
       }
     });
   }
@@ -56,11 +56,11 @@ class HomeBodyState extends State<HomeBody> {
             // Add debugging
             print('Home Body - Profile Status: ${state.profileStatus}');
             print(
-                'Home Body - User Member Number: "${state.user.memberNumber}"');
+                'Home Body - User Member Number: "${state.user.memberNumber}"',);
             print('Home Body - User First Name: "${state.user.firstName}"');
             print('Home Body - User Last Name: "${state.user.lastName}"');
             print(
-                'Home Body - User Membership Type: ${state.user.membership_type}');
+                'Home Body - User Membership Type: ${state.user.membership_type}',);
             print('Home Body - User UID: "${state.user.uid}"');
 
             // Check if the current authenticated user is different from the profile user
@@ -117,7 +117,7 @@ class HomeBodyState extends State<HomeBody> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(Icons.person_off,
-                        size: 64, color: Colors.orange),
+                        size: 64, color: Colors.orange,),
                     const SizedBox(height: 16),
                     const Text(
                       'User data appears to be empty',

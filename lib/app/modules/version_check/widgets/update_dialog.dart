@@ -103,7 +103,7 @@ class UpdateDialog extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'What\'s New:',
+                          "What's New:",
                           style: TextStyle(
                             fontSize: 12.sp,
                             fontWeight: FontWeight.bold,
@@ -218,7 +218,7 @@ class UpdateDialog extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'What\'s New:',
+                      "What's New:",
                       style: TextStyle(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.bold,

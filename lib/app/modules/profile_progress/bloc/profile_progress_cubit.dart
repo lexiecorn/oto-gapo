@@ -88,7 +88,7 @@ class ProfileProgressCubit extends Cubit<ProfileProgressState> {
   }
 
   List<ProfileSuggestion> _generateSuggestions(
-      List<ProfileField> missingFields) {
+      List<ProfileField> missingFields,) {
     final suggestions = <ProfileSuggestion>[];
 
     for (final field in missingFields) {
@@ -100,10 +100,8 @@ class ProfileProgressCubit extends Cubit<ProfileProgressState> {
               title: 'Add Profile Photo',
               description:
                   'Help others recognize you by adding a profile photo',
-              priority: 1,
             ),
           );
-          break;
 
         case ProfileField.contactNumber:
           suggestions.add(
@@ -114,7 +112,6 @@ class ProfileProgressCubit extends Cubit<ProfileProgressState> {
               priority: 2,
             ),
           );
-          break;
 
         case ProfileField.memberNumber:
           suggestions.add(
@@ -122,10 +119,8 @@ class ProfileProgressCubit extends Cubit<ProfileProgressState> {
               field: ProfileField.memberNumber,
               title: 'Member Number Missing',
               description: 'Contact admin to get your member number assigned',
-              priority: 1,
             ),
           );
-          break;
 
         case ProfileField.middleName:
           suggestions.add(
@@ -136,7 +131,6 @@ class ProfileProgressCubit extends Cubit<ProfileProgressState> {
               priority: 3,
             ),
           );
-          break;
 
         case ProfileField.bloodType:
           suggestions.add(
@@ -147,18 +141,16 @@ class ProfileProgressCubit extends Cubit<ProfileProgressState> {
               priority: 2,
             ),
           );
-          break;
 
         case ProfileField.driversLicenseNumber:
           suggestions.add(
             const ProfileSuggestion(
               field: ProfileField.driversLicenseNumber,
-              title: 'Add Driver\'s License',
+              title: "Add Driver's License",
               description: 'Complete your driving credentials',
               priority: 2,
             ),
           );
-          break;
 
         case ProfileField.emergencyContactName:
           suggestions.add(
@@ -166,10 +158,8 @@ class ProfileProgressCubit extends Cubit<ProfileProgressState> {
               field: ProfileField.emergencyContactName,
               title: 'Add Emergency Contact',
               description: 'Important for safety and emergencies',
-              priority: 1,
             ),
           );
-          break;
 
         default:
           break;

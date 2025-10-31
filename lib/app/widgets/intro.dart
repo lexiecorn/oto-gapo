@@ -59,7 +59,7 @@ class _IntroPageState extends State<IntroPage> {
       print('Intro Widget - Auth status: ${authState.authStatus}');
       print('Intro Widget - Auth user: ${authState.user}');
       print(
-          'Intro Widget - Current ProfileCubit state: ${context.read<ProfileCubit>().state}');
+          'Intro Widget - Current ProfileCubit state: ${context.read<ProfileCubit>().state}',);
 
       // Check if user is authenticated before trying to get profile
       if (authState.authStatus != AuthStatus.authenticated ||
@@ -127,7 +127,7 @@ class _IntroPageState extends State<IntroPage> {
             });
           } else if (authState.authStatus == AuthStatus.unauthenticated) {
             print(
-                'Intro Widget - User not authenticated, clearing profile state');
+                'Intro Widget - User not authenticated, clearing profile state',);
             context.read<ProfileCubit>().forceClear();
           }
         },
@@ -140,12 +140,12 @@ class _IntroPageState extends State<IntroPage> {
             // Add debugging
             print('Intro Widget - Profile Status: ${state.profileStatus}');
             print(
-                'Intro Widget - User Member Number: "${state.user.memberNumber}"');
+                'Intro Widget - User Member Number: "${state.user.memberNumber}"',);
             print('Intro Widget - User First Name: "${state.user.firstName}"');
             print('Intro Widget - User Last Name: "${state.user.lastName}"');
             print('Intro Widget - User UID: "${state.user.uid}"');
             print(
-                'Intro Widget - User Membership Type: ${state.user.membership_type}');
+                'Intro Widget - User Membership Type: ${state.user.membership_type}',);
 
             // Check if the current authenticated user is different from the profile user
             final currentAuthUser = context.read<AuthBloc>().state.user;
@@ -194,7 +194,7 @@ class _IntroPageState extends State<IntroPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(Icons.person_off,
-                        size: 64, color: Colors.orange),
+                        size: 64, color: Colors.orange,),
                     const SizedBox(height: 16),
                     const Text(
                       'User data appears to be empty',

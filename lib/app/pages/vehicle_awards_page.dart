@@ -1,8 +1,8 @@
+import 'package:authentication_repository/authentication_repository.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:authentication_repository/authentication_repository.dart';
 
 @RoutePage(name: 'VehicleAwardsPageRouter')
 class VehicleAwardsPage extends StatefulWidget {
@@ -60,23 +60,21 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
           end: Alignment.bottomRight,
           colors: [
             const Color(0xFF2a1a0e).withOpacity(0.8),
-            const Color(0xFF3d2815).withOpacity(0.6)
+            const Color(0xFF3d2815).withOpacity(0.6),
           ],
         ),
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
-            color: const Color(0xFFffd700).withOpacity(0.3), width: 1),
+            color: const Color(0xFFffd700).withOpacity(0.3),),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFFffd700).withOpacity(0.1),
             blurRadius: 12,
-            spreadRadius: 0,
             offset: const Offset(0, 4),
           ),
           BoxShadow(
             color: Colors.black.withOpacity(0.3),
             blurRadius: 8,
-            spreadRadius: 0,
             offset: const Offset(0, 2),
           ),
         ],
@@ -93,11 +91,10 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
                   color: const Color(0xFFffd700).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
-                      color: const Color(0xFFffd700).withOpacity(0.4),
-                      width: 1),
+                      color: const Color(0xFFffd700).withOpacity(0.4),),
                 ),
                 child: Icon(Icons.emoji_events,
-                    size: 24.sp, color: const Color(0xFFffd700)),
+                    size: 24.sp, color: const Color(0xFFffd700),),
               ),
               SizedBox(width: 16.w),
               Expanded(
@@ -136,8 +133,7 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
                       color: const Color(0xFFffd700).withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8.r),
                       border: Border.all(
-                          color: const Color(0xFFffd700).withOpacity(0.4),
-                          width: 1),
+                          color: const Color(0xFFffd700).withOpacity(0.4),),
                     ),
                     child: Text(
                       award.category!,
@@ -158,8 +154,7 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
                       color: const Color(0xFFa855f7).withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8.r),
                       border: Border.all(
-                          color: const Color(0xFFa855f7).withOpacity(0.4),
-                          width: 1),
+                          color: const Color(0xFFa855f7).withOpacity(0.4),),
                     ),
                     child: Text(
                       award.placement!,
@@ -189,7 +184,7 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
             Text(
               award.description!,
               style: TextStyle(
-                  fontSize: 14.sp, color: Colors.grey[300], height: 1.4),
+                  fontSize: 14.sp, color: Colors.grey[300], height: 1.4,),
             ),
           ],
         ],
@@ -201,7 +196,7 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
             begin: 0.3,
             delay: (100 + (index * 100)).ms,
             duration: 600.ms,
-            curve: Curves.easeOutCubic);
+            curve: Curves.easeOutCubic,);
   }
 
   Widget _buildEmptyState() {
@@ -213,30 +208,30 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
           end: Alignment.bottomRight,
           colors: [
             const Color(0xFF1e2340).withOpacity(0.6),
-            const Color(0xFF2a2f4f).withOpacity(0.4)
+            const Color(0xFF2a2f4f).withOpacity(0.4),
           ],
         ),
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: Colors.grey[600]!.withOpacity(0.3), width: 1),
+        border: Border.all(color: Colors.grey[600]!.withOpacity(0.3)),
       ),
       child: Column(
         children: [
           Icon(Icons.emoji_events_outlined,
-              size: 64.sp, color: Colors.grey[500]),
+              size: 64.sp, color: Colors.grey[500],),
           SizedBox(height: 16.h),
           Text(
             'No Awards Yet',
             style: TextStyle(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey[400]),
+                color: Colors.grey[400],),
           ),
           SizedBox(height: 8.h),
           Text(
             'Start participating in car shows and events to earn your first award!',
             textAlign: TextAlign.center,
             style: TextStyle(
-                fontSize: 14.sp, color: Colors.grey[500], height: 1.4),
+                fontSize: 14.sp, color: Colors.grey[500], height: 1.4,),
           ),
           SizedBox(height: 24.h),
           ElevatedButton.icon(
@@ -245,17 +240,17 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                     content: Text('Add award feature coming soon!'),
-                    backgroundColor: Color(0xFF00d4ff)),
+                    backgroundColor: Color(0xFF00d4ff),),
               );
             },
             icon: Icon(Icons.add, size: 18.sp),
-            label: Text('Add Award'),
+            label: const Text('Add Award'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF00d4ff),
               foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r)),
+                  borderRadius: BorderRadius.circular(8.r),),
             ),
           ),
         ],
@@ -263,7 +258,7 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
     ).animate().fadeIn(duration: 800.ms).scale(
         begin: const Offset(0.9, 0.9),
         duration: 800.ms,
-        curve: Curves.easeOutBack);
+        curve: Curves.easeOutBack,);
   }
 
   Widget _buildLoadingState() {
@@ -279,12 +274,12 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
               end: Alignment.bottomRight,
               colors: [
                 const Color(0xFF2a1a0e).withOpacity(0.8),
-                const Color(0xFF3d2815).withOpacity(0.6)
+                const Color(0xFF3d2815).withOpacity(0.6),
               ],
             ),
             borderRadius: BorderRadius.circular(16.r),
             border: Border.all(
-                color: const Color(0xFFffd700).withOpacity(0.2), width: 1),
+                color: const Color(0xFFffd700).withOpacity(0.2),),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -296,12 +291,12 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
                     height: 48.h,
                     decoration: BoxDecoration(
                         color: Colors.grey[700],
-                        borderRadius: BorderRadius.circular(12.r)),
+                        borderRadius: BorderRadius.circular(12.r),),
                   )
                       .animate(onPlay: (controller) => controller.repeat())
                       .shimmer(
                           duration: 1500.ms,
-                          color: const Color(0xFFffd700).withOpacity(0.3)),
+                          color: const Color(0xFFffd700).withOpacity(0.3),),
                   SizedBox(width: 16.w),
                   Expanded(
                     child: Column(
@@ -316,11 +311,11 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
                           ),
                         )
                             .animate(
-                                onPlay: (controller) => controller.repeat())
+                                onPlay: (controller) => controller.repeat(),)
                             .shimmer(
                                 duration: 1500.ms,
                                 color:
-                                    const Color(0xFFffd700).withOpacity(0.3)),
+                                    const Color(0xFFffd700).withOpacity(0.3),),
                         SizedBox(height: 8.h),
                         Container(
                           height: 14.h,
@@ -331,11 +326,11 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
                           ),
                         )
                             .animate(
-                                onPlay: (controller) => controller.repeat())
+                                onPlay: (controller) => controller.repeat(),)
                             .shimmer(
                                 duration: 1500.ms,
                                 color:
-                                    const Color(0xFFffd700).withOpacity(0.3)),
+                                    const Color(0xFFffd700).withOpacity(0.3),),
                       ],
                     ),
                   ),
@@ -361,7 +356,7 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
       'Sep',
       'Oct',
       'Nov',
-      'Dec'
+      'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
@@ -382,7 +377,7 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
           style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.w600,
-              color: Colors.white),
+              color: Colors.white,),
         ),
         centerTitle: true,
         actions: [
@@ -393,7 +388,7 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                     content: Text('Add award feature coming soon!'),
-                    backgroundColor: Color(0xFF00d4ff)),
+                    backgroundColor: Color(0xFF00d4ff),),
               );
             },
           ),
@@ -407,14 +402,14 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.error_outline,
-                          size: 64.sp, color: Colors.red[400]),
+                          size: 64.sp, color: Colors.red[400],),
                       SizedBox(height: 16.h),
                       Text(
                         'Failed to load awards',
                         style: TextStyle(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.w600,
-                            color: Colors.red[400]),
+                            color: Colors.red[400],),
                       ),
                       SizedBox(height: 8.h),
                       Text(
@@ -426,11 +421,11 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
                       SizedBox(height: 24.h),
                       ElevatedButton(
                         onPressed: _loadAwards,
-                        child: Text('Retry'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF00d4ff),
                           foregroundColor: Colors.white,
                         ),
+                        child: const Text('Retry'),
                       ),
                     ],
                   ),
@@ -447,13 +442,13 @@ class _VehicleAwardsPageState extends State<VehicleAwardsPage> {
                             style: TextStyle(
                                 fontSize: 16.sp,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.grey[300]),
+                                color: Colors.grey[300],),
                           ),
                           SizedBox(height: 16.h),
                           ...List.generate(
                               _awards.length,
                               (index) =>
-                                  _buildAwardCard(_awards[index], index)),
+                                  _buildAwardCard(_awards[index], index),),
                         ],
                       ),
                     ),

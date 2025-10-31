@@ -52,13 +52,6 @@ class PostReaction {
     required this.createdAt,
   });
 
-  final String id;
-  final String postId;
-  final String userId;
-  final String userName;
-  final ReactionType reactionType;
-  final DateTime createdAt;
-
   /// Factory constructor to create a PostReaction from PocketBase RecordModel
   factory PostReaction.fromRecord(RecordModel record) {
     final data = record.data;
@@ -88,6 +81,13 @@ class PostReaction {
       createdAt: DateTime.parse(record.get<String>('created')),
     );
   }
+
+  final String id;
+  final String postId;
+  final String userId;
+  final String userName;
+  final ReactionType reactionType;
+  final DateTime createdAt;
 
   /// Copy with method for creating modified copies
   PostReaction copyWith({

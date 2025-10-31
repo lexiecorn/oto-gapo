@@ -17,13 +17,13 @@ import 'package:otogapo/app/modules/signin/bloc/signin_cubit.dart';
 import 'package:otogapo/app/modules/signup/signup_cubit.dart';
 import 'package:otogapo/app/modules/version_check/bloc/version_check_cubit.dart';
 import 'package:otogapo/app/routes/app_router.dart';
-import 'package:otogapo/repositories/version_repository.dart';
-import 'package:otogapo/services/pocketbase_service.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:otogapo/bootstrap.dart';
 import 'package:otogapo/providers/theme_provider.dart';
+import 'package:otogapo/repositories/version_repository.dart';
 import 'package:otogapo/services/connectivity_service.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:otogapo/services/sync_service.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -84,15 +84,15 @@ class App extends StatelessWidget {
           providers: [
             RepositoryProvider<AuthRepository>.value(value: _authRepository),
             RepositoryProvider<PocketBaseAuthRepository>.value(
-                value: _pocketBaseAuthRepository),
+                value: _pocketBaseAuthRepository,),
             RepositoryProvider<ProfileRepository>(
               create: (context) => ProfileRepository(
-                  pocketBaseAuth: context.read<PocketBaseAuthRepository>()),
+                  pocketBaseAuth: context.read<PocketBaseAuthRepository>(),),
             ),
             RepositoryProvider<AttendanceRepository>(
               create: (context) => AttendanceRepository(
                   pocketBase:
-                      context.read<PocketBaseAuthRepository>().pocketBase),
+                      context.read<PocketBaseAuthRepository>().pocketBase,),
             ),
             // RepositoryProvider(
             //   create: (context) => PickListsRepository(
@@ -129,7 +129,7 @@ class App extends StatelessWidget {
               ),
               BlocProvider<SigninCubit>(
                 create: (context) => SigninCubit(
-                    pocketBaseAuth: context.read<PocketBaseAuthRepository>()),
+                    pocketBaseAuth: context.read<PocketBaseAuthRepository>(),),
               ),
               BlocProvider<SignupCubit>(
                 create: (context) =>
@@ -137,27 +137,27 @@ class App extends StatelessWidget {
               ),
               BlocProvider<ProfileCubit>(
                 create: (context) => ProfileCubit(
-                    profileRepository: context.read<ProfileRepository>()),
+                    profileRepository: context.read<ProfileRepository>(),),
               ),
               BlocProvider<MeetingCubit>(
                 create: (context) => MeetingCubit(
-                    attendanceRepository: context.read<AttendanceRepository>()),
+                    attendanceRepository: context.read<AttendanceRepository>(),),
               ),
               BlocProvider<AttendanceCubit>(
                 create: (context) => AttendanceCubit(
-                    attendanceRepository: context.read<AttendanceRepository>()),
+                    attendanceRepository: context.read<AttendanceRepository>(),),
               ),
               // New Cubits for advanced features
               BlocProvider<ConnectivityCubit>(
                 create: (context) => ConnectivityCubit(
                     connectivityService: ConnectivityService(),
-                    syncService: SyncService()),
+                    syncService: SyncService(),),
               ),
               BlocProvider<CalendarCubit>(
                   create: (context) =>
-                      CalendarCubit(pocketBaseService: PocketBaseService())),
+                      CalendarCubit(pocketBaseService: PocketBaseService()),),
               BlocProvider<ProfileProgressCubit>(
-                  create: (context) => ProfileProgressCubit()),
+                  create: (context) => ProfileProgressCubit(),),
               BlocProvider<AdminAnalyticsCubit>(
                 create: (context) =>
                     AdminAnalyticsCubit(pocketBaseService: PocketBaseService()),
@@ -175,7 +175,7 @@ class App extends StatelessWidget {
             ],
             child: ChangeNotifierProvider(
                 create: (context) => ThemeProvider(prefs!),
-                child: const AppView()),
+                child: const AppView(),),
           ),
         );
       },
@@ -204,7 +204,7 @@ class AppView extends StatelessWidget {
               theme: themeProvider.theme,
               builder: (context, child) {
                 return AnnotatedRegion<SystemUiOverlayStyle>(
-                  value: SystemUiOverlayStyle(
+                  value: const SystemUiOverlayStyle(
                     statusBarColor: Colors.transparent,
                     statusBarIconBrightness: Brightness.light,
                     statusBarBrightness: Brightness.dark,

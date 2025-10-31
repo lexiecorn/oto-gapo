@@ -95,7 +95,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
         final pocketbaseUrl =
             FlavorConfig.instance.variables['pocketbaseUrl'] as String;
         _profileImageUrlFuture = Future.value(
-            '$pocketbaseUrl/api/files/users/${_editedData['id']}/$profileImageValue');
+            '$pocketbaseUrl/api/files/users/${_editedData['id']}/$profileImageValue',);
       }
     }
 
@@ -217,7 +217,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
         });
       } else {
         print(
-            'UserDetailPage - Warning: No profile image URL returned from PocketBase');
+            'UserDetailPage - Warning: No profile image URL returned from PocketBase',);
       }
 
       if (mounted) {
@@ -231,7 +231,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
     } catch (e) {
       print('UserDetailPage - Error updating profile image: $e');
       print('UserDetailPage - Error type: ${e.runtimeType}');
-      print('UserDetailPage - Error details: ${e.toString()}');
+      print('UserDetailPage - Error details: $e');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -514,7 +514,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                 ConnectionState.waiting) {
                               return const CircleAvatar(
                                   radius: 60,
-                                  child: CircularProgressIndicator());
+                                  child: CircularProgressIndicator(),);
                             }
                             if (snapshot.hasError) {
                               return CircleAvatar(
@@ -523,14 +523,14 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                 child: Tooltip(
                                   message: snapshot.error.toString(),
                                   child: const Icon(Icons.error,
-                                      size: 60, color: Colors.red),
+                                      size: 60, color: Colors.red,),
                                 ),
                               );
                             }
                             if (!snapshot.hasData || snapshot.data!.isEmpty) {
                               return const CircleAvatar(
                                   radius: 60,
-                                  child: Icon(Icons.person, size: 60));
+                                  child: Icon(Icons.person, size: 60),);
                             }
                             final imageUrl = snapshot.data!;
                             return CircleAvatar(
@@ -556,7 +556,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                         )
                       else
                         const CircleAvatar(
-                            radius: 60, child: Icon(Icons.person, size: 60)),
+                            radius: 60, child: Icon(Icons.person, size: 60),),
 
                       // Edit button overlay (only show when editing)
                       if (_isEditing)
@@ -579,13 +579,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                         strokeWidth: 2,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                                Colors.white),
+                                                Colors.white,),
                                       ),
                                     ),
                                   )
                                 : IconButton(
                                     icon: const Icon(Icons.camera_alt,
-                                        color: Colors.white, size: 20),
+                                        color: Colors.white, size: 20,),
                                     onPressed: _pickAndUploadImage,
                                     tooltip: 'Change Profile Image',
                                     padding: EdgeInsets.zero,
@@ -610,7 +610,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     _buildEditableField('Last Name', 'lastName'),
                     _buildEditableField('Age', 'age', isNumber: true),
                     _buildEditableField('Date of Birth', 'dateOfBirth',
-                        isDate: true),
+                        isDate: true,),
                     _buildEditableField('Birthplace', 'birthplace'),
                     _buildEditableField('Contact Number', 'contactNumber'),
                     _buildEditableField('Nationality', 'nationality'),
@@ -633,7 +633,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   [
                     _buildEditableField('Contact Name', 'emergencyContactName'),
                     _buildEditableField(
-                        'Contact Number', 'emergencyContactNumber'),
+                        'Contact Number', 'emergencyContactNumber',),
                   ],
                 ),
 
@@ -644,13 +644,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   'Membership Information',
                   [
                     _buildEditableField('Member Number', 'memberNumber',
-                        isNumber: true),
+                        isNumber: true,),
                     _buildEditableField('Membership Type', 'membership_type'),
                     _buildEditableField('Is Active', 'isActive',
-                        isBoolean: true),
+                        isBoolean: true,),
                     _buildEditableField('Is Admin', 'isAdmin', isBoolean: true),
                     _buildEditableField('Joined Date', 'joinedDate',
-                        isDate: true),
+                        isDate: true,),
                   ],
                 ),
 
@@ -661,13 +661,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   "Driver's License Information",
                   [
                     _buildEditableField(
-                        'License Number', 'driversLicenseNumber'),
+                        'License Number', 'driversLicenseNumber',),
                     _buildEditableField(
                         'License Exp. Date', 'driversLicenseExpirationDate',
-                        isDate: true),
+                        isDate: true,),
                     _buildEditableField('License Restriction Code',
                         'driversLicenseRestrictionCode',
-                        isNumber: true),
+                        isNumber: true,),
                   ],
                 ),
 
@@ -679,7 +679,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   [
                     _buildEditableField('Spouse Name', 'spouseName'),
                     _buildEditableField(
-                        'Spouse Contact Number', 'spouseContactNumber'),
+                        'Spouse Contact Number', 'spouseContactNumber',),
                   ],
                 ),
 
@@ -696,7 +696,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                       _buildDetailRow('Vehicle Color', firstVehicle['color']),
                       _buildDetailRow('Vehicle Type', firstVehicle['type']),
                       _buildDetailRow(
-                          'License Plate', firstVehicle['plateNumber']),
+                          'License Plate', firstVehicle['plateNumber'],),
                       if (_isEditing) ...[
                         const SizedBox(height: 16),
                         _buildCarImagesUploadSection(),
@@ -725,7 +725,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                         'O+',
                         'O-',
                         'AB+',
-                        'AB-'
+                        'AB-',
                       ],
                     ),
                   ],
@@ -753,13 +753,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     label: const Text(
                       'Delete',
                       style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
+                          color: Colors.white, fontWeight: FontWeight.bold,),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 16),
+                          horizontal: 32, vertical: 16,),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(25),
                       ),
@@ -1143,7 +1143,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
           // Handle vehicle data - always remove first, then add back only if valid
           print(
-              'Debug: Vehicle data before processing: ${updateData['vehicle']}');
+              'Debug: Vehicle data before processing: ${updateData['vehicle']}',);
 
           // Always remove vehicle field first to avoid validation errors
           updateData.remove('vehicle');
@@ -1153,12 +1153,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
             Map<String, dynamic>? vehicle;
             if (_editedData['vehicle'] is Map<String, dynamic>) {
               vehicle = Map<String, dynamic>.from(
-                  _editedData['vehicle'] as Map<String, dynamic>);
+                  _editedData['vehicle'] as Map<String, dynamic>,);
             } else if (_editedData['vehicle'] is List &&
                 (_editedData['vehicle'] as List).isNotEmpty) {
               final vehicleList = _editedData['vehicle'] as List;
               vehicle = Map<String, dynamic>.from(
-                  vehicleList[0] as Map<String, dynamic>);
+                  vehicleList[0] as Map<String, dynamic>,);
             }
 
             if (vehicle != null) {
@@ -1169,11 +1169,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
               print('Debug: Vehicle has required fields: $hasRequiredFields');
               print(
-                  'Debug: Vehicle make: ${vehicle['make']}, model: ${vehicle['model']}, year: ${vehicle['year']}');
+                  'Debug: Vehicle make: ${vehicle['make']}, model: ${vehicle['model']}, year: ${vehicle['year']}',);
 
               if (hasRequiredFields) {
                 final existingPhotos = List<String>.from(
-                    (vehicle['photos'] as List<dynamic>?) ?? []);
+                    (vehicle['photos'] as List<dynamic>?) ?? [],);
 
                 // Add new car images to photos array
                 if (carImage1Url != null) existingPhotos.add(carImage1Url);
@@ -1192,7 +1192,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 print('Debug: Added valid vehicle to updateData');
               } else {
                 print(
-                    'Debug: Vehicle missing required fields, not including in update');
+                    'Debug: Vehicle missing required fields, not including in update',);
               }
             } else {
               print('Debug: Vehicle is null, not including in update');
@@ -1202,7 +1202,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
           }
 
           print(
-              'Debug: Final updateData before sending to PocketBase: ${updateData.keys.toList()}');
+              'Debug: Final updateData before sending to PocketBase: ${updateData.keys.toList()}',);
           print('Debug: Vehicle field in final data: ${updateData['vehicle']}');
 
           // Update user in PocketBase
@@ -1265,7 +1265,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
         return AlertDialog(
           title: const Text('Confirm Delete'),
           content: Text(
-              'Are you sure you want to delete $displayName? This action cannot be undone.'),
+              'Are you sure you want to delete $displayName? This action cannot be undone.',),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -1308,7 +1308,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       if (authState.user != null && authState.user!.id == userId) {
         // Remove loading overlay
         print(
-            'Attempting to delete own account, returning error result...'); // Debug log
+            'Attempting to delete own account, returning error result...',); // Debug log
         Navigator.of(context).pop('error: Cannot delete your own account');
         print('Error result returned successfully'); // Debug log
         return;
@@ -1342,7 +1342,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
             pocketBaseError.toString().contains('permission') ||
             pocketBaseError.toString().contains('PERMISSION_DENIED')) {
           throw Exception(
-              'Permission denied: Unable to delete user. Please check your permissions or try again.');
+              'Permission denied: Unable to delete user. Please check your permissions or try again.',);
         }
         rethrow; // Re-throw other errors
       }
@@ -1482,7 +1482,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
           }
         } catch (e) {
           // If parsing fails, just display as string
-          displayValue = value.toString();
+          displayValue = value;
         }
       } else if (value is bool) {
         displayValue = value ? 'Yes' : 'No';
@@ -1549,9 +1549,9 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 print(
-                                    'Network image error for $imageUrl: $error');
+                                    'Network image error for $imageUrl: $error',);
                                 return _buildCarImagePlaceholder(
-                                    0, 'Failed', Colors.orange);
+                                    0, 'Failed', Colors.orange,);
                               },
                               loadingBuilder:
                                   (context, child, loadingProgress) {
@@ -1601,7 +1601,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
             style: Theme.of(context)
                 .textTheme
                 .titleMedium
-                ?.copyWith(fontWeight: FontWeight.w600)),
+                ?.copyWith(fontWeight: FontWeight.w600),),
         const SizedBox(height: 16),
 
         // Main Car Image
@@ -1640,7 +1640,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
                               return const Center(
-                                  child: CircularProgressIndicator());
+                                  child: CircularProgressIndicator(),);
                             }
 
                             if (snapshot.hasData && snapshot.data != null) {
@@ -1661,7 +1661,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                           return const Icon(
                                               Icons.directions_car,
                                               size: 40,
-                                              color: Colors.grey);
+                                              color: Colors.grey,);
                                         },
                                       ),
                                     );
@@ -1678,7 +1678,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return const Icon(Icons.directions_car,
-                                      size: 40, color: Colors.grey);
+                                      size: 40, color: Colors.grey,);
                                 },
                               ),
                             );
@@ -1711,7 +1711,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               )
                             : const Icon(Icons.camera_alt),
                         label: Text(
-                            _isUploadingCarImage ? 'Uploading...' : 'Change'),
+                            _isUploadingCarImage ? 'Uploading...' : 'Change',),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
@@ -1827,13 +1827,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                             MainAxisAlignment.center,
                                         children: [
                                           const Icon(Icons.directions_car,
-                                              size: 32, color: Colors.grey),
+                                              size: 32, color: Colors.grey,),
                                           const SizedBox(height: 4),
                                           Text(
                                             'Car $imageNumber',
                                             style: const TextStyle(
                                                 color: Colors.grey,
-                                                fontSize: 12),
+                                                fontSize: 12,),
                                           ),
                                         ],
                                       ),
@@ -1848,7 +1848,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               right: 4,
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
+                                    horizontal: 6, vertical: 2,),
                                 decoration: BoxDecoration(
                                   color: Colors.black.withOpacity(0.7),
                                   borderRadius: BorderRadius.circular(4),
@@ -1895,7 +1895,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                   backgroundColor: Colors.blue,
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
+                                      horizontal: 8, vertical: 4,),
                                   minimumSize: const Size(0, 24),
                                 ),
                               ),
@@ -1929,12 +1929,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                           MainAxisAlignment.center,
                                       children: [
                                         const Icon(Icons.directions_car,
-                                            size: 32, color: Colors.grey),
+                                            size: 32, color: Colors.grey,),
                                         const SizedBox(height: 4),
                                         Text(
                                           'Car $imageNumber',
                                           style: const TextStyle(
-                                              color: Colors.grey, fontSize: 12),
+                                              color: Colors.grey, fontSize: 12,),
                                         ),
                                       ],
                                     ),
@@ -1949,7 +1949,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             right: 4,
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                                  horizontal: 6, vertical: 2,),
                               decoration: BoxDecoration(
                                 color: Colors.black.withOpacity(0.7),
                                 borderRadius: BorderRadius.circular(4),
@@ -1996,7 +1996,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                 backgroundColor: Colors.blue,
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
+                                    horizontal: 8, vertical: 4,),
                                 minimumSize: const Size(0, 24),
                               ),
                             ),
@@ -2040,12 +2040,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       const Icon(Icons.directions_car,
-                                          size: 32, color: Colors.grey),
+                                          size: 32, color: Colors.grey,),
                                       const SizedBox(height: 4),
                                       Text(
                                         'Car $imageNumber',
                                         style: const TextStyle(
-                                            color: Colors.grey, fontSize: 12),
+                                            color: Colors.grey, fontSize: 12,),
                                       ),
                                     ],
                                   ),
@@ -2060,7 +2060,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     right: 4,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                          horizontal: 6, vertical: 2,),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.7),
                         borderRadius: BorderRadius.circular(4),
@@ -2107,7 +2107,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
+                            horizontal: 8, vertical: 4,),
                         minimumSize: const Size(0, 24),
                       ),
                     ),
@@ -2239,7 +2239,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.directions_car,
-                                size: 48, color: Colors.grey),
+                                size: 48, color: Colors.grey,),
                             SizedBox(height: 8),
                             Text(
                               'No main car image',
@@ -2264,7 +2264,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
             style: Theme.of(context)
                 .textTheme
                 .bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w600)),
+                ?.copyWith(fontWeight: FontWeight.w600),),
         const SizedBox(height: 8),
 
         // Grid of car images
@@ -2284,7 +2284,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
             if (userId == null) {
               return _buildCarImagePlaceholder(
-                  imageNumber, 'No user ID', Colors.grey);
+                  imageNumber, 'No user ID', Colors.grey,);
             }
 
             // Get car image from PocketBase
@@ -2329,7 +2329,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             height: double.infinity,
                             errorBuilder: (context, error, stackTrace) {
                               return _buildCarImagePlaceholder(
-                                  imageNumber, 'Empty', Colors.grey);
+                                  imageNumber, 'Empty', Colors.grey,);
                             },
                           ),
                           // Image number overlay
@@ -2338,7 +2338,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             right: 4,
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                                  horizontal: 6, vertical: 2,),
                               decoration: BoxDecoration(
                                 color: Colors.black.withOpacity(0.7),
                                 borderRadius: BorderRadius.circular(4),
@@ -2384,7 +2384,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               height: double.infinity,
                               errorBuilder: (context, error, stackTrace) {
                                 return _buildCarImagePlaceholder(
-                                    imageNumber, 'Empty', Colors.grey);
+                                    imageNumber, 'Empty', Colors.grey,);
                               },
                             ),
                             // Image number overlay
@@ -2393,7 +2393,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               right: 4,
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
+                                    horizontal: 6, vertical: 2,),
                                 decoration: BoxDecoration(
                                   color: Colors.black.withOpacity(0.7),
                                   borderRadius: BorderRadius.circular(4),
@@ -2416,7 +2416,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   // For actual errors, show error state
                   // print('Error loading car image $imageNumber: $error');
                   return _buildCarImagePlaceholder(
-                      imageNumber, 'Error', Colors.red);
+                      imageNumber, 'Error', Colors.red,);
                 }
 
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -2438,7 +2438,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             height: double.infinity,
                             errorBuilder: (context, error, stackTrace) {
                               return _buildCarImagePlaceholder(
-                                  imageNumber, 'Empty', Colors.grey);
+                                  imageNumber, 'Empty', Colors.grey,);
                             },
                           ),
                           // Image number overlay
@@ -2447,7 +2447,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             right: 4,
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                                  horizontal: 6, vertical: 2,),
                               decoration: BoxDecoration(
                                 color: Colors.black.withOpacity(0.7),
                                 borderRadius: BorderRadius.circular(4),
@@ -2486,7 +2486,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                           errorBuilder: (context, error, stackTrace) {
                             // print('Network image error for $imageNumber: $error');
                             return _buildCarImagePlaceholder(
-                                imageNumber, 'Failed', Colors.orange);
+                                imageNumber, 'Failed', Colors.orange,);
                           },
                         ),
                         // Image number overlay
@@ -2495,7 +2495,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                           right: 4,
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                                horizontal: 6, vertical: 2,),
                             decoration: BoxDecoration(
                               color: Colors.black.withOpacity(0.7),
                               borderRadius: BorderRadius.circular(4),
@@ -2523,7 +2523,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   }
 
   Widget _buildCarImagePlaceholder(
-      int imageNumber, String status, Color color) {
+      int imageNumber, String status, Color color,) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: color),

@@ -36,7 +36,7 @@ class _BouncyButtonState extends State<BouncyButton>
     );
 
     _scaleAnimation = Tween<double>(
-      begin: 1.0,
+      begin: 1,
       end: widget.scale,
     ).animate(
       CurvedAnimation(
@@ -114,7 +114,7 @@ class BouncyIconButton extends StatelessWidget {
 
     if (tooltip != null) {
       return Tooltip(
-        message: tooltip!,
+        message: tooltip,
         child: button,
       );
     }

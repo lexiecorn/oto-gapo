@@ -84,7 +84,6 @@ class ComplianceChart extends StatelessWidget {
                 maxY: 100,
                 minY: 0,
                 gridData: FlGridData(
-                  show: true,
                   drawVerticalLine: false,
                   horizontalInterval: 20,
                   getDrawingHorizontalLine: (value) {
@@ -111,10 +110,10 @@ class ComplianceChart extends StatelessWidget {
                     ),
                   ),
                   rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+                    
                   ),
                   topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+                    
                   ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
@@ -148,11 +147,9 @@ class ComplianceChart extends StatelessWidget {
                   border: Border(
                     bottom: BorderSide(
                       color: theme.dividerColor,
-                      width: 1,
                     ),
                     left: BorderSide(
                       color: theme.dividerColor,
-                      width: 1,
                     ),
                   ),
                 ),

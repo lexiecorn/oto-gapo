@@ -2,14 +2,13 @@ import 'package:authentication_repository/authentication_repository.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/utils/car_logo_helper.dart';
-import 'package:otogapo/widgets/vehicle_spec_card.dart';
 import 'package:otogapo/widgets/awards_trophy_row.dart';
+import 'package:otogapo/widgets/vehicle_spec_card.dart';
 import 'package:otogapo_core/otogapo_core.dart';
 
 class CarWidget extends StatefulWidget {
@@ -32,10 +31,10 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
     super.initState();
 
     _carAnimationController = AnimationController(
-        duration: const Duration(milliseconds: 1200), vsync: this);
+        duration: const Duration(milliseconds: 1200), vsync: this,);
 
     _imageAnimationController = AnimationController(
-        duration: const Duration(milliseconds: 1000), vsync: this);
+        duration: const Duration(milliseconds: 1000), vsync: this,);
 
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
@@ -89,23 +88,23 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
             colors: isDark
                 ? [
                     Colors.grey.shade900.withOpacity(0.8),
-                    Colors.grey.shade800.withOpacity(0.6)
+                    Colors.grey.shade800.withOpacity(0.6),
                   ]
                 : [
                     Colors.grey.shade100.withOpacity(0.8),
-                    Colors.grey.shade200.withOpacity(0.6)
+                    Colors.grey.shade200.withOpacity(0.6),
                   ],
           ),
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
-              color: const Color(0xFFE61525).withOpacity(0.3), width: 1),
+              color: const Color(0xFFE61525).withOpacity(0.3),),
         ),
         child: Center(
           child: Text(
             'No vehicle specifications available',
             style: TextStyle(
                 fontSize: 16.sp,
-                color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                color: isDark ? Colors.grey[400] : Colors.grey[600],),
           ),
         ),
       );
@@ -120,27 +119,27 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
       {
         'icon': Icons.local_gas_station,
         'label': 'Fuel Type',
-        'value': vehicle.fuelType ?? 'N/A'
+        'value': vehicle.fuelType ?? 'N/A',
       },
       {
         'icon': Icons.timeline,
         'label': 'Mileage',
-        'value': vehicle.mileage != null ? '${vehicle.mileage} km' : 'N/A'
+        'value': vehicle.mileage != null ? '${vehicle.mileage} km' : 'N/A',
       },
       {
         'icon': Icons.settings,
         'label': 'Wheels',
-        'value': vehicle.wheelSize ?? 'N/A'
+        'value': vehicle.wheelSize ?? 'N/A',
       },
       {
         'icon': Icons.settings_outlined,
         'label': 'Transmission',
-        'value': vehicle.transmission ?? 'N/A'
+        'value': vehicle.transmission ?? 'N/A',
       },
       {
         'icon': Icons.power,
         'label': 'Power',
-        'value': vehicle.horsepower != null ? '${vehicle.horsepower} HP' : 'N/A'
+        'value': vehicle.horsepower != null ? '${vehicle.horsepower} HP' : 'N/A',
       },
     ];
 
@@ -157,9 +156,9 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
       itemBuilder: (context, index) {
         final spec = specs[index];
         return VehicleSpecCard(
-          icon: spec['icon'] as IconData,
-          label: spec['label'] as String,
-          value: spec['value'] as String,
+          icon: spec['icon']! as IconData,
+          label: spec['label']! as String,
+          value: spec['value']! as String,
         )
             .animate()
             .fadeIn(delay: (400 + (index * 100)).ms, duration: 600.ms)
@@ -167,7 +166,7 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
                 begin: 0.2,
                 delay: (400 + (index * 100)).ms,
                 duration: 600.ms,
-                curve: Curves.easeOutCubic);
+                curve: Curves.easeOutCubic,);
       },
     );
   }
@@ -246,7 +245,7 @@ class _CarWidgetImageCardState extends State<CarWidgetImageCard>
   void initState() {
     super.initState();
     _imageAnimationController = AnimationController(
-        duration: const Duration(milliseconds: 1000), vsync: this);
+        duration: const Duration(milliseconds: 1000), vsync: this,);
     _imageAnimationController.forward();
   }
 
@@ -263,14 +262,14 @@ class _CarWidgetImageCardState extends State<CarWidgetImageCard>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return _HeroImageCard(
-        state: widget.state, vehicle: vehicle, isDark: isDark);
+        state: widget.state, vehicle: vehicle, isDark: isDark,);
   }
 }
 
 /// Standalone widget for displaying the hero image with car and user details
 class _HeroImageCard extends StatelessWidget {
   const _HeroImageCard(
-      {required this.state, required this.vehicle, required this.isDark});
+      {required this.state, required this.vehicle, required this.isDark,});
 
   final ProfileState state;
   final Vehicle? vehicle;
@@ -341,7 +340,7 @@ class _HeroImageCard extends StatelessWidget {
               child: Center(
                 child: Icon(Icons.directions_car,
                     size: 80.sp,
-                    color: const Color(0xFFE61525).withOpacity(0.5)),
+                    color: const Color(0xFFE61525).withOpacity(0.5),),
               ),
             ),
           ),
@@ -353,7 +352,7 @@ class _HeroImageCard extends StatelessWidget {
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.black.withOpacity(0.5),
-                  Colors.black.withOpacity(0.3)
+                  Colors.black.withOpacity(0.3),
                 ],
               ),
             ),
@@ -375,7 +374,7 @@ class _HeroImageCard extends StatelessWidget {
       ),
       child: Center(
         child: Icon(Icons.directions_car,
-            size: 80.sp, color: const Color(0xFFE61525).withOpacity(0.5)),
+            size: 80.sp, color: const Color(0xFFE61525).withOpacity(0.5),),
       ),
     );
   }
@@ -412,18 +411,17 @@ class _HeroImageCard extends StatelessWidget {
               : [
                   Colors.grey.shade100,
                   Colors.grey.shade200,
-                  Colors.grey.shade300
+                  Colors.grey.shade300,
                 ],
         ),
         borderRadius: BorderRadius.only(
             bottomLeft: Radius.circular(24.r),
-            bottomRight: Radius.circular(24.r)),
+            bottomRight: Radius.circular(24.r),),
         boxShadow: [
           BoxShadow(
               color: Colors.black.withOpacity(0.2),
               blurRadius: 20,
-              spreadRadius: 0,
-              offset: const Offset(0, 4)),
+              offset: const Offset(0, 4),),
         ],
       ),
       child: Stack(
@@ -433,7 +431,7 @@ class _HeroImageCard extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(24.r),
-                  bottomRight: Radius.circular(24.r)),
+                  bottomRight: Radius.circular(24.r),),
               child: _buildHeroImage(),
             ),
           ),
@@ -459,11 +457,11 @@ class _HeroImageCard extends StatelessWidget {
                       Shadow(
                           color: Colors.black.withOpacity(0.7),
                           blurRadius: 6,
-                          offset: const Offset(0, 2)),
+                          offset: const Offset(0, 2),),
                       Shadow(
                           color: Colors.black.withOpacity(0.5),
                           blurRadius: 10,
-                          offset: const Offset(0, 4)),
+                          offset: const Offset(0, 4),),
                     ],
                   ),
                 ),
@@ -478,7 +476,7 @@ class _HeroImageCard extends StatelessWidget {
                         Shadow(
                             color: Colors.black.withOpacity(0.5),
                             blurRadius: 2,
-                            offset: const Offset(0, 1)),
+                            offset: const Offset(0, 1),),
                       ],
                     ),
                   ),
@@ -491,7 +489,7 @@ class _HeroImageCard extends StatelessWidget {
             Positioned(
                 top: MediaQuery.of(context).padding.top + 36.h,
                 right: 16.w,
-                child: _buildCarLogo(vehicle!.make)),
+                child: _buildCarLogo(vehicle!.make),),
           // User details at bottom left
           Positioned(
             bottom: 16.h,
@@ -503,7 +501,7 @@ class _HeroImageCard extends StatelessWidget {
                 color: Colors.black.withOpacity(0.6),
                 borderRadius: BorderRadius.circular(12.r),
                 border:
-                    Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                    Border.all(color: Colors.white.withOpacity(0.2)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -515,12 +513,12 @@ class _HeroImageCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                          color: const Color(0xFFE61525), width: 2.5),
+                          color: const Color(0xFFE61525), width: 2.5,),
                       boxShadow: [
                         BoxShadow(
                             color: Colors.black.withOpacity(0.4),
                             blurRadius: 10,
-                            offset: const Offset(0, 3)),
+                            offset: const Offset(0, 3),),
                       ],
                     ),
                     child: ClipOval(
@@ -528,11 +526,11 @@ class _HeroImageCard extends StatelessWidget {
                           ? OpstechExtendedImageNetwork(
                               img: _resolveProfileImageUrl()!,
                               width: 80.w,
-                              height: 80.w)
-                          : Container(
+                              height: 80.w,)
+                          : ColoredBox(
                               color: const Color(0xFFE61525).withOpacity(0.2),
                               child: Icon(Icons.person,
-                                  size: 40.sp, color: const Color(0xFFE61525)),
+                                  size: 40.sp, color: const Color(0xFFE61525),),
                             ),
                     ),
                   ),
@@ -551,24 +549,24 @@ class _HeroImageCard extends StatelessWidget {
                                 style: TextStyle(
                                     fontSize: 16.sp,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.white),
+                                    color: Colors.white,),
                               ),
                             ),
                             Container(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 8.w, vertical: 4.h),
+                                  horizontal: 8.w, vertical: 4.h,),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(8.r),
                                 border:
-                                    Border.all(color: Colors.black, width: 1),
+                                    Border.all(),
                               ),
                               child: Text(
                                 '# ${state.user.memberNumber}',
                                 style: TextStyle(
                                     fontSize: 12.sp,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.black),
+                                    color: Colors.black,),
                               ),
                             ),
                           ],
@@ -576,10 +574,10 @@ class _HeroImageCard extends StatelessWidget {
                         SizedBox(height: 8.h),
                         // Additional user details
                         _buildUserDetailRow(Icons.calendar_today, 'DOB',
-                            _formatDate(state.user.birthDate)),
+                            _formatDate(state.user.birthDate),),
                         SizedBox(height: 4.h),
                         _buildUserDetailRow(Icons.badge, 'License',
-                            state.user.driversLicenseNumber ?? 'N/A'),
+                            state.user.driversLicenseNumber ?? 'N/A',),
                       ],
                     ),
                   ),
@@ -602,13 +600,12 @@ class _HeroImageCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(25.r),
         border: Border.all(
-            color: const Color(0xFFE61525).withOpacity(0.5), width: 1),
+            color: const Color(0xFFE61525).withOpacity(0.5),),
         boxShadow: [
           BoxShadow(
               color: Colors.black.withOpacity(0.2),
               blurRadius: 8,
-              spreadRadius: 0,
-              offset: const Offset(0, 2)),
+              offset: const Offset(0, 2),),
         ],
       ),
       padding: EdgeInsets.all(8.sp),
@@ -619,7 +616,7 @@ class _HeroImageCard extends StatelessWidget {
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) {
             return Icon(Icons.directions_car,
-                size: 24.sp, color: const Color(0xFFE61525));
+                size: 24.sp, color: const Color(0xFFE61525),);
           },
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) return child;
@@ -654,14 +651,14 @@ class _HeroImageCard extends StatelessWidget {
           style: TextStyle(
               fontSize: 11.sp,
               color: Colors.grey[400],
-              fontWeight: FontWeight.w500),
+              fontWeight: FontWeight.w500,),
         ),
         Text(
           value,
           style: TextStyle(
               fontSize: 11.sp,
               color: Colors.white,
-              fontWeight: FontWeight.w600),
+              fontWeight: FontWeight.w600,),
         ),
       ],
     );
@@ -716,7 +713,6 @@ class _CarWidgetSpecsOnly extends StatelessWidget {
                 ? Colors.black.withOpacity(0.4)
                 : Colors.grey.withOpacity(0.4),
             blurRadius: 20,
-            spreadRadius: 0,
             offset: const Offset(0, 8),
           ),
           BoxShadow(
@@ -724,7 +720,6 @@ class _CarWidgetSpecsOnly extends StatelessWidget {
                 ? Colors.black.withOpacity(0.3)
                 : Colors.grey.withOpacity(0.3),
             blurRadius: 10,
-            spreadRadius: 0,
             offset: const Offset(0, 4),
           ),
         ],
@@ -777,23 +772,23 @@ class _CarWidgetSpecsOnly extends StatelessWidget {
             colors: isDark
                 ? [
                     Colors.grey.shade900.withOpacity(0.8),
-                    Colors.grey.shade800.withOpacity(0.6)
+                    Colors.grey.shade800.withOpacity(0.6),
                   ]
                 : [
                     Colors.grey.shade100.withOpacity(0.8),
-                    Colors.grey.shade200.withOpacity(0.6)
+                    Colors.grey.shade200.withOpacity(0.6),
                   ],
           ),
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
-              color: const Color(0xFFE61525).withOpacity(0.3), width: 1),
+              color: const Color(0xFFE61525).withOpacity(0.3),),
         ),
         child: Center(
           child: Text(
             'No vehicle specifications available',
             style: TextStyle(
                 fontSize: 16.sp,
-                color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                color: isDark ? Colors.grey[400] : Colors.grey[600],),
           ),
         ),
       );
@@ -808,27 +803,27 @@ class _CarWidgetSpecsOnly extends StatelessWidget {
       {
         'icon': Icons.local_gas_station,
         'label': 'Fuel Type',
-        'value': vehicle.fuelType ?? 'N/A'
+        'value': vehicle.fuelType ?? 'N/A',
       },
       {
         'icon': Icons.timeline,
         'label': 'Mileage',
-        'value': vehicle.mileage != null ? '${vehicle.mileage} km' : 'N/A'
+        'value': vehicle.mileage != null ? '${vehicle.mileage} km' : 'N/A',
       },
       {
         'icon': Icons.settings,
         'label': 'Wheels',
-        'value': vehicle.wheelSize ?? 'N/A'
+        'value': vehicle.wheelSize ?? 'N/A',
       },
       {
         'icon': Icons.settings_outlined,
         'label': 'Transmission',
-        'value': vehicle.transmission ?? 'N/A'
+        'value': vehicle.transmission ?? 'N/A',
       },
       {
         'icon': Icons.power,
         'label': 'Power',
-        'value': vehicle.horsepower != null ? '${vehicle.horsepower} HP' : 'N/A'
+        'value': vehicle.horsepower != null ? '${vehicle.horsepower} HP' : 'N/A',
       },
     ];
 
@@ -845,9 +840,9 @@ class _CarWidgetSpecsOnly extends StatelessWidget {
       itemBuilder: (context, index) {
         final spec = specs[index];
         return VehicleSpecCard(
-          icon: spec['icon'] as IconData,
-          label: spec['label'] as String,
-          value: spec['value'] as String,
+          icon: spec['icon']! as IconData,
+          label: spec['label']! as String,
+          value: spec['value']! as String,
         )
             .animate()
             .fadeIn(delay: (400 + (index * 100)).ms, duration: 600.ms)
@@ -855,13 +850,13 @@ class _CarWidgetSpecsOnly extends StatelessWidget {
                 begin: 0.2,
                 delay: (400 + (index * 100)).ms,
                 duration: 600.ms,
-                curve: Curves.easeOutCubic);
+                curve: Curves.easeOutCubic,);
       },
     );
   }
 
   static Widget _buildAwardsSectionStatic(BuildContext context) {
-    final awardCount = 0; // Static method - no access to state
+    const awardCount = 0; // Static method - no access to state
     return AwardsTrophyRow(
       awardCount: awardCount,
       onTap: () {
@@ -872,6 +867,6 @@ class _CarWidgetSpecsOnly extends StatelessWidget {
         begin: 0.2,
         delay: 200.ms,
         duration: 600.ms,
-        curve: Curves.easeOutCubic);
+        curve: Curves.easeOutCubic,);
   }
 }

@@ -256,7 +256,7 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
               DropdownButtonFormField<MeetingType>(
                 value: _selectedType,
                 style: TextStyle(
-                    fontSize: 14.sp, color: theme.colorScheme.onSurface),
+                    fontSize: 14.sp, color: theme.colorScheme.onSurface,),
                 decoration: InputDecoration(
                   labelText: 'Meeting Type',
                   labelStyle: TextStyle(fontSize: 14.sp),
@@ -267,7 +267,7 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
                   return DropdownMenuItem(
                     value: type,
                     child: Text(type.displayName,
-                        style: TextStyle(fontSize: 14.sp)),
+                        style: TextStyle(fontSize: 14.sp),),
                   );
                 }).toList(),
                 onChanged: (value) {
@@ -416,7 +416,7 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
                                 ),
                               )
                             : Text('Create Meeting',
-                                style: TextStyle(fontSize: 16.sp)),
+                                style: TextStyle(fontSize: 16.sp),),
                   );
                 },
               ),

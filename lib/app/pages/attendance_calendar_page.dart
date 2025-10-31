@@ -64,7 +64,7 @@ class _AttendanceCalendarPageState extends State<AttendanceCalendarPage> {
 
           if (state.status == CalendarStatus.error) {
             return _buildErrorState(
-                state.errorMessage ?? 'Failed to load calendar');
+                state.errorMessage ?? 'Failed to load calendar',);
           }
 
           return RefreshIndicator(
@@ -237,11 +237,10 @@ class _AttendanceCalendarPageState extends State<AttendanceCalendarPage> {
       child: Padding(
         padding: EdgeInsets.all(12.sp),
         child: TableCalendar(
-          firstDay: DateTime.utc(2024, 1, 1),
+          firstDay: DateTime.utc(2024),
           lastDay: DateTime.utc(2030, 12, 31),
           focusedDay: _focusedDay,
           selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-          calendarFormat: CalendarFormat.month,
           startingDayOfWeek: StartingDayOfWeek.monday,
           headerStyle: HeaderStyle(
             formatButtonVisible: false,
@@ -487,7 +486,7 @@ class _AttendanceCalendarPageState extends State<AttendanceCalendarPage> {
             _buildDetailRow(
                 'Method',
                 _getCheckInMethodLabel(
-                    attendance.checkInMethod ?? CheckInMethod.manual)),
+                    attendance.checkInMethod ?? CheckInMethod.manual,),),
             if (attendance.notes != null && attendance.notes!.isNotEmpty)
               _buildDetailRow('Notes', attendance.notes!),
           ],

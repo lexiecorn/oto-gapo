@@ -7,17 +7,17 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/connectivity/bloc/connectivity_cubit.dart';
 import 'package:otogapo/app/modules/connectivity/bloc/connectivity_state.dart';
 import 'package:otogapo/app/modules/profile/profile_page.dart';
+import 'package:otogapo/app/modules/version_check/bloc/version_check_cubit.dart';
+import 'package:otogapo/app/modules/version_check/bloc/version_check_state.dart';
+import 'package:otogapo/app/modules/version_check/widgets/version_check_wrapper.dart';
 import 'package:otogapo/app/pages/home_body.dart';
 import 'package:otogapo/app/pages/settings_page.dart';
 import 'package:otogapo/app/pages/social_feed_page.dart';
 import 'package:otogapo/app/widgets/connectivity_banner.dart';
-import 'package:otogapo/services/pocketbase_service.dart';
-import 'package:otogapo/widgets/announcement_popup_dialog.dart';
-import 'package:otogapo/app/modules/version_check/widgets/version_check_wrapper.dart';
-import 'package:otogapo/app/modules/version_check/bloc/version_check_cubit.dart';
-import 'package:otogapo/app/modules/version_check/bloc/version_check_state.dart';
-import 'package:otogapo/services/version_check_service.dart';
 import 'package:otogapo/bootstrap.dart';
+import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo/services/version_check_service.dart';
+import 'package:otogapo/widgets/announcement_popup_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 @RoutePage(name: 'HomePageRouter')
@@ -61,13 +61,13 @@ class HomePageState extends State<HomePage> {
 
       if (announcements.isNotEmpty) {
         debugPrint(
-            'HomePage - Showing ${announcements.length} login announcements');
+            'HomePage - Showing ${announcements.length} login announcements',);
 
         _hasShownLoginAnnouncements = true;
 
         // Show the announcements
         await AnnouncementPopupDialog.showLoginAnnouncements(
-            context, announcements, pbService.getAnnouncementImageUrl);
+            context, announcements, pbService.getAnnouncementImageUrl,);
       } else {
         debugPrint('HomePage - No login announcements to show');
       }
@@ -80,7 +80,7 @@ class HomePageState extends State<HomePage> {
     Container(
         width: double.infinity,
         padding: EdgeInsets.zero,
-        child: const HomeBody()),
+        child: const HomeBody(),),
     const ProfilePage(),
     const SocialFeedPage(),
     const SettingsPage(),
@@ -90,7 +90,7 @@ class HomePageState extends State<HomePage> {
     'OTOGAPO',
     'My Profile',
     'Social Feed',
-    'Settings'
+    'Settings',
   ];
 
   final List<IconData> _pageIcons = [
@@ -178,7 +178,7 @@ class HomePageState extends State<HomePage> {
               appBar: _selectedIndex == 1 || _selectedIndex == 2
                   ? null // No AppBar for Profile and Social Feed pages
                   : PreferredSize(
-                      preferredSize: Size.fromHeight(kToolbarHeight),
+                      preferredSize: const Size.fromHeight(kToolbarHeight),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -189,13 +189,13 @@ class HomePageState extends State<HomePage> {
                             child: AppBar(
                               title: _selectedIndex == 0
                                   ? Image.asset('assets/images/logo_sm.jpg',
-                                      height: 40, fit: BoxFit.contain)
+                                      height: 40, fit: BoxFit.contain,)
                                   : Text(
                                       _pageTitles.elementAt(_selectedIndex),
                                       style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 24,
-                                          fontWeight: FontWeight.bold),
+                                          fontWeight: FontWeight.bold,),
                                     ),
                               centerTitle: true,
                               backgroundColor: Colors.black,
@@ -204,14 +204,14 @@ class HomePageState extends State<HomePage> {
                                   ? [
                                       IconButton(
                                         icon: const Icon(Icons.refresh,
-                                            color: Colors.white),
+                                            color: Colors.white,),
                                         onPressed: () {
                                           // Optionally: trigger a refresh in SettingsPage
                                         },
                                       ),
                                       IconButton(
                                         icon: const Icon(Icons.help_outline,
-                                            color: Colors.white),
+                                            color: Colors.white,),
                                         onPressed: () {
                                           // Optionally: show help dialog
                                         },
@@ -229,11 +229,11 @@ class HomePageState extends State<HomePage> {
                         // Page content - starts from top
                         _widgetOptions.elementAt(_selectedIndex),
                         // Connectivity Banner overlays on top
-                        Positioned(
+                        const Positioned(
                             top: 0,
                             left: 0,
                             right: 0,
-                            child: const ConnectivityBanner()),
+                            child: ConnectivityBanner(),),
                       ],
                     )
                   : _widgetOptions.elementAt(_selectedIndex),
@@ -256,7 +256,7 @@ class HomePageState extends State<HomePage> {
         ),
         FadeEffect(
             delay: Duration(milliseconds: 200),
-            duration: Duration(milliseconds: 600)),
+            duration: Duration(milliseconds: 600),),
       ],
       child: Container(
         decoration: BoxDecoration(
@@ -278,7 +278,7 @@ class HomePageState extends State<HomePage> {
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: List.generate(_pageIcons.length,
-                      (index) => _buildNavItem(index, connectivityState)),
+                      (index) => _buildNavItem(index, connectivityState),),
                 );
               },
             ),
@@ -306,7 +306,7 @@ class HomePageState extends State<HomePage> {
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOutCubic,
           padding: EdgeInsets.symmetric(
-              horizontal: isSelected ? 20.w : 12.w, vertical: 10.h),
+              horizontal: isSelected ? 20.w : 12.w, vertical: 10.h,),
           decoration: BoxDecoration(
             gradient: isSelected
                 ? LinearGradient(
@@ -322,7 +322,7 @@ class HomePageState extends State<HomePage> {
                     BoxShadow(
                         color: Colors.amber[300]!.withOpacity(0.4),
                         blurRadius: 12,
-                        offset: const Offset(0, 4))
+                        offset: const Offset(0, 4),),
                   ]
                 : null,
           ),
@@ -365,15 +365,15 @@ class HomePageState extends State<HomePage> {
                     width: 10.w,
                     height: 10.h,
                     decoration: const BoxDecoration(
-                        color: Colors.red, shape: BoxShape.circle),
+                        color: Colors.red, shape: BoxShape.circle,),
                   )
                       .animate(
                           onPlay: (controller) =>
-                              controller.repeat(reverse: true))
+                              controller.repeat(reverse: true),)
                       .scale(
                           duration: 1000.ms,
                           begin: const Offset(0.8, 0.8),
-                          end: const Offset(1.2, 1.2)),
+                          end: const Offset(1.2, 1.2),),
                 ),
             ],
           ),

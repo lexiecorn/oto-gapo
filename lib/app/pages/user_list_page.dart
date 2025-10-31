@@ -113,7 +113,6 @@ class _UserListPageState extends State<UserListPage> {
         border: Border.all(
           color:
               isDark ? colorScheme.outline.withOpacity(0.2) : Colors.grey[300]!,
-          width: 1,
         ),
       ),
       child: ClipRRect(
@@ -122,7 +121,7 @@ class _UserListPageState extends State<UserListPage> {
             ? CachedNetworkImage(
                 imageUrl: profileImageUrl,
                 fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
+                placeholder: (context, url) => ColoredBox(
                   color: isDark
                       ? colorScheme.primary.withOpacity(0.1)
                       : Colors.blue.withOpacity(0.1),
@@ -137,7 +136,7 @@ class _UserListPageState extends State<UserListPage> {
                     ),
                   ),
                 ),
-                errorWidget: (context, url, error) => Container(
+                errorWidget: (context, url, error) => ColoredBox(
                   color: isDark
                       ? colorScheme.primary.withOpacity(0.1)
                       : Colors.blue.withOpacity(0.1),
@@ -155,7 +154,7 @@ class _UserListPageState extends State<UserListPage> {
                   ),
                 ),
               )
-            : Container(
+            : ColoredBox(
                 color: isDark
                     ? colorScheme.primary.withOpacity(0.1)
                     : Colors.blue.withOpacity(0.1),
@@ -251,13 +250,13 @@ class _UserListPageState extends State<UserListPage> {
         final userData = user.data;
 
         return _buildUserCard(
-            user, userData as Map<String, dynamic>, isDark, colorScheme);
+            user, userData as Map<String, dynamic>, isDark, colorScheme,);
       },
     );
   }
 
   Widget _buildUserCard(dynamic user, Map<String, dynamic> userData,
-      bool isDark, ColorScheme colorScheme) {
+      bool isDark, ColorScheme colorScheme,) {
     final firstName = (userData['firstName'] ?? '').toString();
     final lastName = (userData['lastName'] ?? '').toString();
     final fullName = '$firstName $lastName'.trim();
@@ -345,7 +344,7 @@ class _UserListPageState extends State<UserListPage> {
                           if (displayMemberNumber.isNotEmpty) ...[
                             Container(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 8.sp, vertical: 2.sp),
+                                  horizontal: 8.sp, vertical: 2.sp,),
                               decoration: BoxDecoration(
                                 color: isDark
                                     ? colorScheme.primary.withOpacity(0.1)
@@ -501,7 +500,7 @@ class _UserListPageState extends State<UserListPage> {
                       borderRadius: BorderRadius.circular(12.sp),
                       border: isDark
                           ? Border.all(
-                              color: colorScheme.outline.withOpacity(0.2))
+                              color: colorScheme.outline.withOpacity(0.2),)
                           : null,
                     ),
                     child: TextField(
@@ -539,7 +538,7 @@ class _UserListPageState extends State<UserListPage> {
                     icon: Icon(Icons.clear,
                         color: isDark
                             ? colorScheme.onSurface.withOpacity(0.6)
-                            : Colors.grey[600]),
+                            : Colors.grey[600],),
                     onPressed: () {
                       _searchController.clear();
                       _onSearchChanged('');
@@ -558,7 +557,7 @@ class _UserListPageState extends State<UserListPage> {
                       children: [
                         CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
-                              isDark ? colorScheme.primary : Colors.blue),
+                              isDark ? colorScheme.primary : Colors.blue,),
                         ),
                         SizedBox(height: 16.sp),
                         Text(

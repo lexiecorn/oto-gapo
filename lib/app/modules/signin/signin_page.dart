@@ -2,9 +2,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/signin/bloc/signin_cubit.dart';
 import 'package:otogapo/app/modules/utils/error_dialog.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
+import 'package:otogapo/utils/crashlytics_helper.dart';
 import 'package:otogapo_core/otogapo_core.dart';
 import 'package:validators/validators.dart';
 
@@ -47,7 +49,14 @@ class SigninPageState extends State<SigninPage> {
         // Use PocketBase native Google OAuth
         signinCubit.signinWithGoogleOAuth();
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
+      // Log to Crashlytics and n8n
+      await CrashlyticsHelper.logError(
+        error,
+        stackTrace,
+        reason: 'Google sign-in UI error',
+        fatal: false,
+      );
       if (context.mounted) {
         await errorDialog(
           context,
@@ -79,7 +88,16 @@ class SigninPageState extends State<SigninPage> {
             } else if (state.signinStatus == SigninStatus.success) {
               // Navigate to splash page which will handle auth state transition
               debugPrint(
-                  'SigninPage - Signin successful, navigating to splash page');
+                  'SigninPage - Signin successful, navigating to splash page',);
+              
+              // Trigger AuthBloc to check authentication state after OAuth completion
+              // This ensures the auth state is properly synchronized before navigation
+              Future.microtask(() {
+                if (context.mounted) {
+                  context.read<AuthBloc>().add(CheckExistingAuthEvent());
+                }
+              });
+              
               AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
             }
           },
@@ -205,7 +223,7 @@ class SigninPageState extends State<SigninPage> {
                                     style: OpstechTextTheme.heading3.copyWith(
                                         color: Colors.black,
                                         fontSize: 20,
-                                        fontWeight: FontWeight.bold),
+                                        fontWeight: FontWeight.bold,),
                                   ),
                                 ),
                               ),
@@ -269,7 +287,7 @@ class SigninPageState extends State<SigninPage> {
                                             strokeWidth: 2,
                                             valueColor:
                                                 AlwaysStoppedAnimation<Color>(
-                                                    Colors.grey),
+                                                    Colors.grey,),
                                           ),
                                         )
                                       : Row(

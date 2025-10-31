@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:otogapo/app/modules/version_check/bloc/version_check_cubit.dart';
 import 'package:otogapo/app/modules/version_check/bloc/version_check_state.dart';
 import 'package:otogapo/app/modules/version_check/widgets/update_dialog.dart';
@@ -65,7 +64,7 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
 
   /// Shows the appropriate update dialog based on the state.
   void _showUpdateDialog(
-      BuildContext context, VersionCheckUpdateAvailable state) {
+      BuildContext context, VersionCheckUpdateAvailable state,) {
     final versionString =
         '${state.config.currentVersion}+${state.config.currentBuildNumber.toInt()}';
 

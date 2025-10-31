@@ -107,7 +107,7 @@ class PostCardWidget extends StatelessWidget {
                 errorListener: (error) {
                   print('Image load error: $error');
                   print(
-                      'Image URL: ${pocketBaseService.baseUrl}/api/files/posts/${post.id}/${post.imageUrl}');
+                      'Image URL: ${pocketBaseService.baseUrl}/api/files/posts/${post.id}/${post.imageUrl}',);
                 },
                 width: double.infinity,
                 fit: BoxFit.cover,

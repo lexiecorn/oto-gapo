@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
-import 'package:otogapo/utils/network_helper.dart';
 import 'package:otogapo/utils/debug_helper.dart';
+import 'package:otogapo/utils/network_helper.dart';
 
 // import 'package:otogapo/app/routes/app_router.gr.dart';
 
@@ -60,7 +60,7 @@ class _SplashPageState extends State<SplashPage> {
       listenWhen: (previous, current) {
         // Always listen to state changes
         debugPrint(
-            'SplashPage - State change: ${previous.authStatus} -> ${current.authStatus}');
+            'SplashPage - State change: ${previous.authStatus} -> ${current.authStatus}',);
         return true;
       },
       listener: (context, state) {
@@ -88,7 +88,7 @@ class _SplashPageState extends State<SplashPage> {
           });
         } else {
           debugPrint(
-              'SplashPage - Auth status is unknown, keeping loading state');
+              'SplashPage - Auth status is unknown, keeping loading state',);
         }
         // If status is still unknown, keep showing loading
       },

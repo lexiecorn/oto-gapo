@@ -139,7 +139,7 @@ class MeetingCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.green.withValues(
                         alpha:
-                            theme.brightness == Brightness.dark ? 0.2 : 0.15),
+                            theme.brightness == Brightness.dark ? 0.2 : 0.15,),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Row(

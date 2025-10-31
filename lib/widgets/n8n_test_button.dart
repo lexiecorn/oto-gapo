@@ -2,6 +2,7 @@
 ///
 /// A simple widget for testing n8n error logging integration.
 /// This widget provides buttons to test both test and production webhooks.
+library;
 
 import 'package:flutter/material.dart';
 import 'package:otogapo/services/n8n_error_logger.dart';
@@ -57,7 +58,6 @@ class N8nTestButton extends StatelessWidget {
           '  at runApp (app.dart:1)\n'
           '  at build (widget.dart:1)',
       reason: 'Manual test from N8nTestButton widget',
-      fatal: false,
       useTestUrl: useTestUrl,
     );
   }

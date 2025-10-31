@@ -6,40 +6,9 @@ class Post {
     required this.id,
     required this.userId,
     required this.userName,
-    this.userProfileImage,
+    required this.imageUrl, required this.imageWidth, required this.imageHeight, required this.hashtags, required this.mentions, required this.likesCount, required this.commentsCount, required this.isActive, required this.isHiddenByAdmin, required this.createdAt, required this.updatedAt, this.userProfileImage,
     this.caption,
-    required this.imageUrl,
-    required this.imageWidth,
-    required this.imageHeight,
-    required this.hashtags,
-    required this.mentions,
-    required this.likesCount,
-    required this.commentsCount,
-    required this.isActive,
-    required this.isHiddenByAdmin,
-    required this.createdAt,
-    required this.updatedAt,
   });
-
-  final String id;
-  final String userId;
-  final String userName;
-  final String? userProfileImage;
-  final String? caption;
-  final String imageUrl;
-  final int imageWidth;
-  final int imageHeight;
-  final List<String> hashtags;
-  final List<String> mentions;
-  final int likesCount;
-  final int commentsCount;
-  final bool isActive;
-  final bool isHiddenByAdmin;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
-  /// Whether the post is visible to users
-  bool get isVisible => isActive && !isHiddenByAdmin;
 
   /// Factory constructor to create a Post from PocketBase RecordModel
   factory Post.fromRecord(RecordModel record) {
@@ -66,14 +35,14 @@ class Post {
     }
 
     // Parse hashtags and mentions from JSON
-    List<String> hashtags = [];
+    var hashtags = <String>[];
     if (data['hashtags'] != null) {
       if (data['hashtags'] is List) {
         hashtags = (data['hashtags'] as List).map((e) => e.toString()).toList();
       }
     }
 
-    List<String> mentions = [];
+    var mentions = <String>[];
     if (data['mentions'] != null) {
       if (data['mentions'] is List) {
         mentions = (data['mentions'] as List).map((e) => e.toString()).toList();
@@ -99,6 +68,26 @@ class Post {
       updatedAt: DateTime.parse(record.get<String>('updated')),
     );
   }
+
+  final String id;
+  final String userId;
+  final String userName;
+  final String? userProfileImage;
+  final String? caption;
+  final String imageUrl;
+  final int imageWidth;
+  final int imageHeight;
+  final List<String> hashtags;
+  final List<String> mentions;
+  final int likesCount;
+  final int commentsCount;
+  final bool isActive;
+  final bool isHiddenByAdmin;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  /// Whether the post is visible to users
+  bool get isVisible => isActive && !isHiddenByAdmin;
 
   /// Copy with method for creating modified copies
   Post copyWith({

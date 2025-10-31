@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -21,32 +20,8 @@ Future<void> main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // Initialize Crashlytics with n8n integration
-    FlutterError.onError = (FlutterErrorDetails details) {
-      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
-      // Also send to n8n via CrashlyticsHelper
-      CrashlyticsHelper.logError(
-        details.exception,
-        details.stack,
-        reason: 'Flutter framework error',
-        fatal: true,
-      );
-    };
-
-    // Pass all uncaught asynchronous errors to Crashlytics and n8n
-    PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-      // Also send to n8n via CrashlyticsHelper
-      CrashlyticsHelper.logError(
-        error,
-        stack,
-        reason: 'Platform dispatcher error',
-        fatal: true,
-      );
-      return true;
-    };
-
     // Enable Crashlytics collection with proper error handling
+    // Note: Error handlers are set up in bootstrap.dart to avoid duplication
     try {
       await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
       print('Crashlytics collection enabled successfully');
@@ -89,6 +64,6 @@ Future<void> main() async {
   }, (exception, stackTrace) async {
     // Report to Crashlytics
     await CrashlyticsHelper.logError(exception, stackTrace,
-        reason: 'Main function error');
+        reason: 'Main function error',);
   });
 }

@@ -3,6 +3,7 @@
 /// This service sends comprehensive error data to n8n webhook for production debugging.
 /// It collects detailed context including app version, device info, user data, and network status.
 /// All methods are safe to call and won't crash the app if n8n is unreachable.
+library;
 
 import 'dart:convert';
 import 'dart:developer' as developer;
@@ -75,14 +76,14 @@ class N8nErrorLogger {
       } else {
         if (kDebugMode) {
           developer.log(
-              'N8N Error Logger: Failed to send error log: ${response.statusCode} ${response.data}');
+              'N8N Error Logger: Failed to send error log: ${response.statusCode} ${response.data}',);
         }
       }
     } catch (e) {
       // Handle cases where the phone can't reach the n8n webhook (e.g., no network)
       if (kDebugMode) {
         developer.log(
-            'N8N Error Logger: Exception caught while sending error log: $e');
+            'N8N Error Logger: Exception caught while sending error log: $e',);
       }
       // Don't rethrow - this is a logging service, not critical functionality
     }

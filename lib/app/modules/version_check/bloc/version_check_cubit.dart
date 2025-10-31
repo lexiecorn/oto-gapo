@@ -1,8 +1,7 @@
 import 'package:bloc/bloc.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:otogapo/app/modules/version_check/bloc/version_check_state.dart';
-import 'package:otogapo/models/app_version_config.dart';
 import 'package:otogapo/repositories/version_repository.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 /// Cubit for managing app version checking state.
 ///
@@ -47,7 +46,7 @@ class VersionCheckCubit extends Cubit<VersionCheckState> {
       print('VersionCheck: Config min_build_number: ${config.minBuildNumber}');
       print('VersionCheck: Config current_version: ${config.currentVersion}');
       print(
-          'VersionCheck: Config current_build_number: ${config.currentBuildNumber}');
+          'VersionCheck: Config current_build_number: ${config.currentBuildNumber}',);
       print('VersionCheck: Config force_update: ${config.forceUpdate}');
 
       // Compare against current_build_number (latest available), not min_build_number

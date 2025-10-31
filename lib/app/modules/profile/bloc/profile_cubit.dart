@@ -23,13 +23,13 @@ class ProfileCubit extends Cubit<ProfileState> {
       final user = await profileRepository.getProfile();
       print('ProfileCubit.getProfile - User loaded successfully');
       print(
-          'ProfileCubit.getProfile - User memberNumber: ${user.memberNumber}');
+          'ProfileCubit.getProfile - User memberNumber: ${user.memberNumber}',);
       print(
-          'ProfileCubit.getProfile - User membership_type: ${user.membership_type}');
+          'ProfileCubit.getProfile - User membership_type: ${user.membership_type}',);
 
       // Fetch vehicles for this user
       print(
-          'ProfileCubit.getProfile - Fetching vehicles for user: ${user.uid}');
+          'ProfileCubit.getProfile - Fetching vehicles for user: ${user.uid}',);
       final vehicles = await profileRepository.getUserVehicles(user.uid);
       print('ProfileCubit.getProfile - Found ${vehicles.length} vehicles');
 
@@ -88,25 +88,25 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   Future<void> getProfileByUserId(String userId) async {
     print(
-        'ProfileCubit.getProfileByUserId - Starting profile retrieval for userId: $userId');
+        'ProfileCubit.getProfileByUserId - Starting profile retrieval for userId: $userId',);
     emit(state.copyWith(profileStatus: ProfileStatus.loading));
 
     try {
       print(
-          'ProfileCubit.getProfileByUserId - Calling profileRepository.getProfileByUserId');
+          'ProfileCubit.getProfileByUserId - Calling profileRepository.getProfileByUserId',);
       final user = await profileRepository.getProfileByUserId(userId);
       print('ProfileCubit.getProfileByUserId - User loaded successfully');
 
       // Fetch vehicles for this user
       print(
-          'ProfileCubit.getProfileByUserId - Fetching vehicles for user: ${user.uid}');
+          'ProfileCubit.getProfileByUserId - Fetching vehicles for user: ${user.uid}',);
       final vehicles = await profileRepository.getUserVehicles(user.uid);
       print(
-          'ProfileCubit.getProfileByUserId - Found ${vehicles.length} vehicles');
+          'ProfileCubit.getProfileByUserId - Found ${vehicles.length} vehicles',);
 
       // Fetch awards for this user's vehicles
       print(
-          'ProfileCubit.getProfileByUserId - Fetching awards for user: ${user.uid}');
+          'ProfileCubit.getProfileByUserId - Fetching awards for user: ${user.uid}',);
       final awards = await profileRepository.getUserVehicleAwards(user.uid);
       print('ProfileCubit.getProfileByUserId - Found ${awards.length} awards');
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:otogapo/app/pages/payment_history_page.dart';
 import 'package:otogapo/models/payment_statistics.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
-import 'package:otogapo/app/pages/payment_history_page.dart';
 
 /// Simplified payment status card showing summary with link to detailed page
 class PaymentStatusCardNew extends StatefulWidget {
@@ -115,7 +115,7 @@ class _PaymentStatusCardNewState extends State<PaymentStatusCardNew> {
                   ),
                   const Spacer(),
                   Icon(Icons.arrow_forward_ios,
-                      size: 14.sp, color: Colors.grey),
+                      size: 14.sp, color: Colors.grey,),
                 ],
               ),
               SizedBox(height: 12.h),
@@ -187,7 +187,7 @@ class _PaymentStatusCardNewState extends State<PaymentStatusCardNew> {
   }
 
   Widget _buildSummaryItem(
-      String label, String value, IconData icon, Color color) {
+      String label, String value, IconData icon, Color color,) {
     return Column(
       children: [
         Icon(icon, color: color, size: 16.sp),
@@ -195,7 +195,7 @@ class _PaymentStatusCardNewState extends State<PaymentStatusCardNew> {
         Text(
           value,
           style: TextStyle(
-              fontSize: 11.sp, fontWeight: FontWeight.bold, color: color),
+              fontSize: 11.sp, fontWeight: FontWeight.bold, color: color,),
         ),
         Text(label, style: TextStyle(fontSize: 8.sp, color: Colors.grey)),
       ],

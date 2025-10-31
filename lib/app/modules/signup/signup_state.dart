@@ -16,7 +16,6 @@ class SignupState with _$SignupState {
 
   factory SignupState.initial() {
     return SignupState(
-      signupStatus: SignupStatus.initial,
       error: CustomError.initial(),
     );
   }

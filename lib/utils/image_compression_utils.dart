@@ -28,7 +28,7 @@ class ImageCompressionUtils {
       // Get image dimensions first
       final dimensions = await getImageDimensions(imageFile);
       print(
-          'ImageCompression - Original dimensions: ${dimensions['width']}x${dimensions['height']}');
+          'ImageCompression - Original dimensions: ${dimensions['width']}x${dimensions['height']}',);
 
       // Calculate target dimensions maintaining aspect ratio
       final targetDimensions = _calculateTargetDimensions(
@@ -36,7 +36,7 @@ class ImageCompressionUtils {
         dimensions['height']!,
       );
       print(
-          'ImageCompression - Target dimensions: ${targetDimensions['width']}x${targetDimensions['height']}');
+          'ImageCompression - Target dimensions: ${targetDimensions['width']}x${targetDimensions['height']}',);
 
       // Get temporary directory
       final tempDir = await getTemporaryDirectory();
@@ -50,7 +50,6 @@ class ImageCompressionUtils {
         quality: jpegQuality,
         minWidth: targetDimensions['width']!,
         minHeight: targetDimensions['height']!,
-        format: CompressFormat.jpeg,
       );
 
       if (compressedFile == null) {
@@ -64,7 +63,7 @@ class ImageCompressionUtils {
       // If still too large, reduce quality further
       if (fileSize > maxFileSizeBytes) {
         print(
-            'ImageCompression - File still too large, reducing quality further');
+            'ImageCompression - File still too large, reducing quality further',);
         final furtherCompressed = await _compressWithReducedQuality(
           File(compressedFile.path),
           targetPath,
@@ -163,16 +162,15 @@ class ImageCompressionUtils {
     File imageFile,
     String targetPath,
   ) async {
-    int quality = 70; // Start with 70% quality
-    const int qualityStep = 10;
-    const int minQuality = 40;
+    var quality = 70; // Start with 70% quality
+    const qualityStep = 10;
+    const minQuality = 40;
 
     while (quality >= minQuality) {
       final compressed = await FlutterImageCompress.compressAndGetFile(
         imageFile.absolute.path,
         '${targetPath}_q$quality.jpg',
         quality: quality,
-        format: CompressFormat.jpeg,
       );
 
       if (compressed == null) {
@@ -181,7 +179,7 @@ class ImageCompressionUtils {
 
       final fileSize = await compressed.length();
       print(
-          'ImageCompression - Trying quality $quality: ${fileSize / 1024} KB');
+          'ImageCompression - Trying quality $quality: ${fileSize / 1024} KB',);
 
       if (fileSize <= maxFileSizeBytes) {
         print('ImageCompression - Success with quality $quality');
@@ -197,7 +195,6 @@ class ImageCompressionUtils {
       imageFile.absolute.path,
       '${targetPath}_final.jpg',
       quality: minQuality,
-      format: CompressFormat.jpeg,
     );
 
     if (finalCompressed == null) {

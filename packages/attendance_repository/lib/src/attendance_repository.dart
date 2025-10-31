@@ -1,8 +1,7 @@
 import 'dart:math';
 
+import 'package:attendance_repository/src/models/attendance_failure.dart';
 import 'package:pocketbase/pocketbase.dart';
-
-import 'models/attendance_failure.dart';
 
 /// Repository for managing attendance and meetings with PocketBase
 class AttendanceRepository {

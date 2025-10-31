@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 class TextParsingUtils {
   /// Regular expression for matching @mentions
   /// Matches @username (alphanumeric and underscores)
-  static final RegExp mentionRegex = RegExp(r'@([a-zA-Z0-9_]+)');
+  static final RegExp mentionRegex = RegExp('@([a-zA-Z0-9_]+)');
 
   /// Regular expression for matching #hashtags
   /// Matches #hashtag (alphanumeric and underscores)
-  static final RegExp hashtagRegex = RegExp(r'#([a-zA-Z0-9_]+)');
+  static final RegExp hashtagRegex = RegExp('#([a-zA-Z0-9_]+)');
 
   /// Extract all @mentions from text
   /// Returns list of usernames (without @ symbol)
@@ -44,7 +44,7 @@ class TextParsingUtils {
     }
 
     final spans = <InlineSpan>[];
-    int lastMatchEnd = 0;
+    var lastMatchEnd = 0;
 
     // Create a list of all matches (mentions and hashtags) with their positions
     final allMatches = <_Match>[];
@@ -57,7 +57,7 @@ class TextParsingUtils {
         match.group(0)!,
         match.group(1)!,
         _MatchType.mention,
-      ));
+      ),);
     }
 
     // Add hashtag matches
@@ -68,7 +68,7 @@ class TextParsingUtils {
         match.group(0)!,
         match.group(1)!,
         _MatchType.hashtag,
-      ));
+      ),);
     }
 
     // Sort matches by start position
@@ -81,7 +81,7 @@ class TextParsingUtils {
         spans.add(TextSpan(
           text: text.substring(lastMatchEnd, match.start),
           style: baseStyle,
-        ));
+        ),);
       }
 
       // Add the match (mention or hashtag) as tappable
@@ -97,7 +97,7 @@ class TextParsingUtils {
               ? (TapGestureRecognizer()
                 ..onTap = () => onMentionTap(match.value))
               : null,
-        ));
+        ),);
       } else {
         spans.add(TextSpan(
           text: match.fullText,
@@ -110,7 +110,7 @@ class TextParsingUtils {
               ? (TapGestureRecognizer()
                 ..onTap = () => onHashtagTap(match.value))
               : null,
-        ));
+        ),);
       }
 
       lastMatchEnd = match.end;
@@ -121,7 +121,7 @@ class TextParsingUtils {
       spans.add(TextSpan(
         text: text.substring(lastMatchEnd),
         style: baseStyle,
-      ));
+      ),);
     }
 
     return TextSpan(children: spans, style: baseStyle);
@@ -131,7 +131,7 @@ class TextParsingUtils {
   static String highlightMentionsAndHashtags(String text) {
     if (text.isEmpty) return text;
 
-    String result = text;
+    final result = text;
 
     // This is just for display purposes, not actual linking
     // The actual linking is done in parseTextWithMentionsAndHashtags
@@ -164,8 +164,8 @@ class TextParsingUtils {
     }
 
     // Find the word at cursor position
-    int start = cursorPosition;
-    int end = cursorPosition;
+    var start = cursorPosition;
+    var end = cursorPosition;
 
     // Find start of word
     while (start > 0 && !_isWhitespace(text[start - 1])) {

@@ -9,6 +9,7 @@
 ///
 /// The bootstrap process is flavor-aware and configures the app based on
 /// the current environment (development, staging, or production).
+library;
 
 import 'dart:async';
 import 'dart:developer';
@@ -18,13 +19,11 @@ import 'package:authentication_repository/authentication_repository.dart';
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:local_storage/local_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:otogapo/app/routes/app_router.dart';
 import 'package:otogapo/models/cached_data.dart';
 import 'package:otogapo/services/connectivity_service.dart';
@@ -32,6 +31,7 @@ import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:otogapo/services/sync_service.dart';
 import 'package:otogapo/utils/crashlytics_helper.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Global GetIt instance for dependency injection.
 final getIt = GetIt.instance;
@@ -101,10 +101,8 @@ Future<void> bootstrap(
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);
 
-    // Report to Crashlytics
-    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
-
-    // Also send to n8n via CrashlyticsHelper
+    // Report to Crashlytics and n8n via CrashlyticsHelper
+    // CrashlyticsHelper internally handles both Crashlytics and n8n logging
     CrashlyticsHelper.logError(
       details.exception,
       details.stack,
@@ -124,10 +122,8 @@ Future<void> bootstrap(
   PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
     log('Async error: $error', stackTrace: stack);
 
-    // Report to Crashlytics
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-
-    // Also send to n8n via CrashlyticsHelper
+    // Report to Crashlytics and n8n via CrashlyticsHelper
+    // CrashlyticsHelper internally handles both Crashlytics and n8n logging
     CrashlyticsHelper.logError(
       error,
       stack,

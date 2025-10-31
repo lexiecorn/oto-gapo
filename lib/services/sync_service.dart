@@ -92,7 +92,7 @@ class SyncService {
     _updateStatus(SyncStatus.pending);
 
     print(
-        'SyncService - Action queued: ${action.type}, pending: $pendingActionsCount');
+        'SyncService - Action queued: ${action.type}, pending: $pendingActionsCount',);
 
     // Try to sync immediately if online
     if (_connectivityService.isOnline) {
@@ -135,11 +135,11 @@ class SyncService {
         await action.save();
 
         print(
-            'SyncService - Action sync failed (attempt ${action.attempts}): ${action.type}, error: $e');
+            'SyncService - Action sync failed (attempt ${action.attempts}): ${action.type}, error: $e',);
 
         if (action.hasFailed) {
           print(
-              'SyncService - Action permanently failed after ${action.attempts} attempts: ${action.type}');
+              'SyncService - Action permanently failed after ${action.attempts} attempts: ${action.type}',);
           // Remove failed action
           successfulActions.add(i);
         }
@@ -159,7 +159,7 @@ class SyncService {
     } else {
       _updateStatus(SyncStatus.pending);
       print(
-          'SyncService - Sync complete, $pendingActionsCount actions remaining');
+          'SyncService - Sync complete, $pendingActionsCount actions remaining',);
     }
   }
 
@@ -169,20 +169,17 @@ class SyncService {
         await _pocketBaseService.createPost(
           userId: action.data['userId'] as String,
           caption: action.data['content'] as String?,
-          imageFile: null, // Image files cannot be synced from offline queue
           imageWidth: action.data['imageWidth'] as int? ?? 0,
           imageHeight: action.data['imageHeight'] as int? ?? 0,
           hashtags: (action.data['hashtags'] as List?)?.cast<String>() ?? [],
           mentions: (action.data['mentions'] as List?)?.cast<String>() ?? [],
         );
-        break;
 
       case OfflineActionType.updateProfile:
         await _pocketBaseService.updateUser(
           action.data['userId'] as String,
           action.data,
         );
-        break;
 
       case OfflineActionType.markAttendance:
         // Handle attendance marking
@@ -195,7 +192,6 @@ class SyncService {
           userId: action.data['userId'] as String,
           reactionType: action.data['reactionType'] as String,
         );
-        break;
 
       case OfflineActionType.addComment:
         await _pocketBaseService.addComment(
@@ -205,18 +201,15 @@ class SyncService {
           mentions: (action.data['mentions'] as List?)?.cast<String>() ?? [],
           hashtags: (action.data['hashtags'] as List?)?.cast<String>() ?? [],
         );
-        break;
 
       case OfflineActionType.deletePost:
         await _pocketBaseService.deletePost(action.data['postId'] as String);
-        break;
 
       case OfflineActionType.updatePost:
         await _pocketBaseService.updatePost(
           postId: action.data['postId'] as String,
           caption: action.data['content'] as String,
         );
-        break;
     }
   }
 

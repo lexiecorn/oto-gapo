@@ -3,6 +3,7 @@
 /// This file provides convenient methods for logging errors, setting user
 /// identification, and adding custom key-value pairs to Crashlytics reports.
 /// All methods are safe to call even if Crashlytics is not initialized.
+library;
 
 import 'dart:developer' as developer;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -141,7 +142,7 @@ class CrashlyticsHelper {
   /// Check if Crashlytics is available and ready.
   static Future<bool> isAvailable() async {
     try {
-      return await _crashlytics.isCrashlyticsCollectionEnabled;
+      return _crashlytics.isCrashlyticsCollectionEnabled;
     } catch (e) {
       return false;
     }

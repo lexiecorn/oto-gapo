@@ -76,8 +76,8 @@ class _GalleryManagementPageState extends State<GalleryManagementPage> {
   Future<void> _uploadImage() async {
     if (_currentUserId == null) return;
 
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery);
 
     if (image == null) return;
 
@@ -85,7 +85,7 @@ class _GalleryManagementPageState extends State<GalleryManagementPage> {
     if (!mounted) return;
     final metadata = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => _ImageMetadataDialog(),
+      builder: (context) => const _ImageMetadataDialog(),
     );
 
     if (metadata == null) return;
@@ -381,7 +381,7 @@ class _GalleryManagementPageState extends State<GalleryManagementPage> {
                                 fit: BoxFit.cover,
                                 width: double.infinity,
                                 errorBuilder: (context, error, stackTrace) =>
-                                    Container(
+                                    ColoredBox(
                                   color: Colors.grey.shade300,
                                   child: const Icon(
                                     Icons.broken_image,
@@ -585,7 +585,7 @@ class _ImageMetadataDialogState extends State<_ImageMetadataDialog> {
             SwitchListTile(
               title: const Text('Active', style: TextStyle(fontSize: 14)),
               subtitle: const Text('Show in carousel',
-                  style: TextStyle(fontSize: 12)),
+                  style: TextStyle(fontSize: 12),),
               value: _isActive,
               onChanged: (value) {
                 setState(() {

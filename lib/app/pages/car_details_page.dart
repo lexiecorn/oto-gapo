@@ -1,13 +1,13 @@
+import 'package:authentication_repository/authentication_repository.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/utils/car_logo_helper.dart';
-import 'package:otogapo/widgets/vehicle_spec_card.dart';
 import 'package:otogapo/widgets/awards_trophy_row.dart';
+import 'package:otogapo/widgets/vehicle_spec_card.dart';
 import 'package:otogapo_core/otogapo_core.dart';
-import 'package:authentication_repository/authentication_repository.dart';
 
 @RoutePage(name: 'CarDetailsPageRouter')
 class CarDetailsPage extends StatefulWidget {
@@ -30,7 +30,7 @@ class _CarDetailsPageState extends State<CarDetailsPage>
     super.initState();
     _pageController = PageController();
     _animationController = AnimationController(
-        duration: const Duration(milliseconds: 1000), vsync: this);
+        duration: const Duration(milliseconds: 1000), vsync: this,);
     _animationController.forward();
   }
 
@@ -69,21 +69,21 @@ class _CarDetailsPageState extends State<CarDetailsPage>
           return Container(
             height: 300.h,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [const Color(0xFF1a1e3f), const Color(0xFF2a2f4f)],
+                colors: [Color(0xFF1a1e3f), Color(0xFF2a2f4f)],
               ),
               borderRadius: BorderRadius.circular(16.r),
             ),
-            child: Center(
+            child: const Center(
               child: CircularProgressIndicator(
                   valueColor:
-                      AlwaysStoppedAnimation<Color>(const Color(0xFF00d4ff))),
+                      AlwaysStoppedAnimation<Color>(Color(0xFF00d4ff)),),
             ),
           ).animate(onPlay: (controller) => controller.repeat()).shimmer(
               duration: 1500.ms,
-              color: const Color(0xFF00d4ff).withOpacity(0.3));
+              color: const Color(0xFF00d4ff).withOpacity(0.3),);
         }
 
         final imageUrls = snapshot.data ?? [];
@@ -92,10 +92,10 @@ class _CarDetailsPageState extends State<CarDetailsPage>
           return Container(
             height: 300.h,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [const Color(0xFF1a1e3f), const Color(0xFF2a2f4f)],
+                colors: [Color(0xFF1a1e3f), Color(0xFF2a2f4f)],
               ),
               borderRadius: BorderRadius.circular(16.r),
             ),
@@ -105,7 +105,7 @@ class _CarDetailsPageState extends State<CarDetailsPage>
                 children: [
                   Icon(Icons.photo_library_outlined,
                       size: 64.sp,
-                      color: const Color(0xFF00d4ff).withOpacity(0.5)),
+                      color: const Color(0xFF00d4ff).withOpacity(0.5),),
                   SizedBox(height: 16.h),
                   Text(
                     'No vehicle photos',
@@ -125,7 +125,6 @@ class _CarDetailsPageState extends State<CarDetailsPage>
               BoxShadow(
                 color: const Color(0xFF00d4ff).withOpacity(0.2),
                 blurRadius: 20,
-                spreadRadius: 0,
                 offset: const Offset(0, 8),
               ),
             ],
@@ -191,12 +190,12 @@ class _CarDetailsPageState extends State<CarDetailsPage>
           end: Alignment.bottomRight,
           colors: [
             const Color(0xFF1e2340).withOpacity(0.8),
-            const Color(0xFF2a2f4f).withOpacity(0.6)
+            const Color(0xFF2a2f4f).withOpacity(0.6),
           ],
         ),
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
-            color: const Color(0xFF00d4ff).withOpacity(0.3), width: 1),
+            color: const Color(0xFF00d4ff).withOpacity(0.3),),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,8 +210,7 @@ class _CarDetailsPageState extends State<CarDetailsPage>
                   color: Colors.white.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(30.r),
                   border: Border.all(
-                      color: const Color(0xFF00d4ff).withOpacity(0.3),
-                      width: 1),
+                      color: const Color(0xFF00d4ff).withOpacity(0.3),),
                 ),
                 padding: EdgeInsets.all(12.sp),
                 child: ClipRRect(
@@ -222,7 +220,7 @@ class _CarDetailsPageState extends State<CarDetailsPage>
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
                       return Icon(Icons.directions_car,
-                          size: 28.sp, color: const Color(0xFF00d4ff));
+                          size: 28.sp, color: const Color(0xFF00d4ff),);
                     },
                   ),
                 ),
@@ -237,7 +235,7 @@ class _CarDetailsPageState extends State<CarDetailsPage>
                       style: TextStyle(
                           fontSize: 24.sp,
                           fontWeight: FontWeight.w900,
-                          color: Colors.white),
+                          color: Colors.white,),
                     ),
                     SizedBox(height: 4.h),
                     Text(
@@ -273,7 +271,7 @@ class _CarDetailsPageState extends State<CarDetailsPage>
       {
         'icon': Icons.local_gas_station,
         'label': 'Fuel Type',
-        'value': widget.vehicle.fuelType ?? 'Not specified'
+        'value': widget.vehicle.fuelType ?? 'Not specified',
       },
       {
         'icon': Icons.speed,
@@ -285,7 +283,7 @@ class _CarDetailsPageState extends State<CarDetailsPage>
       {
         'icon': Icons.settings,
         'label': 'Wheel Size',
-        'value': widget.vehicle.wheelSize ?? 'Not specified'
+        'value': widget.vehicle.wheelSize ?? 'Not specified',
       },
       {
         'icon': Icons.settings_outlined,
@@ -302,7 +300,7 @@ class _CarDetailsPageState extends State<CarDetailsPage>
       {
         'icon': Icons.engineering,
         'label': 'Engine',
-        'value': widget.vehicle.engineDisplacement ?? 'Not specified'
+        'value': widget.vehicle.engineDisplacement ?? 'Not specified',
       },
       {'icon': Icons.category, 'label': 'Type', 'value': widget.vehicle.type},
     ];
@@ -315,7 +313,7 @@ class _CarDetailsPageState extends State<CarDetailsPage>
           style: TextStyle(
               fontSize: 20.sp,
               fontWeight: FontWeight.w700,
-              color: Colors.white),
+              color: Colors.white,),
         ),
         SizedBox(height: 16.h),
         GridView.builder(
@@ -331,9 +329,9 @@ class _CarDetailsPageState extends State<CarDetailsPage>
           itemBuilder: (context, index) {
             final spec = specs[index];
             return VehicleSpecCard(
-              icon: spec['icon'] as IconData,
-              label: spec['label'] as String,
-              value: spec['value'] as String,
+              icon: spec['icon']! as IconData,
+              label: spec['label']! as String,
+              value: spec['value']! as String,
             )
                 .animate()
                 .fadeIn(delay: (200 + (index * 100)).ms, duration: 600.ms)
@@ -341,7 +339,7 @@ class _CarDetailsPageState extends State<CarDetailsPage>
                     begin: 0.2,
                     delay: (200 + (index * 100)).ms,
                     duration: 600.ms,
-                    curve: Curves.easeOutCubic);
+                    curve: Curves.easeOutCubic,);
           },
         ),
       ],
@@ -350,7 +348,7 @@ class _CarDetailsPageState extends State<CarDetailsPage>
 
   Widget _buildAwardsSection() {
     // TODO: Load actual awards when awards system is integrated
-    final awardCount = 0;
+    const awardCount = 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -360,7 +358,7 @@ class _CarDetailsPageState extends State<CarDetailsPage>
           style: TextStyle(
               fontSize: 20.sp,
               fontWeight: FontWeight.w700,
-              color: Colors.white),
+              color: Colors.white,),
         ),
         SizedBox(height: 16.h),
         AwardsTrophyRow(
@@ -369,7 +367,7 @@ class _CarDetailsPageState extends State<CarDetailsPage>
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                   content: Text('Awards page coming soon!'),
-                  backgroundColor: Color(0xFF00d4ff)),
+                  backgroundColor: Color(0xFF00d4ff),),
             );
           },
         ),
@@ -393,7 +391,7 @@ class _CarDetailsPageState extends State<CarDetailsPage>
           style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.w600,
-              color: Colors.white),
+              color: Colors.white,),
         ),
         centerTitle: true,
       ),

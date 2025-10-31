@@ -1,14 +1,14 @@
 import 'dart:async';
 
+import 'package:authentication_repository/authentication_repository.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:authentication_repository/authentication_repository.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/modules/profile_progress/bloc/profile_progress_cubit.dart';
@@ -126,14 +126,9 @@ class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
         options: CarouselOptions(
           height: 180.h,
           autoPlay: true,
-          autoPlayInterval: Duration(seconds: 3),
-          autoPlayAnimationDuration: Duration(milliseconds: 800),
-          autoPlayCurve: Curves.fastOutSlowIn,
-          enlargeCenterPage: false,
+          autoPlayInterval: const Duration(seconds: 3),
           viewportFraction:
               0.55, // Increased to show more of each image, making them appear closer
-          enableInfiniteScroll: true,
-          scrollDirection: Axis.horizontal,
         ),
       ),
     );
@@ -143,7 +138,7 @@ class _VehiclePhotosCarouselState extends State<_VehiclePhotosCarousel> {
 // Import the private widget - Fixed container with scrollable content inside
 class _CarWidgetSpecsOnlyFixed extends StatelessWidget {
   const _CarWidgetSpecsOnlyFixed(
-      {required this.state, required this.onRefresh});
+      {required this.state, required this.onRefresh,});
 
   final ProfileState state;
   final Future<void> Function() onRefresh;
@@ -170,7 +165,6 @@ class _CarWidgetSpecsOnlyFixed extends StatelessWidget {
                 ? Colors.black.withOpacity(0.4)
                 : Colors.grey.withOpacity(0.4),
             blurRadius: 20,
-            spreadRadius: 0,
             offset: const Offset(0, 8),
           ),
           BoxShadow(
@@ -178,7 +172,6 @@ class _CarWidgetSpecsOnlyFixed extends StatelessWidget {
                 ? Colors.black.withOpacity(0.3)
                 : Colors.grey.withOpacity(0.3),
             blurRadius: 10,
-            spreadRadius: 0,
             offset: const Offset(0, 4),
           ),
         ],
@@ -224,13 +217,13 @@ class ProfilePageState extends State<ProfilePage>
 
     // Simplified animation controller
     _pageAnimationController = AnimationController(
-        duration: const Duration(milliseconds: 300), vsync: this);
+        duration: const Duration(milliseconds: 300), vsync: this,);
 
     _fadeAnimation = Tween<double>(
       begin: 0,
       end: 1,
     ).animate(CurvedAnimation(
-        parent: _pageAnimationController, curve: Curves.easeOut));
+        parent: _pageAnimationController, curve: Curves.easeOut,),);
 
     // Start animation
     _pageAnimationController.forward();
@@ -250,11 +243,11 @@ class ProfilePageState extends State<ProfilePage>
       if (authState.authStatus == AuthStatus.authenticated &&
           authState.user != null) {
         print(
-            'Profile Page - Initializing profile for authenticated user: ${authState.user!.id}');
+            'Profile Page - Initializing profile for authenticated user: ${authState.user!.id}',);
         context.read<ProfileCubit>().getProfile();
       } else {
         print(
-            'Profile Page - No authenticated user found, auth status: ${authState.authStatus}');
+            'Profile Page - No authenticated user found, auth status: ${authState.authStatus}',);
       }
     }
   }
@@ -278,14 +271,13 @@ class ProfilePageState extends State<ProfilePage>
         (currentAuthUser != null && widget.userId == currentAuthUser.id);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
+      value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
         extendBodyBehindAppBar: true,
-        appBar: null,
         body: MediaQuery.removePadding(
           context: context,
           removeTop: true,
@@ -295,12 +287,12 @@ class ProfilePageState extends State<ProfilePage>
               // Add debugging
               print('Profile Page - Profile Status: ${state.profileStatus}');
               print(
-                  'Profile Page - User Member Number: "${state.user.memberNumber}"');
+                  'Profile Page - User Member Number: "${state.user.memberNumber}"',);
               print(
-                  'Profile Page - User First Name: "${state.user.firstName}"');
+                  'Profile Page - User First Name: "${state.user.firstName}"',);
               print('Profile Page - User Last Name: "${state.user.lastName}"');
               print(
-                  'Profile Page - User Membership Type: ${state.user.membership_type}');
+                  'Profile Page - User Membership Type: ${state.user.membership_type}',);
               print('Profile Page - User UID: "${state.user.uid}"');
 
               // Only check for mismatch if viewing own profile
@@ -341,14 +333,11 @@ class ProfilePageState extends State<ProfilePage>
                     // Sliver App Bar with hero image
                     SliverAppBar(
                       expandedHeight: 320.h,
-                      floating: false,
                       pinned: true,
-                      snap: false,
                       backgroundColor: Colors.transparent,
                       elevation: 0,
                       flexibleSpace: FlexibleSpaceBar(
                         background: CarWidgetImageCard(state: state),
-                        collapseMode: CollapseMode.parallax,
                       ),
                     ),
                     // Profile Completion Card (only show for own profile, once a week)
@@ -356,7 +345,7 @@ class ProfilePageState extends State<ProfilePage>
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: EdgeInsets.only(
-                              left: 8, right: 8, bottom: 4.h, top: 8.h),
+                              left: 8, right: 8, bottom: 4.h, top: 8.h,),
                           child: const ProfileCompletionCardWrapper(),
                         ),
                       ),
@@ -418,8 +407,8 @@ class ProfilePageState extends State<ProfilePage>
               borderRadius: BorderRadius.circular(40),
               gradient: LinearGradient(colors: [
                 Colors.blue.withOpacity(0.8),
-                Colors.purple.withOpacity(0.8)
-              ]),
+                Colors.purple.withOpacity(0.8),
+              ],),
             ),
             child: const Icon(Icons.person, color: Colors.white, size: 40),
           )
@@ -433,7 +422,7 @@ class ProfilePageState extends State<ProfilePage>
             style: TextStyle(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey[600]),
+                color: Colors.grey[600],),
           ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
         ],
       ),
@@ -451,7 +440,7 @@ class ProfilePageState extends State<ProfilePage>
             height: 100,
             decoration: BoxDecoration(
                 color: Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(50)),
+                borderRadius: BorderRadius.circular(50),),
             child: Icon(Icons.error_outline, size: 60, color: Colors.red[400]),
           )
               .animate()
@@ -463,7 +452,7 @@ class ProfilePageState extends State<ProfilePage>
             style: TextStyle(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
-                color: Colors.red[400]),
+                color: Colors.red[400],),
           ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
           SizedBox(height: 8.sp),
           Text(
