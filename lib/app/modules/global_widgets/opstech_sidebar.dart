@@ -5,8 +5,8 @@ import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
-import 'package:otogapo_core/otogapo_core.dart';
 import 'package:otogapo/utils/debug_helper.dart';
+import 'package:otogapo_core/otogapo_core.dart';
 
 class PickerSideBar extends StatefulWidget {
   const PickerSideBar({

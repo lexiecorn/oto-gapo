@@ -36,7 +36,7 @@ class MyFeatureCubit extends Cubit<MyFeatureState> {
   final Object repository; // Replace with a concrete repository type
 
   Future<void> load() async {
-    emit(state.copyWith(isLoading: true, errorMessage: null));
+    emit(state.copyWith(isLoading: true));
     try {
       // final results = await repository.fetch();
       final results = <Object>[]; // placeholder

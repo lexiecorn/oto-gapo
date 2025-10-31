@@ -228,7 +228,6 @@ void main() {
               password: 'password123',
               firstName: 'John',
               lastName: 'Doe',
-              additionalData: null,
             ),
           ).called(1);
         },
@@ -322,7 +321,7 @@ void main() {
         'emits unauthenticated state when user is null',
         build: () => authBloc,
         act: (bloc) => bloc.add(
-          const AuthStateChangedEvent(user: null),
+          const AuthStateChangedEvent(),
         ),
         expect: () => [
           const AuthState(authStatus: AuthStatus.unauthenticated),

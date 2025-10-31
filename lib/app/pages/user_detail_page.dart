@@ -36,10 +36,15 @@ class _UserDetailPageState extends State<UserDetailPage> {
   File? _selectedCarImage3;
   File? _selectedCarImage4;
   bool _isUploadingCarImage = false;
+  // ignore: unused_field
   String? _uploadedMainCarImageUrl;
+  // ignore: unused_field
   String? _uploadedCarImage1Url;
+  // ignore: unused_field
   String? _uploadedCarImage2Url;
+  // ignore: unused_field
   String? _uploadedCarImage3Url;
+  // ignore: unused_field
   String? _uploadedCarImage4Url;
 
   @override
@@ -1066,7 +1071,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
     if (_formKey.currentState!.validate()) {
       try {
         // Show loading indicator
-        showDialog(
+        showDialog<void>(
           context: context,
           barrierDismissible: false,
           builder: (context) =>
@@ -1259,7 +1264,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
     final name = '$firstName $lastName'.trim();
     final displayName = name.isNotEmpty ? name : 'this user';
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -1348,7 +1353,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
 
       // Add a small delay to ensure the deletion is processed
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future<void>.delayed(const Duration(milliseconds: 500));
 
       // Remove loading overlay
       overlayEntry.remove();
@@ -2122,11 +2127,9 @@ class _UserDetailPageState extends State<UserDetailPage> {
   }
 
   Widget _buildCarImagesDisplaySection(Map<String, dynamic> vehicle) {
-    final primaryPhoto = vehicle['primaryPhoto'] as String?;
-
     // Debug logging
     // print('Vehicle data: $vehicle');
-    // print('Primary photo: $primaryPhoto');
+    // print('Primary photo: ${vehicle['primaryPhoto']}');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

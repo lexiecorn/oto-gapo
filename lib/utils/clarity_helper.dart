@@ -1,6 +1,6 @@
+import 'package:clarity_flutter/clarity_flutter.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
-import 'package:clarity_flutter/clarity_flutter.dart';
 
 class ClarityHelper {
   ClarityHelper._();
@@ -10,7 +10,7 @@ class ClarityHelper {
     String? projectId,
     String? userId,
   }) {
-    final String? flavorProjectId = (projectId ??
+    final flavorProjectId = (projectId ??
             (FlavorConfig.instance.variables['clarityProjectId']
                 as String?))
         ?.trim();
@@ -35,7 +35,7 @@ class ClarityHelper {
   }
 
   static Future<void> setCustomProperties(
-      Map<String, String> properties) async {
+      Map<String, String> properties,) async {
     // Not supported in this package version; no-op.
   }
 }

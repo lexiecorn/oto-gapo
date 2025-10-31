@@ -25,6 +25,7 @@ class SigninPageState extends State<SigninPage> {
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
   String? _email;
   String? _password;
+  bool _obscurePassword = true;
 
   void _submit() {
     setState(() {
@@ -54,7 +55,6 @@ class SigninPageState extends State<SigninPage> {
         error,
         stackTrace,
         reason: 'Google sign-in UI error',
-        fatal: false,
       );
       if (context.mounted) {
         await errorDialog(
@@ -167,7 +167,7 @@ class SigninPageState extends State<SigninPage> {
                               height: 10,
                             ),
                             TextFormField(
-                              obscureText: true,
+                              obscureText: _obscurePassword,
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Theme.of(context)
@@ -176,7 +176,22 @@ class SigninPageState extends State<SigninPage> {
                                     ?.color,
                               ),
                               decoration:
-                                  loginFormFeildDecor(context, 'Password'),
+                                  loginFormFeildDecor(context, 'Password')
+                                      .copyWith(
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    color: Theme.of(context).hintColor,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                ),
+                              ),
                               validator: (String? value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return 'Password required';

@@ -26,8 +26,11 @@ val keystoreProperties = Properties().apply {
 
 val hasReleaseKeystore = keystoreProperties["storeFile"] != null
 
-// Firebase Auth requires minSdkVersion 23+
-val flutterMinSdkVersion = localProperties.getProperty("flutter.minSdkVersion")?.toIntOrNull() ?: 23
+// Firebase/Auth require minSdkVersion 23+, and Flutter is deprecating <24. Clamp to >=24.
+val flutterMinSdkVersion = localProperties.getProperty("flutter.minSdkVersion")
+    ?.toIntOrNull()
+    ?.let { maxOf(it, 24) }
+    ?: 24
 
 
 android {

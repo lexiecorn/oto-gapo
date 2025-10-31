@@ -2,10 +2,10 @@ import 'package:authentication_repository/authentication_repository.dart'
     as my_auth_repo;
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:authentication_repository/src/profile_failure.dart';
-import 'package:otogapo/utils/debug_helper.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:otogapo/models/custom_error.dart';
+import 'package:otogapo/utils/debug_helper.dart';
 
 part 'profile_state.dart';
 

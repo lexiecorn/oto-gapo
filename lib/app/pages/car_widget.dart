@@ -59,7 +59,7 @@ class _CarWidgetState extends State<CarWidget> with TickerProviderStateMixin {
     );
 
     // Start animations with delay
-    Future.delayed(const Duration(milliseconds: 300), () {
+    Future<void>.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         _carAnimationController.forward();
       }

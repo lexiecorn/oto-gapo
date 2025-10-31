@@ -36,7 +36,6 @@ class SigninCubit extends Cubit<SigninState> {
         e,
         stackTrace,
         reason: 'Google OAuth sign-in failed',
-        fatal: false,
       );
       emit(
         state.copyWith(
@@ -53,7 +52,6 @@ class SigninCubit extends Cubit<SigninState> {
         e,
         stackTrace,
         reason: 'Google OAuth sign-in unknown error',
-        fatal: false,
       );
       emit(
         state.copyWith(
@@ -98,7 +96,6 @@ class SigninCubit extends Cubit<SigninState> {
         e,
         stackTrace,
         reason: 'Email/password sign-in failed',
-        fatal: false,
       );
       emit(
         state.copyWith(
@@ -115,7 +112,6 @@ class SigninCubit extends Cubit<SigninState> {
         e,
         stackTrace,
         reason: 'Email/password sign-in unknown error',
-        fatal: false,
       );
       emit(
         state.copyWith(

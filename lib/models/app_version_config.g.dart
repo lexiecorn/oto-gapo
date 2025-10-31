@@ -15,9 +15,9 @@ _$AppVersionConfigImpl _$$AppVersionConfigImplFromJson(
       minBuildNumber: (json['min_build_number'] as num).toDouble(),
       currentVersion: json['current_version'] as String,
       currentBuildNumber: (json['current_build_number'] as num).toDouble(),
+      storeUrl: json['store_url'] as String,
       forceUpdate: json['force_update'] as bool? ?? false,
       releaseNotes: json['release_notes'] as String?,
-      storeUrl: json['store_url'] as String,
       enabled: json['enabled'] as bool? ?? true,
       created: json['created'] == null
           ? null
@@ -36,9 +36,9 @@ Map<String, dynamic> _$$AppVersionConfigImplToJson(
       'min_build_number': instance.minBuildNumber,
       'current_version': instance.currentVersion,
       'current_build_number': instance.currentBuildNumber,
+      'store_url': instance.storeUrl,
       'force_update': instance.forceUpdate,
       'release_notes': instance.releaseNotes,
-      'store_url': instance.storeUrl,
       'enabled': instance.enabled,
       'created': instance.created?.toIso8601String(),
       'updated': instance.updated?.toIso8601String(),

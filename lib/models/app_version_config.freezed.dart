@@ -32,12 +32,12 @@ mixin _$AppVersionConfig {
   String get currentVersion => throw _privateConstructorUsedError;
   @JsonKey(name: 'current_build_number')
   double get currentBuildNumber => throw _privateConstructorUsedError;
+  @JsonKey(name: 'store_url')
+  String get storeUrl => throw _privateConstructorUsedError;
   @JsonKey(name: 'force_update')
   bool get forceUpdate => throw _privateConstructorUsedError;
   @JsonKey(name: 'release_notes')
   String? get releaseNotes => throw _privateConstructorUsedError;
-  @JsonKey(name: 'store_url')
-  String get storeUrl => throw _privateConstructorUsedError;
   @JsonKey(name: 'enabled')
   bool get enabled => throw _privateConstructorUsedError;
   @JsonKey(name: 'created')
@@ -45,12 +45,8 @@ mixin _$AppVersionConfig {
   @JsonKey(name: 'updated')
   DateTime? get updated => throw _privateConstructorUsedError;
 
-  /// Serializes this AppVersionConfig to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of AppVersionConfig
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $AppVersionConfigCopyWith<AppVersionConfig> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -68,9 +64,9 @@ abstract class $AppVersionConfigCopyWith<$Res> {
       @JsonKey(name: 'min_build_number') double minBuildNumber,
       @JsonKey(name: 'current_version') String currentVersion,
       @JsonKey(name: 'current_build_number') double currentBuildNumber,
+      @JsonKey(name: 'store_url') String storeUrl,
       @JsonKey(name: 'force_update') bool forceUpdate,
       @JsonKey(name: 'release_notes') String? releaseNotes,
-      @JsonKey(name: 'store_url') String storeUrl,
       @JsonKey(name: 'enabled') bool enabled,
       @JsonKey(name: 'created') DateTime? created,
       @JsonKey(name: 'updated') DateTime? updated});
@@ -86,8 +82,6 @@ class _$AppVersionConfigCopyWithImpl<$Res, $Val extends AppVersionConfig>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of AppVersionConfig
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -97,9 +91,9 @@ class _$AppVersionConfigCopyWithImpl<$Res, $Val extends AppVersionConfig>
     Object? minBuildNumber = null,
     Object? currentVersion = null,
     Object? currentBuildNumber = null,
+    Object? storeUrl = null,
     Object? forceUpdate = null,
     Object? releaseNotes = freezed,
-    Object? storeUrl = null,
     Object? enabled = null,
     Object? created = freezed,
     Object? updated = freezed,
@@ -129,6 +123,10 @@ class _$AppVersionConfigCopyWithImpl<$Res, $Val extends AppVersionConfig>
           ? _value.currentBuildNumber
           : currentBuildNumber // ignore: cast_nullable_to_non_nullable
               as double,
+      storeUrl: null == storeUrl
+          ? _value.storeUrl
+          : storeUrl // ignore: cast_nullable_to_non_nullable
+              as String,
       forceUpdate: null == forceUpdate
           ? _value.forceUpdate
           : forceUpdate // ignore: cast_nullable_to_non_nullable
@@ -137,10 +135,6 @@ class _$AppVersionConfigCopyWithImpl<$Res, $Val extends AppVersionConfig>
           ? _value.releaseNotes
           : releaseNotes // ignore: cast_nullable_to_non_nullable
               as String?,
-      storeUrl: null == storeUrl
-          ? _value.storeUrl
-          : storeUrl // ignore: cast_nullable_to_non_nullable
-              as String,
       enabled: null == enabled
           ? _value.enabled
           : enabled // ignore: cast_nullable_to_non_nullable
@@ -172,9 +166,9 @@ abstract class _$$AppVersionConfigImplCopyWith<$Res>
       @JsonKey(name: 'min_build_number') double minBuildNumber,
       @JsonKey(name: 'current_version') String currentVersion,
       @JsonKey(name: 'current_build_number') double currentBuildNumber,
+      @JsonKey(name: 'store_url') String storeUrl,
       @JsonKey(name: 'force_update') bool forceUpdate,
       @JsonKey(name: 'release_notes') String? releaseNotes,
-      @JsonKey(name: 'store_url') String storeUrl,
       @JsonKey(name: 'enabled') bool enabled,
       @JsonKey(name: 'created') DateTime? created,
       @JsonKey(name: 'updated') DateTime? updated});
@@ -188,8 +182,6 @@ class __$$AppVersionConfigImplCopyWithImpl<$Res>
       $Res Function(_$AppVersionConfigImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of AppVersionConfig
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -199,9 +191,9 @@ class __$$AppVersionConfigImplCopyWithImpl<$Res>
     Object? minBuildNumber = null,
     Object? currentVersion = null,
     Object? currentBuildNumber = null,
+    Object? storeUrl = null,
     Object? forceUpdate = null,
     Object? releaseNotes = freezed,
-    Object? storeUrl = null,
     Object? enabled = null,
     Object? created = freezed,
     Object? updated = freezed,
@@ -231,6 +223,10 @@ class __$$AppVersionConfigImplCopyWithImpl<$Res>
           ? _value.currentBuildNumber
           : currentBuildNumber // ignore: cast_nullable_to_non_nullable
               as double,
+      storeUrl: null == storeUrl
+          ? _value.storeUrl
+          : storeUrl // ignore: cast_nullable_to_non_nullable
+              as String,
       forceUpdate: null == forceUpdate
           ? _value.forceUpdate
           : forceUpdate // ignore: cast_nullable_to_non_nullable
@@ -239,10 +235,6 @@ class __$$AppVersionConfigImplCopyWithImpl<$Res>
           ? _value.releaseNotes
           : releaseNotes // ignore: cast_nullable_to_non_nullable
               as String?,
-      storeUrl: null == storeUrl
-          ? _value.storeUrl
-          : storeUrl // ignore: cast_nullable_to_non_nullable
-              as String,
       enabled: null == enabled
           ? _value.enabled
           : enabled // ignore: cast_nullable_to_non_nullable
@@ -269,9 +261,9 @@ class _$AppVersionConfigImpl implements _AppVersionConfig {
       @JsonKey(name: 'min_build_number') required this.minBuildNumber,
       @JsonKey(name: 'current_version') required this.currentVersion,
       @JsonKey(name: 'current_build_number') required this.currentBuildNumber,
+      @JsonKey(name: 'store_url') required this.storeUrl,
       @JsonKey(name: 'force_update') this.forceUpdate = false,
       @JsonKey(name: 'release_notes') this.releaseNotes,
-      @JsonKey(name: 'store_url') required this.storeUrl,
       @JsonKey(name: 'enabled') this.enabled = true,
       @JsonKey(name: 'created') this.created,
       @JsonKey(name: 'updated') this.updated});
@@ -298,14 +290,14 @@ class _$AppVersionConfigImpl implements _AppVersionConfig {
   @JsonKey(name: 'current_build_number')
   final double currentBuildNumber;
   @override
+  @JsonKey(name: 'store_url')
+  final String storeUrl;
+  @override
   @JsonKey(name: 'force_update')
   final bool forceUpdate;
   @override
   @JsonKey(name: 'release_notes')
   final String? releaseNotes;
-  @override
-  @JsonKey(name: 'store_url')
-  final String storeUrl;
   @override
   @JsonKey(name: 'enabled')
   final bool enabled;
@@ -318,7 +310,7 @@ class _$AppVersionConfigImpl implements _AppVersionConfig {
 
   @override
   String toString() {
-    return 'AppVersionConfig(id: $id, platform: $platform, minVersion: $minVersion, minBuildNumber: $minBuildNumber, currentVersion: $currentVersion, currentBuildNumber: $currentBuildNumber, forceUpdate: $forceUpdate, releaseNotes: $releaseNotes, storeUrl: $storeUrl, enabled: $enabled, created: $created, updated: $updated)';
+    return 'AppVersionConfig(id: $id, platform: $platform, minVersion: $minVersion, minBuildNumber: $minBuildNumber, currentVersion: $currentVersion, currentBuildNumber: $currentBuildNumber, storeUrl: $storeUrl, forceUpdate: $forceUpdate, releaseNotes: $releaseNotes, enabled: $enabled, created: $created, updated: $updated)';
   }
 
   @override
@@ -337,18 +329,18 @@ class _$AppVersionConfigImpl implements _AppVersionConfig {
                 other.currentVersion == currentVersion) &&
             (identical(other.currentBuildNumber, currentBuildNumber) ||
                 other.currentBuildNumber == currentBuildNumber) &&
+            (identical(other.storeUrl, storeUrl) ||
+                other.storeUrl == storeUrl) &&
             (identical(other.forceUpdate, forceUpdate) ||
                 other.forceUpdate == forceUpdate) &&
             (identical(other.releaseNotes, releaseNotes) ||
                 other.releaseNotes == releaseNotes) &&
-            (identical(other.storeUrl, storeUrl) ||
-                other.storeUrl == storeUrl) &&
             (identical(other.enabled, enabled) || other.enabled == enabled) &&
             (identical(other.created, created) || other.created == created) &&
             (identical(other.updated, updated) || other.updated == updated));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -358,16 +350,14 @@ class _$AppVersionConfigImpl implements _AppVersionConfig {
       minBuildNumber,
       currentVersion,
       currentBuildNumber,
+      storeUrl,
       forceUpdate,
       releaseNotes,
-      storeUrl,
       enabled,
       created,
       updated);
 
-  /// Create a copy of AppVersionConfig
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$AppVersionConfigImplCopyWith<_$AppVersionConfigImpl> get copyWith =>
@@ -391,9 +381,9 @@ abstract class _AppVersionConfig implements AppVersionConfig {
       @JsonKey(name: 'current_version') required final String currentVersion,
       @JsonKey(name: 'current_build_number')
       required final double currentBuildNumber,
+      @JsonKey(name: 'store_url') required final String storeUrl,
       @JsonKey(name: 'force_update') final bool forceUpdate,
       @JsonKey(name: 'release_notes') final String? releaseNotes,
-      @JsonKey(name: 'store_url') required final String storeUrl,
       @JsonKey(name: 'enabled') final bool enabled,
       @JsonKey(name: 'created') final DateTime? created,
       @JsonKey(name: 'updated')
@@ -421,14 +411,14 @@ abstract class _AppVersionConfig implements AppVersionConfig {
   @JsonKey(name: 'current_build_number')
   double get currentBuildNumber;
   @override
+  @JsonKey(name: 'store_url')
+  String get storeUrl;
+  @override
   @JsonKey(name: 'force_update')
   bool get forceUpdate;
   @override
   @JsonKey(name: 'release_notes')
   String? get releaseNotes;
-  @override
-  @JsonKey(name: 'store_url')
-  String get storeUrl;
   @override
   @JsonKey(name: 'enabled')
   bool get enabled;
@@ -438,11 +428,8 @@ abstract class _AppVersionConfig implements AppVersionConfig {
   @override
   @JsonKey(name: 'updated')
   DateTime? get updated;
-
-  /// Create a copy of AppVersionConfig
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$AppVersionConfigImplCopyWith<_$AppVersionConfigImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

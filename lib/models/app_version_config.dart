@@ -1,3 +1,5 @@
+// ignore_for_file: invalid_annotation_target
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'app_version_config.freezed.dart';
@@ -27,7 +29,8 @@ class AppVersionConfig with _$AppVersionConfig {
     @JsonKey(name: 'min_build_number') required double minBuildNumber,
     @JsonKey(name: 'current_version') required String currentVersion,
     @JsonKey(name: 'current_build_number') required double currentBuildNumber,
-    @JsonKey(name: 'store_url') required String storeUrl, @JsonKey(name: 'force_update') @Default(false) bool forceUpdate,
+    @JsonKey(name: 'store_url') required String storeUrl,
+    @JsonKey(name: 'force_update') @Default(false) bool forceUpdate,
     @JsonKey(name: 'release_notes') String? releaseNotes,
     @JsonKey(name: 'enabled') @Default(true) bool enabled,
     @JsonKey(name: 'created') DateTime? created,
