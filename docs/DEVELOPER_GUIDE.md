@@ -14,6 +14,7 @@ This guide provides comprehensive information for developers working on the OtoG
 - [Code Generation](#code-generation)
 - [Debugging](#debugging)
 - [Performance Optimization](#performance-optimization)
+- [Performance Monitoring](#performance-monitoring)
 - [Contributing](#contributing)
   - [Docker Deployment (Web)](#docker-deployment-web)
 - [Troubleshooting](#troubleshooting)
@@ -769,6 +770,68 @@ flutter test packages/attendance_repository/test/
      }
    });
    ```
+
+## Performance Monitoring
+
+The app uses Firebase Performance Monitoring to track app performance, network requests, and custom operations.
+
+### Quick Start
+
+```dart
+import 'package:otogapo/utils/performance_helper.dart';
+
+// Track a custom operation
+final trace = PerformanceHelper.startTrace('my_operation');
+try {
+  await doSomething();
+  await PerformanceHelper.setAttribute(trace, 'result', 'success');
+} finally {
+  await PerformanceHelper.stopTrace(trace);
+}
+```
+
+### Automatic Monitoring
+
+- **App startup**: Automatically tracked across all entry points
+- **HTTP requests**: All Dio requests are tracked via `PerformanceInterceptor`
+- **Screen navigation**: Automatic tracking via Firebase Performance SDK
+
+### Custom Traces
+
+Track critical operations with custom traces:
+
+```dart
+// Simple tracking
+await PerformanceHelper.trackOperation(
+  'fetch_user_data',
+  () => apiService.getUserData(),
+);
+
+// With metrics
+final posts = await PerformanceHelper.trackOperationWithMetrics(
+  'fetch_posts',
+  () => apiService.getPosts(),
+  (result) => {'count': result.length},
+);
+```
+
+### Available Traces
+
+- `app_start`: Total app initialization time
+- `firebase_init`: Firebase initialization
+- `perf_enable`: Performance Monitoring setup
+- `pocketbase_init`: PocketBase initialization
+- `email_signin`: Email/password authentication
+- `google_oauth_signin`: Google OAuth authentication
+
+### Best Practices
+
+1. **Name traces descriptively**: Use clear, consistent names
+2. **Add context**: Use attributes to provide meaningful data
+3. **Track errors**: Always record error information
+4. **Use finally blocks**: Always stop traces in finally blocks
+
+For detailed information, see [Performance Monitoring Usage Guide](PERFORMANCE_MONITORING_USAGE.md).
 
 ## Contributing
 

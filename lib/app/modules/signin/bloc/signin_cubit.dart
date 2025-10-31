@@ -4,6 +4,7 @@ import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:otogapo/utils/crashlytics_helper.dart';
+import 'package:otogapo/utils/performance_helper.dart';
 part 'signin_cubit.freezed.dart';
 part 'signin_state.dart';
 
@@ -17,12 +18,15 @@ class SigninCubit extends Cubit<SigninState> {
   /// Sign in with Google using PocketBase native OAuth
   Future<void> signinWithGoogleOAuth() async {
     emit(state.copyWith(signinStatus: SigninStatus.submitting));
+    final trace = PerformanceHelper.startTrace('google_oauth_signin');
     try {
       log('Starting PocketBase Google OAuth...');
       await pocketBaseAuth.signInWithGoogleOAuth();
+      await PerformanceHelper.setAttribute(trace, 'method', 'google_oauth');
       emit(state.copyWith(signinStatus: SigninStatus.success));
       log('PocketBase Google OAuth successful');
     } on AuthFailure catch (e, stackTrace) {
+      await PerformanceHelper.setAttribute(trace, 'error', e.code);
       final raw = e.message.toString();
       const friendly =
           'Google Sign‑In failed. Please try again or use Email Sign‑In.\nIf the problem persists, contact the administrator.';
@@ -42,6 +46,7 @@ class SigninCubit extends Cubit<SigninState> {
         ),
       );
     } catch (e, stackTrace) {
+      await PerformanceHelper.setAttribute(trace, 'error', 'unknown');
       log('signinWithGoogleOAuth cubit unknown error: $e');
       // Log to Crashlytics and n8n
       await CrashlyticsHelper.logError(
@@ -61,6 +66,8 @@ class SigninCubit extends Cubit<SigninState> {
           ),
         ),
       );
+    } finally {
+      await PerformanceHelper.stopTrace(trace);
     }
   }
 
@@ -70,12 +77,15 @@ class SigninCubit extends Cubit<SigninState> {
   }) async {
     emit(state.copyWith(signinStatus: SigninStatus.submitting));
 
+    final trace = PerformanceHelper.startTrace('email_signin');
     try {
       // Use PocketBase authentication instead of Firebase
       await pocketBaseAuth.signIn(email: email, password: password);
+      await PerformanceHelper.setAttribute(trace, 'method', 'email_password');
 
       emit(state.copyWith(signinStatus: SigninStatus.success));
     } on AuthFailure catch (e, stackTrace) {
+      await PerformanceHelper.setAttribute(trace, 'error', e.code);
       // Map PocketBase's generic 400 to a friendlier message
       final raw = e.message.toString();
       final friendly = (raw.contains('Failed to authenticate') ||
@@ -98,6 +108,7 @@ class SigninCubit extends Cubit<SigninState> {
         ),
       );
     } catch (e, stackTrace) {
+      await PerformanceHelper.setAttribute(trace, 'error', 'unknown');
       log('signin cubit unknown error: $e');
       // Log to Crashlytics and n8n
       await CrashlyticsHelper.logError(
@@ -117,6 +128,8 @@ class SigninCubit extends Cubit<SigninState> {
           ),
         ),
       );
+    } finally {
+      await PerformanceHelper.stopTrace(trace);
     }
   }
 }

@@ -40,6 +40,7 @@ The application has been fully migrated from Firebase Storage to PocketBase for 
 - [Vehicle Management](#vehicle-management)
 - [Vehicle Awards System](#vehicle-awards-system)
 - [Admin Services](#admin-services)
+- [Performance Monitoring Services](#performance-monitoring-services)
 - [Data Models](#data-models)
 - [Error Handling](#error-handling)
 
@@ -1061,6 +1062,86 @@ Future<RecordModel> setAppData({
   String? category
 })
 ```
+
+## Performance Monitoring Services
+
+### Firebase Performance Monitoring
+
+Firebase Performance Monitoring tracks app performance, network requests, and custom operations across all flavors.
+
+#### Utility Class: `PerformanceHelper`
+
+Located in `lib/utils/performance_helper.dart`
+
+**Methods:**
+
+```dart
+// Start a custom trace
+Trace startTrace(String traceName)
+
+// Stop a trace
+Future<void> stopTrace(Trace trace)
+
+// Record a custom metric
+Future<void> putMetric(Trace trace, String metricName, int value)
+
+// Add custom attributes
+Future<void> setAttribute(Trace trace, String attributeName, String value)
+
+// Track an async operation
+Future<T> trackOperation<T>(String traceName, Future<T> Function() operation)
+
+// Track operation with metrics
+Future<T> trackOperationWithMetrics<T>(
+  String traceName,
+  Future<T> Function() operation,
+  Map<String, int> Function(T result) computeMetrics
+)
+
+// Enable/disable collection
+Future<void> setPerformanceCollectionEnabled(bool enabled)
+
+// Check availability
+Future<bool> isAvailable()
+
+// Create HTTP metric
+HttpMetric newHttpMetric(String url, HttpMethod method)
+```
+
+#### HTTP Performance Interceptor
+
+Located in `lib/services/performance_interceptor.dart`
+
+The `PerformanceInterceptor` automatically tracks all HTTP requests made through Dio:
+
+- **Request tracking**: URL, method, payload size
+- **Response tracking**: Status code, response size, content type
+- **Error tracking**: Error type and message
+
+**Usage:**
+
+```dart
+// Automatically registered in bootstrap.dart
+final dio = Dio();
+dio.interceptors.add(PerformanceInterceptor());
+```
+
+#### Automatic Traces
+
+The following traces are automatically tracked:
+
+- `app_start`: Total app initialization time
+- `firebase_init`: Firebase initialization time
+- `perf_enable`: Performance Monitoring setup time
+- `pocketbase_init`: PocketBase initialization time
+
+#### Custom Authentication Traces
+
+- `email_signin`: Email/password authentication time
+- `google_oauth_signin`: Google OAuth authentication time
+- Both include error tracking for failed attempts
+
+For detailed usage, see [Performance Monitoring Usage Guide](PERFORMANCE_MONITORING_USAGE.md).
 
 ## Attendance Management
 

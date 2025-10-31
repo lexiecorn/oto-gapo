@@ -26,10 +26,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:local_storage/local_storage.dart';
 import 'package:otogapo/app/routes/app_router.dart';
 import 'package:otogapo/models/cached_data.dart';
+import 'package:firebase_performance_dio/firebase_performance_dio.dart';
 import 'package:otogapo/services/connectivity_service.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:otogapo/services/sync_service.dart';
 import 'package:otogapo/utils/crashlytics_helper.dart';
+import 'package:otogapo/utils/performance_helper.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:otogapo/utils/clarity_helper.dart';
@@ -141,7 +143,9 @@ Future<void> bootstrap(
 
   final packageInfo = await PackageInfo.fromPlatform();
 
+  // Set up Dio HTTP client with performance monitoring interceptor
   final dio = Dio();
+  dio.interceptors.add(DioFirebasePerformanceInterceptor());
   // final a = flavor;
   // await Firebase.initializeApp(
   //   options: flavor == 'PROD'
@@ -216,6 +220,7 @@ Future<void> bootstrap(
   final pocketBaseAuthRepository = PocketBaseAuthRepository(storage: storage);
 
   // Initialize PocketBase with timeout to prevent hanging
+  final pbInitTrace = PerformanceHelper.startTrace('pocketbase_init');
   try {
     log('Initializing PocketBase with timeout...');
     await pocketBaseAuthRepository.initialize().timeout(
@@ -228,7 +233,10 @@ Future<void> bootstrap(
     log('PocketBase initialized successfully');
   } catch (e) {
     log('PocketBase initialization error: $e - continuing with app startup');
+    await PerformanceHelper.setAttribute(pbInitTrace, 'error', e.toString());
     // Continue with app startup even if PocketBase fails to initialize
+  } finally {
+    await PerformanceHelper.stopTrace(pbInitTrace);
   }
 
   // Register repositories in GetIt
