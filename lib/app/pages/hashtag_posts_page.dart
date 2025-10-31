@@ -7,6 +7,7 @@ import 'package:otogapo/app/modules/social_feed/bloc/feed_cubit.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/app/widgets/post_card_widget.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo/services/sync_service.dart';
 
 @RoutePage(name: 'HashtagPostsPageRouter')
 class HashtagPostsPage extends StatefulWidget {
@@ -35,6 +36,7 @@ class _HashtagPostsPageState extends State<HashtagPostsPage> {
     _feedCubit = FeedCubit(
       pocketBaseService: PocketBaseService(),
       currentUserId: currentUserId,
+      syncService: SyncService(),
     );
 
     _scrollController = ScrollController();

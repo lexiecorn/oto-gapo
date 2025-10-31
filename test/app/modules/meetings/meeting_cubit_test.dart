@@ -3,6 +3,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart';
+import 'package:otogapo/services/sync_service.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 class MockAttendanceRepository extends Mock implements AttendanceRepository {}
@@ -18,7 +19,10 @@ void main() {
 
     setUp(() {
       mockRepository = MockAttendanceRepository();
-      cubit = MeetingCubit(attendanceRepository: mockRepository);
+      cubit = MeetingCubit(
+        attendanceRepository: mockRepository,
+        syncService: SyncService(),
+      );
     });
 
     tearDown(() {

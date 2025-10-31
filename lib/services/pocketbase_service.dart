@@ -5,10 +5,12 @@ import 'dart:io';
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:otogapo/models/cached_data.dart';
 import 'package:otogapo/models/monthly_dues.dart';
 import 'package:otogapo/models/payment_analytics.dart';
 import 'package:otogapo/models/payment_statistics.dart';
 import 'package:otogapo/models/payment_transaction.dart';
+import 'package:otogapo/services/sync_service.dart';
 import 'package:otogapo/utils/debug_helper.dart';
 import 'package:otogapo/utils/payment_statistics_utils.dart';
 import 'package:pocketbase/pocketbase.dart';
@@ -463,9 +465,35 @@ class PocketBaseService {
   Future<List<RecordModel>> getAnnouncements() async {
     try {
       await _ensureAuthenticated();
+      
+      // Try cache first
+      final syncService = SyncService();
+      final cachedAnnouncements = await syncService.getCachedAnnouncementsIfValid();
+      if (cachedAnnouncements != null && cachedAnnouncements.isNotEmpty) {
+        print('PocketBaseService - Returning ${cachedAnnouncements.length} cached announcements');
+        // Continue to fetch fresh data in background
+      }
+      
       final result = await pb.collection('Announcements').getList(
             sort: '-created',
           );
+      
+      // Cache the results
+      if (result.items.isNotEmpty) {
+        final cachedAnnouncements = result.items.map((record) {
+          return CachedAnnouncement(
+            id: record.id,
+            title: record.data['title'] as String? ?? '',
+            content: record.data['content'] as String? ?? '',
+            createdAt: DateTime.parse(record.created),
+            cachedAt: DateTime.now(),
+            isActive: record.data['isActive'] as bool? ?? true,
+          );
+        }).toList();
+        
+        await syncService.cacheAnnouncements(cachedAnnouncements);
+      }
+      
       return result.items;
     } catch (e) {
       print('Error getting announcements: $e');

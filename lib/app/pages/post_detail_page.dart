@@ -10,6 +10,7 @@ import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/models/post.dart';
 import 'package:otogapo/models/post_comment.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo/services/sync_service.dart';
 import 'package:otogapo/utils/text_parsing_utils.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -44,6 +45,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
     _feedCubit = FeedCubit(
       pocketBaseService: PocketBaseService(),
       currentUserId: currentUserId,
+      syncService: SyncService(),
     );
 
     _commentCubit = CommentCubit(

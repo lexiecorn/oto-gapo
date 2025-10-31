@@ -1,22 +1,69 @@
 import 'package:attendance_repository/attendance_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:otogapo/models/cached_data.dart';
 import 'package:otogapo/models/meeting.dart';
+import 'package:otogapo/models/meeting.dart' as meeting_models;
+import 'package:otogapo/services/sync_service.dart';
 
 part 'meeting_state.dart';
 
 class MeetingCubit extends Cubit<MeetingState> {
   MeetingCubit({
     required this.attendanceRepository,
+    required this.syncService,
   }) : super(MeetingState.initial());
 
   final AttendanceRepository attendanceRepository;
+  final SyncService syncService;
 
   /// Load all meetings
   Future<void> loadMeetings({
     int page = 1,
     String? filter,
   }) async {
+    // For first page without filters, try loading from cache first
+    if (page == 1 && filter == null) {
+      final cachedMeetings = await syncService.getCachedMeetingsIfValid();
+      if (cachedMeetings != null && cachedMeetings.isNotEmpty) {
+        // Emit cached data immediately for instant UI
+        final meetings = cachedMeetings.map((cached) {
+          // Find the matching MeetingModelStatus by value
+          meeting_models.MeetingStatus meetingModelStatus =
+              meeting_models.MeetingStatus.values.firstWhere(
+            (meeting_models.MeetingStatus s) => s.value == cached.status,
+            orElse: () => meeting_models.MeetingStatus.scheduled,
+          );
+
+          return meeting_models.Meeting(
+            id: cached.id,
+            meetingDate: cached.meetingDate,
+            meetingType: meeting_models.MeetingType.regular, // Default type
+            title: cached.title,
+            location: cached.location,
+            status: meetingModelStatus,
+            createdBy: 'unknown',
+            presentCount: cached.presentCount,
+            absentCount: cached.absentCount,
+            lateCount: 0,
+            excusedCount: 0,
+            description: cached.description,
+            created: cached.cachedAt,
+            updated: cached.cachedAt,
+          );
+        }).toList();
+
+        emit(
+          state.copyWith(
+            status: MeetingStatus.loaded,
+            meetings: meetings,
+            hasMore: false,
+            currentPage: 1,
+          ),
+        );
+      }
+    }
+
     if (page == 1) {
       emit(state.copyWith(status: MeetingStatus.loading));
     }
@@ -28,6 +75,25 @@ class MeetingCubit extends Cubit<MeetingState> {
       );
 
       final meetings = result.items.map(Meeting.fromRecord).toList();
+
+      // Cache the results if it's first page without filters
+      if (page == 1 && filter == null) {
+        final cachedMeetings = result.items.map((record) {
+          return CachedMeeting(
+            id: record.id,
+            title: record.data['title'] as String,
+            meetingDate: DateTime.parse(record.data['meetingDate'] as String),
+            location: record.data['location'] as String? ?? '',
+            status: record.data['status'] as String,
+            description: record.data['description'] as String?,
+            presentCount: record.data['presentCount'] as int? ?? 0,
+            absentCount: record.data['absentCount'] as int? ?? 0,
+            cachedAt: DateTime.now(),
+          );
+        }).toList();
+
+        await syncService.cacheMeetings(cachedMeetings);
+      }
 
       if (page == 1) {
         emit(
