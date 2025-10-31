@@ -5,6 +5,7 @@ import 'package:authentication_repository/authentication_repository.dart';
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:otogapo/utils/crashlytics_helper.dart';
 import 'package:pocketbase/pocketbase.dart';
 part 'auth_event.dart';
@@ -126,32 +127,41 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<CheckExistingAuthEvent>((event, emit) async {
       try {
         log('Checking existing authentication...');
+        debugPrint('AuthBloc - CheckExistingAuthEvent: Checking existing authentication...');
 
         // Check if PocketBase has a valid session
         final isAuthenticated = pocketBaseAuth.isAuthenticated;
         log('PocketBase isAuthenticated: $isAuthenticated');
+        debugPrint('AuthBloc - CheckExistingAuthEvent: isAuthenticated=$isAuthenticated');
 
         if (isAuthenticated) {
           final user = pocketBaseAuth.currentUser;
           log('Current user: ${user?.id}');
+          debugPrint('AuthBloc - CheckExistingAuthEvent: Current user: ${user?.id}');
           if (user != null) {
             log('User found, setting authenticated state');
+            debugPrint('AuthBloc - CheckExistingAuthEvent: User found, setting authenticated state');
+            debugPrint('AuthBloc - CheckExistingAuthEvent: Current state authStatus = ${state.authStatus}');
             emit(
               state.copyWith(
                 authStatus: AuthStatus.authenticated,
                 user: user,
               ),
             );
+            debugPrint('AuthBloc - CheckExistingAuthEvent: State emitted successfully');
           } else {
             log('No user found despite being authenticated, setting unauthenticated');
+            debugPrint('AuthBloc - CheckExistingAuthEvent: No user found, setting unauthenticated');
             emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
           }
         } else {
           log('Not authenticated, setting unauthenticated state');
+          debugPrint('AuthBloc - CheckExistingAuthEvent: Not authenticated, setting unauthenticated');
           emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
         }
       } catch (e, stackTrace) {
         log('Error checking existing auth: $e');
+        debugPrint('AuthBloc - CheckExistingAuthEvent: Error: $e');
         // Report to Crashlytics and n8n
         await CrashlyticsHelper.logError(
           e,
@@ -173,7 +183,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     add(CheckExistingAuthEvent());
   }
 
-  // ignore: cancel_subscriptions
+  @override
+  Future<void> close() {
+    // Cancel stream subscription before closing bloc
+    authSubsription.cancel();
+    return super.close();
+  }
+
   late final StreamSubscription<RecordModel?> authSubsription;
   final AuthRepository authRepository;
   final PocketBaseAuthRepository pocketBaseAuth;

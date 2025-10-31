@@ -36,6 +36,15 @@ class _SplashPageState extends State<SplashPage> {
       }
     });
 
+    // Trigger auth check immediately when SplashPage is mounted
+    // This ensures we check auth state right away, especially after OAuth
+    Future.microtask(() {
+      if (mounted) {
+        debugPrint('SplashPage - initState: Triggering CheckExistingAuthEvent');
+        context.read<AuthBloc>().add(CheckExistingAuthEvent());
+      }
+    });
+
     // Check network connectivity and show appropriate message
     _checkNetworkConnectivity();
   }
@@ -60,7 +69,8 @@ class _SplashPageState extends State<SplashPage> {
       listenWhen: (previous, current) {
         // Always listen to state changes
         debugPrint(
-            'SplashPage - State change: ${previous.authStatus} -> ${current.authStatus}',);
+          'SplashPage - State change: ${previous.authStatus} -> ${current.authStatus}',
+        );
         return true;
       },
       listener: (context, state) {
@@ -88,7 +98,8 @@ class _SplashPageState extends State<SplashPage> {
           });
         } else {
           debugPrint(
-              'SplashPage - Auth status is unknown, keeping loading state',);
+            'SplashPage - Auth status is unknown, keeping loading state',
+          );
         }
         // If status is still unknown, keep showing loading
       },

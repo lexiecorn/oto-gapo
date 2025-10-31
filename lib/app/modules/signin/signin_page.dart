@@ -90,15 +90,13 @@ class SigninPageState extends State<SigninPage> {
               debugPrint(
                   'SigninPage - Signin successful, navigating to splash page',);
               
-              // Trigger AuthBloc to check authentication state after OAuth completion
-              // This ensures the auth state is properly synchronized before navigation
+              // Navigate immediately - SplashPage will handle checking auth state
               Future.microtask(() {
                 if (context.mounted) {
-                  context.read<AuthBloc>().add(CheckExistingAuthEvent());
+                  debugPrint('SigninPage - Navigating to SplashPage');
+                  AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
                 }
               });
-              
-              AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
             }
           },
           builder: (context, state) {
