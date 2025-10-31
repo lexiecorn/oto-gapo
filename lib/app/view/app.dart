@@ -11,18 +11,22 @@ import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/calendar/bloc/calendar_cubit.dart';
 import 'package:otogapo/app/modules/connectivity/bloc/connectivity_cubit.dart';
 import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart';
+import 'package:otogapo/app/modules/notifications/bloc/notification_cubit.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/modules/profile_progress/bloc/profile_progress_cubit.dart';
 import 'package:otogapo/app/modules/signin/bloc/signin_cubit.dart';
 import 'package:otogapo/app/modules/signup/signup_cubit.dart';
 import 'package:otogapo/app/modules/version_check/bloc/version_check_cubit.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:otogapo/app/routes/app_router.dart';
 import 'package:otogapo/bootstrap.dart';
 import 'package:otogapo/providers/theme_provider.dart';
 import 'package:otogapo/repositories/version_repository.dart';
 import 'package:otogapo/services/connectivity_service.dart';
+import 'package:otogapo/services/notification_service.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:otogapo/services/sync_service.dart';
+import 'package:otogapo/utils/notification_navigation_helper.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -180,6 +184,11 @@ class App extends StatelessWidget {
                   );
                 },
               ),
+              BlocProvider<NotificationCubit>(
+                create: (context) => NotificationCubit(
+                  notificationService: getIt<NotificationService>(),
+                ),
+              ),
             ],
             child: ChangeNotifierProvider(
                 create: (context) => ThemeProvider(prefs!),
@@ -191,8 +200,52 @@ class App extends StatelessWidget {
   }
 }
 
-class AppView extends StatelessWidget {
+class AppView extends StatefulWidget {
   const AppView({super.key});
+
+  @override
+  State<AppView> createState() => _AppViewState();
+}
+
+class _AppViewState extends State<AppView> {
+  @override
+  void initState() {
+    super.initState();
+    _initializeNotifications();
+  }
+
+  Future<void> _initializeNotifications() async {
+    final notificationService = getIt<NotificationService>();
+
+    // Configure foreground notification display
+    FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    // Listen for foreground messages
+    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+
+    // Configure notification tap when app is in background or terminated
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+
+    // Check if app was opened from a notification
+    final initialMessage = await notificationService.getInitialMessage();
+    if (initialMessage != null) {
+      _handleNotificationTap(initialMessage);
+    }
+  }
+
+  Future<void> _handleForegroundMessage(RemoteMessage message) async {
+    // Show notification even when app is in foreground
+    // The OS handles this automatically based on configureForegroundNotification
+  }
+
+  Future<void> _handleNotificationTap(RemoteMessage message) async {
+    if (!mounted) return;
+    await NotificationNavigationHelper.handleNotificationTap(message, context);
+  }
 
   @override
   Widget build(BuildContext context) {

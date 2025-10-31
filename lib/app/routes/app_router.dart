@@ -69,5 +69,12 @@ class AppRouter extends $AppRouter {
         AutoRoute(
             page: VehicleAwardsManagementRoute.page,
             path: '/admin/vehicle-awards',),
+        // Notification routes
+        AutoRoute(
+            page: NotificationSettingsPageRouter.page,
+            path: '/notifications/settings',),
+        AutoRoute(
+            page: SendNotificationPageRouter.page,
+            path: '/admin/send-notification',),
       ];
 }

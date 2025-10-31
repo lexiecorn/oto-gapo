@@ -694,6 +694,168 @@ final attendance = await repository.markAttendance(
 flutter test packages/attendance_repository/test/
 ```
 
+## Push Notifications
+
+### Overview
+
+The app implements Firebase Cloud Messaging (FCM) for push notifications with support for:
+
+- User-targeted notifications
+- Topic-based notifications (announcements, meetings, urgent)
+- Deep linking to specific pages
+- Rich notifications with images
+- Background message handling
+
+### Setup
+
+#### 1. Dependencies
+
+The `firebase_messaging` package is added to `pubspec.yaml`:
+
+```yaml
+dependencies:
+  firebase_messaging: ^15.1.3
+```
+
+#### 2. Android Configuration
+
+**File**: `android/app/src/main/AndroidManifest.xml`
+
+Required permissions:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<uses-permission android:name="android.permission.VIBRATE" />
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+```
+
+Default notification channel:
+
+```xml
+<meta-data
+    android:name="com.google.firebase.messaging.default_notification_channel_id"
+    android:value="otogapo_notifications" />
+```
+
+FCM service:
+
+```xml
+<service
+    android:name="com.google.firebase.messaging.FirebaseMessagingService"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+    </intent-filter>
+</service>
+```
+
+#### 3. iOS Configuration
+
+**File**: `ios/Runner/Info.plist`
+
+Add Firebase App Delegate configuration:
+
+```xml
+<key>FirebaseAppDelegateProxyEnabled</key>
+<false/>
+```
+
+**Required Steps**:
+
+1. Enable Push Notifications capability in Xcode
+2. Configure APNs in Firebase Console
+3. Upload APNs authentication key to Firebase
+
+#### 4. Initialize Service
+
+The notification service is initialized in `lib/bootstrap.dart`:
+
+```dart
+final notificationService = NotificationService();
+await notificationService.initialize();
+getIt.registerSingleton<NotificationService>(notificationService);
+```
+
+#### 5. Background Handler
+
+Register background handler in main entry points:
+
+```dart
+// lib/main_development.dart, lib/main_staging.dart, lib/main_production.dart
+FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+```
+
+### Usage
+
+#### Sending Notifications (Admin)
+
+1. Navigate to Admin Panel → Send Notification
+2. Enter Firebase Server Key from Firebase Console
+3. Fill in notification details
+4. Select target (user or topic)
+5. Send notification
+
+**Note**: Firebase Server Key required for FCM REST API access.
+
+#### User Settings
+
+Users can manage notification preferences:
+
+1. Navigate to Notification Settings
+2. View permission status
+3. Subscribe/unsubscribe to topics
+4. Refresh FCM token
+
+### Implementation Details
+
+**Service**: `lib/services/notification_service.dart`
+
+- Handles FCM token generation
+- Manages topic subscriptions
+- Stores tokens in PocketBase
+- Handles permission requests
+
+**State Management**: `lib/app/modules/notifications/bloc/notification_cubit.dart`
+
+- Manages notification state
+- Handles subscriptions
+- Provides notification settings
+
+**Navigation**: `lib/utils/notification_navigation_helper.dart`
+
+- Deep linking implementation
+- Handles notification taps
+- Routes to appropriate pages
+
+**Models**: `lib/models/push_notification.dart`
+
+- Notification data models
+- Type definitions
+- Payload builders
+
+### Deep Linking
+
+Notifications support automatic deep linking based on type:
+
+| Type       | Route               | Data Field  |
+|------------|---------------------|-------------|
+| meeting    | MeetingDetailsPage  | meetingId   |
+| announcement | AnnouncementsListPage | -          |
+| payment    | ProfilePage         | -          |
+| post       | PostDetailPage      | postId      |
+| general    | HomePage            | -          |
+
+### Testing
+
+Test notifications in different app states:
+
+1. **Foreground**: App is active
+2. **Background**: App is minimized
+3. **Terminated**: App is closed
+
+See testing checklist in `push-notification-implementation.plan.md`.
+
 ## Debugging
 
 ### Debug Tools

@@ -47,11 +47,9 @@ class _AdminPageState extends State<AdminPage> {
       final profileState = context.read<ProfileCubit>().state;
       final profileUser = profileState.user;
 
-      if (profileState.profileStatus == ProfileStatus.loaded &&
-          profileUser.uid.isNotEmpty) {
+      if (profileState.profileStatus == ProfileStatus.loaded && profileUser.uid.isNotEmpty) {
         setState(() {
-          _isAdmin = (profileUser.membership_type == 1) ||
-              (profileUser.membership_type == 2);
+          _isAdmin = (profileUser.membership_type == 1) || (profileUser.membership_type == 2);
           _isLoading = false;
         });
         return;
@@ -63,8 +61,7 @@ class _AdminPageState extends State<AdminPage> {
 
       if (profileUserFallback.uid.isNotEmpty) {
         setState(() {
-          _isAdmin = (profileUserFallback.membership_type == 1) ||
-              (profileUserFallback.membership_type == 2);
+          _isAdmin = (profileUserFallback.membership_type == 1) || (profileUserFallback.membership_type == 2);
           _isLoading = false;
         });
       } else {
@@ -88,16 +85,17 @@ class _AdminPageState extends State<AdminPage> {
 
     if (!_isAdmin) {
       return Scaffold(
-        appBar:
-            AppBar(title: const Text('Admin Access Denied'), centerTitle: true),
+        appBar: AppBar(title: const Text('Admin Access Denied'), centerTitle: true),
         body: const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.security, size: 64, color: Colors.red),
               SizedBox(height: 16),
-              Text('Access Denied',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+              Text(
+                'Access Denied',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
               SizedBox(height: 8),
               Text(
                 'You do not have admin privileges to access this page.',
@@ -138,7 +136,9 @@ class _AdminPageState extends State<AdminPage> {
                 builder: (context, analyticsState) {
                   if (analyticsState.isLoading) {
                     return SizedBox(
-                        height: 200.h, child: const SkeletonGrid(itemCount: 4),);
+                      height: 200.h,
+                      child: const SkeletonGrid(itemCount: 4),
+                    );
                   }
 
                   if (analyticsState.hasData) {
@@ -149,7 +149,9 @@ class _AdminPageState extends State<AdminPage> {
                         Text(
                           'Dashboard Overview',
                           style: TextStyle(
-                              fontSize: 20.sp, fontWeight: FontWeight.bold,),
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         SizedBox(height: 16.h),
                         GridView.count(
@@ -180,8 +182,7 @@ class _AdminPageState extends State<AdminPage> {
                             ),
                             AdminStatCard(
                               title: 'Avg Attendance',
-                              value:
-                                  '${stats.averageAttendance.toStringAsFixed(1)}%',
+                              value: '${stats.averageAttendance.toStringAsFixed(1)}%',
                               icon: Icons.show_chart,
                               color: Colors.purple.shade600,
                             ),
@@ -196,8 +197,10 @@ class _AdminPageState extends State<AdminPage> {
                 },
               ),
 
-              const Text('Admin Functions',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+              const Text(
+                'Admin Functions',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
               GridView.count(
                 shrinkWrap: true,
@@ -215,8 +218,11 @@ class _AdminPageState extends State<AdminPage> {
                       // Navigate to user management
                       Navigator.of(
                         context,
-                      ).push(MaterialPageRoute<void>(
-                          builder: (context) => const UserManagementPage(),),);
+                      ).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const UserManagementPage(),
+                        ),
+                      );
                     },
                   ),
                   _buildAdminCard(
@@ -227,9 +233,11 @@ class _AdminPageState extends State<AdminPage> {
                       // Navigate to payment management
                       Navigator.of(
                         context,
-                      ).push(MaterialPageRoute<void>(
-                          builder: (context) =>
-                              const PaymentManagementPageNew(),),);
+                      ).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const PaymentManagementPageNew(),
+                        ),
+                      );
                     },
                   ),
                   _buildAdminCard(
@@ -240,8 +248,11 @@ class _AdminPageState extends State<AdminPage> {
                       // Navigate to gallery management
                       Navigator.of(
                         context,
-                      ).push(MaterialPageRoute<void>(
-                          builder: (context) => const GalleryManagementPage(),),);
+                      ).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const GalleryManagementPage(),
+                        ),
+                      );
                     },
                   ),
                   _buildAdminCard(
@@ -259,9 +270,11 @@ class _AdminPageState extends State<AdminPage> {
                     onTap: () {
                       Navigator.of(
                         context,
-                      ).push(MaterialPageRoute<void>(
-                          builder: (context) =>
-                              const AnnouncementManagementPage(),),);
+                      ).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const AnnouncementManagementPage(),
+                        ),
+                      );
                     },
                   ),
                   _buildAdminCard(
@@ -269,8 +282,11 @@ class _AdminPageState extends State<AdminPage> {
                     title: 'Analytics',
                     subtitle: 'View system analytics',
                     onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute<void>(
-                          builder: (context) => const AnalyticsPage(),),);
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const AnalyticsPage(),
+                        ),
+                      );
                     },
                   ),
                   _buildAdminCard(
@@ -280,9 +296,11 @@ class _AdminPageState extends State<AdminPage> {
                     onTap: () {
                       Navigator.of(
                         context,
-                      ).push(MaterialPageRoute<void>(
-                          builder: (context) =>
-                              const VehicleAwardsManagementPage(),),);
+                      ).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const VehicleAwardsManagementPage(),
+                        ),
+                      );
                     },
                   ),
                   _buildAdminCard(
@@ -293,9 +311,11 @@ class _AdminPageState extends State<AdminPage> {
                       // TODO: Implement system settings
                       ScaffoldMessenger.of(
                         context,
-                      ).showSnackBar(const SnackBar(
-                          content:
-                              Text('System settings feature coming soon!'),),);
+                      ).showSnackBar(
+                        const SnackBar(
+                          content: Text('System settings feature coming soon!'),
+                        ),
+                      );
                     },
                   ),
                   _buildAdminCard(
@@ -303,8 +323,15 @@ class _AdminPageState extends State<AdminPage> {
                     title: 'Social Feed Moderation',
                     subtitle: 'Manage posts & reports',
                     onTap: () {
-                      context.router
-                          .push(const SocialFeedModerationPageRouter());
+                      context.router.push(const SocialFeedModerationPageRouter());
+                    },
+                  ),
+                  _buildAdminCard(
+                    icon: Icons.notifications,
+                    title: 'Send Notification',
+                    subtitle: 'Send push notifications',
+                    onTap: () {
+                      context.router.push(const SendNotificationPageRouter());
                     },
                   ),
                 ],
@@ -323,9 +350,7 @@ class _AdminPageState extends State<AdminPage> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    final iconColor = Theme.of(context).brightness == Brightness.light
-        ? Colors.black87
-        : Colors.white;
+    final iconColor = Theme.of(context).brightness == Brightness.light ? Colors.black87 : Colors.white;
     return Card(
       elevation: 4,
       child: InkWell(
@@ -343,7 +368,9 @@ class _AdminPageState extends State<AdminPage> {
                 child: Text(
                   title,
                   style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.bold,),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
