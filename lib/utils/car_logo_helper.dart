@@ -48,7 +48,7 @@ class CarLogoHelper {
   /// - Replaces spaces with hyphens
   /// - Handles common abbreviations and brand variations
   static String _normalizeMake(String make) {
-    String normalized = make.toLowerCase().trim();
+    var normalized = make.toLowerCase().trim();
 
     // Handle common brand variations and special cases
     final brandMapping = {
@@ -74,7 +74,7 @@ class CarLogoHelper {
     normalized = normalized
         .replaceAll(RegExp(r'[^\w\s-]'), '')
         .replaceAll(RegExp(r'\s+'), '-')
-        .replaceAll(RegExp(r'-+'), '-');
+        .replaceAll(RegExp('-+'), '-');
 
     return normalized;
   }

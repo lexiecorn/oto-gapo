@@ -2,6 +2,60 @@
 
 ---
 
+## v1.0.0+35 (Build 35) - October 31, 2025
+
+**Release Date**: October 31, 2025  
+**Build Number**: 35  
+**Version**: 1.0.0+35  
+**Release Type**: Maintenance & Telemetry Update
+
+---
+
+### 🚀 Highlights
+
+- ✅ Sign-in reliability fixes, including Google Sign-In flow
+- ✅ Centralized logging using `DebugHelper` and `AppLogging`
+- ✅ Optional Microsoft Clarity analytics integration (`clarity_flutter`)
+- 🔄 Dependency updates
+- 📝 Deployment doc refinements
+
+---
+
+### 📱 For Google Play Store (What's New - 350 characters)
+
+```
+✨ Improvements in v1.0.0+35
+
+• Login reliability improvements
+• Google Sign-In fixes
+• Centralized logging for better diagnostics
+• Optional Microsoft Clarity analytics
+• Dependency updates and documentation refinements
+
+Thanks for using Otogapo!
+```
+
+---
+
+### 🛠️ Technical Changes
+
+- Introduced `clarity_flutter` with `ClarityHelper` to enable per-flavor analytics via `clarityProjectId`
+- Initialized `AppLogging` and migrated ad-hoc prints to `DebugHelper`
+- Updated `pubspec.lock` dependencies
+- Updated flavor mains to include `clarityProjectId`
+
+### 🔧 Files Modified (key)
+
+- `lib/main_development.dart`, `lib/main_staging.dart`, `lib/main_production.dart` — logging init, clarity project IDs
+- `lib/utils/clarity_helper.dart` — new helper wrapper for Clarity
+- `lib/app/core/logging.dart`, `lib/utils/debug_helper.dart` — centralized logging
+- `lib/app/modules/auth/auth_bloc.dart`, `lib/app/pages/splash_page.dart`, `lib/app/modules/signin/signin_page.dart` — login fixes
+- `docs/DEPLOYMENT.md` — deployment notes updated
+- `.fvmrc` — FVM tool version pinning
+- `.cursor/mcp.json` — workspace tooling config
+
+---
+
 ## v1.0.0+10 (Build 10) - October 19, 2025
 
 **Release Date**: October 19, 2025  

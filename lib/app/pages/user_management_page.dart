@@ -149,7 +149,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 .animate()
                 .fadeIn(duration: const Duration(milliseconds: 600))
                 .slideY(
-                    begin: -0.3, duration: const Duration(milliseconds: 600)),
+                    begin: -0.3, duration: const Duration(milliseconds: 600),),
 
             SizedBox(height: 24.sp),
 
@@ -158,7 +158,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 .animate()
                 .fadeIn(
                     delay: const Duration(milliseconds: 200),
-                    duration: const Duration(milliseconds: 600))
+                    duration: const Duration(milliseconds: 600),)
                 .slideY(
                   begin: -0.2,
                   delay: const Duration(milliseconds: 200),
@@ -172,7 +172,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 .animate()
                 .fadeIn(
                     delay: const Duration(milliseconds: 400),
-                    duration: const Duration(milliseconds: 600))
+                    duration: const Duration(milliseconds: 600),)
                 .slideY(
                   begin: -0.2,
                   delay: const Duration(milliseconds: 400),
@@ -186,7 +186,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 .animate()
                 .fadeIn(
                     delay: const Duration(milliseconds: 600),
-                    duration: const Duration(milliseconds: 600))
+                    duration: const Duration(milliseconds: 600),)
                 .slideY(
                   begin: -0.2,
                   delay: const Duration(milliseconds: 600),
@@ -200,7 +200,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 .animate()
                 .fadeIn(
                     delay: const Duration(milliseconds: 800),
-                    duration: const Duration(milliseconds: 600))
+                    duration: const Duration(milliseconds: 600),)
                 .slideY(
                   begin: -0.2,
                   delay: const Duration(milliseconds: 800),
@@ -423,7 +423,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 onTap: () async {
                   await Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                        builder: (context) => const UserListPage()),
+                        builder: (context) => const UserListPage(),),
                   );
                   // Refresh statistics when returning
                   _loadUserStatistics();
@@ -442,7 +442,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 onTap: () async {
                   await Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                        builder: (context) => const CreateUserPage()),
+                        builder: (context) => const CreateUserPage(),),
                   );
                   // Refresh statistics when returning
                   _loadUserStatistics();
@@ -574,7 +574,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   // TODO: Implement search functionality
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text('Search functionality coming soon!')),
+                        content: Text('Search functionality coming soon!'),),
                   );
                 },
               ),
@@ -582,7 +582,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   height: 1,
                   color: isDark
                       ? colorScheme.outline.withOpacity(0.2)
-                      : Colors.grey[200]),
+                      : Colors.grey[200],),
               _buildQuickActionTile(
                 context: context,
                 icon: Icons.download,
@@ -592,7 +592,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   // TODO: Implement export functionality
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text('Export functionality coming soon!')),
+                        content: Text('Export functionality coming soon!'),),
                   );
                 },
               ),
@@ -600,7 +600,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   height: 1,
                   color: isDark
                       ? colorScheme.outline.withOpacity(0.2)
-                      : Colors.grey[200]),
+                      : Colors.grey[200],),
               _buildQuickActionTile(
                 context: context,
                 icon: Icons.settings,
@@ -610,7 +610,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   // TODO: Implement bulk operations
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text('Bulk operations coming soon!')),
+                        content: Text('Bulk operations coming soon!'),),
                   );
                 },
               ),
@@ -704,7 +704,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
         title: Row(
           children: [
             Icon(Icons.help_outline,
-                color: isDark ? colorScheme.primary : Colors.blue),
+                color: isDark ? colorScheme.primary : Colors.blue,),
             SizedBox(width: 8.sp),
             Text(
               'User Management Help',
@@ -772,7 +772,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon,
-            size: 20.sp, color: isDark ? colorScheme.primary : Colors.blue),
+            size: 20.sp, color: isDark ? colorScheme.primary : Colors.blue,),
         SizedBox(width: 12.sp),
         Expanded(
           child: Column(

@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo_core/otogapo_core.dart';
+import 'package:otogapo/utils/debug_helper.dart';
 
 class PickerSideBar extends StatefulWidget {
   const PickerSideBar({
@@ -125,7 +126,7 @@ class _PickerSideBarState extends State<PickerSideBar> {
                             return AlertDialog(
                               title: const Text('Confirm Logout'),
                               content: const Text(
-                                  'Are you sure you want to logout?'),
+                                  'Are you sure you want to logout?',),
                               actions: [
                                 TextButton(
                                   onPressed: () =>
@@ -158,13 +159,13 @@ class _PickerSideBarState extends State<PickerSideBar> {
                               .timeout(
                             const Duration(seconds: 3),
                             onTimeout: () {
-                              debugPrint('Logout timeout - forcing navigation');
+                              DebugHelper.log('Logout timeout - forcing navigation');
                               return authBloc.state;
                             },
                           );
 
-                          debugPrint(
-                              'Logout completed, navigating to signin page');
+                          DebugHelper.log(
+                              'Logout completed, navigating to signin page',);
 
                           // Navigate directly to signin page after logout completes
                           if (context.mounted) {
@@ -187,7 +188,7 @@ class _PickerSideBarState extends State<PickerSideBar> {
                             return AlertDialog(
                               title: const Text('Confirm Logout'),
                               content: const Text(
-                                  'Are you sure you want to logout?'),
+                                  'Are you sure you want to logout?',),
                               actions: [
                                 TextButton(
                                   onPressed: () =>
@@ -220,13 +221,13 @@ class _PickerSideBarState extends State<PickerSideBar> {
                               .timeout(
                             const Duration(seconds: 3),
                             onTimeout: () {
-                              debugPrint('Logout timeout - forcing navigation');
+                              DebugHelper.log('Logout timeout - forcing navigation');
                               return authBloc.state;
                             },
                           );
 
-                          debugPrint(
-                              'Logout completed, navigating to signin page');
+                          DebugHelper.log(
+                              'Logout completed, navigating to signin page',);
 
                           // Navigate directly to signin page after logout completes
                           if (context.mounted) {

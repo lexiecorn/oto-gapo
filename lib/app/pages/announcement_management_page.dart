@@ -125,7 +125,7 @@ class _AnnouncementManagementPageState
         ),
       );
 
-      String? imagePath = result['imagePath'] as String?;
+      var imagePath = result['imagePath'] as String?;
 
       // Compress image if provided
       if (imagePath != null && imagePath.isNotEmpty) {
@@ -189,7 +189,7 @@ class _AnnouncementManagementPageState
         ),
       );
 
-      String? imagePath = result['imagePath'] as String?;
+      var imagePath = result['imagePath'] as String?;
 
       // Compress image if provided
       if (imagePath != null && imagePath.isNotEmpty) {
@@ -442,7 +442,7 @@ class _AnnouncementManagementPageState
                           padding: EdgeInsets.only(right: 8.w),
                           child: FilterChip(
                             label: Text(type.toUpperCase(),
-                                style: TextStyle(fontSize: 11.sp)),
+                                style: TextStyle(fontSize: 11.sp),),
                             selected: _filterType == type,
                             onSelected: (selected) {
                               setState(() {
@@ -837,7 +837,7 @@ class _AnnouncementDialogState extends State<_AnnouncementDialog> {
                 value: _selectedType,
                 style: TextStyle(
                     fontSize: 13.sp,
-                    color: Theme.of(context).textTheme.bodyLarge?.color),
+                    color: Theme.of(context).textTheme.bodyLarge?.color,),
                 decoration: InputDecoration(
                   labelText: 'Type',
                   labelStyle: TextStyle(fontSize: 12.sp),
@@ -847,7 +847,7 @@ class _AnnouncementDialogState extends State<_AnnouncementDialog> {
                   return DropdownMenuItem(
                     value: type,
                     child: Text(type.toUpperCase(),
-                        style: TextStyle(fontSize: 12.sp)),
+                        style: TextStyle(fontSize: 12.sp),),
                   );
                 }).toList(),
                 onChanged: (value) {

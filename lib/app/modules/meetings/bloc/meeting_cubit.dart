@@ -24,9 +24,7 @@ class MeetingCubit extends Cubit<MeetingState> {
     try {
       final result = await attendanceRepository.getMeetings(
         page: page,
-        perPage: 20,
         filter: filter,
-        sort: '-meetingDate',
       );
 
       final meetings = result.items.map(Meeting.fromRecord).toList();
@@ -295,7 +293,7 @@ class MeetingCubit extends Cubit<MeetingState> {
 
   /// Clear selected meeting
   void clearSelectedMeeting() {
-    emit(state.copyWith(selectedMeeting: null));
+    emit(state.copyWith());
   }
 
   /// Reset state

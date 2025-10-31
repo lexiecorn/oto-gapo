@@ -97,7 +97,7 @@ class _AdminPageState extends State<AdminPage> {
               Icon(Icons.security, size: 64, color: Colors.red),
               SizedBox(height: 16),
               Text('Access Denied',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
               SizedBox(height: 8),
               Text(
                 'You do not have admin privileges to access this page.',
@@ -138,7 +138,7 @@ class _AdminPageState extends State<AdminPage> {
                 builder: (context, analyticsState) {
                   if (analyticsState.isLoading) {
                     return SizedBox(
-                        height: 200.h, child: const SkeletonGrid(itemCount: 4));
+                        height: 200.h, child: const SkeletonGrid(itemCount: 4),);
                   }
 
                   if (analyticsState.hasData) {
@@ -149,7 +149,7 @@ class _AdminPageState extends State<AdminPage> {
                         Text(
                           'Dashboard Overview',
                           style: TextStyle(
-                              fontSize: 20.sp, fontWeight: FontWeight.bold),
+                              fontSize: 20.sp, fontWeight: FontWeight.bold,),
                         ),
                         SizedBox(height: 16.h),
                         GridView.count(
@@ -197,7 +197,7 @@ class _AdminPageState extends State<AdminPage> {
               ),
 
               const Text('Admin Functions',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
               const SizedBox(height: 16),
               GridView.count(
                 shrinkWrap: true,
@@ -216,7 +216,7 @@ class _AdminPageState extends State<AdminPage> {
                       Navigator.of(
                         context,
                       ).push(MaterialPageRoute<void>(
-                          builder: (context) => const UserManagementPage()));
+                          builder: (context) => const UserManagementPage(),),);
                     },
                   ),
                   _buildAdminCard(
@@ -229,7 +229,7 @@ class _AdminPageState extends State<AdminPage> {
                         context,
                       ).push(MaterialPageRoute<void>(
                           builder: (context) =>
-                              const PaymentManagementPageNew()));
+                              const PaymentManagementPageNew(),),);
                     },
                   ),
                   _buildAdminCard(
@@ -241,7 +241,7 @@ class _AdminPageState extends State<AdminPage> {
                       Navigator.of(
                         context,
                       ).push(MaterialPageRoute<void>(
-                          builder: (context) => const GalleryManagementPage()));
+                          builder: (context) => const GalleryManagementPage(),),);
                     },
                   ),
                   _buildAdminCard(
@@ -261,7 +261,7 @@ class _AdminPageState extends State<AdminPage> {
                         context,
                       ).push(MaterialPageRoute<void>(
                           builder: (context) =>
-                              const AnnouncementManagementPage()));
+                              const AnnouncementManagementPage(),),);
                     },
                   ),
                   _buildAdminCard(
@@ -270,7 +270,7 @@ class _AdminPageState extends State<AdminPage> {
                     subtitle: 'View system analytics',
                     onTap: () {
                       Navigator.of(context).push(MaterialPageRoute<void>(
-                          builder: (context) => const AnalyticsPage()));
+                          builder: (context) => const AnalyticsPage(),),);
                     },
                   ),
                   _buildAdminCard(
@@ -282,7 +282,7 @@ class _AdminPageState extends State<AdminPage> {
                         context,
                       ).push(MaterialPageRoute<void>(
                           builder: (context) =>
-                              const VehicleAwardsManagementPage()));
+                              const VehicleAwardsManagementPage(),),);
                     },
                   ),
                   _buildAdminCard(
@@ -295,7 +295,7 @@ class _AdminPageState extends State<AdminPage> {
                         context,
                       ).showSnackBar(const SnackBar(
                           content:
-                              Text('System settings feature coming soon!')));
+                              Text('System settings feature coming soon!'),),);
                     },
                   ),
                   _buildAdminCard(
@@ -343,7 +343,7 @@ class _AdminPageState extends State<AdminPage> {
                 child: Text(
                   title,
                   style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.bold),
+                      fontSize: 14, fontWeight: FontWeight.bold,),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,

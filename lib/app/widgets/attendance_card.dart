@@ -13,7 +13,7 @@ Widget buildAttendanceProfileAvatar({
   final theme = Theme.of(context);
 
   // Get profile image filename
-  String? profileImageFileName = attendance.profileImage;
+  final profileImageFileName = attendance.profileImage;
 
   // Build profile image URL if we have a filename
   String? profileImageUrl;

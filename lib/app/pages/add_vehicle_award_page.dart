@@ -1,8 +1,8 @@
+import 'package:authentication_repository/authentication_repository.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:authentication_repository/authentication_repository.dart';
 
 @RoutePage(name: 'AddVehicleAwardPageRouter')
 class AddVehicleAwardPage extends StatefulWidget {
@@ -67,7 +67,6 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
               primary: Color(0xFF00d4ff),
               onPrimary: Colors.white,
               surface: Color(0xFF1a1e3f),
-              onSurface: Colors.white,
             ),
           ),
           child: child!,
@@ -89,7 +88,7 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
         context,
       ).showSnackBar(const SnackBar(
           content: Text('Please select an event date'),
-          backgroundColor: Colors.red));
+          backgroundColor: Colors.red,),);
       return;
     }
 
@@ -106,7 +105,7 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
           SnackBar(
             content: Text(widget.award != null
                 ? 'Award updated successfully!'
-                : 'Award added successfully!'),
+                : 'Award added successfully!',),
             backgroundColor: const Color(0xFF00d4ff),
           ),
         );
@@ -118,7 +117,7 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
           context,
         ).showSnackBar(SnackBar(
             content: Text('Failed to save award: $e'),
-            backgroundColor: Colors.red));
+            backgroundColor: Colors.red,),);
       }
     } finally {
       if (mounted) {
@@ -144,7 +143,7 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
           style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.w600,
-              color: Colors.white),
+              color: Colors.white,),
         ),
         SizedBox(height: 8.h),
         TextFormField(
@@ -169,11 +168,11 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: const Color(0xFF00d4ff), width: 2),
+              borderSide: const BorderSide(color: Color(0xFF00d4ff), width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: Colors.red),
+              borderSide: const BorderSide(color: Colors.red),
             ),
             contentPadding:
                 EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
@@ -192,7 +191,7 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
           style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.w600,
-              color: Colors.white),
+              color: Colors.white,),
         ),
         SizedBox(height: 8.h),
         GestureDetector(
@@ -208,7 +207,7 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
             child: Row(
               children: [
                 Icon(Icons.calendar_today,
-                    size: 20.sp, color: const Color(0xFF00d4ff)),
+                    size: 20.sp, color: const Color(0xFF00d4ff),),
                 SizedBox(width: 12.w),
                 Expanded(
                   child: Text(
@@ -219,11 +218,11 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
                         fontSize: 16.sp,
                         color: _selectedDate != null
                             ? Colors.white
-                            : Colors.grey[400]),
+                            : Colors.grey[400],),
                   ),
                 ),
                 Icon(Icons.arrow_drop_down,
-                    size: 20.sp, color: Colors.grey[400]),
+                    size: 20.sp, color: Colors.grey[400],),
               ],
             ),
           ),
@@ -248,7 +247,7 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
           style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.w600,
-              color: Colors.white),
+              color: Colors.white,),
         ),
         centerTitle: true,
       ),
@@ -268,13 +267,12 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
                     end: Alignment.bottomRight,
                     colors: [
                       const Color(0xFF2a1a0e).withOpacity(0.8),
-                      const Color(0xFF3d2815).withOpacity(0.6)
+                      const Color(0xFF3d2815).withOpacity(0.6),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(16.r),
                   border: Border.all(
-                      color: const Color(0xFFffd700).withOpacity(0.3),
-                      width: 1),
+                      color: const Color(0xFFffd700).withOpacity(0.3),),
                 ),
                 child: Row(
                   children: [
@@ -285,7 +283,7 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
                         borderRadius: BorderRadius.circular(12.r),
                       ),
                       child: Icon(Icons.emoji_events,
-                          size: 24.sp, color: const Color(0xFFffd700)),
+                          size: 24.sp, color: const Color(0xFFffd700),),
                     ),
                     SizedBox(width: 16.w),
                     Expanded(
@@ -306,7 +304,7 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
                           Text(
                             '${widget.vehicle.make} ${widget.vehicle.model}',
                             style: TextStyle(
-                                fontSize: 14.sp, color: Colors.grey[300]),
+                                fontSize: 14.sp, color: Colors.grey[300],),
                           ),
                         ],
                       ),
@@ -314,7 +312,7 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
                   ],
                 ),
               ).animate().fadeIn(duration: 600.ms).slideY(
-                  begin: 0.2, duration: 600.ms, curve: Curves.easeOutCubic),
+                  begin: 0.2, duration: 600.ms, curve: Curves.easeOutCubic,),
               SizedBox(height: 24.h),
               // Form fields
               _buildFormField(
@@ -375,14 +373,14 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
                     backgroundColor: const Color(0xFF00d4ff),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r)),
+                        borderRadius: BorderRadius.circular(12.r),),
                     elevation: 0,
                   ),
                   child: _isLoading
                       ? SizedBox(
                           width: 20.w,
                           height: 20.w,
-                          child: CircularProgressIndicator(
+                          child: const CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor:
                                 AlwaysStoppedAnimation<Color>(Colors.white),
@@ -391,7 +389,7 @@ class _AddVehicleAwardPageState extends State<AddVehicleAwardPage> {
                       : Text(
                           widget.award != null ? 'Update Award' : 'Add Award',
                           style: TextStyle(
-                              fontSize: 16.sp, fontWeight: FontWeight.w600),
+                              fontSize: 16.sp, fontWeight: FontWeight.w600,),
                         ),
                 ),
               ),

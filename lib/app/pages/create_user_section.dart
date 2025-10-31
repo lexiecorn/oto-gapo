@@ -103,7 +103,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   File? _selectedCarImage2;
   File? _selectedCarImage3;
   File? _selectedCarImage4;
-  bool _isUploadingCarImage = false;
+  final bool _isUploadingCarImage = false;
 
   // Helper method to create consistent TextField styling
   InputDecoration _buildInputDecoration({
@@ -130,12 +130,12 @@ class _CreateUserSectionState extends State<CreateUserSection> {
         borderSide: BorderSide(
             color: isDark
                 ? colorScheme.outline.withOpacity(0.5)
-                : Colors.grey.shade300),
+                : Colors.grey.shade300,),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.sp),
         borderSide: BorderSide(
-            color: isDark ? colorScheme.primary : Colors.blue, width: 2),
+            color: isDark ? colorScheme.primary : Colors.blue, width: 2,),
       ),
       labelStyle: TextStyle(
         fontSize: 14.sp,
@@ -206,7 +206,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   Future<void> _fetchVehicleMakes() async {
     try {
       final response = await http.get(Uri.parse(
-          'https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json'));
+          'https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json',),);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -321,7 +321,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
   Future<List<String>> fetchModelsForMake(String make) async {
     final response = await http.get(Uri.parse(
-        'https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/$make?format=json'));
+        'https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/$make?format=json',),);
     final data = json.decode(response.body);
     final results = data['Results'] as List;
     return results.map((e) => e['Model_Name'].toString()).toList();
@@ -412,10 +412,12 @@ class _CreateUserSectionState extends State<CreateUserSection> {
       if (bLower == searchText && aLower != searchText) return 1;
 
       // Starts with matches second
-      if (aLower.startsWith(searchText) && !bLower.startsWith(searchText))
+      if (aLower.startsWith(searchText) && !bLower.startsWith(searchText)) {
         return -1;
-      if (bLower.startsWith(searchText) && !aLower.startsWith(searchText))
+      }
+      if (bLower.startsWith(searchText) && !aLower.startsWith(searchText)) {
         return 1;
+      }
 
       // Alphabetical order for the rest
       return aLower.compareTo(bLower);
@@ -425,7 +427,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
   }
 
   Future<void> _showColorPicker() async {
-    Color pickerColor = _selectedVehicleColor;
+    var pickerColor = _selectedVehicleColor;
 
     await showDialog<void>(
       context: context,
@@ -477,7 +479,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     final random = Random();
     return String.fromCharCodes(Iterable.generate(
-        length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+        length, (_) => chars.codeUnitAt(random.nextInt(chars.length)),),);
   }
 
   Future<void> _pickAndUploadProfileImage() async {
@@ -576,7 +578,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
       // Update user with profile image file
       await pocketBaseService.updateUser(userId, {
-        'profileImage': _selectedProfileImage!,
+        'profileImage': _selectedProfileImage,
       });
 
       print('Profile image uploaded successfully');
@@ -654,26 +656,21 @@ class _CreateUserSectionState extends State<CreateUserSection> {
 
   // Upload car image to PocketBase
   Future<String?> _uploadCarImageToStorage(
-      String userId, String imageName) async {
+      String userId, String imageName,) async {
     File? selectedImage;
 
     // Determine which image to upload based on imageName
     switch (imageName) {
       case 'main':
         selectedImage = _selectedMainCarImage;
-        break;
       case '1':
         selectedImage = _selectedCarImage1;
-        break;
       case '2':
         selectedImage = _selectedCarImage2;
-        break;
       case '3':
         selectedImage = _selectedCarImage3;
-        break;
       case '4':
         selectedImage = _selectedCarImage4;
-        break;
     }
 
     if (selectedImage == null) return null;
@@ -1353,7 +1350,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     'AB+',
     'AB-',
     'O+',
-    'O-'
+    'O-',
   ];
   final List<String> _testCivilStatus = [
     'Single',
@@ -1361,7 +1358,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
     'Widowed',
     'Separated',
     'Divorced',
-    'Annulled'
+    'Annulled',
   ];
   final List<String> _testReligions = [
     'Catholic',
@@ -1420,7 +1417,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 if (_vehicleMakes.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text('Vehicle makes not loaded yet!')),
+                        content: Text('Vehicle makes not loaded yet!'),),
                   );
                   return;
                 }
@@ -1540,7 +1537,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                 if (_vehicleMakes.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text('Vehicle makes not loaded yet!')),
+                        content: Text('Vehicle makes not loaded yet!'),),
                   );
                   return;
                 }
@@ -1676,7 +1673,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                          'Successfully deleted $deletedCount test users!'),
+                          'Successfully deleted $deletedCount test users!',),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -1705,7 +1702,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
             border: Border.all(
                 color: isDark
                     ? colorScheme.outline.withOpacity(0.2)
-                    : Colors.grey.shade300),
+                    : Colors.grey.shade300,),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -1966,35 +1963,35 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         DropdownMenuItem(
                             value: 'A+',
                             child:
-                                Text('A+', style: TextStyle(fontSize: 14.sp))),
+                                Text('A+', style: TextStyle(fontSize: 14.sp)),),
                         DropdownMenuItem(
                             value: 'A-',
                             child:
-                                Text('A-', style: TextStyle(fontSize: 14.sp))),
+                                Text('A-', style: TextStyle(fontSize: 14.sp)),),
                         DropdownMenuItem(
                             value: 'B+',
                             child:
-                                Text('B+', style: TextStyle(fontSize: 14.sp))),
+                                Text('B+', style: TextStyle(fontSize: 14.sp)),),
                         DropdownMenuItem(
                             value: 'B-',
                             child:
-                                Text('B-', style: TextStyle(fontSize: 14.sp))),
+                                Text('B-', style: TextStyle(fontSize: 14.sp)),),
                         DropdownMenuItem(
                             value: 'AB+',
                             child:
-                                Text('AB+', style: TextStyle(fontSize: 14.sp))),
+                                Text('AB+', style: TextStyle(fontSize: 14.sp)),),
                         DropdownMenuItem(
                             value: 'AB-',
                             child:
-                                Text('AB-', style: TextStyle(fontSize: 14.sp))),
+                                Text('AB-', style: TextStyle(fontSize: 14.sp)),),
                         DropdownMenuItem(
                             value: 'O+',
                             child:
-                                Text('O+', style: TextStyle(fontSize: 14.sp))),
+                                Text('O+', style: TextStyle(fontSize: 14.sp)),),
                         DropdownMenuItem(
                             value: 'O-',
                             child:
-                                Text('O-', style: TextStyle(fontSize: 14.sp))),
+                                Text('O-', style: TextStyle(fontSize: 14.sp)),),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -2017,28 +2014,28 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         DropdownMenuItem(
                             value: 'Single',
                             child: Text('Single',
-                                style: TextStyle(fontSize: 14.sp))),
+                                style: TextStyle(fontSize: 14.sp),),),
                         DropdownMenuItem(
                             value: 'Married',
                             child: Text('Married',
-                                style: TextStyle(fontSize: 14.sp))),
+                                style: TextStyle(fontSize: 14.sp),),),
                         DropdownMenuItem(
                             value: 'Widowed',
                             child: Text('Widowed',
-                                style: TextStyle(fontSize: 14.sp))),
+                                style: TextStyle(fontSize: 14.sp),),),
                         DropdownMenuItem(
                           value: 'Separated',
                           child: Text('Separated',
-                              style: TextStyle(fontSize: 14.sp)),
+                              style: TextStyle(fontSize: 14.sp),),
                         ),
                         DropdownMenuItem(
                             value: 'Divorced',
                             child: Text('Divorced',
-                                style: TextStyle(fontSize: 14.sp))),
+                                style: TextStyle(fontSize: 14.sp),),),
                         DropdownMenuItem(
                             value: 'Annulled',
                             child: Text('Annulled',
-                                style: TextStyle(fontSize: 14.sp))),
+                                style: TextStyle(fontSize: 14.sp),),),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -2232,7 +2229,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                               Shadow(
                                   color: Colors.black.withOpacity(0.5),
                                   blurRadius: 2,
-                                  offset: const Offset(0, 1))
+                                  offset: const Offset(0, 1),),
                             ]
                           : [],
                     ),
@@ -2257,7 +2254,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                                 ),
                               )
                             : const Icon(Icons.person,
-                                size: 40, color: Colors.grey),
+                                size: 40, color: Colors.grey,),
                       ),
                       const SizedBox(width: 16),
                       // Upload Button
@@ -2274,12 +2271,12 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                                       width: 16,
                                       height: 16,
                                       child: CircularProgressIndicator(
-                                          strokeWidth: 2),
+                                          strokeWidth: 2,),
                                     )
                                   : const Icon(Icons.camera_alt),
                               label: Text(_isUploadingImage
                                   ? 'Uploading...'
-                                  : 'Upload Image'),
+                                  : 'Upload Image',),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
                                 foregroundColor: Colors.white,
@@ -2323,7 +2320,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
             border: Border.all(
                 color: isDark
                     ? colorScheme.outline.withOpacity(0.2)
-                    : Colors.grey.shade300),
+                    : Colors.grey.shade300,),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -2427,7 +2424,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
             border: Border.all(
                 color: isDark
                     ? colorScheme.outline.withOpacity(0.2)
-                    : Colors.grey.shade300),
+                    : Colors.grey.shade300,),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -2472,11 +2469,11 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                         DropdownMenuItem(
                             value: '2',
                             child: Text('Admin',
-                                style: TextStyle(fontSize: 14.sp))),
+                                style: TextStyle(fontSize: 14.sp),),),
                         DropdownMenuItem(
                             value: '3',
                             child: Text('Member',
-                                style: TextStyle(fontSize: 14.sp))),
+                                style: TextStyle(fontSize: 14.sp),),),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -2499,7 +2496,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
             border: Border.all(
                 color: isDark
                     ? colorScheme.outline.withOpacity(0.2)
-                    : Colors.grey.shade300),
+                    : Colors.grey.shade300,),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -2530,7 +2527,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                           try {
                             final color = Color(int.parse(
                                 'FF${value.toUpperCase()}',
-                                radix: 16));
+                                radix: 16,),);
                             setState(() {
                               _selectedVehicleColor = color;
                             });
@@ -2959,7 +2956,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
             border: Border.all(
                 color: isDark
                     ? colorScheme.outline.withOpacity(0.2)
-                    : Colors.grey.shade300),
+                    : Colors.grey.shade300,),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -3007,7 +3004,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                                 ),
                               )
                             : const Icon(Icons.directions_car,
-                                size: 40, color: Colors.grey),
+                                size: 40, color: Colors.grey,),
                       ),
                       const SizedBox(width: 16),
                       // Upload Button
@@ -3031,12 +3028,12 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                                       width: 16,
                                       height: 16,
                                       child: CircularProgressIndicator(
-                                          strokeWidth: 2),
+                                          strokeWidth: 2,),
                                     )
                                   : const Icon(Icons.camera_alt),
                               label: Text(_isUploadingCarImage
                                   ? 'Uploading...'
-                                  : 'Upload Main Image'),
+                                  : 'Upload Main Image',),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
                                 foregroundColor: Colors.white,
@@ -3125,13 +3122,13 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                                           MainAxisAlignment.center,
                                       children: [
                                         const Icon(Icons.directions_car,
-                                            size: 32, color: Colors.grey),
+                                            size: 32, color: Colors.grey,),
                                         const SizedBox(height: 4),
                                         Text(
                                           'Car $imageNumber',
                                           style: TextStyle(
                                               color: Colors.grey,
-                                              fontSize: 12.sp),
+                                              fontSize: 12.sp,),
                                         ),
                                       ],
                                     ),
@@ -3144,7 +3141,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                           left: 4,
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                                horizontal: 6, vertical: 2,),
                             decoration: BoxDecoration(
                               color: Colors.black.withOpacity(0.7),
                               borderRadius: BorderRadius.circular(4),
@@ -3191,7 +3188,7 @@ class _CreateUserSectionState extends State<CreateUserSection> {
                               backgroundColor: Colors.blue,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
+                                  horizontal: 8, vertical: 4,),
                               minimumSize: const Size(0, 24),
                             ),
                           ),

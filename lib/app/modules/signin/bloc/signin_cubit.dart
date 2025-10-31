@@ -3,6 +3,7 @@ import 'package:authentication_repository/authentication_repository.dart';
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:otogapo/utils/crashlytics_helper.dart';
 part 'signin_cubit.freezed.dart';
 part 'signin_state.dart';
 
@@ -21,20 +22,34 @@ class SigninCubit extends Cubit<SigninState> {
       await pocketBaseAuth.signInWithGoogleOAuth();
       emit(state.copyWith(signinStatus: SigninStatus.success));
       log('PocketBase Google OAuth successful');
-    } on AuthFailure catch (e) {
+    } on AuthFailure catch (e, stackTrace) {
       final raw = e.message.toString();
-      final friendly =
+      const friendly =
           'Google Sign‑In failed. Please try again or use Email Sign‑In.\nIf the problem persists, contact the administrator.';
       log('signinWithGoogleOAuth cubit error: $raw');
+      // Log to Crashlytics and n8n
+      await CrashlyticsHelper.logError(
+        e,
+        stackTrace,
+        reason: 'Google OAuth sign-in failed',
+        fatal: false,
+      );
       emit(
         state.copyWith(
           signinStatus: SigninStatus.error,
           error: AuthFailure(
-              message: friendly, code: 'Google Sign‑In Failed', plugin: ''),
+              message: friendly, code: 'Google Sign‑In Failed', plugin: '',),
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       log('signinWithGoogleOAuth cubit unknown error: $e');
+      // Log to Crashlytics and n8n
+      await CrashlyticsHelper.logError(
+        e,
+        stackTrace,
+        reason: 'Google OAuth sign-in unknown error',
+        fatal: false,
+      );
       emit(
         state.copyWith(
           signinStatus: SigninStatus.error,
@@ -60,7 +75,7 @@ class SigninCubit extends Cubit<SigninState> {
       await pocketBaseAuth.signIn(email: email, password: password);
 
       emit(state.copyWith(signinStatus: SigninStatus.success));
-    } on AuthFailure catch (e) {
+    } on AuthFailure catch (e, stackTrace) {
       // Map PocketBase's generic 400 to a friendlier message
       final raw = e.message.toString();
       final friendly = (raw.contains('Failed to authenticate') ||
@@ -68,6 +83,13 @@ class SigninCubit extends Cubit<SigninState> {
           ? 'Invalid email or password, or your account is not yet registered/activated.\nPlease verify your credentials or contact the administrator.'
           : raw;
       log('signin cubit error: $raw');
+      // Log to Crashlytics and n8n
+      await CrashlyticsHelper.logError(
+        e,
+        stackTrace,
+        reason: 'Email/password sign-in failed',
+        fatal: false,
+      );
       emit(
         state.copyWith(
           signinStatus: SigninStatus.error,
@@ -75,8 +97,15 @@ class SigninCubit extends Cubit<SigninState> {
               AuthFailure(message: friendly, code: 'Invalid User', plugin: ''),
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       log('signin cubit unknown error: $e');
+      // Log to Crashlytics and n8n
+      await CrashlyticsHelper.logError(
+        e,
+        stackTrace,
+        reason: 'Email/password sign-in unknown error',
+        fatal: false,
+      );
       emit(
         state.copyWith(
           signinStatus: SigninStatus.error,

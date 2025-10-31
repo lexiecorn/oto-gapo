@@ -9,7 +9,7 @@ class AwardsTrophyRow extends StatelessWidget {
       {required this.awardCount,
       this.onTap,
       this.isLoading = false,
-      super.key});
+      super.key,});
 
   final int awardCount;
   final VoidCallback? onTap;
@@ -38,20 +38,19 @@ class AwardsTrophyRow extends StatelessWidget {
             colors: isDark
                 ? [
                     Colors.grey.shade900.withOpacity(0.8),
-                    Colors.grey.shade800.withOpacity(0.6)
+                    Colors.grey.shade800.withOpacity(0.6),
                   ]
                 : [
                     Colors.grey.shade100.withOpacity(0.8),
-                    Colors.grey.shade200.withOpacity(0.6)
+                    Colors.grey.shade200.withOpacity(0.6),
                   ],
           ),
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
+          border: Border.all(color: Colors.grey.withOpacity(0.3)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
               blurRadius: 8,
-              spreadRadius: 0,
               offset: const Offset(0, 2),
             ),
             BoxShadow(
@@ -59,7 +58,6 @@ class AwardsTrophyRow extends StatelessWidget {
                   ? Colors.black.withOpacity(0.3)
                   : Colors.grey.withOpacity(0.3),
               blurRadius: 4,
-              spreadRadius: 0,
               offset: const Offset(0, 1),
             ),
           ],
@@ -73,12 +71,12 @@ class AwardsTrophyRow extends StatelessWidget {
                 color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
                 borderRadius: BorderRadius.circular(8.r),
                 border:
-                    Border.all(color: Colors.grey.withOpacity(0.4), width: 1),
+                    Border.all(color: Colors.grey.withOpacity(0.4)),
               ),
               child: _AnimatedTrophy(
                 size: 24.sp,
               ).animate().scale(
-                  delay: 200.ms, duration: 400.ms, curve: Curves.elasticOut),
+                  delay: 200.ms, duration: 400.ms, curve: Curves.elasticOut,),
             ),
             SizedBox(width: 12.w),
             // Awards count and text with staggered animations
@@ -91,36 +89,36 @@ class AwardsTrophyRow extends StatelessWidget {
                     style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : Colors.black87),
+                        color: isDark ? Colors.white : Colors.black87,),
                   ).animate().fadeIn(delay: 300.ms, duration: 500.ms).slideX(
                       begin: 0.2,
                       delay: 300.ms,
                       duration: 500.ms,
-                      curve: Curves.easeOutCubic),
+                      curve: Curves.easeOutCubic,),
                   Text(
                     'Tap to view details',
                     style: TextStyle(
                         fontSize: 12.sp,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],),
                   ).animate().fadeIn(delay: 500.ms, duration: 400.ms).slideX(
                       begin: 0.1,
                       delay: 500.ms,
                       duration: 400.ms,
-                      curve: Curves.easeOutCubic),
+                      curve: Curves.easeOutCubic,),
                 ],
               ),
             ),
             // Arrow icon with bounce animation
             Icon(Icons.arrow_forward_ios,
                     size: 16.sp,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600])
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],)
                 .animate()
                 .fadeIn(delay: 400.ms, duration: 400.ms)
                 .slideX(
                     begin: 0.3,
                     delay: 400.ms,
                     duration: 400.ms,
-                    curve: Curves.easeOutCubic),
+                    curve: Curves.easeOutCubic,),
           ],
         ),
       ),
@@ -142,16 +140,16 @@ class AwardsTrophyRow extends StatelessWidget {
           colors: isDark
               ? [
                   Colors.grey.shade900.withOpacity(0.8),
-                  Colors.grey.shade800.withOpacity(0.6)
+                  Colors.grey.shade800.withOpacity(0.6),
                 ]
               : [
                   Colors.grey.shade100.withOpacity(0.8),
-                  Colors.grey.shade200.withOpacity(0.6)
+                  Colors.grey.shade200.withOpacity(0.6),
                 ],
         ),
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-            color: const Color(0xFF4CAF50).withOpacity(0.2), width: 1),
+            color: const Color(0xFF4CAF50).withOpacity(0.2),),
       ),
       child: Row(
         children: [
@@ -160,10 +158,10 @@ class AwardsTrophyRow extends StatelessWidget {
             height: 36.h,
             decoration: BoxDecoration(
                 color: Colors.grey[700],
-                borderRadius: BorderRadius.circular(8.r)),
+                borderRadius: BorderRadius.circular(8.r),),
           ).animate(onPlay: (controller) => controller.repeat()).shimmer(
               duration: 1500.ms,
-              color: const Color(0xFF4CAF50).withOpacity(0.3)),
+              color: const Color(0xFF4CAF50).withOpacity(0.3),),
           SizedBox(width: 12.w),
           Expanded(
             child: Column(
@@ -174,20 +172,20 @@ class AwardsTrophyRow extends StatelessWidget {
                   width: 100.w,
                   decoration: BoxDecoration(
                       color: Colors.grey[700],
-                      borderRadius: BorderRadius.circular(4.r)),
+                      borderRadius: BorderRadius.circular(4.r),),
                 ).animate(onPlay: (controller) => controller.repeat()).shimmer(
                     duration: 1500.ms,
-                    color: const Color(0xFF4CAF50).withOpacity(0.3)),
+                    color: const Color(0xFF4CAF50).withOpacity(0.3),),
                 SizedBox(height: 4.h),
                 Container(
                   height: 12.h,
                   width: 80.w,
                   decoration: BoxDecoration(
                       color: Colors.grey[700],
-                      borderRadius: BorderRadius.circular(4.r)),
+                      borderRadius: BorderRadius.circular(4.r),),
                 ).animate(onPlay: (controller) => controller.repeat()).shimmer(
                     duration: 1500.ms,
-                    color: const Color(0xFF4CAF50).withOpacity(0.3)),
+                    color: const Color(0xFF4CAF50).withOpacity(0.3),),
               ],
             ),
           ),
@@ -208,15 +206,15 @@ class AwardsTrophyRow extends StatelessWidget {
           colors: isDark
               ? [
                   Colors.grey.shade900.withOpacity(0.6),
-                  Colors.grey.shade800.withOpacity(0.4)
+                  Colors.grey.shade800.withOpacity(0.4),
                 ]
               : [
                   Colors.grey.shade100.withOpacity(0.6),
-                  Colors.grey.shade200.withOpacity(0.4)
+                  Colors.grey.shade200.withOpacity(0.4),
                 ],
         ),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[600]!.withOpacity(0.3), width: 1),
+        border: Border.all(color: Colors.grey[600]!.withOpacity(0.3)),
       ),
       child: Row(
         children: [
@@ -239,7 +237,7 @@ class AwardsTrophyRow extends StatelessWidget {
                 begin: 0.2,
                 delay: 400.ms,
                 duration: 500.ms,
-                curve: Curves.easeOutCubic),
+                curve: Curves.easeOutCubic,),
           ),
         ],
       ),
@@ -280,7 +278,7 @@ class _AnimatedTrophyState extends State<_AnimatedTrophy>
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
-    ));
+    ),);
 
     _rotationAnimation = Tween<double>(
       begin: -0.1,
@@ -288,7 +286,7 @@ class _AnimatedTrophyState extends State<_AnimatedTrophy>
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
-    ));
+    ),);
 
     _controller.repeat(reverse: true);
   }

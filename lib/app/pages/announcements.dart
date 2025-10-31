@@ -540,7 +540,7 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget>
                           ),
                           Container(
                             padding: EdgeInsets.symmetric(
-                                horizontal: 8.sp, vertical: 4.sp),
+                                horizontal: 8.sp, vertical: 4.sp,),
                             decoration: BoxDecoration(
                               color:
                                   _getTypeColor(type, isDark).withOpacity(0.1),
@@ -615,7 +615,7 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget>
   }
 
   void _showAnnouncementDetails(
-      Map<String, dynamic> announcement, bool isDark, ColorScheme colorScheme) {
+      Map<String, dynamic> announcement, bool isDark, ColorScheme colorScheme,) {
     final type = announcement['type'] as String? ?? 'general';
     final title = announcement['title'] as String? ?? 'No Title';
     final content = announcement['content'] as String? ?? 'No content';
@@ -671,7 +671,7 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget>
                         SizedBox(height: 4.sp),
                         Container(
                           padding: EdgeInsets.symmetric(
-                              horizontal: 10.sp, vertical: 4.sp),
+                              horizontal: 10.sp, vertical: 4.sp,),
                           decoration: BoxDecoration(
                             color: _getTypeColor(type, isDark).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12.sp),

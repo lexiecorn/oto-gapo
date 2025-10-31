@@ -2,6 +2,7 @@
 ///
 /// This widget provides buttons to test Crashlytics reporting in development
 /// and staging environments. It should NOT be included in production builds.
+library;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,7 @@ class CrashlyticsTestButton extends StatelessWidget {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content: Text('Test log sent to Crashlytics')),
+                            content: Text('Test log sent to Crashlytics'),),
                       );
                     }
                   },
@@ -64,7 +65,7 @@ class CrashlyticsTestButton extends StatelessWidget {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content: Text('Test error sent to Crashlytics')),
+                            content: Text('Test error sent to Crashlytics'),),
                       );
                     }
                   },
@@ -73,11 +74,11 @@ class CrashlyticsTestButton extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () async {
                     await CrashlyticsHelper.setCustomKey(
-                        'test_key', 'test_value');
+                        'test_key', 'test_value',);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content: Text('Custom key set in Crashlytics')),
+                            content: Text('Custom key set in Crashlytics'),),
                       );
                     }
                   },
@@ -89,7 +90,7 @@ class CrashlyticsTestButton extends StatelessWidget {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content: Text('User ID set in Crashlytics')),
+                            content: Text('User ID set in Crashlytics'),),
                       );
                     }
                   },

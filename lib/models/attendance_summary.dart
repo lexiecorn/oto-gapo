@@ -102,19 +102,19 @@ class AttendanceSummary {
 
   /// Calculate percentage of meetings attended (present only)
   double get presentPercentage {
-    if (totalMeetings == 0) return 0.0;
+    if (totalMeetings == 0) return 0;
     return (totalPresent / totalMeetings) * 100;
   }
 
   /// Calculate percentage of meetings where member was late
   double get latePercentage {
-    if (totalMeetings == 0) return 0.0;
+    if (totalMeetings == 0) return 0;
     return (totalLate / totalMeetings) * 100;
   }
 
   /// Calculate percentage of meetings missed (absent)
   double get absentPercentage {
-    if (totalMeetings == 0) return 0.0;
+    if (totalMeetings == 0) return 0;
     return (totalAbsent / totalMeetings) * 100;
   }
 

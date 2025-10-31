@@ -9,6 +9,8 @@
 /// ```dart
 /// import 'package:otogapo/test/helpers/test_helpers.dart';
 /// ```
+library;
+
 
 export 'mock_factories.dart';
 export 'pump_app.dart';

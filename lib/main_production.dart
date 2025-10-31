@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer' as developer;
-import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -25,28 +24,12 @@ Future<void> main() async {
 
       // Initialize Firebase
       await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform);
+          options: DefaultFirebaseOptions.currentPlatform,);
       developer.Timeline.finishSync();
       developer.Timeline.startSync('crashlytics_init');
 
-      // Initialize Crashlytics with n8n integration
-      FlutterError.onError = (FlutterErrorDetails details) {
-        FirebaseCrashlytics.instance.recordFlutterFatalError(details);
-        // Also send to n8n via CrashlyticsHelper
-        CrashlyticsHelper.logError(details.exception, details.stack,
-            reason: 'Flutter framework error', fatal: true);
-      };
-
-      // Pass all uncaught asynchronous errors to Crashlytics and n8n
-      PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-        // Also send to n8n via CrashlyticsHelper
-        CrashlyticsHelper.logError(error, stack,
-            reason: 'Platform dispatcher error', fatal: true);
-        return true;
-      };
-
       // Enable Crashlytics collection with proper error handling
+      // Note: Error handlers are set up in bootstrap.dart to avoid duplication
       try {
         await FirebaseCrashlytics.instance
             .setCrashlyticsCollectionEnabled(true);
@@ -61,16 +44,19 @@ Future<void> main() async {
       // Set up flavor configuration before bootstrap
       FlavorConfig(
           name: 'PROD',
-          variables: {'pocketbaseUrl': 'https://pb.lexserver.org'});
+          variables: {
+            'pocketbaseUrl': 'https://pb.lexserver.org',
+            'clarityProjectId': 'tyroze7rek',
+          },);
       developer.Timeline.finishSync();
       developer.Timeline.startSync('bootstrap');
 
       await bootstrap((authRepository, pocketBaseAuthRepository, dio,
-          packageInfo, storage) async {
+          packageInfo, storage,) async {
         await ScreenUtil.ensureScreenSize();
 
         SystemChrome.setSystemUIOverlayStyle(
-            const SystemUiOverlayStyle(systemNavigationBarColor: Colors.black));
+            const SystemUiOverlayStyle(systemNavigationBarColor: Colors.black),);
 
         // Update FlavorConfig with package info
         FlavorConfig(
@@ -79,6 +65,7 @@ Future<void> main() async {
             'pkgInfoVersion':
                 'Ver:${packageInfo.version} Build:${packageInfo.buildNumber}',
             'pocketbaseUrl': 'https://pb.lexserver.org',
+            'clarityProjectId': 'tyroze7rek',
           },
         );
 
@@ -87,7 +74,7 @@ Future<void> main() async {
 
         final app = App(
             authRepository: authRepository,
-            pocketBaseAuthRepository: pocketBaseAuthRepository);
+            pocketBaseAuthRepository: pocketBaseAuthRepository,);
 
         developer.Timeline.finishSync(); // Finish the app_creation timeline
 
@@ -97,7 +84,7 @@ Future<void> main() async {
     (exception, stackTrace) async {
       // Report to Crashlytics
       await CrashlyticsHelper.logError(exception, stackTrace,
-          reason: 'Main function error');
+          reason: 'Main function error',);
     },
   );
 }

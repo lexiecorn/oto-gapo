@@ -62,7 +62,7 @@ class _MeetingDetailsPageState extends State<MeetingDetailsPage> {
       final meeting = meetingState.selectedMeeting;
 
       // Prepare CSV data
-      final List<List<dynamic>> rows = [
+      final rows = <List<dynamic>>[
         [
           'Member Number',
           'Member Name',

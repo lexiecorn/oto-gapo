@@ -188,7 +188,7 @@ class Meeting {
 
   double get attendanceRate {
     if (totalExpectedMembers == null || totalExpectedMembers == 0) {
-      return 0.0;
+      return 0;
     }
     final attended = presentCount + lateCount;
     return (attended / totalExpectedMembers!) * 100;

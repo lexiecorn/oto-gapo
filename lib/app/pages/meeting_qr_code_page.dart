@@ -131,7 +131,6 @@ class MeetingQRCodePage extends StatelessWidget {
                   ),
                   child: QrImageView(
                     data: currentMeeting.qrCodeToken!,
-                    version: QrVersions.auto,
                     size: 280.w,
                     backgroundColor: Colors.white,
                   ),
@@ -161,15 +160,15 @@ class MeetingQRCodePage extends StatelessWidget {
                           ],
                         ),
                         SizedBox(height: 12.h),
-                        _InstructionItem(
+                        const _InstructionItem(
                           number: 1,
                           text: 'Display this QR code at the meeting venue',
                         ),
-                        _InstructionItem(
+                        const _InstructionItem(
                           number: 2,
                           text: 'Members scan the code to mark attendance',
                         ),
-                        _InstructionItem(
+                        const _InstructionItem(
                           number: 3,
                           text: 'QR code expires after the meeting',
                         ),

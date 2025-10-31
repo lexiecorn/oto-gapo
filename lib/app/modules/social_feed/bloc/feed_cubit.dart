@@ -34,14 +34,13 @@ class FeedCubit extends Cubit<FeedState> {
 
       final result = await pocketBaseService.getPosts(
         page: page,
-        perPage: 20,
       );
 
       // Check if cubit is still open after async operation
       if (isClosed) return;
 
       final posts =
-          result.items.map((record) => Post.fromRecord(record)).toList();
+          result.items.map(Post.fromRecord).toList();
 
       if (refresh || page == 1) {
         emit(
@@ -97,14 +96,13 @@ class FeedCubit extends Cubit<FeedState> {
       final result = await pocketBaseService.getUserPosts(
         userId: userId,
         page: page,
-        perPage: 20,
       );
 
       // Check if cubit is still open after async operation
       if (isClosed) return;
 
       final posts =
-          result.items.map((record) => Post.fromRecord(record)).toList();
+          result.items.map(Post.fromRecord).toList();
 
       if (page == 1) {
         emit(
@@ -153,7 +151,6 @@ class FeedCubit extends Cubit<FeedState> {
 
       final result = await pocketBaseService.getPosts(
         page: page,
-        perPage: 20,
         filter: filter,
       );
 
@@ -161,7 +158,7 @@ class FeedCubit extends Cubit<FeedState> {
       if (isClosed) return;
 
       final posts =
-          result.items.map((record) => Post.fromRecord(record)).toList();
+          result.items.map(Post.fromRecord).toList();
 
       if (page == 1) {
         emit(
@@ -210,8 +207,8 @@ class FeedCubit extends Cubit<FeedState> {
       if (isClosed) return;
 
       File? compressedImage;
-      int imageWidth = 0;
-      int imageHeight = 0;
+      var imageWidth = 0;
+      var imageHeight = 0;
 
       // Compress image if provided
       if (imageFile != null) {
@@ -292,7 +289,7 @@ class FeedCubit extends Cubit<FeedState> {
     try {
       final currentReaction = state.userReactions[postId];
       print(
-          'FeedCubit - Current reaction: ${currentReaction?.reactionType.value}');
+          'FeedCubit - Current reaction: ${currentReaction?.reactionType.value}',);
       print('FeedCubit - New reaction type: ${type.value}');
 
       if (currentReaction?.reactionType == type) {
@@ -313,7 +310,7 @@ class FeedCubit extends Cubit<FeedState> {
 
         // Decrement count
         final postIndex = state.posts.indexWhere((p) => p.id == postId);
-        List<Post> updatedPosts = List<Post>.from(state.posts);
+        final updatedPosts = List<Post>.from(state.posts);
         if (postIndex != -1) {
           updatedPosts[postIndex] = updatedPosts[postIndex].copyWith(
             likesCount: updatedPosts[postIndex].likesCount - 1,
@@ -331,7 +328,7 @@ class FeedCubit extends Cubit<FeedState> {
           errorMessage: state.errorMessage,
           selectedPost: state.selectedPost,
           userReactions: updatedReactions,
-        ));
+        ),);
       } else {
         // Different reaction or new reaction
         print('FeedCubit - Adding/updating reaction to ${type.value}');
@@ -346,7 +343,7 @@ class FeedCubit extends Cubit<FeedState> {
 
         final reaction = PostReaction.fromRecord(record);
         print(
-            'FeedCubit - Got reaction from record: ${reaction.reactionType.value}');
+            'FeedCubit - Got reaction from record: ${reaction.reactionType.value}',);
 
         // Update local state with new reaction
         final updatedReactions =
@@ -355,7 +352,7 @@ class FeedCubit extends Cubit<FeedState> {
 
         // Update count (only if it was a new reaction, not changing)
         final postIndex = state.posts.indexWhere((p) => p.id == postId);
-        List<Post> updatedPosts = List<Post>.from(state.posts);
+        final updatedPosts = List<Post>.from(state.posts);
         if (postIndex != -1 && currentReaction == null) {
           updatedPosts[postIndex] = updatedPosts[postIndex].copyWith(
             likesCount: updatedPosts[postIndex].likesCount + 1,
@@ -363,7 +360,7 @@ class FeedCubit extends Cubit<FeedState> {
         }
 
         print(
-            'FeedCubit - Emitting state with reaction: ${reaction.reactionType.value}');
+            'FeedCubit - Emitting state with reaction: ${reaction.reactionType.value}',);
 
         // Force a complete state update by creating entirely new state
         emit(FeedState(
@@ -374,11 +371,11 @@ class FeedCubit extends Cubit<FeedState> {
           errorMessage: state.errorMessage,
           selectedPost: state.selectedPost,
           userReactions: updatedReactions,
-        ));
+        ),);
       }
 
       print(
-          'FeedCubit - State after toggle: ${state.userReactions[postId]?.reactionType.value}');
+          'FeedCubit - State after toggle: ${state.userReactions[postId]?.reactionType.value}',);
     } catch (e) {
       print('Error toggling reaction: $e');
       rethrow;
@@ -440,7 +437,7 @@ class FeedCubit extends Cubit<FeedState> {
           errorMessage: state.errorMessage,
           selectedPost: state.selectedPost,
           userReactions: state.userReactions,
-        ));
+        ),);
       }
     } catch (e) {
       print('Error refreshing post: $e');

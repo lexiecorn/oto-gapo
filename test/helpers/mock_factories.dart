@@ -79,7 +79,6 @@ ProfileState createProfileStateWithVehicle({
   );
 
   return createMockProfileState(
-    status: ProfileStatus.loaded,
     vehicles: [vehicle],
   );
 }
@@ -100,7 +99,6 @@ ProfileState createProfileStateWithMultipleVehicles({
   );
 
   return createMockProfileState(
-    status: ProfileStatus.loaded,
     vehicles: vehicles,
   );
 }
@@ -108,7 +106,6 @@ ProfileState createProfileStateWithMultipleVehicles({
 /// Creates an empty ProfileState (no vehicles).
 ProfileState createEmptyProfileState() {
   return createMockProfileState(
-    status: ProfileStatus.loaded,
     vehicles: [],
   );
 }

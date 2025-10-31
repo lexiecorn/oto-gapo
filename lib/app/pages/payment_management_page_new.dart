@@ -177,7 +177,7 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
           children: [
             // Month selector
             Text('Select Month',
-                style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
+                style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),),
             SizedBox(height: 8.h),
             DropdownButtonFormField<String>(
               value: _selectedMonth,
@@ -188,7 +188,7 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
               ),
               style: TextStyle(
                   fontSize: 12.sp,
-                  color: Theme.of(context).textTheme.bodyLarge?.color),
+                  color: Theme.of(context).textTheme.bodyLarge?.color,),
               dropdownColor: Theme.of(context).cardColor,
               items: _availableMonths.map((month) {
                 final date = DateTime.parse('$month-01');
@@ -320,7 +320,7 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
   // add vertical space
 
   Widget _buildSummaryItem(
-      String label, String value, IconData icon, Color color) {
+      String label, String value, IconData icon, Color color,) {
     return Column(
       children: [
         Icon(icon, color: color, size: 24.sp),
@@ -328,7 +328,7 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
         Text(
           value,
           style: TextStyle(
-              fontSize: 14.sp, fontWeight: FontWeight.bold, color: color),
+              fontSize: 14.sp, fontWeight: FontWeight.bold, color: color,),
         ),
         Text(label, style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
       ],
@@ -366,7 +366,7 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
     return {
       'paid': paidCount,
       'pending': pendingCount,
-      'overdue': overdueCount
+      'overdue': overdueCount,
     };
   }
 
@@ -414,10 +414,12 @@ class _PaymentManagementPageNewState extends State<PaymentManagementPageNew> {
 
         // Apply status filter
         if (_statusFilter == 'paid' && !isPaid) return const SizedBox.shrink();
-        if (_statusFilter == 'pending' && (isPaid || isWaived))
+        if (_statusFilter == 'pending' && (isPaid || isWaived)) {
           return const SizedBox.shrink();
-        if (_statusFilter == 'overdue' && !isOverdue)
+        }
+        if (_statusFilter == 'overdue' && !isOverdue) {
           return const SizedBox.shrink();
+        }
 
         final statusColor = isPaid
             ? Colors.green
@@ -655,7 +657,7 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
 
       final joinedDate = DateTime.parse(joinedDateString);
       print(
-          'Loading payments for user ${widget.userId}, joined: $joinedDateString');
+          'Loading payments for user ${widget.userId}, joined: $joinedDateString',);
 
       final expectedMonths = pocketBaseService.getExpectedMonths(joinedDate);
       print('Expected months from join date: ${expectedMonths.length} months');
@@ -671,18 +673,18 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
       }
 
       print(
-          'Total available months (including future): ${expectedMonths.length}');
+          'Total available months (including future): ${expectedMonths.length}',);
 
       // Get all transactions for the user
       final transactions =
           await pocketBaseService.getPaymentTransactions(widget.userId);
       print('Found ${transactions.length} existing payment transactions');
 
-      final transactionMap = {for (var t in transactions) t.month: t};
+      final transactionMap = {for (final t in transactions) t.month: t};
 
       if (expectedMonths.isEmpty) {
         print(
-            'Warning: No expected months generated for user ${widget.userId}');
+            'Warning: No expected months generated for user ${widget.userId}',);
         if (mounted) {
           setState(() {
             _errorMessage =
@@ -698,7 +700,7 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
           _availableMonths = expectedMonths;
           _transactions = transactionMap;
           _selectedMonths = {
-            widget.initialMonth
+            widget.initialMonth,
           }; // Pre-select the initial month
           _errorMessage = null;
           _isLoading = false;
@@ -709,7 +711,7 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
       print('Stack trace: $stackTrace');
       if (mounted) {
         setState(() {
-          _errorMessage = 'Failed to load payment information: ${e.toString()}';
+          _errorMessage = 'Failed to load payment information: $e';
           _isLoading = false;
         });
       }
@@ -753,7 +755,7 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Successfully recorded ${_selectedMonths.length} payment(s)'),
+                'Successfully recorded ${_selectedMonths.length} payment(s)',),
             backgroundColor: Colors.green,
           ),
         );
@@ -812,7 +814,7 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                         Text(
                           'Record Payments',
                           style: TextStyle(
-                              fontSize: 16.sp, fontWeight: FontWeight.bold),
+                              fontSize: 16.sp, fontWeight: FontWeight.bold,),
                         ),
                         Text(
                           widget.userName,
@@ -831,8 +833,8 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
             const Divider(height: 1),
 
             if (_isLoading)
-              Expanded(
-                child: Center(child: const CircularProgressIndicator()),
+              const Expanded(
+                child: Center(child: CircularProgressIndicator()),
               )
             else if (_errorMessage != null) ...[
               Expanded(
@@ -927,9 +929,9 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                             onPressed: _selectUnpaidMonths,
                             icon: const Icon(Icons.select_all, size: 16),
                             label: const Text('Select All Unpaid',
-                                style: TextStyle(fontSize: 10)),
+                                style: TextStyle(fontSize: 10),),
                             style: OutlinedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(vertical: 8.h)),
+                                padding: EdgeInsets.symmetric(vertical: 8.h),),
                           ),
                         ),
                         SizedBox(width: 8.w),
@@ -939,9 +941,9 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                                 setState(() => _selectedMonths.clear()),
                             icon: const Icon(Icons.clear_all, size: 16),
                             label: const Text('Clear All',
-                                style: TextStyle(fontSize: 10)),
+                                style: TextStyle(fontSize: 10),),
                             style: OutlinedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(vertical: 8.h)),
+                                padding: EdgeInsets.symmetric(vertical: 8.h),),
                           ),
                         ),
                       ],
@@ -1000,7 +1002,7 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                           children: [
                             Container(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 6.w, vertical: 2.h),
+                                  horizontal: 6.w, vertical: 2.h,),
                               decoration: BoxDecoration(
                                 color: statusColor.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(8.r),
@@ -1047,7 +1049,7 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                     Text(
                       'Payment Details',
                       style: TextStyle(
-                          fontSize: 12.sp, fontWeight: FontWeight.bold),
+                          fontSize: 12.sp, fontWeight: FontWeight.bold,),
                     ),
                     SizedBox(height: 12.h),
 
@@ -1058,7 +1060,7 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                         labelText: 'Payment Method',
                         border: const OutlineInputBorder(),
                         contentPadding: EdgeInsets.symmetric(
-                            horizontal: 12.w, vertical: 6.h),
+                            horizontal: 12.w, vertical: 6.h,),
                         labelStyle: TextStyle(fontSize: 11.sp),
                       ),
                       items: PaymentMethod.values.map((method) {
@@ -1069,7 +1071,7 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                               Icon(_getPaymentMethodIcon(method), size: 16.sp),
                               SizedBox(width: 8.w),
                               Text(method.displayName,
-                                  style: TextStyle(fontSize: 11.sp)),
+                                  style: TextStyle(fontSize: 11.sp),),
                             ],
                           ),
                         );
@@ -1108,7 +1110,7 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                       child: Row(
                         children: [
                           Icon(Icons.info_outline,
-                              color: Colors.blue, size: 16.sp),
+                              color: Colors.blue, size: 16.sp,),
                           SizedBox(width: 8.w),
                           Expanded(
                             child: Text(
@@ -1116,7 +1118,7 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                               style: TextStyle(
                                   fontSize: 10.sp,
                                   color: Colors.blue,
-                                  fontWeight: FontWeight.bold),
+                                  fontWeight: FontWeight.bold,),
                             ),
                           ),
                         ],
@@ -1155,7 +1157,7 @@ class _BulkPaymentDialogState extends State<_BulkPaymentDialog> {
                                 child: const CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
+                                      Colors.white,),
                                 ),
                               )
                             : const Icon(Icons.check),

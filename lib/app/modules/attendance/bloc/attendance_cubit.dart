@@ -26,7 +26,6 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       final result = await attendanceRepository.getAttendanceForMeeting(
         meetingId,
         page: page,
-        perPage: 100,
       );
 
       final attendances = result.items.map(Attendance.fromRecord).toList();
@@ -80,7 +79,6 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       final result = await attendanceRepository.getAttendanceForUser(
         userId,
         page: page,
-        perPage: 20,
       );
 
       final attendances = result.items.map(Attendance.fromRecord).toList();
@@ -140,7 +138,6 @@ class AttendanceCubit extends Cubit<AttendanceState> {
         emit(
           state.copyWith(
             status: AttendanceStateStatus.loaded,
-            summary: null,
           ),
         );
       }

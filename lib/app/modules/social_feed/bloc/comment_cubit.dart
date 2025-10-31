@@ -33,11 +33,10 @@ class CommentCubit extends Cubit<CommentState> {
       final result = await pocketBaseService.getComments(
         postId: postId,
         page: page,
-        perPage: 20,
       );
 
       final comments =
-          result.items.map((record) => PostComment.fromRecord(record)).toList();
+          result.items.map(PostComment.fromRecord).toList();
 
       if (page == 1) {
         emit(
@@ -84,7 +83,7 @@ class CommentCubit extends Cubit<CommentState> {
     try {
       // Check if user is banned
       final ban = await pocketBaseService.checkUserBan(currentUserId,
-          banType: 'comment');
+          banType: 'comment',);
       if (ban != null) {
         throw Exception('You are banned from commenting');
       }
@@ -190,7 +189,7 @@ class CommentCubit extends Cubit<CommentState> {
   /// Refresh comments
   Future<void> refresh() async {
     if (state.postId != null) {
-      await loadComments(state.postId!, page: 1);
+      await loadComments(state.postId!);
     }
   }
 

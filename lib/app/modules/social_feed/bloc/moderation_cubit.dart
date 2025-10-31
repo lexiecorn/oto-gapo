@@ -34,11 +34,10 @@ class ModerationCubit extends Cubit<ModerationState> {
       final result = await pocketBaseService.getReports(
         status: status?.value,
         page: page,
-        perPage: 20,
       );
 
       final reports =
-          result.items.map((record) => PostReport.fromRecord(record)).toList();
+          result.items.map(PostReport.fromRecord).toList();
 
       if (page == 1) {
         emit(
@@ -211,11 +210,10 @@ class ModerationCubit extends Cubit<ModerationState> {
       final result = await pocketBaseService.getAllBans(
         isActive: isActive,
         page: page,
-        perPage: 20,
       );
 
       final bans =
-          result.items.map((record) => UserBan.fromRecord(record)).toList();
+          result.items.map(UserBan.fromRecord).toList();
 
       if (page == 1) {
         emit(
@@ -253,7 +251,7 @@ class ModerationCubit extends Cubit<ModerationState> {
 
       final bans = await pocketBaseService.getUserBans(userId);
       final userBans =
-          bans.map((record) => UserBan.fromRecord(record)).toList();
+          bans.map(UserBan.fromRecord).toList();
 
       emit(
         state.copyWith(
@@ -273,11 +271,11 @@ class ModerationCubit extends Cubit<ModerationState> {
 
   /// Refresh reports
   Future<void> refreshReports() async {
-    await loadReports(status: state.selectedReportStatus, page: 1);
+    await loadReports(status: state.selectedReportStatus);
   }
 
   /// Refresh bans
   Future<void> refreshBans() async {
-    await loadBans(page: 1);
+    await loadBans();
   }
 }

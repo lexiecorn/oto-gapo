@@ -31,32 +31,8 @@ class UserBan {
     required this.banReason,
     required this.banType,
     required this.isPermanent,
-    this.banExpiresAt,
-    required this.isActive,
-    required this.createdAt,
+    required this.isActive, required this.createdAt, this.banExpiresAt,
   });
-
-  final String id;
-  final String userId;
-  final String userName;
-  final String bannedBy;
-  final String bannerName;
-  final String banReason;
-  final BanType banType;
-  final bool isPermanent;
-  final DateTime? banExpiresAt;
-  final bool isActive;
-  final DateTime createdAt;
-
-  /// Whether the ban has expired
-  bool get isExpired {
-    if (isPermanent) return false;
-    if (banExpiresAt == null) return false;
-    return DateTime.now().isAfter(banExpiresAt!);
-  }
-
-  /// Whether the ban is currently in effect
-  bool get isEffective => isActive && !isExpired;
 
   /// Factory constructor to create a UserBan from PocketBase RecordModel
   factory UserBan.fromRecord(RecordModel record) {
@@ -113,6 +89,28 @@ class UserBan {
       createdAt: DateTime.parse(record.get<String>('created')),
     );
   }
+
+  final String id;
+  final String userId;
+  final String userName;
+  final String bannedBy;
+  final String bannerName;
+  final String banReason;
+  final BanType banType;
+  final bool isPermanent;
+  final DateTime? banExpiresAt;
+  final bool isActive;
+  final DateTime createdAt;
+
+  /// Whether the ban has expired
+  bool get isExpired {
+    if (isPermanent) return false;
+    if (banExpiresAt == null) return false;
+    return DateTime.now().isAfter(banExpiresAt!);
+  }
+
+  /// Whether the ban is currently in effect
+  bool get isEffective => isActive && !isExpired;
 
   /// Copy with method for creating modified copies
   UserBan copyWith({

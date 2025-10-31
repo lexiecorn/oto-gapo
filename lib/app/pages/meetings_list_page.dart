@@ -261,7 +261,7 @@ class _MeetingsList extends StatelessWidget {
               position: index,
               duration: const Duration(milliseconds: 375),
               child: SlideAnimation(
-                verticalOffset: 50.0,
+                verticalOffset: 50,
                 child: FadeInAnimation(
                   child: MeetingCard(
                     meeting: meeting,

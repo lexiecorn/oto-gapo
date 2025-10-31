@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/signin/bloc/signin_cubit.dart';
 import 'package:otogapo/app/modules/utils/error_dialog.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
+import 'package:otogapo/utils/crashlytics_helper.dart';
 import 'package:otogapo_core/otogapo_core.dart';
 import 'package:validators/validators.dart';
 
@@ -47,7 +48,14 @@ class SigninPageState extends State<SigninPage> {
         // Use PocketBase native Google OAuth
         signinCubit.signinWithGoogleOAuth();
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
+      // Log to Crashlytics and n8n
+      await CrashlyticsHelper.logError(
+        error,
+        stackTrace,
+        reason: 'Google sign-in UI error',
+        fatal: false,
+      );
       if (context.mounted) {
         await errorDialog(
           context,
@@ -79,8 +87,15 @@ class SigninPageState extends State<SigninPage> {
             } else if (state.signinStatus == SigninStatus.success) {
               // Navigate to splash page which will handle auth state transition
               debugPrint(
-                  'SigninPage - Signin successful, navigating to splash page');
-              AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
+                  'SigninPage - Signin successful, navigating to splash page',);
+              
+              // Navigate immediately - SplashPage will handle checking auth state
+              Future.microtask(() {
+                if (context.mounted) {
+                  debugPrint('SigninPage - Navigating to SplashPage');
+                  AutoRouter.of(context).replaceAll([const SplashPageRouter()]);
+                }
+              });
             }
           },
           builder: (context, state) {
@@ -205,7 +220,7 @@ class SigninPageState extends State<SigninPage> {
                                     style: OpstechTextTheme.heading3.copyWith(
                                         color: Colors.black,
                                         fontSize: 20,
-                                        fontWeight: FontWeight.bold),
+                                        fontWeight: FontWeight.bold,),
                                   ),
                                 ),
                               ),
@@ -269,7 +284,7 @@ class SigninPageState extends State<SigninPage> {
                                             strokeWidth: 2,
                                             valueColor:
                                                 AlwaysStoppedAnimation<Color>(
-                                                    Colors.grey),
+                                                    Colors.grey,),
                                           ),
                                         )
                                       : Row(
