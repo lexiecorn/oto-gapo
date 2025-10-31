@@ -11,6 +11,7 @@ import 'package:otogapo/models/payment_statistics.dart';
 import 'package:otogapo/models/payment_transaction.dart';
 import 'package:otogapo/utils/payment_statistics_utils.dart';
 import 'package:pocketbase/pocketbase.dart';
+import 'package:otogapo/utils/debug_helper.dart';
 
 /// Service class for interacting with PocketBase backend.
 ///
@@ -1171,7 +1172,7 @@ class PocketBaseService {
           );
       return result.map(MonthlyDues.fromRecord).toList();
     } catch (e) {
-      print('Error getting all monthly dues: $e');
+      DebugHelper.logError('Error getting all monthly dues: $e');
       return [];
     }
   }
@@ -1179,46 +1180,46 @@ class PocketBaseService {
   // Debug method to see all monthly dues records
   Future<void> debugAllMonthlyDues() async {
     try {
-      print('=== DEBUG: All Monthly Dues Records ===');
+      DebugHelper.log('=== DEBUG: All Monthly Dues Records ===');
 
       // Ensure authentication first
       await _ensureAuthenticated();
 
       // First, let's check the authenticated user
-      print('Authenticated user: ${pb.authStore.model?.id}');
-      print('Auth store is valid: ${pb.authStore.isValid}');
-      print('Auth token: ${pb.authStore.token}');
+      DebugHelper.log('Authenticated user: ${pb.authStore.model?.id}');
+      DebugHelper.log('Auth store is valid: ${pb.authStore.isValid}');
+      DebugHelper.log('Auth token: ${pb.authStore.token}');
 
       final allResult = await pb.collection('monthly_dues').getFullList(
             sort: '-due_for_month',
           );
 
-      print('Total records: ${allResult.length}');
+      DebugHelper.log('Total records: ${allResult.length}');
 
       for (var i = 0; i < allResult.length; i++) {
         final record = allResult[i];
-        print('Record ${i + 1}:');
-        print('  - ID: ${record.id}');
-        print('  - User field: "${record.data['user']}"');
-        print('  - Amount: ${record.data['amount']}');
-        print('  - Status: ${record.data['status']}');
-        print('  - Due for month: ${record.data['due_for_month']}');
-        print('  - Payment date: ${record.data['payment_date']}');
-        print('  - Notes: ${record.data['notes']}');
-        print('  - Created: ${record.created}');
-        print('  - Updated: ${record.updated}');
-        print('');
+        DebugHelper.log('Record ${i + 1}:');
+        DebugHelper.log('  - ID: ${record.id}');
+        DebugHelper.log('  - User field: "${record.data['user']}"');
+        DebugHelper.log('  - Amount: ${record.data['amount']}');
+        DebugHelper.log('  - Status: ${record.data['status']}');
+        DebugHelper.log('  - Due for month: ${record.data['due_for_month']}');
+        DebugHelper.log('  - Payment date: ${record.data['payment_date']}');
+        DebugHelper.log('  - Notes: ${record.data['notes']}');
+        DebugHelper.log('  - Created: ${record.created}');
+        DebugHelper.log('  - Updated: ${record.updated}');
+        DebugHelper.log('');
       }
-      print('=== END DEBUG ===');
+      DebugHelper.log('=== END DEBUG ===');
     } catch (e) {
-      print('Error debugging monthly dues: $e');
+      DebugHelper.logError('Error debugging monthly dues: $e');
     }
   }
 
   // Create a test monthly dues record
   Future<void> createTestMonthlyDues(String userId) async {
     try {
-      print('=== Creating Test Monthly Dues Record ===');
+      DebugHelper.log('=== Creating Test Monthly Dues Record ===');
 
       // Ensure authentication first
       await _ensureAuthenticated();

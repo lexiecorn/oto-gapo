@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:intl/intl.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo/utils/debug_helper.dart';
 
 class PaymentManagementPage extends StatefulWidget {
   const PaymentManagementPage({super.key});
@@ -38,14 +39,14 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   void _clearAllPaymentStatusCache() {
     _paymentStatusCache.clear();
     _cacheTimestamps.clear();
-    print('Payment Management - Cleared all payment status cache');
+    DebugHelper.log('Payment Management - Cleared all payment status cache');
   }
 
   // Force cleanup duplicates for a specific user and month
   Future<void> _forceCleanupUserMonth(String userId, String month) async {
     try {
-      print('=== FORCE CLEANUP FOR USER/MONTH ===');
-      print('User ID: $userId, Month: $month');
+      DebugHelper.log('=== FORCE CLEANUP FOR USER/MONTH ===');
+      DebugHelper.log('User ID: $userId, Month: $month');
 
       final pocketBaseService = PocketBaseService();
       final monthDate = DateFormat('yyyy_MM').parse(month);
@@ -55,22 +56,22 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
           userId, monthDate,);
 
       if (result != null) {
-        print('Force cleanup - Found record: ${result.id}');
+        DebugHelper.log('Force cleanup - Found record: ${result.id}');
       } else {
-        print('Force cleanup - No record found');
+        DebugHelper.log('Force cleanup - No record found');
       }
 
-      print('=== END FORCE CLEANUP ===');
+      DebugHelper.log('=== END FORCE CLEANUP ===');
     } catch (e) {
-      print('Error in force cleanup: $e');
+      DebugHelper.logError('Error in force cleanup: $e');
     }
   }
 
   // Debug method to test payment status
   Future<void> _debugPaymentStatus(String userId, String month) async {
-    print('=== DEBUG PAYMENT STATUS ===');
-    print('User ID: $userId');
-    print('Month: $month');
+    DebugHelper.log('=== DEBUG PAYMENT STATUS ===');
+    DebugHelper.log('User ID: $userId');
+    DebugHelper.log('Month: $month');
 
     try {
       final pocketBaseService = PocketBaseService();
@@ -79,31 +80,31 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       // Test direct database query
       final monthlyDues = await pocketBaseService.getMonthlyDuesForUserAndMonth(
           userId, monthDate,);
-      print('Direct query result: ${monthlyDues != null}');
+      DebugHelper.log('Direct query result: ${monthlyDues != null}');
 
       if (monthlyDues != null) {
-        print('Record found:');
-        print('  - ID: ${monthlyDues.id}');
-        print('  - Amount: ${monthlyDues.amount}');
-        print('  - Payment Date: ${monthlyDues.paymentDate}');
-        print('  - Payment Date != null: ${monthlyDues.paymentDate != null}');
-        print('  - Due For Month: ${monthlyDues.dueForMonth}');
+        DebugHelper.log('Record found:');
+        DebugHelper.log('  - ID: ${monthlyDues.id}');
+        DebugHelper.log('  - Amount: ${monthlyDues.amount}');
+        DebugHelper.log('  - Payment Date: ${monthlyDues.paymentDate}');
+        DebugHelper.log('  - Payment Date != null: ${monthlyDues.paymentDate != null}');
+        DebugHelper.log('  - Due For Month: ${monthlyDues.dueForMonth}');
 
         // Test the status determination logic
         final isPaid = monthlyDues.paymentDate != null;
-        print('Is Paid (paymentDate != null): $isPaid');
+        DebugHelper.log('Is Paid (paymentDate != null): $isPaid');
 
         // Test the UI status method
         final uiStatus = await _getPaymentStatus(userId, month);
-        print('UI Status result: $uiStatus');
-        print('UI Status - status field: ${uiStatus?['status']}');
+        DebugHelper.log('UI Status result: $uiStatus');
+        DebugHelper.log('UI Status - status field: ${uiStatus?['status']}');
       } else {
-        print('No record found in database');
+        DebugHelper.log('No record found in database');
       }
     } catch (e) {
-      print('Error in debug: $e');
+      DebugHelper.logError('Error in debug: $e');
     }
-    print('=== END DEBUG ===');
+    DebugHelper.log('=== END DEBUG ===');
   }
 
   @override
@@ -124,12 +125,12 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
 
   Future<void> _cleanupDuplicates() async {
     try {
-      print('Payment Management - Starting duplicate cleanup...');
+      DebugHelper.log('Payment Management - Starting duplicate cleanup...');
       final pocketBaseService = PocketBaseService();
       await pocketBaseService.cleanupDuplicateMonthlyDues();
-      print('Payment Management - Duplicate cleanup completed');
+      DebugHelper.log('Payment Management - Duplicate cleanup completed');
     } catch (e) {
-      print('Error cleaning up duplicates: $e');
+      DebugHelper.logError('Error cleaning up duplicates: $e');
       // Don't show error to user as this is a background operation
     }
   }
@@ -148,7 +149,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         );
       }
     } catch (e) {
-      print('Error cleaning up duplicates: $e');
+      DebugHelper.logError('Error cleaning up duplicates: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -175,13 +176,13 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         }
       }
 
-      print(
+      DebugHelper.log(
           'Loaded ${users.length} valid users (filtered out inactive/deleted users)',);
       setState(() {
         _users = users;
       });
     } catch (e) {
-      print('Error loading users: $e');
+      DebugHelper.logError('Error loading users: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error loading users: $e')),
@@ -240,9 +241,9 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       _cacheTimestamps
           .removeWhere((key, value) => key.startsWith('${userId}_'));
 
-      print(
+      DebugHelper.log(
           'Payment Management - Cleared cache for user: $userId, month: $month',);
-      print(
+      DebugHelper.log(
           'Payment Management - Remaining cache keys: ${_paymentStatusCache.keys.toList()}',);
 
       // Refresh the data and force UI update
@@ -279,7 +280,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         );
       }
     } catch (e) {
-      print('Error updating payment status: $e');
+      DebugHelper.logError('Error updating payment status: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error updating payment status: $e')),
@@ -304,10 +305,10 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       final cacheTime = _cacheTimestamps[cacheKey];
       if (cacheTime != null &&
           DateTime.now().difference(cacheTime).inMinutes < 5) {
-        print('_getPaymentStatus - Using cached data for $cacheKey');
+        DebugHelper.log('_getPaymentStatus - Using cached data for $cacheKey');
         return _paymentStatusCache[cacheKey];
       } else {
-        print(
+        DebugHelper.log(
             '_getPaymentStatus - Cache expired for $cacheKey, fetching fresh data',);
         _paymentStatusCache.remove(cacheKey);
         _cacheTimestamps.remove(cacheKey);
@@ -322,16 +323,16 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       final monthlyDues = await pocketBaseService.getMonthlyDuesForUserAndMonth(
           userId, monthDate,);
 
-      print(
+      DebugHelper.log(
           '_getPaymentStatus - User: $userId, Month: $month, Record found: ${monthlyDues != null}',);
       if (monthlyDues != null) {
-        print('_getPaymentStatus - Record details:');
-        print('  - ID: ${monthlyDues.id}');
-        print('  - Amount: ${monthlyDues.amount}');
-        print('  - Payment Date: ${monthlyDues.paymentDate}');
-        print('  - Due For Month: ${monthlyDues.dueForMonth}');
-        print('  - Notes: ${monthlyDues.notes}');
-        print(
+        DebugHelper.log('_getPaymentStatus - Record details:');
+        DebugHelper.log('  - ID: ${monthlyDues.id}');
+        DebugHelper.log('  - Amount: ${monthlyDues.amount}');
+        DebugHelper.log('  - Payment Date: ${monthlyDues.paymentDate}');
+        DebugHelper.log('  - Due For Month: ${monthlyDues.dueForMonth}');
+        DebugHelper.log('  - Notes: ${monthlyDues.notes}');
+        DebugHelper.log(
             '  - Is Paid (paymentDate != null): ${monthlyDues.paymentDate != null}',);
       }
 
@@ -385,7 +386,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         // Record exists - determine if paid
         final isPaid = monthlyDues.paymentDate != null;
 
-        print(
+        DebugHelper.log(
             '_getPaymentStatus - Record found: id=${monthlyDues.id}, paymentDate=${monthlyDues.paymentDate}, isPaid=$isPaid',);
 
         result = {
@@ -399,13 +400,13 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
       // Cache the result with timestamp
       _paymentStatusCache[cacheKey] = result;
       _cacheTimestamps[cacheKey] = DateTime.now();
-      print(
+      DebugHelper.log(
           '_getPaymentStatus - Cached result for $cacheKey at ${DateTime.now()}',);
       return result;
     } catch (e) {
       // Handle 404 errors gracefully - user might not exist
       if (e.toString().contains('404') || e.toString().contains('not found')) {
-        print(
+        DebugHelper.log(
             'User $userId not found or inactive - skipping payment status check',);
         return {
           'status': null,
@@ -414,7 +415,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
           'updated_at': null,
         };
       }
-      print('Error getting payment status for user $userId, month $month: $e');
+      DebugHelper.logError('Error getting payment status for user $userId, month $month: $e');
       return null;
     }
   }
@@ -429,7 +430,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         // Store the actual status (null, true, or false)
         monthStatus[month] = paymentData?['status'] as bool?;
       } catch (e) {
-        print('Error getting status for user $userId, month $month: $e');
+        DebugHelper.logError('Error getting status for user $userId, month $month: $e');
         monthStatus[month] = null; // Default to null for error cases
       }
     }
@@ -445,16 +446,16 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
     });
 
     try {
-      print('Bulk Update - Starting update for user: $userId');
-      print('Bulk Update - Months to update: $months');
-      print('Bulk Update - Status: $status');
+      DebugHelper.log('Bulk Update - Starting update for user: $userId');
+      DebugHelper.log('Bulk Update - Months to update: $months');
+      DebugHelper.log('Bulk Update - Status: $status');
 
       final pocketBaseService = PocketBaseService();
 
       for (final month in months) {
-        print('Bulk Update - Processing month: $month');
+        DebugHelper.log('Bulk Update - Processing month: $month');
         final monthDate = DateFormat('yyyy_MM').parse(month);
-        print('Bulk Update - Parsed date: $monthDate');
+        DebugHelper.log('Bulk Update - Parsed date: $monthDate');
 
         final result = await pocketBaseService.markPaymentStatus(
           userId: userId,
@@ -462,9 +463,9 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
           isPaid: status,
         );
         if (result != null) {
-          print('Bulk Update - Updated month $month, result ID: ${result.id}');
+          DebugHelper.log('Bulk Update - Updated month $month, result ID: ${result.id}');
         } else {
-          print('Bulk Update - Deleted record for month $month');
+          DebugHelper.log('Bulk Update - Deleted record for month $month');
         }
       }
 
@@ -485,7 +486,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
         );
       }
     } catch (e) {
-      print('Error bulk updating payments: $e');
+      DebugHelper.logError('Error bulk updating payments: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -588,7 +589,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
           FlavorConfig.instance.variables['pocketbaseUrl'] as String;
       return '$pocketbaseUrl/api/files/users/$userId/$profileImageFileName';
     } catch (e) {
-      print('Error getting profile image URL: $e');
+      DebugHelper.logError('Error getting profile image URL: $e');
       return null;
     }
   }
@@ -1536,7 +1537,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                     onChanged: status == null
                                         ? null
                                         : (value) {
-                                            print(
+                                            DebugHelper.log(
                                                 'Checkbox tapped for month: $month, value: $value',);
                                             setDialogState(() {
                                               if (value == true) {
@@ -1546,7 +1547,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
                                                 _selectedMonthsForBulkUpdate
                                                     .remove(month);
                                               }
-                                              print(
+                                              DebugHelper.log(
                                                   'Selected months: $_selectedMonthsForBulkUpdate',);
                                             });
                                           },
