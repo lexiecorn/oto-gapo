@@ -80,26 +80,22 @@ class CalendarCubit extends Cubit<CalendarState> {
       return const MonthlyStats();
     }
 
-    int presentDays = 0;
-    int absentDays = 0;
-    int lateDays = 0;
-    int excusedDays = 0;
+    var presentDays = 0;
+    var absentDays = 0;
+    var lateDays = 0;
+    var excusedDays = 0;
 
     for (final attendance in attendanceMap.values) {
       switch (attendance.status) {
         case AttendanceStatus.present:
           presentDays++;
-          break;
         case AttendanceStatus.absent:
           absentDays++;
-          break;
         case AttendanceStatus.late:
           lateDays++;
-          break;
         case AttendanceStatus.excused:
         case AttendanceStatus.leave:
           excusedDays++;
-          break;
       }
     }
 

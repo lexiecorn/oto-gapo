@@ -3,7 +3,6 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:otogapo/app/modules/meetings/bloc/meeting_cubit.dart';
-import 'package:otogapo/models/meeting.dart' hide MeetingStatus;
 import 'package:pocketbase/pocketbase.dart';
 
 class MockAttendanceRepository extends Mock implements AttendanceRepository {}

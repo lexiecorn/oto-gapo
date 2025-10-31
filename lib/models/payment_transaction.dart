@@ -85,7 +85,7 @@ class PaymentTransaction {
       month: record.data['month'] as String,
       amount: (record.data['amount'] as num?)?.toDouble() ?? 100.0,
       status: PaymentStatus.fromString(
-          record.data['status'] as String? ?? 'pending'),
+          record.data['status'] as String? ?? 'pending',),
       paymentDate: record.data['payment_date'] != null
           ? DateTime.parse(record.data['payment_date'] as String)
           : null,

@@ -98,7 +98,7 @@ class VehicleAwardsRepository {
   /// Get awards by year
   Future<List<VehicleAward>> getAwardsByYear(int year) async {
     try {
-      final startOfYear = DateTime(year, 1, 1).toIso8601String();
+      final startOfYear = DateTime(year).toIso8601String();
       final endOfYear = DateTime(year, 12, 31, 23, 59, 59).toIso8601String();
 
       final response = await _pocketBaseService.client.collection('vehicle_awards').getList(

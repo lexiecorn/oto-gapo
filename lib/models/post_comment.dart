@@ -7,34 +7,8 @@ class PostComment {
     required this.postId,
     required this.userId,
     required this.userName,
-    this.userProfileImage,
-    required this.commentText,
-    required this.mentions,
-    required this.hashtags,
-    required this.isActive,
-    required this.isHiddenByAdmin,
-    required this.createdAt,
-    required this.updatedAt,
+    required this.commentText, required this.mentions, required this.hashtags, required this.isActive, required this.isHiddenByAdmin, required this.createdAt, required this.updatedAt, this.userProfileImage,
   });
-
-  final String id;
-  final String postId;
-  final String userId;
-  final String userName;
-  final String? userProfileImage;
-  final String commentText;
-  final List<String> mentions;
-  final List<String> hashtags;
-  final bool isActive;
-  final bool isHiddenByAdmin;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
-  /// Whether the comment is visible to users
-  bool get isVisible => isActive && !isHiddenByAdmin;
-
-  /// Whether the comment can still be edited (within 5 minutes)
-  bool get canEdit => DateTime.now().difference(createdAt).inMinutes <= 5;
 
   /// Factory constructor to create a PostComment from PocketBase RecordModel
   factory PostComment.fromRecord(RecordModel record) {
@@ -60,14 +34,14 @@ class PostComment {
     }
 
     // Parse mentions and hashtags from JSON
-    List<String> mentions = [];
+    var mentions = <String>[];
     if (data['mentions'] != null) {
       if (data['mentions'] is List) {
         mentions = (data['mentions'] as List).map((e) => e.toString()).toList();
       }
     }
 
-    List<String> hashtags = [];
+    var hashtags = <String>[];
     if (data['hashtags'] != null) {
       if (data['hashtags'] is List) {
         hashtags = (data['hashtags'] as List).map((e) => e.toString()).toList();
@@ -89,6 +63,25 @@ class PostComment {
       updatedAt: DateTime.parse(record.get<String>('updated')),
     );
   }
+
+  final String id;
+  final String postId;
+  final String userId;
+  final String userName;
+  final String? userProfileImage;
+  final String commentText;
+  final List<String> mentions;
+  final List<String> hashtags;
+  final bool isActive;
+  final bool isHiddenByAdmin;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  /// Whether the comment is visible to users
+  bool get isVisible => isActive && !isHiddenByAdmin;
+
+  /// Whether the comment can still be edited (within 5 minutes)
+  bool get canEdit => DateTime.now().difference(createdAt).inMinutes <= 5;
 
   /// Copy with method for creating modified copies
   PostComment copyWith({

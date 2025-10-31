@@ -23,51 +23,51 @@ class AppRouter extends $AppRouter {
         AutoRoute(page: MeetingsListPageRouter.page, path: '/meetings'),
         AutoRoute(page: CreateMeetingPageRouter.page, path: '/meetings/create'),
         AutoRoute(
-            page: MeetingDetailsPageRouter.page, path: '/meetings/:meetingId'),
+            page: MeetingDetailsPageRouter.page, path: '/meetings/:meetingId',),
         AutoRoute(
             page: MeetingQRCodePageRouter.page,
-            path: '/meetings/:meetingId/qr'),
+            path: '/meetings/:meetingId/qr',),
         AutoRoute(
             page: MarkAttendancePageRouter.page,
-            path: '/meetings/:meetingId/mark-attendance'),
+            path: '/meetings/:meetingId/mark-attendance',),
         AutoRoute(page: QRScannerPageRouter.page, path: '/scan-qr'),
         AutoRoute(page: UserQRCodePageRouter.page, path: '/my-qr-code'),
         AutoRoute(
             page: UserAttendanceHistoryPageRouter.page,
-            path: '/attendance/history'),
+            path: '/attendance/history',),
         AutoRoute(
             page: AttendanceCalendarPageRouter.page,
-            path: '/attendance/calendar'),
+            path: '/attendance/calendar',),
         // Members route
         AutoRoute(page: UserListPageRouter.page, path: '/members'),
         // Announcements route
         AutoRoute(
-            page: AnnouncementsListPageRouter.page, path: '/announcements'),
+            page: AnnouncementsListPageRouter.page, path: '/announcements',),
         // Social Feed routes
         AutoRoute(page: SocialFeedPageRouter.page, path: '/social-feed'),
         AutoRoute(page: CreatePostPageRouter.page, path: '/social-feed/create'),
         AutoRoute(
-            page: PostDetailPageRouter.page, path: '/social-feed/post/:postId'),
+            page: PostDetailPageRouter.page, path: '/social-feed/post/:postId',),
         AutoRoute(
-            page: UserPostsPageRouter.page, path: '/social-feed/user/:userId'),
+            page: UserPostsPageRouter.page, path: '/social-feed/user/:userId',),
         AutoRoute(
             page: HashtagPostsPageRouter.page,
-            path: '/social-feed/hashtag/:hashtag'),
+            path: '/social-feed/hashtag/:hashtag',),
         AutoRoute(
             page: SocialFeedModerationPageRouter.page,
-            path: '/social-feed/moderation'),
+            path: '/social-feed/moderation',),
         // Vehicle routes
         AutoRoute(
-            page: CarDetailsPageRouter.page, path: '/car-details/:vehicleId'),
+            page: CarDetailsPageRouter.page, path: '/car-details/:vehicleId',),
         AutoRoute(
             page: VehicleAwardsPageRouter.page,
-            path: '/vehicle/:vehicleId/awards'),
+            path: '/vehicle/:vehicleId/awards',),
         AutoRoute(
             page: AddVehicleAwardPageRouter.page,
-            path: '/vehicle/:vehicleId/awards/add'),
+            path: '/vehicle/:vehicleId/awards/add',),
         // Admin Vehicle Awards Management
         AutoRoute(
             page: VehicleAwardsManagementRoute.page,
-            path: '/admin/vehicle-awards'),
+            path: '/admin/vehicle-awards',),
       ];
 }

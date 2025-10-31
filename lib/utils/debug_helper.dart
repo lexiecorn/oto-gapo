@@ -11,7 +11,7 @@ class DebugHelper {
   }
 
   static void logError(String message,
-      [dynamic error, StackTrace? stackTrace]) {
+      [dynamic error, StackTrace? stackTrace,]) {
     if (kDebugMode) {
       debugPrint('❌ ERROR: $message');
       if (error != null) debugPrint('❌ Error details: $error');

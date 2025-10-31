@@ -31,7 +31,7 @@ class VersionRepository {
       // Check if PocketBase is available
       if (pb.baseUrl.isEmpty) {
         print(
-            'VersionRepository: PocketBase not initialized, skipping version check');
+            'VersionRepository: PocketBase not initialized, skipping version check',);
         return null;
       }
 
@@ -44,7 +44,7 @@ class VersionRepository {
 
       if (result.items.isEmpty) {
         print(
-            'VersionRepository: No version config found for platform $_platform');
+            'VersionRepository: No version config found for platform $_platform',);
         return null;
       }
 
@@ -120,8 +120,8 @@ class VersionRepository {
       final parts = version.split('.');
       return [
         int.parse(parts[0]),
-        parts.length > 1 ? int.parse(parts[1]) : 0,
-        parts.length > 2 ? int.parse(parts[2]) : 0,
+        if (parts.length > 1) int.parse(parts[1]) else 0,
+        if (parts.length > 2) int.parse(parts[2]) else 0,
       ];
     } catch (e) {
       return [0, 0, 0];

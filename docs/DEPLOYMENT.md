@@ -713,6 +713,37 @@ FirebaseCrashlytics.instance.recordError(
 ```
 
 ### 3. Performance Monitoring
+### 4. Microsoft Clarity (Mobile SDK)
+
+Microsoft Clarity provides session replays and heatmaps for mobile apps.
+
+Integration summary:
+
+- Add dependency in `pubspec.yaml`:
+
+  ```yaml
+  dependencies:
+    clarity_flutter: ^1.4.3
+  ```
+
+- Wrap the root `App` with Clarity in `lib/bootstrap.dart` via `ClarityHelper`:
+
+  ```dart
+  // lib/bootstrap.dart
+  import 'package:otogapo/utils/clarity_helper.dart';
+  // ... inside bootstrap after building the app widget
+  final wrappedApp = ClarityHelper.wrapWithClarity(appWidget);
+  runApp(wrappedApp);
+  ```
+
+- Provide the project ID per flavor by setting `FlavorConfig.variables['clarityProjectId']` (optional). If not set, Clarity is skipped.
+
+- Set the user id after authentication (already wired in `AuthBloc`).
+
+Notes:
+
+- iOS native changes are not required when using the Flutter plugin.
+- Use `ClarityMask` to hide sensitive widgets in recordings when needed.
 
 ```dart
 // Initialize Performance Monitoring

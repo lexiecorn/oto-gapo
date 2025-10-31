@@ -53,6 +53,8 @@ unlinked_spec.ds
 **/android/app/debug
 **/android/app/profile
 **/android/app/release
+# Android NDK/Gradle C++ build artifacts
+**/android/app/.cxx/
 *.jks
 
 # iOS/XCode related

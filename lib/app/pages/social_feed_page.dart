@@ -99,7 +99,6 @@ class _SocialFeedPageState extends State<SocialFeedPage>
                 border: Border(
                   bottom: BorderSide(
                     color: Colors.grey.shade200,
-                    width: 1,
                   ),
                 ),
                 boxShadow: [
@@ -107,7 +106,6 @@ class _SocialFeedPageState extends State<SocialFeedPage>
                     color: Colors.black.withOpacity(0.1),
                     offset: const Offset(0, 2),
                     blurRadius: 4,
-                    spreadRadius: 0,
                   ),
                 ],
               ),
@@ -116,7 +114,6 @@ class _SocialFeedPageState extends State<SocialFeedPage>
                 labelColor: Colors.blue,
                 unselectedLabelColor: Colors.grey,
                 indicatorColor: Colors.blue,
-                indicatorWeight: 2,
                 dividerColor: Colors.transparent,
                 labelStyle: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -219,7 +216,7 @@ class _SocialFeedPageState extends State<SocialFeedPage>
                       child: ListView.builder(
                         controller: _scrollController,
                         padding: EdgeInsets.symmetric(
-                            horizontal: 16.w, vertical: 16.h),
+                            horizontal: 16.w, vertical: 16.h,),
                         itemCount: state.hasMore
                             ? state.posts.length + 1
                             : state.posts.length,
@@ -240,7 +237,7 @@ class _SocialFeedPageState extends State<SocialFeedPage>
                             position: index,
                             duration: const Duration(milliseconds: 375),
                             child: SlideAnimation(
-                              verticalOffset: 50.0,
+                              verticalOffset: 50,
                               child: FadeInAnimation(
                                 child: PostCardWidget(
                                   post: post,
@@ -250,7 +247,7 @@ class _SocialFeedPageState extends State<SocialFeedPage>
                                       _showReactionPicker(context, post.id),
                                   onCommentTap: () async {
                                     await context.router.push(
-                                        PostDetailPageRouter(postId: post.id));
+                                        PostDetailPageRouter(postId: post.id),);
                                     // Refresh post after returning from detail page
                                     _feedCubit.refreshPost(post.id);
                                   },
@@ -262,7 +259,7 @@ class _SocialFeedPageState extends State<SocialFeedPage>
                                   },
                                   onImageTap: () async {
                                     await context.router.push(
-                                        PostDetailPageRouter(postId: post.id));
+                                        PostDetailPageRouter(postId: post.id),);
                                     // Refresh post after returning from detail page
                                     _feedCubit.refreshPost(post.id);
                                   },
@@ -276,7 +273,7 @@ class _SocialFeedPageState extends State<SocialFeedPage>
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                           content:
-                                              Text('Mentioned: @$mention')),
+                                              Text('Mentioned: @$mention'),),
                                     );
                                   },
                                   onMoreTap: () =>
@@ -344,7 +341,7 @@ class _SocialFeedPageState extends State<SocialFeedPage>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(reaction.emoji,
-                              style: TextStyle(fontSize: 28.sp)),
+                              style: TextStyle(fontSize: 28.sp),),
                           SizedBox(height: 4.h),
                           Text(
                             reaction.displayName,
@@ -373,7 +370,7 @@ class _SocialFeedPageState extends State<SocialFeedPage>
 
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => const ReportDialogWidget(isPost: true),
+      builder: (context) => const ReportDialogWidget(),
     );
 
     if (result != null && context.mounted) {

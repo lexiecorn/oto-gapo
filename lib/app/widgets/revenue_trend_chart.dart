@@ -65,7 +65,6 @@ class RevenueTrendChart extends StatelessWidget {
             child: LineChart(
               LineChartData(
                 gridData: FlGridData(
-                  show: true,
                   drawVerticalLine: false,
                   horizontalInterval: maxY / 5,
                   getDrawingHorizontalLine: (value) {
@@ -92,10 +91,10 @@ class RevenueTrendChart extends StatelessWidget {
                     ),
                   ),
                   rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+                    
                   ),
                   topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+                    
                   ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
@@ -130,11 +129,9 @@ class RevenueTrendChart extends StatelessWidget {
                   border: Border(
                     bottom: BorderSide(
                       color: theme.dividerColor,
-                      width: 1,
                     ),
                     left: BorderSide(
                       color: theme.dividerColor,
-                      width: 1,
                     ),
                   ),
                 ),
@@ -150,7 +147,6 @@ class RevenueTrendChart extends StatelessWidget {
                     barWidth: 3,
                     isStrokeCapRound: true,
                     dotData: FlDotData(
-                      show: true,
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
                           radius: 4,

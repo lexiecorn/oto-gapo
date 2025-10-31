@@ -265,7 +265,7 @@ class SkeletonGrid extends StatelessWidget {
       ),
       itemCount: itemCount,
       itemBuilder: (context, index) {
-        return SkeletonLoader(
+        return const SkeletonLoader(
           width: double.infinity,
           height: double.infinity,
         );

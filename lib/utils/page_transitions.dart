@@ -9,7 +9,7 @@ class PageTransitions {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    const begin = Offset(1.0, 0.0);
+    const begin = Offset(1, 0);
     const end = Offset.zero;
     const curve = Curves.easeInOut;
 
@@ -30,7 +30,7 @@ class PageTransitions {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    const begin = Offset(-1.0, 0.0);
+    const begin = Offset(-1, 0);
     const end = Offset.zero;
     const curve = Curves.easeInOut;
 
@@ -51,7 +51,7 @@ class PageTransitions {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    const begin = Offset(0.0, 1.0);
+    const begin = Offset(0, 1);
     const end = Offset.zero;
     const curve = Curves.easeOut;
 
@@ -87,12 +87,14 @@ class PageTransitions {
   ) {
     const curve = Curves.easeInOut;
 
-    final tween = Tween(begin: 0.0, end: 1.0).chain(
+    final tween = Tween(begin: 0, end: 1).chain(
       CurveTween(curve: curve),
     );
 
     return ScaleTransition(
-      scale: animation.drive(tween),
+      scale: animation.drive(
+        tween as Animatable<double>,
+      ),
       child: child,
     );
   }
@@ -107,7 +109,7 @@ class PageTransitions {
     return FadeTransition(
       opacity: animation,
       child: ScaleTransition(
-        scale: Tween<double>(begin: 0.9, end: 1.0).animate(
+        scale: Tween<double>(begin: 0.9, end: 1).animate(
           CurvedAnimation(
             parent: animation,
             curve: Curves.easeOut,
@@ -125,7 +127,7 @@ class PageTransitions {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    const begin = Offset(0.0, 0.1);
+    const begin = Offset(0, 0.1);
     const end = Offset.zero;
     const curve = Curves.easeOut;
 

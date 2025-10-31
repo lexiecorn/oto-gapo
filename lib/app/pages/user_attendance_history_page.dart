@@ -26,11 +26,9 @@ class _UserAttendanceHistoryPageState extends State<UserAttendanceHistoryPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = context.read<ProfileCubit>().state.user;
-      if (user != null) {
-        context.read<AttendanceCubit>().loadUserAttendance(user.uid);
-        context.read<AttendanceCubit>().loadAttendanceSummary(user.uid);
-      }
-    });
+      context.read<AttendanceCubit>().loadUserAttendance(user.uid);
+      context.read<AttendanceCubit>().loadAttendanceSummary(user.uid);
+        });
   }
 
   @override
@@ -46,8 +44,7 @@ class _UserAttendanceHistoryPageState extends State<UserAttendanceHistoryPage> {
       final user = context.read<ProfileCubit>().state.user;
 
       if (cubit.state.hasMore &&
-          cubit.state.status != AttendanceStateStatus.loading &&
-          user != null) {
+          cubit.state.status != AttendanceStateStatus.loading) {
         cubit.loadUserAttendance(
           user.uid,
           page: cubit.state.currentPage + 1,
@@ -68,10 +65,8 @@ class _UserAttendanceHistoryPageState extends State<UserAttendanceHistoryPage> {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               final user = context.read<ProfileCubit>().state.user;
-              if (user != null) {
-                context.read<AttendanceCubit>().loadUserAttendance(user.uid);
-              }
-            },
+              context.read<AttendanceCubit>().loadUserAttendance(user.uid);
+                        },
           ),
         ],
       ),
@@ -125,10 +120,8 @@ class _UserAttendanceHistoryPageState extends State<UserAttendanceHistoryPage> {
             ElevatedButton.icon(
               onPressed: () {
                 final user = context.read<ProfileCubit>().state.user;
-                if (user != null) {
-                  context.read<AttendanceCubit>().loadUserAttendance(user.uid);
-                }
-              },
+                context.read<AttendanceCubit>().loadUserAttendance(user.uid);
+                            },
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
             ),
@@ -162,10 +155,8 @@ class _UserAttendanceHistoryPageState extends State<UserAttendanceHistoryPage> {
     return RefreshIndicator(
       onRefresh: () async {
         final user = context.read<ProfileCubit>().state.user;
-        if (user != null) {
-          await context.read<AttendanceCubit>().loadUserAttendance(user.uid);
-        }
-      },
+        await context.read<AttendanceCubit>().loadUserAttendance(user.uid);
+            },
       child: ListView.builder(
         controller: _scrollController,
         padding: EdgeInsets.only(top: 8.h, bottom: 16.h),

@@ -103,7 +103,7 @@ class _HashtagPostsPageState extends State<HashtagPostsPage> {
 
             return RefreshIndicator(
               onRefresh: () =>
-                  _feedCubit.loadHashtagPosts(widget.hashtag, page: 1),
+                  _feedCubit.loadHashtagPosts(widget.hashtag),
               child: ListView.builder(
                 controller: _scrollController,
                 itemCount:

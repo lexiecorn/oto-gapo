@@ -112,7 +112,6 @@ class UserQRCodePage extends StatelessWidget {
                     children: [
                       QrImageView(
                         data: qrData,
-                        version: QrVersions.auto,
                         size: 280.sp,
                         backgroundColor: Colors.white,
                         errorCorrectionLevel: QrErrorCorrectLevel.H,
@@ -157,7 +156,7 @@ class UserQRCodePage extends StatelessWidget {
                         _InfoRow(
                           label: 'Member Type',
                           value: _getMembershipTypeName(
-                              user.membership_type?.toInt() ?? 3),
+                              user.membership_type?.toInt() ?? 3,),
                         ),
                       ],
                     ),

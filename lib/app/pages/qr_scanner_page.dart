@@ -29,11 +29,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
   Future<void> _onDetect(BarcodeCapture capture) async {
     if (_isProcessing) return;
 
-    final List<Barcode> barcodes = capture.barcodes;
+    final barcodes = capture.barcodes;
     if (barcodes.isEmpty) return;
 
     final barcode = barcodes.first;
-    final String? code = barcode.rawValue;
+    final code = barcode.rawValue;
 
     if (code == null || code.isEmpty) return;
 
@@ -53,12 +53,6 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
       // Get user info
       final user = context.read<ProfileCubit>().state.user;
-      if (user == null) {
-        if (mounted) {
-          _showError('User not found');
-        }
-        return;
-      }
 
       // Mark attendance
       await context.read<AttendanceCubit>().markAttendance(
@@ -79,7 +73,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
       }
     } catch (e) {
       if (mounted) {
-        _showError('Failed to check in: ${e.toString()}');
+        _showError('Failed to check in: $e');
       }
     } finally {
       if (mounted) {
@@ -155,11 +149,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 );
               },
             ),
-            onPressed: () => _controller.toggleTorch(),
+            onPressed: _controller.toggleTorch,
           ),
           IconButton(
             icon: const Icon(Icons.cameraswitch),
-            onPressed: () => _controller.switchCamera(),
+            onPressed: _controller.switchCamera,
           ),
         ],
       ),
@@ -202,7 +196,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
           ),
           // Processing Indicator
           if (_isProcessing)
-            Container(
+            ColoredBox(
               color: Colors.black.withValues(alpha: 0.5),
               child: const Center(
                 child: CircularProgressIndicator(),

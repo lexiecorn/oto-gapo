@@ -117,7 +117,7 @@ class CreateUserPage extends StatelessWidget {
                   .animate()
                   .fadeIn(
                       delay: const Duration(milliseconds: 200),
-                      duration: const Duration(milliseconds: 600))
+                      duration: const Duration(milliseconds: 600),)
                   .slideY(
                     begin: -0.2,
                     delay: const Duration(milliseconds: 200),
@@ -141,7 +141,7 @@ class CreateUserPage extends StatelessWidget {
         title: Row(
           children: [
             Icon(Icons.help_outline,
-                color: isDark ? colorScheme.secondary : Colors.green),
+                color: isDark ? colorScheme.secondary : Colors.green,),
             SizedBox(width: 8.sp),
             Text(
               'Create User Help',
@@ -216,7 +216,7 @@ class CreateUserPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon,
-            size: 20.sp, color: isDark ? colorScheme.secondary : Colors.green),
+            size: 20.sp, color: isDark ? colorScheme.secondary : Colors.green,),
         SizedBox(width: 12.sp),
         Expanded(
           child: Column(

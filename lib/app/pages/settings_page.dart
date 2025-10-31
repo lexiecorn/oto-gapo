@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
@@ -17,7 +18,6 @@ import 'package:otogapo/providers/theme_provider.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_flavor/flutter_flavor.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -72,7 +72,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
       if (authState.user != null) {
         debugPrint(
-            'Settings Page - User authenticated with PocketBase via AuthBloc');
+            'Settings Page - User authenticated with PocketBase via AuthBloc',);
         debugPrint('Settings Page - AuthBloc user ID: ${authState.user!.id}');
         try {
           final pocketBaseService = PocketBaseService();
@@ -92,8 +92,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 membershipType == '1' ||
                 membershipType == '2';
             debugPrint('Settings Page - _isAdmin: $_isAdmin');
-            _userName = '${userData['firstName']?.toString() ?? ''} ' +
-                '${userData['lastName']?.toString() ?? ''}'.trim();
+            _userName = '${userData['firstName']?.toString() ?? ''} ${(userData['lastName']?.toString() ?? '').trim()}';
             _userEmail = userData['email']?.toString() ?? '';
             _profileImage = userData['profileImage']?.toString();
             _isLoading = false;
@@ -113,7 +112,7 @@ class _SettingsPageState extends State<SettingsPage> {
             if (profileState.user.uid.isNotEmpty) {
               debugPrint('Settings Page - Using ProfileCubit data as fallback');
               debugPrint(
-                  'Settings Page - ProfileCubit user UID: ${profileState.user.uid}');
+                  'Settings Page - ProfileCubit user UID: ${profileState.user.uid}',);
               debugPrint(
                 'Settings Page - ProfileCubit user membership_type: ${profileState.user.membership_type}',
               );
@@ -143,7 +142,7 @@ class _SettingsPageState extends State<SettingsPage> {
             }
           } catch (profileError) {
             debugPrint(
-                'Settings Page - ProfileCubit fallback also failed: $profileError');
+                'Settings Page - ProfileCubit fallback also failed: $profileError',);
             if (!mounted) return;
             setState(() {
               _isAdmin = false;
@@ -313,7 +312,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                          builder: (context) => const CurrentUserAccountPage()),
+                          builder: (context) => const CurrentUserAccountPage(),),
                     );
                   },
                 ),
@@ -375,7 +374,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                            builder: (context) => const AdminPage()),
+                            builder: (context) => const AdminPage(),),
                       );
                     },
                   ),

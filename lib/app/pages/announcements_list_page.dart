@@ -216,7 +216,7 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                     },
                     selectedColor: colorScheme.primary.withOpacity(0.2),
                     checkmarkColor: colorScheme.primary,
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 0),
+                    padding: EdgeInsets.symmetric(horizontal: 8.w),
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 );
@@ -402,7 +402,7 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                     child: CachedNetworkImage(
                       imageUrl: _buildImageUrl(announcement, '300x300t'),
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
+                      placeholder: (context, url) => ColoredBox(
                         color: _getTypeColor(type, isDark).withOpacity(0.1),
                         child: Center(
                           child: CircularProgressIndicator(
@@ -413,7 +413,7 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                           ),
                         ),
                       ),
-                      errorWidget: (context, url, error) => Container(
+                      errorWidget: (context, url, error) => ColoredBox(
                         color: _getTypeColor(type, isDark).withOpacity(0.1),
                         child: Icon(
                           _getTypeIcon(type),
@@ -510,7 +510,7 @@ class _AnnouncementsListPageState extends State<AnnouncementsListPage> {
                       Container(
                         width: double.infinity,
                         padding: EdgeInsets.symmetric(
-                            horizontal: 16.w, vertical: 10.h),
+                            horizontal: 16.w, vertical: 10.h,),
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(0.8),
                         ),

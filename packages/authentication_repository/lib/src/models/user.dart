@@ -53,8 +53,6 @@ abstract class User with _$User {
         gender: '',
         memberNumber: '',
         civilStatus: '',
-        birthDate: null,
-        age: null,
         nationality: '',
         contactNumber: '',
         driversLicenseExpirationDate: DateTime.now(),

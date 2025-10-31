@@ -110,7 +110,7 @@ void main() {
           (tester) async {
         // Arrange - Vehicle with no primaryPhoto
         final state = createProfileStateWithVehicle(
-          primaryPhoto: null,
+          
         );
 
         // Act
@@ -301,8 +301,6 @@ void main() {
       testWidgets('displays content after futures resolve', (tester) async {
         // Arrange - Use null/empty URLs to avoid loading states with shimmer
         final state = createProfileStateWithVehicle(
-          primaryPhoto:
-              null, // Will use default asset image (no network loading)
           photos: [], // Empty list shows default asset (no GridView loading)
         );
 
@@ -311,7 +309,7 @@ void main() {
         await tester.pumpTestApp(CarWidget(state: state));
 
         // Pump a few frames to let flutter_animate effects progress
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           await tester.pump(const Duration(milliseconds: 100));
         }
 
@@ -337,7 +335,7 @@ void main() {
               year: 2023,
             ),
           ],
-          awards: [],
+          awards: const [],
         );
 
         // Act
@@ -408,7 +406,6 @@ void main() {
         final loadedState = createProfileStateWithVehicle(
           make: 'Hyundai',
           model: 'Tucson',
-          primaryPhoto: null,
           photos: [],
         );
 
@@ -432,7 +429,7 @@ void main() {
         );
 
         // Pump a few frames for initial state
-        for (int i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
           await tester.pump(const Duration(milliseconds: 100));
         }
 
@@ -440,7 +437,7 @@ void main() {
         expect(find.text('No Vehicle'), findsOneWidget);
 
         // Act - Pump to trigger state change
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           await tester.pump(const Duration(milliseconds: 100));
         }
 
@@ -464,7 +461,6 @@ void main() {
           model: 'X5 M50i',
           plateNumber: 'BMW-X5@2023',
           color: 'Alpine White (Metallic)',
-          primaryPhoto: null,
           photos: [],
         );
 
@@ -472,7 +468,7 @@ void main() {
         await tester.pumpTestApp(CarWidget(state: state));
 
         // Pump a few frames
-        for (int i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
           await tester.pump(const Duration(milliseconds: 100));
         }
 
@@ -489,14 +485,13 @@ void main() {
             4, // Reasonable number that fits in test viewport
             (index) => 'https://example.com/photo$index.jpg',
           ),
-          primaryPhoto: null,
         );
 
         // Act
         await tester.pumpTestApp(CarWidget(state: state));
 
         // Pump a few frames
-        for (int i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
           await tester.pump(const Duration(milliseconds: 100));
         }
 
@@ -509,7 +504,6 @@ void main() {
       testWidgets('mounts and unmounts cleanly', (tester) async {
         // Arrange
         final state = createProfileStateWithVehicle(
-          primaryPhoto: null, // Use asset to avoid network loading
           photos: [], // Avoid GridView loading
         );
 
@@ -517,7 +511,7 @@ void main() {
         await tester.pumpTestApp(CarWidget(state: state));
 
         // Let some frames pass but don't wait for infinite animations
-        for (int i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
           await tester.pump(const Duration(milliseconds: 100));
         }
 
@@ -535,7 +529,6 @@ void main() {
         // Arrange - Use simple states that don't trigger network loading
         final state = createProfileStateWithVehicle(
           make: 'Initial',
-          primaryPhoto: null,
           photos: [],
         );
 
@@ -543,7 +536,7 @@ void main() {
         await tester.pumpTestApp(CarWidget(state: state));
 
         // Pump a few frames
-        for (int i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
           await tester.pump(const Duration(milliseconds: 100));
         }
 
@@ -552,13 +545,12 @@ void main() {
         // Rebuild with new state
         final newState = createProfileStateWithVehicle(
           make: 'Updated',
-          primaryPhoto: null,
           photos: [],
         );
         await tester.pumpTestApp(CarWidget(state: newState));
 
         // Pump a few frames
-        for (int i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
           await tester.pump(const Duration(milliseconds: 100));
         }
 

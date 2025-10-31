@@ -96,7 +96,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
       await feedCubit.createPost(
         _captionController.text,
-        _selectedImage!,
+        _selectedImage,
       );
 
       if (mounted) {
@@ -139,7 +139,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
               ListTile(
                 leading: const Icon(Icons.photo_library),
                 title: Text('Choose from Gallery',
-                    style: TextStyle(fontSize: 14.sp)),
+                    style: TextStyle(fontSize: 14.sp),),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.gallery);

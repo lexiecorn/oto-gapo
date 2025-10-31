@@ -1,8 +1,8 @@
+import 'package:authentication_repository/authentication_repository.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:authentication_repository/authentication_repository.dart';
 import 'package:get_it/get_it.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 
@@ -65,7 +65,7 @@ class _VehicleAwardsManagementPageState
               page: 1,
               perPage: 500,
               sort: '-event_date',
-              expand: 'vehicle_id,created_by');
+              expand: 'vehicle_id,created_by',);
 
       _allAwards = awardsResponse.items.map<VehicleAward>((item) {
         final data = Map<String, dynamic>.from(item.data);
@@ -149,7 +149,7 @@ class _VehicleAwardsManagementPageState
         title: Text(
           'Delete Award',
           style: TextStyle(
-              color: colorScheme.onSurface, fontWeight: FontWeight.bold),
+              color: colorScheme.onSurface, fontWeight: FontWeight.bold,),
         ),
         content: Text(
           'Are you sure you want to delete "${award.awardName}"?',
@@ -160,7 +160,7 @@ class _VehicleAwardsManagementPageState
             onPressed: () => Navigator.pop(context, false),
             child: Text('Cancel',
                 style:
-                    TextStyle(color: colorScheme.onSurface.withOpacity(0.7))),
+                    TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -182,7 +182,7 @@ class _VehicleAwardsManagementPageState
           context,
         ).showSnackBar(const SnackBar(
             content: Text('Award deleted successfully'),
-            backgroundColor: Colors.green));
+            backgroundColor: Colors.green,),);
         _loadData();
       }
     } catch (e) {
@@ -191,7 +191,7 @@ class _VehicleAwardsManagementPageState
           context,
         ).showSnackBar(SnackBar(
             content: Text('Failed to delete award: $e'),
-            backgroundColor: Colors.red));
+            backgroundColor: Colors.red,),);
       }
     }
   }
@@ -208,7 +208,7 @@ class _VehicleAwardsManagementPageState
     final placementController = TextEditingController(text: award.placement);
     final descriptionController =
         TextEditingController(text: award.description);
-    DateTime selectedDate = award.eventDate;
+    var selectedDate = award.eventDate;
 
     final result = await showDialog<bool>(
       context: context,
@@ -218,7 +218,7 @@ class _VehicleAwardsManagementPageState
           title: Text(
             'Edit Award',
             style: TextStyle(
-                color: colorScheme.onSurface, fontWeight: FontWeight.bold),
+                color: colorScheme.onSurface, fontWeight: FontWeight.bold,),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -230,13 +230,13 @@ class _VehicleAwardsManagementPageState
                   decoration: InputDecoration(
                     labelText: 'Award Name *',
                     labelStyle: TextStyle(
-                        color: colorScheme.onSurface.withOpacity(0.7)),
+                        color: colorScheme.onSurface.withOpacity(0.7),),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                          color: colorScheme.onSurface.withOpacity(0.3)),
+                          color: colorScheme.onSurface.withOpacity(0.3),),
                     ),
                     focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: blueAccent, width: 2)),
+                        borderSide: BorderSide(color: blueAccent, width: 2),),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -246,13 +246,13 @@ class _VehicleAwardsManagementPageState
                   decoration: InputDecoration(
                     labelText: 'Event Name *',
                     labelStyle: TextStyle(
-                        color: colorScheme.onSurface.withOpacity(0.7)),
+                        color: colorScheme.onSurface.withOpacity(0.7),),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                          color: colorScheme.onSurface.withOpacity(0.3)),
+                          color: colorScheme.onSurface.withOpacity(0.3),),
                     ),
                     focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: blueAccent, width: 2)),
+                        borderSide: BorderSide(color: blueAccent, width: 2),),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -284,13 +284,13 @@ class _VehicleAwardsManagementPageState
                   decoration: InputDecoration(
                     labelText: 'Category',
                     labelStyle: TextStyle(
-                        color: colorScheme.onSurface.withOpacity(0.7)),
+                        color: colorScheme.onSurface.withOpacity(0.7),),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                          color: colorScheme.onSurface.withOpacity(0.3)),
+                          color: colorScheme.onSurface.withOpacity(0.3),),
                     ),
                     focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: blueAccent, width: 2)),
+                        borderSide: BorderSide(color: blueAccent, width: 2),),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -300,13 +300,13 @@ class _VehicleAwardsManagementPageState
                   decoration: InputDecoration(
                     labelText: 'Placement',
                     labelStyle: TextStyle(
-                        color: colorScheme.onSurface.withOpacity(0.7)),
+                        color: colorScheme.onSurface.withOpacity(0.7),),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                          color: colorScheme.onSurface.withOpacity(0.3)),
+                          color: colorScheme.onSurface.withOpacity(0.3),),
                     ),
                     focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: blueAccent, width: 2)),
+                        borderSide: BorderSide(color: blueAccent, width: 2),),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -317,13 +317,13 @@ class _VehicleAwardsManagementPageState
                   decoration: InputDecoration(
                     labelText: 'Description',
                     labelStyle: TextStyle(
-                        color: colorScheme.onSurface.withOpacity(0.7)),
+                        color: colorScheme.onSurface.withOpacity(0.7),),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                          color: colorScheme.onSurface.withOpacity(0.3)),
+                          color: colorScheme.onSurface.withOpacity(0.3),),
                     ),
                     focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: blueAccent, width: 2)),
+                        borderSide: BorderSide(color: blueAccent, width: 2),),
                   ),
                 ),
               ],
@@ -334,7 +334,7 @@ class _VehicleAwardsManagementPageState
               onPressed: () => Navigator.pop(context, false),
               child: Text('Cancel',
                   style:
-                      TextStyle(color: colorScheme.onSurface.withOpacity(0.7))),
+                      TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
@@ -372,7 +372,7 @@ class _VehicleAwardsManagementPageState
           context,
         ).showSnackBar(const SnackBar(
             content: Text('Award updated successfully'),
-            backgroundColor: Colors.green));
+            backgroundColor: Colors.green,),);
         _loadData();
       }
     } catch (e) {
@@ -381,7 +381,7 @@ class _VehicleAwardsManagementPageState
           context,
         ).showSnackBar(SnackBar(
             content: Text('Failed to update award: $e'),
-            backgroundColor: Colors.red));
+            backgroundColor: Colors.red,),);
       }
     }
   }
@@ -409,7 +409,7 @@ class _VehicleAwardsManagementPageState
     final placementController = TextEditingController();
     final descriptionController = TextEditingController();
     DateTime? selectedDate;
-    bool isLoadingVehicle = false;
+    var isLoadingVehicle = false;
 
     final result = await showDialog<bool>(
       context: context,
@@ -467,7 +467,7 @@ class _VehicleAwardsManagementPageState
               style: TextStyle(
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
-                  fontSize: 16),
+                  fontSize: 16,),
             ),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -491,22 +491,22 @@ class _VehicleAwardsManagementPageState
                         labelText: 'Select User *',
                         labelStyle: TextStyle(
                             color: colorScheme.onSurface.withOpacity(0.7),
-                            fontSize: 12),
+                            fontSize: 12,),
                         filled: true,
                         fillColor:
-                            isDark ? colorScheme.background : Colors.grey[100],
+                            isDark ? colorScheme.surface : Colors.grey[100],
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(
-                              color: colorScheme.onSurface.withOpacity(0.3)),
+                              color: colorScheme.onSurface.withOpacity(0.3),),
                         ),
                         focusedBorder: OutlineInputBorder(
                             borderSide:
-                                BorderSide(color: blueAccent, width: 2)),
+                                BorderSide(color: blueAccent, width: 2),),
                         prefixIcon: Icon(Icons.person, color: blueAccent),
                       ),
                       items: [
                         const DropdownMenuItem<String?>(
-                            value: null, child: Text('Select a user...')),
+                            child: Text('Select a user...'),),
                         ...filteredUsers.map((user) {
                           final firstName = user.data['firstName'] ?? '';
                           final lastName = user.data['lastName'] ?? '';
@@ -538,7 +538,7 @@ class _VehicleAwardsManagementPageState
                             color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                                color: colorScheme.onSurface.withOpacity(0.3)),
+                                color: colorScheme.onSurface.withOpacity(0.3),),
                           ),
                           child: Row(
                             children: [
@@ -556,7 +556,7 @@ class _VehicleAwardsManagementPageState
                                 style: TextStyle(
                                     color:
                                         colorScheme.onSurface.withOpacity(0.7),
-                                    fontSize: 12),
+                                    fontSize: 12,),
                               ),
                             ],
                           ),
@@ -573,7 +573,7 @@ class _VehicleAwardsManagementPageState
                           child: Row(
                             children: [
                               Icon(Icons.directions_car,
-                                  color: blueAccent, size: 24),
+                                  color: blueAccent, size: 24,),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
@@ -625,13 +625,13 @@ class _VehicleAwardsManagementPageState
                           child: const Row(
                             children: [
                               Icon(Icons.warning,
-                                  color: Colors.orange, size: 20),
+                                  color: Colors.orange, size: 20,),
                               SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   'This user has no vehicles. Please add a vehicle first.',
                                   style: TextStyle(
-                                      color: Colors.orange, fontSize: 10),
+                                      color: Colors.orange, fontSize: 10,),
                                 ),
                               ),
                             ],
@@ -650,44 +650,44 @@ class _VehicleAwardsManagementPageState
                         style: TextStyle(
                             color: colorScheme.onSurface,
                             fontWeight: FontWeight.bold,
-                            fontSize: 14),
+                            fontSize: 14,),
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: awardNameController,
                         style: TextStyle(
-                            color: colorScheme.onSurface, fontSize: 14),
+                            color: colorScheme.onSurface, fontSize: 14,),
                         decoration: InputDecoration(
                           labelText: 'Award Name *',
                           labelStyle: TextStyle(
                               color: colorScheme.onSurface.withOpacity(0.7),
-                              fontSize: 12),
+                              fontSize: 12,),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                                color: colorScheme.onSurface.withOpacity(0.3)),
+                                color: colorScheme.onSurface.withOpacity(0.3),),
                           ),
                           focusedBorder: OutlineInputBorder(
                               borderSide:
-                                  BorderSide(color: blueAccent, width: 2)),
+                                  BorderSide(color: blueAccent, width: 2),),
                         ),
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: eventNameController,
                         style: TextStyle(
-                            color: colorScheme.onSurface, fontSize: 14),
+                            color: colorScheme.onSurface, fontSize: 14,),
                         decoration: InputDecoration(
                           labelText: 'Event Name *',
                           labelStyle: TextStyle(
                               color: colorScheme.onSurface.withOpacity(0.7),
-                              fontSize: 12),
+                              fontSize: 12,),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                                color: colorScheme.onSurface.withOpacity(0.3)),
+                                color: colorScheme.onSurface.withOpacity(0.3),),
                           ),
                           focusedBorder: OutlineInputBorder(
                               borderSide:
-                                  BorderSide(color: blueAccent, width: 2)),
+                                  BorderSide(color: blueAccent, width: 2),),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -698,7 +698,7 @@ class _VehicleAwardsManagementPageState
                               ? 'Event Date: ${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
                               : 'Select Event Date *',
                           style: TextStyle(
-                              color: colorScheme.onSurface, fontSize: 12),
+                              color: colorScheme.onSurface, fontSize: 12,),
                         ),
                         trailing: Icon(Icons.calendar_today, color: blueAccent),
                         onTap: () async {
@@ -719,66 +719,66 @@ class _VehicleAwardsManagementPageState
                       TextField(
                         controller: categoryController,
                         style: TextStyle(
-                            color: colorScheme.onSurface, fontSize: 14),
+                            color: colorScheme.onSurface, fontSize: 14,),
                         decoration: InputDecoration(
                           labelText: 'Category',
                           hintText: 'e.g., Modified, Classic, Best in Show',
                           hintStyle: TextStyle(
                               color: colorScheme.onSurface.withOpacity(0.4),
-                              fontSize: 10),
+                              fontSize: 10,),
                           labelStyle: TextStyle(
                               color: colorScheme.onSurface.withOpacity(0.7),
-                              fontSize: 12),
+                              fontSize: 12,),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                                color: colorScheme.onSurface.withOpacity(0.3)),
+                                color: colorScheme.onSurface.withOpacity(0.3),),
                           ),
                           focusedBorder: OutlineInputBorder(
                               borderSide:
-                                  BorderSide(color: blueAccent, width: 2)),
+                                  BorderSide(color: blueAccent, width: 2),),
                         ),
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: placementController,
                         style: TextStyle(
-                            color: colorScheme.onSurface, fontSize: 14),
+                            color: colorScheme.onSurface, fontSize: 14,),
                         decoration: InputDecoration(
                           labelText: 'Placement',
                           hintText: 'e.g., 1st Place, Winner, Champion',
                           hintStyle: TextStyle(
                               color: colorScheme.onSurface.withOpacity(0.4),
-                              fontSize: 10),
+                              fontSize: 10,),
                           labelStyle: TextStyle(
                               color: colorScheme.onSurface.withOpacity(0.7),
-                              fontSize: 12),
+                              fontSize: 12,),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                                color: colorScheme.onSurface.withOpacity(0.3)),
+                                color: colorScheme.onSurface.withOpacity(0.3),),
                           ),
                           focusedBorder: OutlineInputBorder(
                               borderSide:
-                                  BorderSide(color: blueAccent, width: 2)),
+                                  BorderSide(color: blueAccent, width: 2),),
                         ),
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: descriptionController,
                         style: TextStyle(
-                            color: colorScheme.onSurface, fontSize: 14),
+                            color: colorScheme.onSurface, fontSize: 14,),
                         maxLines: 3,
                         decoration: InputDecoration(
                           labelText: 'Description',
                           labelStyle: TextStyle(
                               color: colorScheme.onSurface.withOpacity(0.7),
-                              fontSize: 12),
+                              fontSize: 12,),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                                color: colorScheme.onSurface.withOpacity(0.3)),
+                                color: colorScheme.onSurface.withOpacity(0.3),),
                           ),
                           focusedBorder: OutlineInputBorder(
                               borderSide:
-                                  BorderSide(color: blueAccent, width: 2)),
+                                  BorderSide(color: blueAccent, width: 2),),
                         ),
                       ),
                     ],
@@ -789,7 +789,7 @@ class _VehicleAwardsManagementPageState
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel')),
+                  child: const Text('Cancel'),),
               TextButton(
                 onPressed: selectedVehicle == null ||
                         awardNameController.text.isEmpty ||
@@ -817,7 +817,7 @@ class _VehicleAwardsManagementPageState
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Please fill in all required fields'),
-              backgroundColor: Colors.red),
+              backgroundColor: Colors.red,),
         );
       }
       return;
@@ -848,7 +848,7 @@ class _VehicleAwardsManagementPageState
           context,
         ).showSnackBar(const SnackBar(
             content: Text('Award created successfully'),
-            backgroundColor: Colors.green));
+            backgroundColor: Colors.green,),);
         _loadData();
       }
     } catch (e) {
@@ -857,7 +857,7 @@ class _VehicleAwardsManagementPageState
           context,
         ).showSnackBar(SnackBar(
             content: Text('Failed to create award: $e'),
-            backgroundColor: Colors.red));
+            backgroundColor: Colors.red,),);
       }
     }
   }
@@ -901,13 +901,13 @@ class _VehicleAwardsManagementPageState
                         style: TextStyle(
                             color: goldColor,
                             fontSize: 16.sp,
-                            fontWeight: FontWeight.bold),
+                            fontWeight: FontWeight.bold,),
                       ),
                       Text(
                         award.eventName,
                         style: TextStyle(
                             color: colorScheme.onSurface.withOpacity(0.8),
-                            fontSize: 14.sp),
+                            fontSize: 14.sp,),
                       ),
                       Text(
                         _getVehicleName(award.vehicleId),
@@ -918,7 +918,7 @@ class _VehicleAwardsManagementPageState
                 ),
                 PopupMenuButton<String>(
                   icon: Icon(Icons.more_vert,
-                      color: colorScheme.onSurface.withOpacity(0.6)),
+                      color: colorScheme.onSurface.withOpacity(0.6),),
                   color: colorScheme.surface,
                   onSelected: (value) {
                     if (value == 'edit') {
@@ -935,7 +935,7 @@ class _VehicleAwardsManagementPageState
                           Icon(Icons.edit, color: blueAccent),
                           const SizedBox(width: 8),
                           Text('Edit',
-                              style: TextStyle(color: colorScheme.onSurface)),
+                              style: TextStyle(color: colorScheme.onSurface),),
                         ],
                       ),
                     ),
@@ -946,7 +946,7 @@ class _VehicleAwardsManagementPageState
                           Icon(Icons.delete, color: colorScheme.error),
                           const SizedBox(width: 8),
                           Text('Delete',
-                              style: TextStyle(color: colorScheme.onSurface)),
+                              style: TextStyle(color: colorScheme.onSurface),),
                         ],
                       ),
                     ),
@@ -971,7 +971,7 @@ class _VehicleAwardsManagementPageState
                       style: TextStyle(
                           color: purpleAccent,
                           fontSize: 12.sp,
-                          fontWeight: FontWeight.w500),
+                          fontWeight: FontWeight.w500,),
                     ),
                   ),
                   SizedBox(width: 8.w),
@@ -990,7 +990,7 @@ class _VehicleAwardsManagementPageState
                       style: TextStyle(
                           color: blueAccent,
                           fontSize: 12.sp,
-                          fontWeight: FontWeight.w500),
+                          fontWeight: FontWeight.w500,),
                     ),
                   ),
               ],
@@ -999,13 +999,13 @@ class _VehicleAwardsManagementPageState
             Row(
               children: [
                 Icon(Icons.calendar_today,
-                    size: 14.sp, color: colorScheme.onSurface.withOpacity(0.6)),
+                    size: 14.sp, color: colorScheme.onSurface.withOpacity(0.6),),
                 SizedBox(width: 4.w),
                 Text(
                   '${award.eventDate.day}/${award.eventDate.month}/${award.eventDate.year}',
                   style: TextStyle(
                       color: colorScheme.onSurface.withOpacity(0.6),
-                      fontSize: 12.sp),
+                      fontSize: 12.sp,),
                 ),
               ],
             ),
@@ -1015,7 +1015,7 @@ class _VehicleAwardsManagementPageState
                 award.description!,
                 style: TextStyle(
                     color: colorScheme.onSurface.withOpacity(0.8),
-                    fontSize: 12.sp),
+                    fontSize: 12.sp,),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -1040,7 +1040,7 @@ class _VehicleAwardsManagementPageState
         isDark ? const Color(0xFFa855f7) : const Color(0xFF8b3fc7);
 
     return Scaffold(
-      backgroundColor: colorScheme.background,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         backgroundColor: colorScheme.surface,
         elevation: 0,
@@ -1049,7 +1049,7 @@ class _VehicleAwardsManagementPageState
           style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface),
+              color: colorScheme.onSurface,),
         ),
         actions: [
           IconButton(
@@ -1078,23 +1078,23 @@ class _VehicleAwardsManagementPageState
                   decoration: InputDecoration(
                     labelText: 'Filter by Vehicle',
                     labelStyle: TextStyle(
-                        color: colorScheme.onSurface.withOpacity(0.7)),
+                        color: colorScheme.onSurface.withOpacity(0.7),),
                     filled: true,
                     fillColor:
-                        isDark ? colorScheme.background : Colors.grey[100],
+                        isDark ? colorScheme.surface : Colors.grey[100],
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12.r),
-                        borderSide: BorderSide.none),
+                        borderSide: BorderSide.none,),
                     prefixIcon: Icon(Icons.directions_car, color: blueAccent),
                   ),
                   items: [
                     const DropdownMenuItem<String?>(
-                        value: null, child: Text('All Vehicles')),
+                        child: Text('All Vehicles'),),
                     ..._vehicles.map(
                       (vehicle) => DropdownMenuItem(
                         value: vehicle.id,
                         child: Text(
-                            '${vehicle.make} ${vehicle.model} (${vehicle.year})'),
+                            '${vehicle.make} ${vehicle.model} (${vehicle.year})',),
                       ),
                     ),
                   ],
@@ -1128,20 +1128,20 @@ class _VehicleAwardsManagementPageState
                       style: TextStyle(
                           color: goldColor,
                           fontSize: 24.sp,
-                          fontWeight: FontWeight.bold),
+                          fontWeight: FontWeight.bold,),
                     ),
                     Text(
                       'Total Awards',
                       style: TextStyle(
                           color: colorScheme.onSurface.withOpacity(0.6),
-                          fontSize: 12.sp),
+                          fontSize: 12.sp,),
                     ),
                   ],
                 ),
                 Container(
                     width: 1,
                     height: 40.h,
-                    color: colorScheme.onSurface.withOpacity(0.2)),
+                    color: colorScheme.onSurface.withOpacity(0.2),),
                 Column(
                   children: [
                     Text(
@@ -1149,20 +1149,20 @@ class _VehicleAwardsManagementPageState
                       style: TextStyle(
                           color: blueAccent,
                           fontSize: 24.sp,
-                          fontWeight: FontWeight.bold),
+                          fontWeight: FontWeight.bold,),
                     ),
                     Text(
                       'Vehicles',
                       style: TextStyle(
                           color: colorScheme.onSurface.withOpacity(0.6),
-                          fontSize: 12.sp),
+                          fontSize: 12.sp,),
                     ),
                   ],
                 ),
                 Container(
                     width: 1,
                     height: 40.h,
-                    color: colorScheme.onSurface.withOpacity(0.2)),
+                    color: colorScheme.onSurface.withOpacity(0.2),),
                 Column(
                   children: [
                     Text(
@@ -1170,13 +1170,13 @@ class _VehicleAwardsManagementPageState
                       style: TextStyle(
                           color: purpleAccent,
                           fontSize: 24.sp,
-                          fontWeight: FontWeight.bold),
+                          fontWeight: FontWeight.bold,),
                     ),
                     Text(
                       'Filtered',
                       style: TextStyle(
                           color: colorScheme.onSurface.withOpacity(0.6),
-                          fontSize: 12.sp),
+                          fontSize: 12.sp,),
                     ),
                   ],
                 ),
@@ -1193,27 +1193,27 @@ class _VehicleAwardsManagementPageState
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.error_outline,
-                                size: 64.sp, color: colorScheme.error),
+                                size: 64.sp, color: colorScheme.error,),
                             SizedBox(height: 16.h),
                             Text(
                               'Error loading awards',
                               style: TextStyle(
                                   color: colorScheme.onSurface,
-                                  fontSize: 16.sp),
+                                  fontSize: 16.sp,),
                             ),
                             SizedBox(height: 8.h),
                             Text(
                               _error!,
                               style: TextStyle(
                                   color: colorScheme.onSurface.withOpacity(0.6),
-                                  fontSize: 12.sp),
+                                  fontSize: 12.sp,),
                               textAlign: TextAlign.center,
                             ),
                             SizedBox(height: 16.h),
                             ElevatedButton(
                               onPressed: _loadData,
                               style: ElevatedButton.styleFrom(
-                                  backgroundColor: blueAccent),
+                                  backgroundColor: blueAccent,),
                               child: const Text('Retry'),
                             ),
                           ],
@@ -1227,14 +1227,14 @@ class _VehicleAwardsManagementPageState
                                 Icon(Icons.emoji_events_outlined,
                                     size: 64.sp,
                                     color:
-                                        colorScheme.onSurface.withOpacity(0.3)),
+                                        colorScheme.onSurface.withOpacity(0.3),),
                                 SizedBox(height: 16.h),
                                 Text(
                                   'No awards found',
                                   style: TextStyle(
                                       color: colorScheme.onSurface
                                           .withOpacity(0.6),
-                                      fontSize: 16.sp),
+                                      fontSize: 16.sp,),
                                 ),
                               ],
                             ),
@@ -1245,14 +1245,14 @@ class _VehicleAwardsManagementPageState
                             itemBuilder: (context, index) {
                               final award = _filteredAwards[index];
                               return _buildAwardCard(award, isDark, colorScheme,
-                                      goldColor, blueAccent, purpleAccent)
+                                      goldColor, blueAccent, purpleAccent,)
                                   .animate()
                                   .fadeIn(
-                                      delay: (50 * index).ms, duration: 300.ms)
+                                      delay: (50 * index).ms, duration: 300.ms,)
                                   .slideX(
                                       begin: 0.2,
                                       delay: (50 * index).ms,
-                                      duration: 300.ms);
+                                      duration: 300.ms,);
                             },
                           ),
           ),

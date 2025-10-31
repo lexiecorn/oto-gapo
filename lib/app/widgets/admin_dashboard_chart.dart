@@ -74,7 +74,6 @@ class AdminDashboardChart extends StatelessWidget {
     return LineChart(
       LineChartData(
         gridData: FlGridData(
-          show: true,
           drawVerticalLine: false,
           horizontalInterval: 1,
           getDrawingHorizontalLine: (value) {
@@ -85,12 +84,11 @@ class AdminDashboardChart extends StatelessWidget {
           },
         ),
         titlesData: FlTitlesData(
-          show: true,
           rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
+            
           ),
           topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
+            
           ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -137,7 +135,6 @@ class AdminDashboardChart extends StatelessWidget {
             color: chartColor,
             barWidth: 3,
             dotData: FlDotData(
-              show: true,
               getDotPainter: (spot, percent, barData, index) {
                 return FlDotCirclePainter(
                   radius: 4,
@@ -185,12 +182,11 @@ class AdminDashboardChart extends StatelessWidget {
           ),
         ),
         titlesData: FlTitlesData(
-          show: true,
           rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
+            
           ),
           topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
+            
           ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -222,7 +218,6 @@ class AdminDashboardChart extends StatelessWidget {
           ),
         ),
         gridData: FlGridData(
-          show: true,
           drawVerticalLine: false,
           horizontalInterval: 1,
           getDrawingHorizontalLine: (value) {

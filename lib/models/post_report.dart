@@ -46,39 +46,14 @@ enum ReportStatus {
 class PostReport {
   const PostReport({
     required this.id,
-    this.postId,
+    required this.reportedBy, required this.reporterName, required this.reportReason, required this.status, required this.createdAt, this.postId,
     this.commentId,
-    required this.reportedBy,
-    required this.reporterName,
-    required this.reportReason,
     this.reportDetails,
-    required this.status,
     this.reviewedBy,
     this.reviewerName,
     this.reviewedAt,
     this.adminNotes,
-    required this.createdAt,
   });
-
-  final String id;
-  final String? postId;
-  final String? commentId;
-  final String reportedBy;
-  final String reporterName;
-  final ReportReason reportReason;
-  final String? reportDetails;
-  final ReportStatus status;
-  final String? reviewedBy;
-  final String? reviewerName;
-  final DateTime? reviewedAt;
-  final String? adminNotes;
-  final DateTime createdAt;
-
-  /// Whether the report is for a post
-  bool get isPostReport => postId != null;
-
-  /// Whether the report is for a comment
-  bool get isCommentReport => commentId != null;
 
   /// Factory constructor to create a PostReport from PocketBase RecordModel
   factory PostReport.fromRecord(RecordModel record) {
@@ -138,6 +113,26 @@ class PostReport {
       createdAt: DateTime.parse(record.get<String>('created')),
     );
   }
+
+  final String id;
+  final String? postId;
+  final String? commentId;
+  final String reportedBy;
+  final String reporterName;
+  final ReportReason reportReason;
+  final String? reportDetails;
+  final ReportStatus status;
+  final String? reviewedBy;
+  final String? reviewerName;
+  final DateTime? reviewedAt;
+  final String? adminNotes;
+  final DateTime createdAt;
+
+  /// Whether the report is for a post
+  bool get isPostReport => postId != null;
+
+  /// Whether the report is for a comment
+  bool get isCommentReport => commentId != null;
 
   /// Copy with method for creating modified copies
   PostReport copyWith({
