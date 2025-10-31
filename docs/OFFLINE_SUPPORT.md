@@ -55,6 +55,7 @@ Update UI
 - **Posts**: Last 100 posts from social feed
 - **Meetings**: Upcoming and recent meetings
 - **User Profile**: Current user profile data
+- **Announcements**: Latest app announcements
 - **Pending Actions**: All queued actions with retry metadata
 
 ### Cache Storage
@@ -64,7 +65,35 @@ All cached data is stored using Hive boxes:
 - `cached_posts` - Social feed posts
 - `cached_meetings` - Meeting information
 - `cached_profiles` - User profile data
+- `cached_announcements` - App announcements
 - `offline_actions` - Pending sync actions
+- `cache_metadata` - Cache timestamps and metadata
+
+### Caching Strategy
+
+The app uses intelligent caching with TTL (Time To Live) to balance data freshness and performance:
+
+#### Cache TTLs
+
+- **Posts**: 5 minutes - Frequently updated social content
+- **Meetings**: 15 minutes - Moderate update frequency
+- **Profiles**: 30 minutes - Relatively static user data
+- **Announcements**: 10 minutes - Important updates
+
+#### Cache-First Loading
+
+1. App checks cache on data request
+2. If cache is valid (within TTL), displays immediately
+3. Simultaneously fetches fresh data from PocketBase
+4. Updates UI when fresh data arrives
+5. If offline, uses cached data indefinitely
+
+#### Benefits
+
+- Instant app startup with cached data
+- Reduced API calls and server load
+- Seamless offline experience
+- Automatic background refresh when online
 
 ## Offline Actions
 

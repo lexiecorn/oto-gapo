@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/models/custom_error.dart';
+import 'package:otogapo/services/sync_service.dart';
 
 import '../../../helpers/mock_factories.dart';
 
@@ -15,7 +16,10 @@ void main() {
 
     setUp(() {
       mockProfileRepository = MockProfileRepository();
-      profileCubit = ProfileCubit(profileRepository: mockProfileRepository);
+      profileCubit = ProfileCubit(
+        profileRepository: mockProfileRepository,
+        syncService: SyncService(),
+      );
     });
 
     tearDown(() {

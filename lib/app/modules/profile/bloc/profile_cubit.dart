@@ -5,6 +5,7 @@ import 'package:authentication_repository/src/profile_failure.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:otogapo/models/custom_error.dart';
+import 'package:otogapo/services/sync_service.dart';
 import 'package:otogapo/utils/debug_helper.dart';
 
 part 'profile_state.dart';
@@ -12,8 +13,10 @@ part 'profile_state.dart';
 class ProfileCubit extends Cubit<ProfileState> {
   ProfileCubit({
     required this.profileRepository,
+    required this.syncService,
   }) : super(ProfileState.initial());
   final ProfileRepository profileRepository;
+  final SyncService syncService;
 
   Future<void> getProfile() async {
     DebugHelper.log('ProfileCubit.getProfile - Starting profile retrieval');

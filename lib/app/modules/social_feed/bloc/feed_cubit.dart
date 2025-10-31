@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:otogapo/models/cached_data.dart';
 import 'package:otogapo/models/post.dart';
 import 'package:otogapo/models/post_reaction.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo/services/sync_service.dart';
 import 'package:otogapo/utils/image_compression_utils.dart';
 import 'package:otogapo/utils/text_parsing_utils.dart';
 
@@ -15,10 +17,12 @@ class FeedCubit extends Cubit<FeedState> {
   FeedCubit({
     required this.pocketBaseService,
     required this.currentUserId,
+    required this.syncService,
   }) : super(const FeedState());
 
   final PocketBaseService pocketBaseService;
   final String currentUserId;
+  final SyncService syncService;
 
   /// Load feed posts with pagination
   Future<void> loadFeed({
@@ -26,6 +30,45 @@ class FeedCubit extends Cubit<FeedState> {
     bool refresh = false,
   }) async {
     try {
+      // For first page, try loading from cache first
+      if (page == 1 && !refresh) {
+        final cachedPosts = await syncService.getCachedPostsIfValid();
+        if (cachedPosts != null && cachedPosts.isNotEmpty) {
+          // Emit cached data immediately for instant UI
+          final posts = cachedPosts
+              .map((cached) => Post(
+                    id: cached.id,
+                    userId: cached.authorId,
+                    userName: cached.authorName,
+                    caption: cached.content,
+                    imageUrl: cached.imageUrls.isNotEmpty ? cached.imageUrls.first : '',
+                    imageWidth: 0,
+                    imageHeight: 0,
+                    hashtags: const [],
+                    mentions: const [],
+                    likesCount: cached.likesCount,
+                    commentsCount: cached.commentsCount,
+                    isActive: true,
+                    isHiddenByAdmin: false,
+                    createdAt: cached.createdAt,
+                    updatedAt: cached.createdAt,
+                  ))
+              .toList();
+
+          emit(
+            state.copyWith(
+              status: FeedStatus.loaded,
+              posts: posts,
+              currentPage: 1,
+              hasMore: false, // We don't know from cache
+            ),
+          );
+
+          // Load user reactions for cached posts
+          await _loadUserReactions(posts.map((p) => p.id).toList());
+        }
+      }
+
       if (refresh || page == 1) {
         emit(state.copyWith(status: FeedStatus.loading));
       } else {
@@ -39,8 +82,27 @@ class FeedCubit extends Cubit<FeedState> {
       // Check if cubit is still open after async operation
       if (isClosed) return;
 
-      final posts =
-          result.items.map(Post.fromRecord).toList();
+      final posts = result.items.map(Post.fromRecord).toList();
+
+      // Cache the results if it's first page
+      if (page == 1) {
+        final cachedPosts = result.items.map((record) {
+          final userRecord = record.expand['user_id']?[0];
+          return CachedPost(
+            id: record.id,
+            content: record.data['caption'] as String? ?? '',
+            authorId: record.data['user_id'] as String,
+            authorName: userRecord?.data['firstName'] as String? ?? 'Unknown',
+            createdAt: DateTime.parse(record.created),
+            cachedAt: DateTime.now(),
+            imageUrls: (record.data['image'] as String?)?.isNotEmpty == true ? [record.data['image'] as String] : [],
+            likesCount: record.data['likes_count'] as int? ?? 0,
+            commentsCount: record.data['comments_count'] as int? ?? 0,
+          );
+        }).toList();
+
+        await syncService.cachePosts(cachedPosts);
+      }
 
       if (refresh || page == 1) {
         emit(
@@ -101,8 +163,7 @@ class FeedCubit extends Cubit<FeedState> {
       // Check if cubit is still open after async operation
       if (isClosed) return;
 
-      final posts =
-          result.items.map(Post.fromRecord).toList();
+      final posts = result.items.map(Post.fromRecord).toList();
 
       if (page == 1) {
         emit(
@@ -157,8 +218,7 @@ class FeedCubit extends Cubit<FeedState> {
       // Check if cubit is still open after async operation
       if (isClosed) return;
 
-      final posts =
-          result.items.map(Post.fromRecord).toList();
+      final posts = result.items.map(Post.fromRecord).toList();
 
       if (page == 1) {
         emit(
@@ -197,8 +257,7 @@ class FeedCubit extends Cubit<FeedState> {
   Future<void> createPost(String caption, File? imageFile) async {
     try {
       // Check if user is banned
-      final ban =
-          await pocketBaseService.checkUserBan(currentUserId, banType: 'post');
+      final ban = await pocketBaseService.checkUserBan(currentUserId, banType: 'post');
       if (ban != null) {
         throw Exception('You are banned from creating posts');
       }
@@ -212,10 +271,8 @@ class FeedCubit extends Cubit<FeedState> {
 
       // Compress image if provided
       if (imageFile != null) {
-        compressedImage =
-            await ImageCompressionUtils.compressForSocialFeed(imageFile);
-        final dimensions =
-            await ImageCompressionUtils.getImageDimensions(compressedImage);
+        compressedImage = await ImageCompressionUtils.compressForSocialFeed(imageFile);
+        final dimensions = await ImageCompressionUtils.getImageDimensions(compressedImage);
         imageWidth = dimensions['width']!;
         imageHeight = dimensions['height']!;
       }
@@ -289,7 +346,8 @@ class FeedCubit extends Cubit<FeedState> {
     try {
       final currentReaction = state.userReactions[postId];
       print(
-          'FeedCubit - Current reaction: ${currentReaction?.reactionType.value}',);
+        'FeedCubit - Current reaction: ${currentReaction?.reactionType.value}',
+      );
       print('FeedCubit - New reaction type: ${type.value}');
 
       if (currentReaction?.reactionType == type) {
@@ -304,8 +362,7 @@ class FeedCubit extends Cubit<FeedState> {
         if (isClosed) return;
 
         // Update local state - remove reaction
-        final updatedReactions =
-            Map<String, PostReaction?>.from(state.userReactions);
+        final updatedReactions = Map<String, PostReaction?>.from(state.userReactions);
         updatedReactions[postId] = null;
 
         // Decrement count
@@ -320,15 +377,17 @@ class FeedCubit extends Cubit<FeedState> {
         print('FeedCubit - Emitting state with no reaction');
 
         // Force a complete state update by creating entirely new state
-        emit(FeedState(
-          status: state.status,
-          posts: updatedPosts,
-          currentPage: state.currentPage,
-          hasMore: state.hasMore,
-          errorMessage: state.errorMessage,
-          selectedPost: state.selectedPost,
-          userReactions: updatedReactions,
-        ),);
+        emit(
+          FeedState(
+            status: state.status,
+            posts: updatedPosts,
+            currentPage: state.currentPage,
+            hasMore: state.hasMore,
+            errorMessage: state.errorMessage,
+            selectedPost: state.selectedPost,
+            userReactions: updatedReactions,
+          ),
+        );
       } else {
         // Different reaction or new reaction
         print('FeedCubit - Adding/updating reaction to ${type.value}');
@@ -343,11 +402,11 @@ class FeedCubit extends Cubit<FeedState> {
 
         final reaction = PostReaction.fromRecord(record);
         print(
-            'FeedCubit - Got reaction from record: ${reaction.reactionType.value}',);
+          'FeedCubit - Got reaction from record: ${reaction.reactionType.value}',
+        );
 
         // Update local state with new reaction
-        final updatedReactions =
-            Map<String, PostReaction?>.from(state.userReactions);
+        final updatedReactions = Map<String, PostReaction?>.from(state.userReactions);
         updatedReactions[postId] = reaction;
 
         // Update count (only if it was a new reaction, not changing)
@@ -360,22 +419,26 @@ class FeedCubit extends Cubit<FeedState> {
         }
 
         print(
-            'FeedCubit - Emitting state with reaction: ${reaction.reactionType.value}',);
+          'FeedCubit - Emitting state with reaction: ${reaction.reactionType.value}',
+        );
 
         // Force a complete state update by creating entirely new state
-        emit(FeedState(
-          status: state.status,
-          posts: updatedPosts,
-          currentPage: state.currentPage,
-          hasMore: state.hasMore,
-          errorMessage: state.errorMessage,
-          selectedPost: state.selectedPost,
-          userReactions: updatedReactions,
-        ),);
+        emit(
+          FeedState(
+            status: state.status,
+            posts: updatedPosts,
+            currentPage: state.currentPage,
+            hasMore: state.hasMore,
+            errorMessage: state.errorMessage,
+            selectedPost: state.selectedPost,
+            userReactions: updatedReactions,
+          ),
+        );
       }
 
       print(
-          'FeedCubit - State after toggle: ${state.userReactions[postId]?.reactionType.value}',);
+        'FeedCubit - State after toggle: ${state.userReactions[postId]?.reactionType.value}',
+      );
     } catch (e) {
       print('Error toggling reaction: $e');
       rethrow;
@@ -391,8 +454,7 @@ class FeedCubit extends Cubit<FeedState> {
         // Check if cubit is still open before each async operation
         if (isClosed) return;
 
-        final reaction =
-            await pocketBaseService.getUserReaction(postId, currentUserId);
+        final reaction = await pocketBaseService.getUserReaction(postId, currentUserId);
         if (reaction != null) {
           reactions[postId] = PostReaction.fromRecord(reaction);
         } else {
@@ -403,8 +465,7 @@ class FeedCubit extends Cubit<FeedState> {
       // Check if cubit is still open before emitting
       if (isClosed) return;
 
-      final updatedReactions =
-          Map<String, PostReaction?>.from(state.userReactions);
+      final updatedReactions = Map<String, PostReaction?>.from(state.userReactions);
       updatedReactions.addAll(reactions);
 
       emit(state.copyWith(userReactions: updatedReactions));
@@ -429,15 +490,17 @@ class FeedCubit extends Cubit<FeedState> {
         updatedPosts[postIndex] = updatedPost;
 
         // Force a complete state update
-        emit(FeedState(
-          status: state.status,
-          posts: updatedPosts,
-          currentPage: state.currentPage,
-          hasMore: state.hasMore,
-          errorMessage: state.errorMessage,
-          selectedPost: state.selectedPost,
-          userReactions: state.userReactions,
-        ),);
+        emit(
+          FeedState(
+            status: state.status,
+            posts: updatedPosts,
+            currentPage: state.currentPage,
+            hasMore: state.hasMore,
+            errorMessage: state.errorMessage,
+            selectedPost: state.selectedPost,
+            userReactions: state.userReactions,
+          ),
+        );
       }
     } catch (e) {
       print('Error refreshing post: $e');

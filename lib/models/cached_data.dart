@@ -231,3 +231,43 @@ enum OfflineActionType {
   @HiveField(6)
   updatePost,
 }
+
+/// Cached announcement data for offline support
+@HiveType(typeId: 5)
+class CachedAnnouncement extends HiveObject implements CachedData {
+  CachedAnnouncement({
+    required this.id,
+    required this.title,
+    required this.content,
+    required this.createdAt,
+    required this.cachedAt,
+    this.isActive = true,
+    this.needsSync = false,
+  });
+
+  @HiveField(0)
+  final String id;
+
+  @HiveField(1)
+  final String title;
+
+  @HiveField(2)
+  final String content;
+
+  @HiveField(3)
+  final DateTime createdAt;
+
+  @HiveField(4)
+  @override
+  final DateTime cachedAt;
+
+  @HiveField(5)
+  final bool isActive;
+
+  @HiveField(6)
+  @override
+  final bool needsSync;
+
+  @override
+  String get syncId => id;
+}

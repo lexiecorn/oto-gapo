@@ -185,6 +185,7 @@ Future<void> bootstrap(
   Hive.registerAdapter(CachedUserProfileAdapter());
   Hive.registerAdapter(OfflineActionAdapter());
   Hive.registerAdapter(OfflineActionTypeAdapter());
+  Hive.registerAdapter(CachedAnnouncementAdapter());
 
   // Initialize Connectivity and Sync services AFTER Hive is ready
   final connectivityService = ConnectivityService();

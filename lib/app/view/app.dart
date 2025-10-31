@@ -94,6 +94,10 @@ class App extends StatelessWidget {
                   pocketBase:
                       context.read<PocketBaseAuthRepository>().pocketBase,),
             ),
+            // Provide SyncService from GetIt singleton
+            Provider<SyncService>(
+              create: (_) => getIt<SyncService>(),
+            ),
             // RepositoryProvider(
             //   create: (context) => PickListsRepository(
             //     pickingServices: PickListsApiServicses(
@@ -137,11 +141,15 @@ class App extends StatelessWidget {
               ),
               BlocProvider<ProfileCubit>(
                 create: (context) => ProfileCubit(
-                    profileRepository: context.read<ProfileRepository>(),),
+                  profileRepository: context.read<ProfileRepository>(),
+                  syncService: context.read<SyncService>(),
+                ),
               ),
               BlocProvider<MeetingCubit>(
                 create: (context) => MeetingCubit(
-                    attendanceRepository: context.read<AttendanceRepository>(),),
+                  attendanceRepository: context.read<AttendanceRepository>(),
+                  syncService: context.read<SyncService>(),
+                ),
               ),
               BlocProvider<AttendanceCubit>(
                 create: (context) => AttendanceCubit(
@@ -150,8 +158,8 @@ class App extends StatelessWidget {
               // New Cubits for advanced features
               BlocProvider<ConnectivityCubit>(
                 create: (context) => ConnectivityCubit(
-                    connectivityService: ConnectivityService(),
-                    syncService: SyncService(),),
+                    connectivityService: getIt<ConnectivityService>(),
+                    syncService: context.read<SyncService>(),),
               ),
               BlocProvider<CalendarCubit>(
                   create: (context) =>

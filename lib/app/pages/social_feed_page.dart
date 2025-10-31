@@ -12,6 +12,7 @@ import 'package:otogapo/models/post.dart';
 import 'package:otogapo/models/post_reaction.dart';
 import 'package:otogapo/models/post_report.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo/services/sync_service.dart';
 
 @RoutePage(name: 'SocialFeedPageRouter')
 class SocialFeedPage extends StatefulWidget {
@@ -42,6 +43,7 @@ class _SocialFeedPageState extends State<SocialFeedPage>
     _feedCubit = FeedCubit(
       pocketBaseService: PocketBaseService(),
       currentUserId: currentUserId,
+      syncService: SyncService(),
     );
 
     // Load initial feed

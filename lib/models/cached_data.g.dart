@@ -238,6 +238,58 @@ class OfflineActionAdapter extends TypeAdapter<OfflineAction> {
           typeId == other.typeId;
 }
 
+class CachedAnnouncementAdapter extends TypeAdapter<CachedAnnouncement> {
+  @override
+  final int typeId = 5;
+
+  @override
+  CachedAnnouncement read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return CachedAnnouncement(
+      id: fields[0] as String,
+      title: fields[1] as String,
+      content: fields[2] as String,
+      createdAt: fields[3] as DateTime,
+      cachedAt: fields[4] as DateTime,
+      isActive: fields[5] as bool,
+      needsSync: fields[6] as bool,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, CachedAnnouncement obj) {
+    writer
+      ..writeByte(7)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.title)
+      ..writeByte(2)
+      ..write(obj.content)
+      ..writeByte(3)
+      ..write(obj.createdAt)
+      ..writeByte(4)
+      ..write(obj.cachedAt)
+      ..writeByte(5)
+      ..write(obj.isActive)
+      ..writeByte(6)
+      ..write(obj.needsSync);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CachedAnnouncementAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
 class OfflineActionTypeAdapter extends TypeAdapter<OfflineActionType> {
   @override
   final int typeId = 4;

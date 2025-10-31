@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/social_feed/bloc/feed_cubit.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo/services/sync_service.dart';
 import 'package:otogapo/utils/text_parsing_utils.dart';
 
 @RoutePage(name: 'CreatePostPageRouter')
@@ -43,8 +44,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
     final hashtags = TextParsingUtils.extractHashtags(caption);
     final mentions = TextParsingUtils.extractMentions(caption);
 
-    if (hashtags.join(',') != _detectedHashtags.join(',') ||
-        mentions.join(',') != _detectedMentions.join(',')) {
+    if (hashtags.join(',') != _detectedHashtags.join(',') || mentions.join(',') != _detectedMentions.join(',')) {
       setState(() {
         _detectedHashtags = hashtags;
         _detectedMentions = mentions;
@@ -92,6 +92,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       final feedCubit = FeedCubit(
         pocketBaseService: PocketBaseService(),
         currentUserId: currentUserId,
+        syncService: SyncService(),
       );
 
       await feedCubit.createPost(
@@ -138,8 +139,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: Text('Choose from Gallery',
-                    style: TextStyle(fontSize: 14.sp),),
+                title: Text(
+                  'Choose from Gallery',
+                  style: TextStyle(fontSize: 14.sp),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.gallery);
@@ -285,8 +288,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                   ),
 
                   // Detected hashtags and mentions
-                  if (_detectedHashtags.isNotEmpty ||
-                      _detectedMentions.isNotEmpty)
+                  if (_detectedHashtags.isNotEmpty || _detectedMentions.isNotEmpty)
                     Container(
                       margin: EdgeInsets.only(top: 12.h),
                       padding: EdgeInsets.all(12.w),

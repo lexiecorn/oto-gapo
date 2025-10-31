@@ -7,6 +7,7 @@ import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/social_feed/bloc/feed_cubit.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
+import 'package:otogapo/services/sync_service.dart';
 
 @RoutePage(name: 'UserPostsPageRouter')
 class UserPostsPage extends StatefulWidget {
@@ -35,6 +36,7 @@ class _UserPostsPageState extends State<UserPostsPage> {
     _feedCubit = FeedCubit(
       pocketBaseService: PocketBaseService(),
       currentUserId: currentUserId,
+      syncService: SyncService(),
     );
 
     _feedCubit.loadUserPosts(widget.userId);
