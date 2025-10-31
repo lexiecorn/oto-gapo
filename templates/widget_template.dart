@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 
 class PrimaryActionButton extends StatelessWidget {
   const PrimaryActionButton({
-    super.key,
-    required this.label,
-    required this.onPressed,
+    required this.label, required this.onPressed, super.key,
   });
 
   final String label;

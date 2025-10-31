@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:otogapo/providers/auth_provider.dart';
-import 'package:otogapo/providers/theme_provider.dart';
 import 'package:otogapo/providers/user_provider.dart';
 import 'package:otogapo/utils/validators.dart';
 import 'package:otogapo/widgets/custom_button.dart';
@@ -42,7 +41,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   }
 
   void _startTimer() {
-    Future.delayed(const Duration(seconds: 1), () {
+    Future<void>.delayed(const Duration(seconds: 1), () {
       if (mounted) {
         setState(() {
           if (_remainingTime > 0) {
@@ -122,9 +121,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('OTP Verification'),

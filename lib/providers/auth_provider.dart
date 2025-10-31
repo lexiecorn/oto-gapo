@@ -17,7 +17,7 @@ class AuthProvider with ChangeNotifier {
 
     try {
       // TODO: Implement actual OTP sending logic
-      await Future.delayed(const Duration(seconds: 2)); // Simulated delay
+      await Future<void>.delayed(const Duration(seconds: 2)); // Simulated delay
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -35,7 +35,7 @@ class AuthProvider with ChangeNotifier {
 
     try {
       // TODO: Implement actual OTP verification logic
-      await Future.delayed(const Duration(seconds: 2)); // Simulated delay
+      await Future<void>.delayed(const Duration(seconds: 2)); // Simulated delay
 
       // Simulate successful verification
       _user = User(

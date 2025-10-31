@@ -28,7 +28,7 @@ class UserProvider with ChangeNotifier {
 
     try {
       // TODO: Implement actual user update logic
-      await Future.delayed(const Duration(seconds: 1)); // Simulated delay
+      await Future<void>.delayed(const Duration(seconds: 1)); // Simulated delay
 
       _user = User(
         id: _user!.id,

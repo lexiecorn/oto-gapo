@@ -12,6 +12,7 @@ class AuthRepository {
     required LocalStorage storage,
   }) : _storage = storage;
 
+  // ignore: unused_field
   final LocalStorage _storage;
   PocketBase? _pocketBase;
   bool _isPocketBaseInitialized = false;

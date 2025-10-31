@@ -19,22 +19,23 @@ import 'package:authentication_repository/authentication_repository.dart';
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_performance_dio/firebase_performance_dio.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:local_storage/local_storage.dart';
 import 'package:otogapo/app/routes/app_router.dart';
 import 'package:otogapo/models/cached_data.dart';
-import 'package:firebase_performance_dio/firebase_performance_dio.dart';
 import 'package:otogapo/services/connectivity_service.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:otogapo/services/sync_service.dart';
+import 'package:otogapo/utils/clarity_helper.dart';
 import 'package:otogapo/utils/crashlytics_helper.dart';
 import 'package:otogapo/utils/performance_helper.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:otogapo/utils/clarity_helper.dart';
 
 /// Global GetIt instance for dependency injection.
 final getIt = GetIt.instance;
@@ -140,6 +141,11 @@ Future<void> bootstrap(
   Bloc.observer = const AppBlocObserver();
 
   // Add cross-flavor configuration here
+  // Tune Flutter in-memory image cache to balance performance and memory.
+  // These values can be adjusted per product needs.
+  PaintingBinding.instance.imageCache
+    ..maximumSize = 400
+    ..maximumSizeBytes = 100 * 1024 * 1024; // 100 MB
 
   final packageInfo = await PackageInfo.fromPlatform();
 

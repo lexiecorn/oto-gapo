@@ -40,7 +40,7 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
     super.initState();
     // Check for updates on mount with a slight delay to ensure app is fully loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 1500), () {
+      Future<void>.delayed(const Duration(milliseconds: 1500), () {
         if (mounted) {
           widget.cubit.checkForUpdates();
         }

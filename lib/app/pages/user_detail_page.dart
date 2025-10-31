@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
 import 'package:image_picker/image_picker.dart';
@@ -36,10 +37,15 @@ class _UserDetailPageState extends State<UserDetailPage> {
   File? _selectedCarImage3;
   File? _selectedCarImage4;
   bool _isUploadingCarImage = false;
+  // ignore: unused_field
   String? _uploadedMainCarImageUrl;
+  // ignore: unused_field
   String? _uploadedCarImage1Url;
+  // ignore: unused_field
   String? _uploadedCarImage2Url;
+  // ignore: unused_field
   String? _uploadedCarImage3Url;
+  // ignore: unused_field
   String? _uploadedCarImage4Url;
 
   @override
@@ -1066,7 +1072,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
     if (_formKey.currentState!.validate()) {
       try {
         // Show loading indicator
-        showDialog(
+        showDialog<void>(
           context: context,
           barrierDismissible: false,
           builder: (context) =>
@@ -1259,7 +1265,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
     final name = '$firstName $lastName'.trim();
     final displayName = name.isNotEmpty ? name : 'this user';
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -1348,7 +1354,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
 
       // Add a small delay to ensure the deletion is processed
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future<void>.delayed(const Duration(milliseconds: 500));
 
       // Remove loading overlay
       overlayEntry.remove();
@@ -1542,31 +1548,27 @@ class _UserDetailPageState extends State<UserDetailPage> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              imageUrl,
+                            child: CachedNetworkImage(
+                              imageUrl: imageUrl,
                               width: 200,
                               height: 150,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
+                              placeholder: (context, url) => Container(
+                                width: 200,
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) {
                                 print(
                                     'Network image error for $imageUrl: $error',);
                                 return _buildCarImagePlaceholder(
                                     0, 'Failed', Colors.orange,);
-                              },
-                              loadingBuilder:
-                                  (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Container(
-                                  width: 200,
-                                  height: 150,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                );
                               },
                             ),
                           ),
@@ -2122,11 +2124,9 @@ class _UserDetailPageState extends State<UserDetailPage> {
   }
 
   Widget _buildCarImagesDisplaySection(Map<String, dynamic> vehicle) {
-    final primaryPhoto = vehicle['primaryPhoto'] as String?;
-
     // Debug logging
     // print('Vehicle data: $vehicle');
-    // print('Primary photo: $primaryPhoto');
+    // print('Primary photo: ${vehicle['primaryPhoto']}');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2377,12 +2377,17 @@ class _UserDetailPageState extends State<UserDetailPage> {
                         borderRadius: BorderRadius.circular(8),
                         child: Stack(
                           children: [
-                            Image.network(
-                              placeholderUrl,
+                            CachedNetworkImage(
+                              imageUrl: placeholderUrl,
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: double.infinity,
-                              errorBuilder: (context, error, stackTrace) {
+                              placeholder: (context, url) => Container(
+                                color: Colors.grey.shade300,
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                              errorWidget: (context, url, error) {
                                 return _buildCarImagePlaceholder(
                                     imageNumber, 'Empty', Colors.grey,);
                               },

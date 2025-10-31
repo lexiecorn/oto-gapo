@@ -544,7 +544,11 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
           : (value) {
               _markPaymentStatus(userId, month, value);
             },
-      activeColor: Colors.green,
+      thumbColor: MaterialStateProperty.resolveWith<Color?>(
+        (states) => states.contains(MaterialState.selected)
+            ? Colors.green
+            : null,
+      ),
     );
   }
 

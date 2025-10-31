@@ -74,7 +74,7 @@ class HomeBodyState extends State<HomeBody> {
               print('Home Body - Profile user UID: ${state.user.uid}');
               print('Home Body - Force clearing profile for new user');
               context.read<ProfileCubit>().forceClear();
-              Future.delayed(const Duration(milliseconds: 100), () {
+              Future<void>.delayed(const Duration(milliseconds: 100), () {
                 context.read<ProfileCubit>().getProfile();
               });
             }

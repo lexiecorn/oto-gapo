@@ -542,6 +542,30 @@ String getPocketBaseImageUrl(String filename, String userId) {
 }
 ```
 
+### Image Loading and Caching
+
+- Use `CachedNetworkImage` for all network images in `lib/**`.
+- Use `OpstechCachedImage` (`packages/otogapo_core/lib/src/widgets/opstech_cached_image.dart`) for common cases with theme-aware placeholder/error.
+- Keep `ExtendedImage` only where pinch-to-zoom/lightbox is required (e.g., `OpstechExtendedImageNetwork`).
+- Construct PocketBase URLs via helpers:
+
+```dart
+// lib/utils/pocketbase_image_url_helper.dart
+final url = PocketBaseImageUrlHelper.buildPostFileUrl(
+  postId: post.id,
+  filename: post.imageUrl,
+  thumb: '800x800',
+);
+```
+
+- Global cache tuning: in `lib/bootstrap.dart`, Flutter image cache limits are set to balance memory and performance:
+
+```dart
+PaintingBinding.instance.imageCache
+  ..maximumSize = 400
+  ..maximumSizeBytes = 100 * 1024 * 1024;
+```
+
 #### Supported File Types
 
 - **Profile Images**: `profileImage` field
