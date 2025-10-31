@@ -1,0 +1,2 @@
+F:/madmonkey2/oto-gapo/android/app/.cxx/Debug/2h2m464o/armeabi-v7a/CMakeFiles/edit_cache.dir
+F:/madmonkey2/oto-gapo/android/app/.cxx/Debug/2h2m464o/armeabi-v7a/CMakeFiles/rebuild_cache.dir
