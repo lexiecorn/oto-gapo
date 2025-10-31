@@ -1,2 +1,0 @@
-F:/madmonkey2/oto-gapo/android/app/.cxx/RelWithDebInfo/166x6i3q/x86/CMakeFiles/edit_cache.dir
-F:/madmonkey2/oto-gapo/android/app/.cxx/RelWithDebInfo/166x6i3q/x86/CMakeFiles/rebuild_cache.dir
