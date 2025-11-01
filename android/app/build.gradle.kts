@@ -26,11 +26,8 @@ val keystoreProperties = Properties().apply {
 
 val hasReleaseKeystore = keystoreProperties["storeFile"] != null
 
-// Firebase/Auth require minSdkVersion 23+, and Flutter is deprecating <24. Clamp to >=24.
-val flutterMinSdkVersion = localProperties.getProperty("flutter.minSdkVersion")
-    ?.toIntOrNull()
-    ?.let { maxOf(it, 24) }
-    ?: 24
+// Firebase Auth requires minSdkVersion 23+, but integration_test requires 24+
+val flutterMinSdkVersion = localProperties.getProperty("flutter.minSdkVersion")?.toIntOrNull() ?: 24
 
 
 android {
@@ -49,6 +46,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        // Enable core library desugaring for flutter_local_notifications
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -139,38 +138,42 @@ android {
             useLegacyPackaging = false
         }
     }
+
+    // Copy APKs to Flutter-expected location after build
+    // This ensures APKs are in the location Flutter expects for verification
+    applicationVariants.all {
+        val variantName = name.replaceFirstChar { it.uppercaseChar() }
+        val assembleTask = tasks.named("assemble$variantName")
+        
+        val copyApkTask = tasks.register("copy${variantName}ApkToFlutter", Copy::class) {
+            description = "Copy $variantName APK to Flutter output directory"
+            group = "flutter"
+            
+            from(layout.buildDirectory.dir("outputs/apk/${flavorName}/${buildType.name}"))
+            into("${project.rootDir}/../build/app/outputs/flutter-apk")
+            include("*.apk")
+            
+            doLast {
+                val copiedFiles = destinationDir.listFiles { _, name -> name.endsWith(".apk") }
+                copiedFiles?.forEach { file ->
+                    println("✓ Copied APK: ${file.name} to: ${destinationDir}")
+                }
+            }
+        }
+        
+        assembleTask.configure {
+            finalizedBy(copyApkTask)
+        }
+    }
 }
 
 flutter {
     source = "../.."
 }
 
-// Simplified APK copying for debugging
-tasks.whenTaskAdded {
-    if (name.startsWith("assemble") && !name.contains("Test")) {
-        doLast {
-            val apkOutputDir = file("$buildDir/outputs/apk")
-            val targetDir = file("${project.rootDir}/../build/app/outputs/flutter-apk")
-            
-            if (apkOutputDir.exists()) {
-                targetDir.mkdirs()
-                apkOutputDir.walk()
-                    .filter { it.extension == "apk" }
-                    .forEach { apkFile ->
-                        copy {
-                            from(apkFile)
-                            into(targetDir)
-                        }
-                        println("✓ Copied APK: ${apkFile.name} to: $targetDir")
-                    }
-            } else {
-                println("⚠️ APK output directory not found: $apkOutputDir")
-            }
-        }
-    }
-}
-
 dependencies {
     // Required for Activity.enableEdgeToEdge()
     implementation("androidx.activity:activity-ktx:1.9.3")
+    // Core library desugaring for flutter_local_notifications
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

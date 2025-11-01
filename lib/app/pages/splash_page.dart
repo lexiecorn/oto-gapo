@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/routes/app_router.gr.dart';
+import 'package:otogapo/bootstrap.dart';
+import 'package:otogapo/services/notification_service.dart';
 import 'package:otogapo/utils/debug_helper.dart';
 import 'package:otogapo/utils/network_helper.dart';
 
@@ -90,6 +92,17 @@ class _SplashPageState extends State<SplashPage> {
           });
         } else if (state.authStatus == AuthStatus.authenticated) {
           _timeoutTimer?.cancel();
+          debugPrint('SplashPage - User authenticated, saving FCM token');
+          
+          // Save FCM token now that user is authenticated
+          try {
+            final notificationService = getIt<NotificationService>();
+            notificationService.saveCurrentTokenIfAuthenticated();
+            debugPrint('SplashPage - FCM token save initiated');
+          } catch (e) {
+            debugPrint('SplashPage - Error saving FCM token: $e');
+          }
+          
           debugPrint('SplashPage - Navigating to intro page');
           Future.microtask(() {
             if (context.mounted) {

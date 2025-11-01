@@ -39,6 +39,7 @@ The application has been fully migrated from Firebase Storage to PocketBase for 
 - [Payment Management](#payment-management)
 - [Vehicle Management](#vehicle-management)
 - [Vehicle Awards System](#vehicle-awards-system)
+- [Push Notifications](#push-notifications)
 - [Admin Services](#admin-services)
 - [Performance Monitoring Services](#performance-monitoring-services)
 - [Data Models](#data-models)
@@ -924,6 +925,244 @@ The awards system integrates seamlessly with the existing profile system:
 2. **ProfileState:** Includes awards list for vehicles
 3. **CarWidget:** Redesigned with dark theme and awards display
 4. **Navigation:** Routes for awards management pages
+
+## Push Notifications
+
+### Firebase Cloud Messaging (FCM)
+
+OtoGapo uses Firebase Cloud Messaging for push notifications to engage users with timely updates, announcements, and important information.
+
+#### Service: `NotificationService`
+
+Located in `lib/services/notification_service.dart`
+
+**Key Features:**
+
+- FCM token generation and management
+- Token storage in PocketBase user records
+- Topic-based subscriptions (announcements, meetings, urgent)
+- User-targeted notifications
+- Deep linking to specific pages
+- Automatic token refresh handling
+
+**Methods:**
+
+```dart
+// Initialize notification service
+Future<void> initialize()
+
+// Get current FCM token
+Future<String?> getToken()
+
+// Subscribe to a topic
+Future<void> subscribeToTopic(String topic)
+
+// Unsubscribe from a topic
+Future<void> unsubscribeFromTopic(String topic)
+
+// Get available topics
+List<String> getAvailableTopics()
+
+// Check notification permissions
+Future<bool> hasPermission()
+
+// Delete FCM token (logout)
+Future<void> deleteToken()
+
+// Get initial message if app opened from notification
+Future<RemoteMessage?> getInitialMessage()
+```
+
+#### Notification Types
+
+```dart
+enum NotificationType {
+  meeting,        // Meeting notifications → MeetingDetailsPage
+  announcement,   // Announcements → AnnouncementsListPage
+  payment,        // Payment reminders → ProfilePage
+  post,           // Social feed posts → PostDetailPage
+  general,        // General updates → HomePage
+}
+```
+
+#### Notification Targets
+
+```dart
+enum NotificationTarget {
+  user,   // Send to specific user by FCM token
+  topic,  // Send to all subscribers of a topic
+}
+```
+
+#### Usage Examples
+
+```dart
+// Initialize notifications
+final notificationService = getIt<NotificationService>();
+await notificationService.initialize();
+
+// Get token
+final token = await notificationService.getToken();
+
+// Subscribe to announcements
+await notificationService.subscribeToTopic('announcements');
+
+// Unsubscribe from meetings
+await notificationService.unsubscribeFromTopic('meetings');
+```
+
+#### Notification Navigation
+
+The `NotificationNavigationHelper` automatically handles deep linking based on notification type:
+
+```dart
+// Meeting notification with meetingId → MeetingDetailsPage
+// Announcement → AnnouncementsListPage
+// Post with postId → PostDetailPage
+// General → HomePage
+```
+
+### Sending Notifications
+
+#### Admin Panel
+
+Admins can send notifications from the admin panel at `/admin/send-notification`.
+
+**Features:**
+
+- Create notifications with title and body
+- Select notification type (meeting, announcement, payment, post, general)
+- Choose target (specific user or topic)
+- Optional image for rich notifications
+- Send via FCM REST API
+- Firebase Server Key required
+
+**Location:** `lib/app/pages/send_notification_page.dart`
+
+**Route:** `SendNotificationPageRouter`
+
+#### Notification Payload
+
+```json
+{
+  "notification": {
+    "title": "Meeting Tomorrow",
+    "body": "Monthly meeting scheduled for 7 PM",
+    "image": "https://example.com/image.jpg"
+  },
+  "data": {
+    "type": "meeting",
+    "meetingId": "abc123"
+  },
+  "to": "/topics/announcements",
+  "sound": "default"
+}
+```
+
+#### FCM REST API
+
+Notifications are sent via FCM REST API using Firebase Server Key:
+
+```dart
+// POST https://fcm.googleapis.com/fcm/send
+// Headers:
+//   Authorization: key={SERVER_KEY}
+//   Content-Type: application/json
+
+{
+  "notification": {...},
+  "data": {...},
+  "to": "token_or_topic"
+}
+```
+
+### Notification Settings
+
+Users can manage notification preferences in the settings page at `/notifications/settings`.
+
+**Features:**
+
+- View notification permission status
+- Subscribe/unsubscribe to topics
+- Refresh FCM token
+- View current token (for debugging)
+
+**Location:** `lib/app/pages/notification_settings_page.dart`
+
+**Route:** `NotificationSettingsPageRouter`
+
+### PocketBase Schema
+
+Add the following fields to the `users` collection:
+
+```json
+{
+  "fcm_token": {
+    "type": "text",
+    "required": false
+  },
+  "notification_topics": {
+    "type": "json",
+    "required": false
+  }
+}
+```
+
+### State Management
+
+#### NotificationCubit
+
+Located in `lib/app/modules/notifications/bloc/notification_cubit.dart`
+
+**State:**
+
+```dart
+class NotificationState {
+  final NotificationStatus status;
+  final bool permissionGranted;
+  final String? fcmToken;
+  final List<String> subscribedTopics;
+  final String? errorMessage;
+}
+```
+
+**Usage:**
+
+```dart
+// Load status
+context.read<NotificationCubit>().loadNotificationStatus();
+
+// Subscribe to topic
+context.read<NotificationCubit>().subscribeToTopic('meetings');
+
+// Get available topics
+final topics = context.read<NotificationCubit>().getAvailableTopics();
+```
+
+### Background Message Handler
+
+Top-level function for handling notifications when app is terminated:
+
+```dart
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  log('NotificationService: Background message received: ${message.messageId}');
+}
+```
+
+### Configuration
+
+**Android:**
+
+- Permissions in `AndroidManifest.xml`
+- Default notification channel configured
+- FCM service registered
+
+**iOS:**
+
+- Push Notifications capability
+- APNs configuration in Firebase Console
+- Background modes enabled
 
 ## Admin Services
 

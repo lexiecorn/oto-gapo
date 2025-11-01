@@ -29,6 +29,7 @@ import 'package:local_storage/local_storage.dart';
 import 'package:otogapo/app/routes/app_router.dart';
 import 'package:otogapo/models/cached_data.dart';
 import 'package:otogapo/services/connectivity_service.dart';
+import 'package:otogapo/services/notification_service.dart';
 import 'package:otogapo/services/pocketbase_service.dart';
 import 'package:otogapo/services/sync_service.dart';
 import 'package:otogapo/utils/clarity_helper.dart';
@@ -187,9 +188,18 @@ Future<void> bootstrap(
   Hive.registerAdapter(OfflineActionTypeAdapter());
   Hive.registerAdapter(CachedAnnouncementAdapter());
 
-  // Initialize Connectivity and Sync services AFTER Hive is ready
+  // Initialize Connectivity, Sync, and Notification services AFTER Hive is ready
   final connectivityService = ConnectivityService();
   final syncService = SyncService();
+  final notificationService = NotificationService();
+
+  // Initialize notification service
+  try {
+    await notificationService.initialize();
+    log('Notification service initialized successfully');
+  } catch (e) {
+    log('Notification service initialization error: $e - continuing with app startup');
+  }
 
   // Add timeout to sync service initialization
   try {
@@ -215,6 +225,7 @@ Future<void> bootstrap(
     ..registerSingleton<PocketBaseService>(pocketBaseService)
     ..registerSingleton<ConnectivityService>(connectivityService)
     ..registerSingleton<SyncService>(syncService)
+    ..registerSingleton<NotificationService>(notificationService)
     ..registerSingleton<SharedPreferences>(sharedPreferences)
     ..registerSingleton<PackageInfo>(packageInfo);
 

@@ -67,6 +67,8 @@ dependencies:
   firebase_crashlytics: ^4.1.3
   firebase_analytics: ^11.3.3
   firebase_performance: ^0.10.1
+  firebase_messaging: ^15.1.3
+  flutter_local_notifications: ^17.2.4
   clarity_flutter: ^1.4.3
   firebase_performance_dio: ^0.7.1
 
