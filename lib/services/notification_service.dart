@@ -26,7 +26,9 @@ class NotificationService {
 
   late final FirebaseMessaging _firebaseMessaging;
   String? _currentToken;
-  final PocketBase _pocketBase = PocketBaseAuthRepository().pocketBase;
+
+  /// Get PocketBase instance from singleton
+  PocketBase get _pocketBase => PocketBaseAuthRepository().pocketBase;
 
   /// Gets the current FCM token.
   String? get currentToken => _currentToken;
@@ -36,38 +38,152 @@ class NotificationService {
   /// Requests permissions and sets up notification handlers.
   Future<void> initialize() async {
     try {
-      log('NotificationService: Initializing...');
+      log('NotificationService: ===== STARTING INITIALIZATION =====');
+      log('NotificationService: FirebaseMessaging instance created');
 
       // Request notification permissions
-      await _requestPermissions();
+      log('NotificationService: Step 1: Requesting permissions...');
+      try {
+        final hasPermission = await _requestPermissions().timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            log('NotificationService: Permission request TIMEOUT after 10 seconds');
+            return false;
+          },
+        );
+        log('NotificationService: Permission request completed. Result: $hasPermission');
+      } catch (e, stackTrace) {
+        log('NotificationService: Error requesting permissions: $e');
+        log('NotificationService: Stack trace: $stackTrace');
+      }
 
       // Get initial token
-      _currentToken = await _firebaseMessaging.getToken();
-      log('NotificationService: Initial token obtained');
+      log('NotificationService: Step 2: Getting FCM token...');
+      try {
+        _currentToken = await _firebaseMessaging.getToken().timeout(
+          const Duration(seconds: 15),
+          onTimeout: () {
+            log('NotificationService: Get token TIMEOUT after 15 seconds');
+            return null;
+          },
+        );
+        log('NotificationService: Initial token obtained: $_currentToken');
+        log('NotificationService: Token length: ${_currentToken?.length ?? 0}');
+        if (_currentToken == null) {
+          log('NotificationService: WARNING - Token is null!');
+        }
+      } catch (e, stackTrace) {
+        log('NotificationService: Error getting token: $e');
+        log('NotificationService: Stack trace: $stackTrace');
+        _currentToken = null;
+      }
 
       // Save token to PocketBase if user is authenticated
-      if (_currentToken != null && _pocketBase.authStore.isValid) {
-        await _saveFcmTokenToUser(_currentToken!);
+      log('NotificationService: Step 3: Checking authentication status...');
+      final isAuthenticated = _pocketBase.authStore.isValid;
+      log('NotificationService: Is authenticated: $isAuthenticated');
+      if (_currentToken != null && isAuthenticated) {
+        log('NotificationService: Saving token to PocketBase...');
+        try {
+          await _saveFcmTokenToUser(_currentToken!).timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              log('NotificationService: Save token to PocketBase TIMEOUT');
+            },
+          );
+        } catch (e) {
+          log('NotificationService: Error saving token to PocketBase: $e');
+        }
+      } else {
+        if (_currentToken == null) {
+          log('NotificationService: Skipping PocketBase save - no token');
+        } else {
+          log('NotificationService: Skipping PocketBase save - not authenticated');
+        }
       }
 
       // Listen for token refresh
-      _firebaseMessaging.onTokenRefresh.listen((String newToken) {
-        log('NotificationService: Token refreshed: $newToken');
-        _currentToken = newToken;
-        if (_pocketBase.authStore.isValid) {
-          _saveFcmTokenToUser(newToken);
-        }
-      });
+      log('NotificationService: Step 4: Setting up token refresh listener...');
+      try {
+        _firebaseMessaging.onTokenRefresh.listen((String newToken) {
+          log('NotificationService: ===== TOKEN REFRESHED =====');
+          log('NotificationService: Old token: $_currentToken');
+          log('NotificationService: New token: $newToken');
+          _currentToken = newToken;
+          if (_pocketBase.authStore.isValid) {
+            _saveFcmTokenToUser(newToken);
+          } else {
+            log('NotificationService: User not authenticated, token not saved to PocketBase');
+          }
+        });
+        log('NotificationService: Token refresh listener set up successfully');
+      } catch (e) {
+        log('NotificationService: Error setting up token refresh listener: $e');
+      }
 
-      log('NotificationService: Initialization complete');
+      // Print diagnostic information
+      await _printDiagnostics();
+
+      log('NotificationService: ===== INITIALIZATION COMPLETE =====');
+      log('NotificationService: Message listeners should be set up in AppView');
+      log('NotificationService: Use printToken() to see your FCM token for testing');
+    } catch (e, stackTrace) {
+      log('NotificationService: ===== INITIALIZATION ERROR =====');
+      log('NotificationService: Error: $e');
+      log('NotificationService: Stack trace: $stackTrace');
+    }
+  }
+
+  /// Prints diagnostic information about notification setup.
+  Future<void> _printDiagnostics() async {
+    log('NotificationService: ===== DIAGNOSTICS =====');
+    log('NotificationService: Current FCM Token: $_currentToken');
+    log('NotificationService: Token is ${_currentToken == null ? "NULL - ERROR!" : "PRESENT"}');
+    if (_currentToken != null) {
+      log('NotificationService: Token length: ${_currentToken!.length}');
+      log('NotificationService: Token preview: ${_currentToken!.substring(0, _currentToken!.length > 50 ? 50 : _currentToken!.length)}...');
+    }
+
+    try {
+      final settings = await _firebaseMessaging.getNotificationSettings();
+      log('NotificationService: Authorization Status: ${settings.authorizationStatus}');
+      log('NotificationService: Alert Enabled: ${settings.alert}');
+      log('NotificationService: Badge Enabled: ${settings.badge}');
+      log('NotificationService: Sound Enabled: ${settings.sound}');
     } catch (e) {
-      log('NotificationService: Initialization error: $e');
+      log('NotificationService: Error getting notification settings: $e');
+    }
+
+    final isAuthenticated = _pocketBase.authStore.isValid;
+    log('NotificationService: User Authenticated: $isAuthenticated');
+
+    log('NotificationService: ===== END DIAGNOSTICS =====');
+  }
+
+  /// Prints the current FCM token to console (useful for testing).
+  /// Call this method to see your token for Firebase Console testing.
+  Future<void> printToken() async {
+    log('NotificationService: ===== FCM TOKEN =====');
+    if (_currentToken == null) {
+      log('NotificationService: Token is null, attempting to get new token...');
+      _currentToken = await _firebaseMessaging.getToken();
+    }
+
+    if (_currentToken != null) {
+      log('NotificationService: YOUR FCM TOKEN (copy this to Firebase Console):');
+      log('NotificationService: $_currentToken');
+      log('NotificationService: Token length: ${_currentToken!.length}');
+      log('NotificationService: ===== END FCM TOKEN =====');
+    } else {
+      log('NotificationService: ERROR - Could not obtain FCM token!');
+      log('NotificationService: Check permissions and Firebase setup');
     }
   }
 
   /// Requests notification permissions from the user.
   Future<bool> _requestPermissions() async {
     try {
+      log('NotificationService: Calling FirebaseMessaging.requestPermission()...');
       final settings = await _firebaseMessaging.requestPermission(
         alert: true,
         announcement: false,
@@ -78,12 +194,23 @@ class NotificationService {
         sound: true,
       );
 
-      log('NotificationService: Permission status: ${settings.authorizationStatus}');
+      log('NotificationService: Permission request returned');
+      log('NotificationService: Authorization status: ${settings.authorizationStatus}');
+      log('NotificationService: Alert: ${settings.alert}');
+      log('NotificationService: Badge: ${settings.badge}');
+      log('NotificationService: Sound: ${settings.sound}');
+      log('NotificationService: Announcement: ${settings.announcement}');
+      log('NotificationService: CarPlay: ${settings.carPlay}');
+      log('NotificationService: CriticalAlert: ${settings.criticalAlert}');
 
-      return settings.authorizationStatus == AuthorizationStatus.authorized ||
+      final isAuthorized = settings.authorizationStatus == AuthorizationStatus.authorized ||
           settings.authorizationStatus == AuthorizationStatus.provisional;
-    } catch (e) {
+      log('NotificationService: Is authorized: $isAuthorized');
+
+      return isAuthorized;
+    } catch (e, stackTrace) {
       log('NotificationService: Permission request error: $e');
+      log('NotificationService: Stack trace: $stackTrace');
       return false;
     }
   }
@@ -106,6 +233,23 @@ class NotificationService {
     }
   }
 
+  /// Saves the current FCM token to PocketBase if user is authenticated.
+  /// Call this after user logs in to ensure token is saved.
+  Future<void> saveCurrentTokenIfAuthenticated() async {
+    if (_currentToken == null) {
+      log('NotificationService: No FCM token to save');
+      return;
+    }
+
+    if (!_pocketBase.authStore.isValid) {
+      log('NotificationService: User not authenticated, cannot save token');
+      return;
+    }
+
+    log('NotificationService: Attempting to save FCM token');
+    await _saveFcmTokenToUser(_currentToken!);
+  }
+
   /// Saves FCM token to PocketBase user record.
   Future<void> _saveFcmTokenToUser(String token) async {
     try {
@@ -120,17 +264,42 @@ class NotificationService {
         return;
       }
 
-      log('NotificationService: Saving FCM token for user: $userId');
+      log('NotificationService: ===== SAVING FCM TOKEN =====');
+      log('NotificationService: User ID: $userId');
+      log('NotificationService: Token to save: $token');
+      log('NotificationService: Token length: ${token.length}');
+
+      // Get current token from PocketBase to compare
+      try {
+        final userRecord = await _pocketBase.collection('users').getOne(userId);
+        final currentSavedToken = userRecord.data['fcm_token'] as String?;
+        if (currentSavedToken != null && currentSavedToken != token) {
+          log('NotificationService: WARNING - Token mismatch!');
+          log('NotificationService: Saved token: $currentSavedToken');
+          log('NotificationService: New token: $token');
+          log('NotificationService: Updating to new token...');
+        } else if (currentSavedToken == token) {
+          log('NotificationService: Token already up-to-date in PocketBase');
+          return;
+        } else {
+          log('NotificationService: No existing token in PocketBase, saving new token');
+        }
+      } catch (e) {
+        log('NotificationService: Could not fetch current token from PocketBase: $e');
+        log('NotificationService: Proceeding with save anyway...');
+      }
 
       // Update user record with FCM token
       await _pocketBase.collection('users').update(
-            userId,
-            body: {'fcm_token': token},
-          );
+        userId,
+        body: {'fcm_token': token},
+      );
 
-      log('NotificationService: FCM token saved successfully');
-    } catch (e) {
-      log('NotificationService: Error saving FCM token: $e');
+      log('NotificationService: ✅ FCM token saved successfully to PocketBase');
+      log('NotificationService: ===== END SAVE FCM TOKEN =====');
+    } catch (e, stackTrace) {
+      log('NotificationService: ❌ ERROR saving FCM token: $e');
+      log('NotificationService: Stack trace: $stackTrace');
     }
   }
 
@@ -186,9 +355,9 @@ class NotificationService {
 
       // Update PocketBase record
       await _pocketBase.collection('users').update(
-            userId,
-            body: {'notification_topics': userTopics},
-          );
+        userId,
+        body: {'notification_topics': userTopics},
+      );
 
       log('NotificationService: User topics updated: $userTopics');
     } catch (e) {
@@ -255,7 +424,23 @@ class NotificationService {
 
   /// Gets the initial message if app was opened from a notification.
   Future<RemoteMessage?> getInitialMessage() async {
-    return _firebaseMessaging.getInitialMessage();
+    try {
+      log('NotificationService: Checking for initial message (app opened from notification)...');
+      final message = await _firebaseMessaging.getInitialMessage();
+      if (message != null) {
+        log('NotificationService: ===== INITIAL MESSAGE FOUND =====');
+        log('NotificationService: Message ID: ${message.messageId}');
+        log('NotificationService: Title: ${message.notification?.title}');
+        log('NotificationService: Body: ${message.notification?.body}');
+        log('NotificationService: Data: ${message.data}');
+      } else {
+        log('NotificationService: No initial message found (app not opened from notification)');
+      }
+      return message;
+    } catch (e) {
+      log('NotificationService: Error getting initial message: $e');
+      return null;
+    }
   }
 }
 
@@ -264,9 +449,23 @@ class NotificationService {
 /// This must be at the top level (not inside a class) for Flutter to find it.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  log('NotificationService: Background message received: ${message.messageId}');
-  log('NotificationService: Notification title: ${message.notification?.title}');
-  log('NotificationService: Notification body: ${message.notification?.body}');
+  // Print to console multiple times to ensure visibility
+  print('');
+  print('========================================');
+  print('BACKGROUND MESSAGE RECEIVED!');
+  print('========================================');
+  log('NotificationService: ===== BACKGROUND MESSAGE RECEIVED =====');
+  log('NotificationService: Message ID: ${message.messageId}');
+  log('NotificationService: From: ${message.from}');
+  log('NotificationService: Sent Time: ${message.sentTime}');
+  log('NotificationService: Collapse Key: ${message.collapseKey}');
+  log('NotificationService: Message Type: ${message.messageType}');
+  log('NotificationService: Title: ${message.notification?.title ?? "NO TITLE"}');
+  log('NotificationService: Body: ${message.notification?.body ?? "NO BODY"}');
+  log('NotificationService: Click Action: ${message.notification?.android?.clickAction}');
   log('NotificationService: Data: ${message.data}');
+  log('NotificationService: Notification data: ${message.notification?.toMap()}');
+  log('NotificationService: ===== END BACKGROUND MESSAGE =====');
+  print('========================================');
+  print('');
 }
-

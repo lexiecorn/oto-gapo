@@ -710,14 +710,37 @@ The app implements Firebase Cloud Messaging (FCM) for push notifications with su
 
 #### 1. Dependencies
 
-The `firebase_messaging` package is added to `pubspec.yaml`:
+The following packages are added to `pubspec.yaml`:
 
 ```yaml
 dependencies:
   firebase_messaging: ^15.1.3
+  flutter_local_notifications: ^17.2.4
 ```
 
 #### 2. Android Configuration
+
+##### A. Gradle Configuration
+
+**File**: `android/app/build.gradle.kts`
+
+Enable core library desugaring for `flutter_local_notifications` (required for minSdk < 26):
+
+```kotlin
+compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+    // Enable core library desugaring for flutter_local_notifications
+    isCoreLibraryDesugaringEnabled = true
+}
+
+dependencies {
+    // Core library desugaring for flutter_local_notifications
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+}
+```
+
+##### B. AndroidManifest.xml
 
 **File**: `android/app/src/main/AndroidManifest.xml`
 

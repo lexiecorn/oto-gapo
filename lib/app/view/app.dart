@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:attendance_repository/attendance_repository.dart';
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
@@ -88,15 +90,17 @@ class App extends StatelessWidget {
           providers: [
             RepositoryProvider<AuthRepository>.value(value: _authRepository),
             RepositoryProvider<PocketBaseAuthRepository>.value(
-                value: _pocketBaseAuthRepository,),
+              value: _pocketBaseAuthRepository,
+            ),
             RepositoryProvider<ProfileRepository>(
               create: (context) => ProfileRepository(
-                  pocketBaseAuth: context.read<PocketBaseAuthRepository>(),),
+                pocketBaseAuth: context.read<PocketBaseAuthRepository>(),
+              ),
             ),
             RepositoryProvider<AttendanceRepository>(
               create: (context) => AttendanceRepository(
-                  pocketBase:
-                      context.read<PocketBaseAuthRepository>().pocketBase,),
+                pocketBase: context.read<PocketBaseAuthRepository>().pocketBase,
+              ),
             ),
             // Provide SyncService from GetIt singleton
             Provider<SyncService>(
@@ -137,11 +141,11 @@ class App extends StatelessWidget {
               ),
               BlocProvider<SigninCubit>(
                 create: (context) => SigninCubit(
-                    pocketBaseAuth: context.read<PocketBaseAuthRepository>(),),
+                  pocketBaseAuth: context.read<PocketBaseAuthRepository>(),
+                ),
               ),
               BlocProvider<SignupCubit>(
-                create: (context) =>
-                    SignupCubit(authRepository: context.read<AuthRepository>()),
+                create: (context) => SignupCubit(authRepository: context.read<AuthRepository>()),
               ),
               BlocProvider<ProfileCubit>(
                 create: (context) => ProfileCubit(
@@ -157,22 +161,24 @@ class App extends StatelessWidget {
               ),
               BlocProvider<AttendanceCubit>(
                 create: (context) => AttendanceCubit(
-                    attendanceRepository: context.read<AttendanceRepository>(),),
+                  attendanceRepository: context.read<AttendanceRepository>(),
+                ),
               ),
               // New Cubits for advanced features
               BlocProvider<ConnectivityCubit>(
                 create: (context) => ConnectivityCubit(
-                    connectivityService: getIt<ConnectivityService>(),
-                    syncService: context.read<SyncService>(),),
+                  connectivityService: getIt<ConnectivityService>(),
+                  syncService: context.read<SyncService>(),
+                ),
               ),
               BlocProvider<CalendarCubit>(
-                  create: (context) =>
-                      CalendarCubit(pocketBaseService: PocketBaseService()),),
+                create: (context) => CalendarCubit(pocketBaseService: PocketBaseService()),
+              ),
               BlocProvider<ProfileProgressCubit>(
-                  create: (context) => ProfileProgressCubit(),),
+                create: (context) => ProfileProgressCubit(),
+              ),
               BlocProvider<AdminAnalyticsCubit>(
-                create: (context) =>
-                    AdminAnalyticsCubit(pocketBaseService: PocketBaseService()),
+                create: (context) => AdminAnalyticsCubit(pocketBaseService: PocketBaseService()),
               ),
               BlocProvider<VersionCheckCubit>(
                 create: (context) {
@@ -191,8 +197,9 @@ class App extends StatelessWidget {
               ),
             ],
             child: ChangeNotifierProvider(
-                create: (context) => ThemeProvider(prefs!),
-                child: const AppView(),),
+              create: (context) => ThemeProvider(prefs!),
+              child: const AppView(),
+            ),
           ),
         );
       },
@@ -215,40 +222,134 @@ class _AppViewState extends State<AppView> {
   }
 
   Future<void> _initializeNotifications() async {
-    final notificationService = getIt<NotificationService>();
+    try {
+      log('AppView: ===== INITIALIZING NOTIFICATION HANDLERS =====');
+      final notificationService = getIt<NotificationService>();
+      log('AppView: NotificationService retrieved from GetIt');
 
-    // Configure foreground notification display
-    FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+      // Configure foreground notification display
+      log('AppView: Step 1: Setting foreground notification presentation options...');
+      try {
+        await FirebaseMessaging.instance
+            .setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        )
+            .timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {
+            log('AppView: setForegroundNotificationPresentationOptions TIMEOUT');
+          },
+        );
+        log('AppView: Foreground notification presentation options set');
+      } catch (e) {
+        log('AppView: Error setting foreground notification options: $e');
+      }
 
-    // Listen for foreground messages
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      // Listen for foreground messages
+      log('AppView: Step 2: Setting up foreground message listener...');
+      try {
+        FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+        log('AppView: Foreground message listener set up successfully');
+      } catch (e) {
+        log('AppView: Error setting up foreground message listener: $e');
+      }
 
-    // Configure notification tap when app is in background or terminated
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+      // Configure notification tap when app is in background or terminated
+      log('AppView: Step 3: Setting up onMessageOpenedApp listener...');
+      try {
+        FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+        log('AppView: onMessageOpenedApp listener set up successfully');
+      } catch (e) {
+        log('AppView: Error setting up onMessageOpenedApp listener: $e');
+      }
 
-    // Check if app was opened from a notification
-    final initialMessage = await notificationService.getInitialMessage();
-    if (initialMessage != null) {
-      _handleNotificationTap(initialMessage);
+      // Check if app was opened from a notification
+      log('AppView: Step 4: Checking for initial message...');
+      try {
+        final initialMessage = await notificationService.getInitialMessage().timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {
+            log('AppView: getInitialMessage TIMEOUT');
+            return null;
+          },
+        );
+        if (initialMessage != null) {
+          log('AppView: Initial message found, handling notification tap...');
+          _handleNotificationTap(initialMessage);
+        } else {
+          log('AppView: No initial message found');
+        }
+      } catch (e) {
+        log('AppView: Error checking initial message: $e');
+      }
+      // Print diagnostic information
+      log('AppView: Printing notification diagnostics...');
+      await notificationService.printToken();
+
+      log('AppView: ===== NOTIFICATION HANDLERS INITIALIZED =====');
+      log('AppView: ✅ Ready to receive notifications!');
+      log('AppView: 📱 Check logs above for your FCM token to test in Firebase Console');
+    } catch (e, stackTrace) {
+      log('AppView: ===== ERROR INITIALIZING NOTIFICATION HANDLERS =====');
+      log('AppView: Error: $e');
+      log('AppView: Stack trace: $stackTrace');
     }
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
     // Show notification even when app is in foreground
-    // The OS handles this automatically based on configureForegroundNotification
+    // The OS handles this automatically based on setForegroundNotificationPresentationOptions
+    print('');
+    print('========================================');
+    print('FOREGROUND MESSAGE RECEIVED!');
+    print('========================================');
+    log('AppView: ===== FOREGROUND MESSAGE HANDLER CALLED =====');
+    log('AppView: Message ID: ${message.messageId}');
+    log('AppView: From: ${message.from}');
+    log('AppView: Sent Time: ${message.sentTime}');
+    log('AppView: Title: ${message.notification?.title ?? "NO TITLE"}');
+    log('AppView: Body: ${message.notification?.body ?? "NO BODY"}');
+    log('AppView: Click Action: ${message.notification?.android?.clickAction}');
+    log('AppView: Data: ${message.data}');
+    log('AppView: Notification data: ${message.notification?.toMap()}');
+    log('AppView: ===== END FOREGROUND MESSAGE HANDLER =====');
+    print('========================================');
+    print('');
   }
 
   Future<void> _handleNotificationTap(RemoteMessage message) async {
-    if (!mounted) return;
+    log('AppView: ===== NOTIFICATION TAP HANDLER CALLED =====');
+    log('AppView: Message ID: ${message.messageId}');
+    log('AppView: Title: ${message.notification?.title}');
+    log('AppView: Body: ${message.notification?.body}');
+    log('AppView: Data: ${message.data}');
+    if (!mounted) {
+      log('AppView: Widget not mounted, skipping navigation');
+      return;
+    }
+    log('AppView: Handling notification navigation...');
     await NotificationNavigationHelper.handleNotificationTap(message, context);
+    log('AppView: Notification navigation handled');
   }
 
   @override
   Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, authState) {
+        // Save FCM token whenever user becomes authenticated
+        if (authState.authStatus == AuthStatus.authenticated) {
+          log('AppView: User authenticated, saving FCM token...');
+          final notificationService = getIt<NotificationService>();
+          notificationService.saveCurrentTokenIfAuthenticated();
+        }
+      },
+      child: _buildAppContent(context),
+    );
+  }
+
+  Widget _buildAppContent(BuildContext context) {
     final appRouter = getIt<AppRouter>();
 
     return ScreenUtilInit(

@@ -10,8 +10,14 @@ import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/foundation.dart';
 
 class PerformanceHelper {
-  static final FirebasePerformance _performance =
-      FirebasePerformance.instance;
+  static FirebasePerformance? _performance;
+
+  /// Lazy initialization of FirebasePerformance to avoid errors
+  /// if Firebase is not yet initialized.
+  static FirebasePerformance get _performanceInstance {
+    _performance ??= FirebasePerformance.instance;
+    return _performance!;
+  }
 
   /// Create a custom trace for tracking specific operations.
   ///
@@ -26,7 +32,7 @@ class PerformanceHelper {
   /// ```
   static Trace? startTrace(String traceName) {
     try {
-      final trace = _performance.newTrace(traceName);
+      final trace = _performanceInstance.newTrace(traceName);
       trace.start();
       if (kDebugMode) {
         developer.log('Started trace: $traceName');
@@ -177,7 +183,7 @@ class PerformanceHelper {
   /// Check if Performance Monitoring is available and ready.
   static Future<bool> isAvailable() async {
     try {
-      return await _performance.isPerformanceCollectionEnabled();
+      return await _performanceInstance.isPerformanceCollectionEnabled();
     } catch (e) {
       return false;
     }
@@ -188,7 +194,7 @@ class PerformanceHelper {
   /// Useful for respecting user privacy settings.
   static Future<void> setPerformanceCollectionEnabled(bool enabled) async {
     try {
-      await _performance.setPerformanceCollectionEnabled(enabled);
+      await _performanceInstance.setPerformanceCollectionEnabled(enabled);
       if (kDebugMode) {
         developer.log('Performance collection ${enabled ? 'enabled' : 'disabled'}');
       }
@@ -198,6 +204,4 @@ class PerformanceHelper {
       }
     }
   }
-
 }
-
