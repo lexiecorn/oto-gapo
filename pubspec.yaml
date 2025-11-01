@@ -7,7 +7,7 @@ environment:
   sdk: "^3.3.0"
 
 dependencies:
-  animated_text_kit: ^4.2.2
+  animated_text_kit: ^4.3.0
   attendance_repository:
     path: packages/attendance_repository
   authentication_repository:
