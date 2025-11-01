@@ -19,7 +19,6 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _bodyController = TextEditingController();
-  final _firebaseServerKeyController = TextEditingController();
 
   NotificationType _selectedType = NotificationType.general;
   NotificationTarget _selectedTarget = NotificationTarget.topic;
@@ -41,7 +40,6 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
   void dispose() {
     _titleController.dispose();
     _bodyController.dispose();
-    _firebaseServerKeyController.dispose();
     super.dispose();
   }
 
@@ -93,15 +91,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
       return;
     }
 
-    if (_firebaseServerKeyController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Firebase Server Key is required to send notifications'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
+    // No need for Firebase Server Key - using n8n webhook instead
 
     // Show loading dialog
     showDialog<void>(
@@ -128,12 +118,12 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
       // Clear form
       _titleController.clear();
       _bodyController.clear();
-      _firebaseServerKeyController.clear();
       setState(() {
         _selectedUserId = null;
         _selectedTopic = null;
       });
     } catch (e) {
+      debugPrint('Error sending notification: $e');
       if (!mounted) return;
       Navigator.of(context).pop(); // Close loading
 
@@ -152,30 +142,12 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
       body: _bodyController.text,
       type: _selectedType,
       target: _selectedTarget,
-      targetValue:
-          _selectedTarget == NotificationTarget.user ? _selectedUserId : _selectedTopic,
+      targetValue: _selectedTarget == NotificationTarget.user ? _selectedUserId : _selectedTopic,
       deepLinkData: _buildDeepLinkData(),
     );
 
-    final payload = notification.toFcmPayload();
-
-    // Add target (token or topic)
-    if (_selectedTarget == NotificationTarget.user && _selectedUserId != null) {
-      // Get user's FCM token from PocketBase
-      final userRecord = await _pbService.getUser(_selectedUserId!);
-      final fcmToken = userRecord?.data['fcm_token'] as String?;
-
-      if (fcmToken == null || fcmToken.isEmpty) {
-        throw Exception('User does not have an FCM token registered');
-      }
-
-      payload['to'] = fcmToken;
-    } else if (_selectedTopic != null) {
-      payload['to'] = '/topics/$_selectedTopic';
-    }
-
-    // Send to FCM REST API
-    await _sendFcmRestRequest(payload);
+    // Send directly to n8n webhook (credentials already handled in n8n)
+    await _sendToN8nWebhook(notification);
   }
 
   Map<String, dynamic>? _buildDeepLinkData() {
@@ -192,17 +164,47 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
     }
   }
 
-  Future<void> _sendFcmRestRequest(Map<String, dynamic> payload) async {
-    final serverKey = _firebaseServerKeyController.text;
+  /// Sends notification to n8n webhook which handles FCM HTTP v1 API
+  Future<void> _sendToN8nWebhook(PushNotification notification) async {
     final dio = getIt<Dio>();
 
+    // Build payload for n8n webhook
+    final Map<String, dynamic> n8nPayload = {
+      'title': notification.title,
+      'body': notification.body,
+      'type': notification.type.toString().split('.').last, // e.g., 'meeting', 'announcement'
+      'target': notification.target.toString().split('.').last, // 'user' or 'topic'
+    };
+
+    // Add target-specific data
+    if (notification.target == NotificationTarget.user && _selectedUserId != null) {
+      // Get user's FCM token from PocketBase
+      final userRecord = await _pbService.getUser(_selectedUserId!);
+      final fcmToken = userRecord?.data['fcm_token'] as String?;
+
+      if (fcmToken == null || fcmToken.isEmpty) {
+        throw Exception('User does not have an FCM token registered');
+      }
+
+      n8nPayload['fcmToken'] = fcmToken;
+    } else if (_selectedTopic != null) {
+      n8nPayload['topic'] = _selectedTopic;
+    }
+
+    // Add deep link data if available
+    if (notification.deepLinkData != null) {
+      n8nPayload['data'] = notification.deepLinkData;
+    }
+
     try {
+      debugPrint('Sending notification to n8n: $n8nPayload');
+
+      // Send to n8n webhook
       final response = await dio.post<Map<String, dynamic>>(
-        'https://fcm.googleapis.com/fcm/send',
-        data: payload,
+        'https://n8n.lexserver.org/webhook/fcm-push-notification',
+        data: n8nPayload,
         options: Options(
           headers: {
-            'Authorization': 'key=$serverKey',
             'Content-Type': 'application/json',
           },
           sendTimeout: const Duration(seconds: 30),
@@ -210,20 +212,154 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
         ),
       );
 
-      if (response.data != null && response.data!.containsKey('message_id')) {
-        // Success
-        debugPrint('FCM notification sent successfully: ${response.data}');
+      debugPrint('n8n response status: ${response.statusCode}');
+      debugPrint('n8n response data: ${response.data}');
+
+      // Check response from n8n
+      if (response.data != null) {
+        // n8n may return data as an array (list) or object
+        dynamic responseData = response.data;
+
+        // If response is an array, get the first element
+        if (responseData is List && responseData.isNotEmpty) {
+          responseData = responseData.first;
+          debugPrint('n8n returned array response, using first element: $responseData');
+        }
+
+        // Ensure we have a Map to work with
+        if (responseData is! Map) {
+          // If status is 200, assume success even if format is unexpected
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            debugPrint('n8n returned status ${response.statusCode} with unexpected format - assuming success');
+            return;
+          }
+          throw Exception('Unexpected response format from n8n: ${response.data}');
+        }
+
+        final dataMap = responseData as Map<String, dynamic>;
+
+        // Check for success flag (standard format)
+        final success = dataMap['success'] as bool?;
+
+        if (success == true) {
+          final message = dataMap['message']?.toString();
+          final messageId = dataMap['messageId']?.toString();
+          debugPrint('Notification sent successfully via n8n');
+          if (message != null) debugPrint('Message: $message');
+          if (messageId != null) debugPrint('Message ID: $messageId');
+          return; // Success!
+        }
+
+        // n8n may return the webhook payload itself if "Respond to Webhook"
+        // is configured to respond early or echo the request
+        // This is common when "Respond to Webhook" comes before "Send FCM Notification"
+        // If we see our payload in the response, consider it a success
+        if (dataMap.containsKey('body')) {
+          final body = dataMap['body'];
+          if (body is Map) {
+            // Check if this looks like our request being echoed back
+            final hasTitle = body.containsKey('title') && body['title'] == n8nPayload['title'];
+            final hasBody = body.containsKey('body') && body['body'] == n8nPayload['body'];
+            final hasTarget = body.containsKey('target') && body['target'] == n8nPayload['target'];
+
+            // If n8n returned our payload, it means the webhook was received
+            // Since notification was actually sent (user confirmed), this is success
+            if (hasTitle && hasBody && hasTarget) {
+              debugPrint('n8n returned webhook payload - webhook received successfully');
+              debugPrint('Note: n8n "Respond to Webhook" is responding before FCM send completes');
+              return; // Success - n8n received the request and will process it
+            }
+          }
+        }
+
+        // Also check if the response itself contains our payload fields directly
+        // Some n8n configurations return the payload at the root level
+        if (dataMap.containsKey('title') && dataMap.containsKey('body') && dataMap.containsKey('target')) {
+          final hasMatchingTitle = dataMap['title'] == n8nPayload['title'];
+          final hasMatchingBody = dataMap['body'] == n8nPayload['body'];
+          final hasMatchingTarget = dataMap['target'] == n8nPayload['target'];
+
+          if (hasMatchingTitle && hasMatchingBody && hasMatchingTarget) {
+            debugPrint('n8n returned payload directly - webhook received successfully');
+            return; // Success
+          }
+        }
+
+        // Check for explicit error
+        if (dataMap.containsKey('error')) {
+          final error = dataMap['error'];
+          String? errorMessage;
+
+          if (error is Map) {
+            errorMessage = error['message']?.toString() ?? error['status']?.toString() ?? error.toString();
+          } else {
+            errorMessage = error.toString();
+          }
+
+          throw Exception('Failed to send notification: $errorMessage');
+        }
+
+        // Check for error message (only if success is false)
+        if (dataMap.containsKey('message') && success != true) {
+          final message = dataMap['message']?.toString();
+          if (message != null && message.toLowerCase().contains('error')) {
+            throw Exception('Failed to send notification: $message');
+          }
+        }
+
+        // If we get here and status is 200, assume success (n8n received it)
+        // This handles cases where n8n doesn't return a formatted response
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          debugPrint('n8n returned status ${response.statusCode} - assuming success');
+          debugPrint('Note: Configure n8n to return {success: true} for explicit confirmation');
+          return; // Consider HTTP 200/201 as success
+        }
+
+        // Last resort: show the response for debugging
+        throw Exception('Unexpected response format from n8n. Status: ${response.statusCode}, Data: $dataMap');
       } else {
-        throw Exception('Failed to send notification: ${response.data}');
+        // No response body but status might be OK
+        if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204) {
+          debugPrint('n8n returned status ${response.statusCode} with no body - assuming success');
+          return;
+        }
+        throw Exception('No response data from n8n webhook (status: ${response.statusCode})');
       }
     } on DioException catch (e) {
-      debugPrint('FCM send error: ${e.response?.data}');
-      throw Exception('Failed to send notification: ${e.message}');
+      debugPrint('n8n webhook DioException: ${e.type}');
+      debugPrint('n8n webhook error message: ${e.message}');
+      debugPrint('n8n webhook response: ${e.response?.data}');
+      debugPrint('n8n webhook status code: ${e.response?.statusCode}');
+
+      // Extract error from response if available
+      String errorMessage = e.message ?? 'Network error';
+
+      if (e.response?.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map) {
+          final error = responseData['error'] ?? responseData['message'];
+          if (error != null) {
+            errorMessage = error.toString();
+          } else {
+            errorMessage = 'HTTP ${e.response?.statusCode}: ${responseData.toString()}';
+          }
+        } else {
+          errorMessage = 'HTTP ${e.response?.statusCode}: ${responseData.toString()}';
+        }
+      } else if (e.response?.statusCode != null) {
+        errorMessage = 'HTTP ${e.response?.statusCode}: ${e.message}';
+      }
+
+      throw Exception('Failed to send notification: $errorMessage');
+    } catch (e) {
+      debugPrint('Unexpected error sending notification: $e');
+      rethrow;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Send Push Notification'),
@@ -236,10 +372,12 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
             // Title
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
+              style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface),
+              decoration: InputDecoration(
                 labelText: 'Title',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.title),
+                labelStyle: TextStyle(fontSize: 14.sp),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.title),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -253,10 +391,12 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
             // Body
             TextFormField(
               controller: _bodyController,
-              decoration: const InputDecoration(
+              style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface),
+              decoration: InputDecoration(
                 labelText: 'Message Body',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.message),
+                labelStyle: TextStyle(fontSize: 14.sp),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.message),
               ),
               maxLines: 4,
               validator: (value) {
@@ -271,15 +411,18 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
             // Type
             DropdownButtonFormField<NotificationType>(
               value: _selectedType,
-              decoration: const InputDecoration(
+              style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface),
+              decoration: InputDecoration(
                 labelText: 'Notification Type',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.category),
+                labelStyle: TextStyle(fontSize: 14.sp),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.category),
               ),
               items: NotificationType.values.map((type) {
                 return DropdownMenuItem(
                   value: type,
-                  child: Text(type.value.toUpperCase()),
+                  child: Text(type.value.toUpperCase(),
+                      style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface)),
                 );
               }).toList(),
               onChanged: (value) {
@@ -295,19 +438,22 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
             // Target type (user or topic)
             DropdownButtonFormField<NotificationTarget>(
               value: _selectedTarget,
-              decoration: const InputDecoration(
+              style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface),
+              decoration: InputDecoration(
                 labelText: 'Send To',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.group),
+                labelStyle: TextStyle(fontSize: 14.sp),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.group),
               ),
               items: [
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: NotificationTarget.topic,
-                  child: Text('All Members (Topic)'),
+                  child: Text('All Members (Topic)',
+                      style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface)),
                 ),
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: NotificationTarget.user,
-                  child: Text('Specific User'),
+                  child: Text('Specific User', style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface)),
                 ),
               ],
               onChanged: (value) {
@@ -326,23 +472,25 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
             if (_selectedTarget == NotificationTarget.topic) ...[
               DropdownButtonFormField<String>(
                 value: _selectedTopic,
-                decoration: const InputDecoration(
+                style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface),
+                decoration: InputDecoration(
                   labelText: 'Topic',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.campaign),
+                  labelStyle: TextStyle(fontSize: 14.sp),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.campaign),
                 ),
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: 'announcements',
-                    child: Text('Announcements'),
+                    child: Text('Announcements', style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface)),
                   ),
                   DropdownMenuItem(
                     value: 'meetings',
-                    child: Text('Meetings'),
+                    child: Text('Meetings', style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface)),
                   ),
                   DropdownMenuItem(
                     value: 'urgent',
-                    child: Text('Urgent'),
+                    child: Text('Urgent', style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface)),
                   ),
                 ],
                 onChanged: (value) {
@@ -363,24 +511,27 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
               else
                 DropdownButtonFormField<String>(
                   value: _selectedUserId,
-                  decoration: const InputDecoration(
+                  style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface),
+                  decoration: InputDecoration(
                     labelText: 'Select User',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
+                    labelStyle: TextStyle(fontSize: 14.sp),
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.person),
                   ),
                   items: _users.map((user) {
-                    final name =
-                        '${user.data['firstName'] ?? ''} ${user.data['lastName'] ?? ''}';
+                    final name = '${user.data['firstName'] ?? ''} ${user.data['lastName'] ?? ''}';
                     final email = user.data['email'] ?? '';
                     return DropdownMenuItem<String>(
                       value: user.id,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(name.trim(), overflow: TextOverflow.ellipsis),
+                          Text(name.trim(),
+                              style: TextStyle(fontSize: 14.sp, color: theme.colorScheme.onSurface),
+                              overflow: TextOverflow.ellipsis),
                           Text(
                             email.toString(),
-                            style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+                            style: TextStyle(fontSize: 12.sp, color: theme.colorScheme.onSurfaceVariant),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -402,30 +553,9 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
             ],
             SizedBox(height: 16.h),
 
-            // Firebase Server Key (for admin)
-            TextFormField(
-              controller: _firebaseServerKeyController,
-              decoration: InputDecoration(
-                labelText: 'Firebase Server Key',
-                hintText: 'Get from Firebase Console > Project Settings > Cloud Messaging',
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.key),
-                helperText:
-                    'Required to send notifications via FCM REST API',
-              ),
-              obscureText: true,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Firebase Server Key is required';
-                }
-                return null;
-              },
-            ),
-            SizedBox(height: 24.h),
-
             // Info card
             Card(
-              color: Colors.blue.shade50,
+              color: Colors.green.shade50,
               child: Padding(
                 padding: EdgeInsets.all(16.w),
                 child: Column(
@@ -433,22 +563,22 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.blue.shade700),
+                        Icon(Icons.cloud_done, color: Colors.green.shade700),
                         SizedBox(width: 8.w),
                         Text(
-                          'Note',
+                          'Using n8n Webhook',
                           style: TextStyle(
-                            fontSize: 16.sp,
+                            fontSize: 14.sp,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue.shade700,
+                            color: Colors.green.shade700,
                           ),
                         ),
                       ],
                     ),
                     SizedBox(height: 8.h),
                     Text(
-                      'Firebase Server Key is required to send notifications from the admin panel. You can find it in Firebase Console under Project Settings > Cloud Messaging > Server Key.',
-                      style: TextStyle(fontSize: 14.sp),
+                      'Notifications are sent via n8n webhook using FCM HTTP v1 API with Google Service Account credentials. No Firebase Server Key needed!',
+                      style: TextStyle(fontSize: 12.sp, color: theme.colorScheme.onSurface),
                     ),
                   ],
                 ),
@@ -460,7 +590,7 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
             ElevatedButton.icon(
               onPressed: _sendNotification,
               icon: const Icon(Icons.send),
-              label: const Text('Send Notification'),
+              label: Text('Send Notification', style: TextStyle(fontSize: 14.sp)),
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 16.h),
               ),
@@ -471,4 +601,3 @@ class _SendNotificationPageState extends State<SendNotificationPage> {
     );
   }
 }
-

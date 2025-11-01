@@ -24,14 +24,18 @@ class VersionCheckCubit extends Cubit<VersionCheckState> {
   /// Compares current app version with minimum required version from
   /// PocketBase configuration.
   Future<void> checkForUpdates() async {
+    if (isClosed) return;
     emit(const VersionCheckLoading());
 
     try {
       final config = await _versionRepository.fetchVersionConfig();
 
+      // Check if cubit was closed during async operation
+      if (isClosed) return;
+
       // If no config found or version checking is disabled, consider up-to-date
       if (config == null) {
-        emit(const VersionCheckUpToDate());
+        if (!isClosed) emit(const VersionCheckUpToDate());
         return;
       }
 
@@ -59,21 +63,29 @@ class VersionCheckCubit extends Cubit<VersionCheckState> {
 
       print('VersionCheck: Needs update: $needsUpdate');
 
+      // Check if cubit was closed during async operation
+      if (isClosed) return;
+
       if (!needsUpdate) {
-        emit(const VersionCheckUpToDate());
+        if (!isClosed) emit(const VersionCheckUpToDate());
         return;
       }
 
       // Update is required
-      emit(
-        VersionCheckUpdateAvailable(
-          config: config,
-          isForced: config.forceUpdate,
-        ),
-      );
+      if (!isClosed) {
+        emit(
+          VersionCheckUpdateAvailable(
+            config: config,
+            isForced: config.forceUpdate,
+          ),
+        );
+      }
     } catch (e) {
       // On error, silently pass to not disrupt app usage
-      emit(VersionCheckError(message: e.toString()));
+      // Only emit if cubit is still open
+      if (!isClosed) {
+        emit(VersionCheckError(message: e.toString()));
+      }
     }
   }
 }
