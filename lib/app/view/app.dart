@@ -227,28 +227,8 @@ class _AppViewState extends State<AppView> {
       final notificationService = getIt<NotificationService>();
       log('AppView: NotificationService retrieved from GetIt');
 
-      // Configure foreground notification display
-      log('AppView: Step 1: Setting foreground notification presentation options...');
-      try {
-        await FirebaseMessaging.instance
-            .setForegroundNotificationPresentationOptions(
-          alert: true,
-          badge: true,
-          sound: true,
-        )
-            .timeout(
-          const Duration(seconds: 5),
-          onTimeout: () {
-            log('AppView: setForegroundNotificationPresentationOptions TIMEOUT');
-          },
-        );
-        log('AppView: Foreground notification presentation options set');
-      } catch (e) {
-        log('AppView: Error setting foreground notification options: $e');
-      }
-
       // Listen for foreground messages
-      log('AppView: Step 2: Setting up foreground message listener...');
+      log('AppView: Step 1: Setting up foreground message listener...');
       try {
         FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
         log('AppView: Foreground message listener set up successfully');
@@ -257,7 +237,7 @@ class _AppViewState extends State<AppView> {
       }
 
       // Configure notification tap when app is in background or terminated
-      log('AppView: Step 3: Setting up onMessageOpenedApp listener...');
+      log('AppView: Step 2: Setting up onMessageOpenedApp listener...');
       try {
         FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
         log('AppView: onMessageOpenedApp listener set up successfully');
@@ -266,7 +246,7 @@ class _AppViewState extends State<AppView> {
       }
 
       // Check if app was opened from a notification
-      log('AppView: Step 4: Checking for initial message...');
+      log('AppView: Step 3: Checking for initial message...');
       try {
         final initialMessage = await notificationService.getInitialMessage().timeout(
           const Duration(seconds: 5),
@@ -300,7 +280,6 @@ class _AppViewState extends State<AppView> {
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
     // Show notification even when app is in foreground
-    // The OS handles this automatically based on setForegroundNotificationPresentationOptions
     print('');
     print('========================================');
     print('FOREGROUND MESSAGE RECEIVED!');
@@ -314,6 +293,16 @@ class _AppViewState extends State<AppView> {
     log('AppView: Click Action: ${message.notification?.android?.clickAction}');
     log('AppView: Data: ${message.data}');
     log('AppView: Notification data: ${message.notification?.toMap()}');
+    
+    // Display local notification for foreground messages
+    try {
+      final notificationService = getIt<NotificationService>();
+      await notificationService.showLocalNotification(message);
+      log('AppView: Local notification displayed');
+    } catch (e) {
+      log('AppView: Error displaying local notification: $e');
+    }
+    
     log('AppView: ===== END FOREGROUND MESSAGE HANDLER =====');
     print('========================================');
     print('');

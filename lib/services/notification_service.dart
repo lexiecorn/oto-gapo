@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:authentication_repository/src/pocketbase_auth_repository.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 /// Service for managing Firebase Cloud Messaging (FCM) notifications.
@@ -12,6 +13,7 @@ import 'package:pocketbase/pocketbase.dart';
 /// - Topic subscriptions
 /// - Notification permission management
 /// - Token updates and synchronization with PocketBase
+/// - Local notifications display (for foreground messages on Android)
 ///
 /// Example:
 /// ```dart
@@ -25,6 +27,7 @@ class NotificationService {
   }
 
   late final FirebaseMessaging _firebaseMessaging;
+  late final FlutterLocalNotificationsPlugin _localNotifications;
   String? _currentToken;
 
   /// Get PocketBase instance from singleton
@@ -40,6 +43,35 @@ class NotificationService {
     try {
       log('NotificationService: ===== STARTING INITIALIZATION =====');
       log('NotificationService: FirebaseMessaging instance created');
+
+      // Initialize local notifications plugin for foreground notification display
+      log('NotificationService: Initializing FlutterLocalNotificationsPlugin...');
+      _localNotifications = FlutterLocalNotificationsPlugin();
+      
+      // Android initialization settings
+      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      
+      // iOS initialization settings (optional, but required for initialization)
+      const iosSettings = DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
+      
+      const initSettings = InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      );
+      
+      // Initialize the plugin
+      final initialized = await _localNotifications.initialize(
+        initSettings,
+        onDidReceiveNotificationResponse: (NotificationResponse details) {
+          log('NotificationService: Local notification tapped: ${details.payload}');
+        },
+      );
+      
+      log('NotificationService: Local notifications initialized: $initialized');
 
       // Request notification permissions
       log('NotificationService: Step 1: Requesting permissions...');
@@ -440,6 +472,46 @@ class NotificationService {
     } catch (e) {
       log('NotificationService: Error getting initial message: $e');
       return null;
+    }
+  }
+
+  /// Displays a local notification for foreground messages.
+  /// This is required on Android to show notifications when app is in foreground.
+  Future<void> showLocalNotification(RemoteMessage message) async {
+    try {
+      final androidDetails = AndroidNotificationDetails(
+        'otogapo_notifications',
+        'OtoGapo Notifications',
+        channelDescription: 'OtoGapo push notifications',
+        importance: Importance.high,
+        priority: Priority.high,
+        showWhen: true,
+        enableVibration: true,
+        playSound: true,
+      );
+
+      final iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+
+      final notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _localNotifications.show(
+        message.hashCode,
+        message.notification?.title ?? 'New Notification',
+        message.notification?.body ?? 'You have a new message',
+        notificationDetails,
+        payload: message.messageId,
+      );
+
+      log('NotificationService: Local notification displayed successfully');
+    } catch (e) {
+      log('NotificationService: Error displaying local notification: $e');
     }
   }
 }
