@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,6 +7,7 @@ import 'package:otogapo/app/modules/auth/auth_bloc.dart';
 import 'package:otogapo/app/modules/profile/bloc/profile_cubit.dart';
 import 'package:otogapo/app/widgets/carousel_view_from_pocketbase.dart';
 import 'package:otogapo/app/widgets/otogapo_navigation_cards.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @RoutePage(
   name: 'HomeBodyRouter',
@@ -19,6 +21,9 @@ class HomeBody extends StatefulWidget {
 
 class HomeBodyState extends State<HomeBody> {
   final ScrollController _announcementScrolllController = ScrollController();
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isMuted = false;
+
   @override
   void initState() {
     super.initState();
@@ -26,6 +31,9 @@ class HomeBodyState extends State<HomeBody> {
     _announcementScrolllController.addListener(() {
       setState(() {});
     });
+
+    // Initialize audio
+    _initializeAudio();
 
     // Add debugging for authenticated user
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -39,6 +47,46 @@ class HomeBodyState extends State<HomeBody> {
     });
   }
 
+  Future<void> _initializeAudio() async {
+    try {
+      // Load mute preference
+      final prefs = await SharedPreferences.getInstance();
+      _isMuted = prefs.getBool('otogapo_audio_muted') ?? false;
+
+      // Configure audio player for looping
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+
+      // Start playing the audio
+      await _audioPlayer.play(AssetSource('otogapo-song.mp3'));
+
+      // Apply initial mute state
+      await _audioPlayer.setVolume(_isMuted ? 0.0 : 1.0);
+    } catch (e) {
+      print('Error initializing audio: $e');
+    }
+  }
+
+  Future<void> _toggleMute() async {
+    final newMutedState = !_isMuted;
+    setState(() {
+      _isMuted = newMutedState;
+    });
+
+    // Update volume
+    await _audioPlayer.setVolume(_isMuted ? 0.0 : 1.0);
+
+    // Save preference
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('otogapo_audio_muted', _isMuted);
+  }
+
+  @override
+  void dispose() {
+    _announcementScrolllController.dispose();
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Theme(
@@ -50,6 +98,14 @@ class HomeBodyState extends State<HomeBody> {
       ),
       child: Scaffold(
         backgroundColor: Colors.black,
+        floatingActionButton: FloatingActionButton(
+          onPressed: _toggleMute,
+          backgroundColor: Colors.black.withOpacity(0.7),
+          child: Icon(
+            _isMuted ? Icons.volume_off : Icons.volume_up,
+            color: Colors.white,
+          ),
+        ),
         body: BlocConsumer<ProfileCubit, ProfileState>(
           listener: (context, state) {},
           builder: (context, state) {
