@@ -198,14 +198,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     });
 
-    // Check for existing authentication on startup
-    // (after all handlers are registered)
-    _checkExistingAuth();
-  }
-
-  /// Check for existing authentication on startup
-  void _checkExistingAuth() {
-    add(CheckExistingAuthEvent());
+    // Note: CheckExistingAuthEvent removed - the user stream automatically
+    // emits the current auth state on subscription
   }
 
   @override

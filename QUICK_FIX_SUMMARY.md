@@ -54,3 +54,5 @@ Check these logs:
 3. `MainActivity: Notification channel created`
 4. `NotificationService: Foreground message received:` (if app open)
 
+
+

@@ -1,0 +1,78 @@
+USER REGISTRATION FORM
+
+PERSONAL INFORMATION
+
+First Name*: _______________
+
+Last Name*: _______________
+
+Middle Name: _______________
+
+Email Address*: _______________
+
+Password*: _______________
+
+Birth Date: _______________
+(Format: YYYY-MM-DD)
+
+Age: _______________
+
+Birthplace: _______________
+
+Gender: _______________
+
+Nationality: _______________
+
+Religion: _______________
+
+Civil Status: _______________
+(Single, Married, Widowed, Divorced, etc.)
+
+Blood Type: _______________
+
+Contact Number: _______________
+
+
+DRIVER'S LICENSE INFORMATION
+
+Driver's License Number: _______________
+
+License Expiration Date: _______________
+(Format: YYYY-MM-DD)
+
+License Restriction Code: _______________
+
+
+EMERGENCY CONTACT INFORMATION
+
+Emergency Contact Name: _______________
+
+Emergency Contact Number: _______________
+
+
+SPOUSE INFORMATION (if applicable)
+
+Spouse Name: _______________
+
+Spouse Contact Number: _______________
+
+
+MEMBERSHIP INFORMATION
+
+Member Number: _______________
+
+Membership Type: _______________
+(Enter number: 1, 2, 3, etc.)
+
+
+ADDITIONAL INFORMATION
+
+Profile Image: _______________
+(Path or URL to image file)
+
+
+NOTES:
+* = Required Field
+
+Date Completed: _______________   Signature: _______________
+

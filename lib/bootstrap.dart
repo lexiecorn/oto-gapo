@@ -188,18 +188,12 @@ Future<void> bootstrap(
   Hive.registerAdapter(OfflineActionTypeAdapter());
   Hive.registerAdapter(CachedAnnouncementAdapter());
 
-  // Initialize Connectivity, Sync, and Notification services AFTER Hive is ready
+  // Initialize SharedPreferences for version check service
+  final sharedPreferences = await SharedPreferences.getInstance();
+
+  // Initialize Connectivity and Sync services AFTER Hive is ready
   final connectivityService = ConnectivityService();
   final syncService = SyncService();
-  final notificationService = NotificationService();
-
-  // Initialize notification service
-  try {
-    await notificationService.initialize();
-    log('Notification service initialized successfully');
-  } catch (e) {
-    log('Notification service initialization error: $e - continuing with app startup');
-  }
 
   // Add timeout to sync service initialization
   try {
@@ -213,21 +207,6 @@ Future<void> bootstrap(
   } catch (e) {
     log('Sync service initialization error: $e - continuing with app startup');
   }
-
-  // Initialize SharedPreferences for version check service
-  final sharedPreferences = await SharedPreferences.getInstance();
-
-  // Initialized the router.
-  getIt
-    // Make the dio client available globally.
-    ..registerSingleton<AppRouter>(AppRouter())
-    ..registerSingleton<Dio>(dio)
-    ..registerSingleton<PocketBaseService>(pocketBaseService)
-    ..registerSingleton<ConnectivityService>(connectivityService)
-    ..registerSingleton<SyncService>(syncService)
-    ..registerSingleton<NotificationService>(notificationService)
-    ..registerSingleton<SharedPreferences>(sharedPreferences)
-    ..registerSingleton<PackageInfo>(packageInfo);
 
   // Initialize repositories
   final authRepository = AuthRepository(
@@ -257,10 +236,29 @@ Future<void> bootstrap(
     await PerformanceHelper.stopTrace(pbInitTrace);
   }
 
-  // Register repositories in GetIt
+  // Register repositories in GetIt BEFORE initializing NotificationService
   getIt
+    ..registerSingleton<AppRouter>(AppRouter())
+    ..registerSingleton<Dio>(dio)
+    ..registerSingleton<PocketBaseService>(pocketBaseService)
+    ..registerSingleton<ConnectivityService>(connectivityService)
+    ..registerSingleton<SyncService>(syncService)
+    ..registerSingleton<SharedPreferences>(sharedPreferences)
+    ..registerSingleton<PackageInfo>(packageInfo)
     ..registerSingleton<AuthRepository>(authRepository)
     ..registerSingleton<PocketBaseAuthRepository>(pocketBaseAuthRepository);
+
+  // NOW initialize NotificationService AFTER PocketBase is ready
+  final notificationService = NotificationService();
+  try {
+    await notificationService.initialize();
+    log('Notification service initialized successfully');
+  } catch (e) {
+    log('Notification service initialization error: $e - continuing with app startup');
+  }
+  
+  // Register NotificationService in GetIt
+  getIt.registerSingleton<NotificationService>(notificationService);
 
   // PocketBase is now initialized with persistent auth store
   final appWidget = await builder(
