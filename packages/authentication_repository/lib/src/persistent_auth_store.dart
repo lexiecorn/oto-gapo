@@ -21,15 +21,23 @@ class PersistentAuthStore {
   Future<AsyncAuthStore> createAuthStore() async {
     // Load initial auth data from storage
     final initialData = await _storage.read<String>(_authKey);
+    
+    print('PersistentAuthStore: Loading auth data from storage');
+    print('PersistentAuthStore: Initial data present: ${initialData != null && initialData.isNotEmpty}');
+    if (initialData != null && initialData.isNotEmpty) {
+      print('PersistentAuthStore: Initial data length: ${initialData.length}');
+    }
 
     return AsyncAuthStore(
       save: (String data) async {
         // Persist auth data to storage
+        print('PersistentAuthStore: Saving auth data to storage (length: ${data.length})');
         await _storage.write(_authKey, data);
       },
       initial: initialData,
       clear: () async {
         // Clear auth data from storage
+        print('PersistentAuthStore: Clearing auth data from storage');
         await _storage.write(_authKey, '');
       },
     );

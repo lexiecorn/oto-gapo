@@ -23,6 +23,7 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> {
   Timer? _timeoutTimer;
+  bool _hasNavigated = false;
 
   @override
   void initState() {
@@ -31,18 +32,18 @@ class _SplashPageState extends State<SplashPage> {
 
     // Set a safety timeout to prevent infinite loading (increased for production stability)
     _timeoutTimer = Timer(const Duration(seconds: 5), () {
-      if (mounted) {
+      if (mounted && !_hasNavigated) {
+        _hasNavigated = true;
         DebugHelper.log('SplashPage - TIMEOUT: Force navigating to signin');
         // Force navigation to signin if auth check takes too long
         AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
       }
     });
 
-    // Trigger auth check immediately when SplashPage is mounted
-    // This ensures we check auth state right away, especially after OAuth
+    // Trigger auth check to ensure we get auth state (stream may already have emitted)
     Future.microtask(() {
       if (mounted) {
-        debugPrint('SplashPage - initState: Triggering CheckExistingAuthEvent');
+        debugPrint('SplashPage - initState: Triggering CheckExistingAuthEvent as backup');
         context.read<AuthBloc>().add(CheckExistingAuthEvent());
       }
     });
@@ -66,53 +67,84 @@ class _SplashPageState extends State<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('SplashPage - Building widget');
+    
+    // Check if auth state is already known when building (may have been emitted before listener registered)
+    final authState = context.read<AuthBloc>().state;
+    debugPrint('SplashPage - Current auth status when building: ${authState.authStatus}');
+    
+    // If already authenticated or unauthenticated, handle it immediately
+    if (!_hasNavigated) {
+      if (authState.authStatus == AuthStatus.authenticated) {
+        _hasNavigated = true;
+        Future.microtask(() {
+          if (mounted) {
+            debugPrint('SplashPage - Already authenticated when building, navigating to intro');
+            AutoRouter.of(context).replaceAll([const IntroPageRouter()]);
+          }
+        });
+      } else if (authState.authStatus == AuthStatus.unauthenticated) {
+        _hasNavigated = true;
+        Future.microtask(() {
+          if (mounted) {
+            debugPrint('SplashPage - Already unauthenticated when building, navigating to signin');
+            AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
+          }
+        });
+      }
+    }
+    
     return BlocConsumer<AuthBloc, AuthState>(
       // Listen to every state change to avoid missing transitions
       listenWhen: (previous, current) {
         // Always listen to state changes
         debugPrint(
-          'SplashPage - State change: ${previous.authStatus} -> ${current.authStatus}',
+          'SplashPage - listenWhen: ${previous.authStatus} -> ${current.authStatus}',
         );
         return true;
       },
       listener: (context, state) {
-        debugPrint('SplashPage - Auth state changed: ${state.authStatus}');
+        debugPrint('SplashPage - listener triggered: ${state.authStatus}');
         debugPrint('SplashPage - User: ${state.user?.data['email']}');
         debugPrint('SplashPage - Mounted: $mounted');
 
-        // Only navigate when we have a definitive auth status
-        if (state.authStatus == AuthStatus.unauthenticated) {
-          _timeoutTimer?.cancel();
-          debugPrint('SplashPage - Navigating to signin page');
-          // Use a small delay to ensure any pending state changes complete
-          Future.microtask(() {
-            if (context.mounted) {
-              AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
+        // Only navigate when we have a definitive auth status and haven't navigated yet
+        if (!_hasNavigated) {
+          if (state.authStatus == AuthStatus.unauthenticated) {
+            _hasNavigated = true;
+            _timeoutTimer?.cancel();
+            debugPrint('SplashPage - Navigating to signin page');
+            // Use a small delay to ensure any pending state changes complete
+            Future.microtask(() {
+              if (context.mounted) {
+                AutoRouter.of(context).replaceAll([const SigninPageRouter()]);
+              }
+            });
+          } else if (state.authStatus == AuthStatus.authenticated) {
+            _hasNavigated = true;
+            _timeoutTimer?.cancel();
+            debugPrint('SplashPage - User authenticated, saving FCM token');
+            
+            // Save FCM token now that user is authenticated
+            try {
+              final notificationService = getIt<NotificationService>();
+              notificationService.saveCurrentTokenIfAuthenticated();
+              debugPrint('SplashPage - FCM token save initiated');
+            } catch (e) {
+              debugPrint('SplashPage - Error saving FCM token: $e');
             }
-          });
-        } else if (state.authStatus == AuthStatus.authenticated) {
-          _timeoutTimer?.cancel();
-          debugPrint('SplashPage - User authenticated, saving FCM token');
-          
-          // Save FCM token now that user is authenticated
-          try {
-            final notificationService = getIt<NotificationService>();
-            notificationService.saveCurrentTokenIfAuthenticated();
-            debugPrint('SplashPage - FCM token save initiated');
-          } catch (e) {
-            debugPrint('SplashPage - Error saving FCM token: $e');
+            
+            debugPrint('SplashPage - Navigating to intro page');
+            Future.microtask(() {
+              if (context.mounted) {
+                AutoRouter.of(context).replaceAll([const IntroPageRouter()]);
+              }
+            });
+          } else {
+            debugPrint(
+              'SplashPage - Auth status is unknown, keeping loading state',
+            );
           }
-          
-          debugPrint('SplashPage - Navigating to intro page');
-          Future.microtask(() {
-            if (context.mounted) {
-              AutoRouter.of(context).replaceAll([const IntroPageRouter()]);
-            }
-          });
-        } else {
-          debugPrint(
-            'SplashPage - Auth status is unknown, keeping loading state',
-          );
         }
         // If status is still unknown, keep showing loading
       },

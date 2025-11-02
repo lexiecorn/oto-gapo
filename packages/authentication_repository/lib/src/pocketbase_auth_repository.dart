@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:authentication_repository/src/models/auth_failure.dart';
 import 'package:authentication_repository/src/persistent_auth_store.dart';
 import 'package:flutter_flavor/flutter_flavor.dart';
@@ -19,6 +21,9 @@ class PocketBaseAuthRepository {
   PocketBase? _pocketBase;
   bool _isInitialized = false;
   LocalStorage? _storage;
+  StreamController<RecordModel?>? _userStreamController;
+  Timer? _userStreamTimer;
+  bool _userStreamInitialEmitted = false;
 
   /// Initialize PocketBase with persistent auth store.
   ///
@@ -32,15 +37,25 @@ class PocketBaseAuthRepository {
     try {
       // If storage is available, use persistent auth store
       if (_storage != null) {
+        print('PocketBaseAuthRepository: Initializing with persistent auth store');
         final persistentStore = PersistentAuthStore(_storage!);
         final authStore = await persistentStore.createAuthStore();
         _pocketBase = PocketBase(url, authStore: authStore);
+        print('PocketBaseAuthRepository: Initialized with persistent auth store');
+
+        // Log auth status after initialization
+        if (_pocketBase != null) {
+          print('PocketBaseAuthRepository: Auth store valid: ${_pocketBase!.authStore.isValid}');
+          print('PocketBaseAuthRepository: Auth model: ${_pocketBase!.authStore.model}');
+        }
       } else {
         // Fallback to default auth store if storage is not available
+        print('PocketBaseAuthRepository: Initializing with default auth store (no storage)');
         _pocketBase = PocketBase(url);
       }
 
       _isInitialized = true;
+      print('PocketBaseAuthRepository: Initialization complete');
     } catch (e) {
       // If initialization fails, create a basic PocketBase instance
       // This prevents the app from hanging on network issues
@@ -51,55 +66,58 @@ class PocketBaseAuthRepository {
   }
 
   PocketBase get pocketBase {
-    if (!_isInitialized) {
-      // Lazy initialization - initialize on first access
-      _initializeSync();
+    if (!_isInitialized || _pocketBase == null) {
+      throw StateError(
+        'PocketBase not initialized. Call initialize() first. '
+        'This should be called during bootstrap.',
+      );
     }
     return _pocketBase!;
   }
 
-  /// Synchronous initialization for lazy loading
-  void _initializeSync() {
-    if (_isInitialized) return;
-
-    final url = FlavorConfig.instance.variables['pocketbaseUrl'] as String? ?? 'https://pb.lexserver.org';
-
-    try {
-      // If storage is available, use persistent auth store
-      if (_storage != null) {
-        // For sync initialization, we'll use a basic auth store
-        // The persistent store will be set up when initialize() is called
-        _pocketBase = PocketBase(url);
-      } else {
-        // Fallback to default auth store if storage is not available
-        _pocketBase = PocketBase(url);
-      }
-
-      _isInitialized = true;
-    } catch (e) {
-      // If initialization fails, create a basic PocketBase instance
-      // This prevents the app from hanging on network issues
-      print('PocketBase lazy initialization failed: $e');
-      _pocketBase = PocketBase(url);
-      _isInitialized = true;
-    }
-  }
-
   /// Stream of authentication state changes
   Stream<RecordModel?> get user {
-    return Stream.periodic(const Duration(milliseconds: 500), (_) {
-      try {
-        // Check if PocketBase is initialized before accessing
-        if (!_isInitialized || _pocketBase == null) {
-          return null;
+    // Create stream controller lazily (only once)
+    _userStreamController ??= StreamController<RecordModel?>.broadcast();
+
+    // Start the polling timer if not already started
+    _userStreamTimer ??= Timer.periodic(const Duration(milliseconds: 500), (_) {
+      if (_userStreamController?.isClosed == false) {
+        try {
+          if (!_isInitialized || _pocketBase == null) {
+            _userStreamController?.add(null);
+            return;
+          }
+          _userStreamController?.add(_pocketBase!.authStore.model as RecordModel?);
+        } catch (e) {
+          print('Error accessing auth store: $e');
+          _userStreamController?.add(null);
         }
-        return _pocketBase!.authStore.model as RecordModel?;
-      } catch (e) {
-        // If there's an error accessing the auth store, return null
-        print('Error accessing auth store: $e');
-        return null;
       }
-    }).distinct();
+    });
+
+    // Emit current state with a delay to ensure listeners are registered (only once)
+    if (!_userStreamInitialEmitted) {
+      _userStreamInitialEmitted = true;
+      Future<void>.delayed(const Duration(milliseconds: 300), () {
+        if (_userStreamController?.isClosed == false) {
+          try {
+            if (_isInitialized && _pocketBase != null) {
+              print('User stream: Emitting initial auth state');
+              _userStreamController?.add(_pocketBase!.authStore.model as RecordModel?);
+            } else {
+              print('User stream: Emitting null auth state');
+              _userStreamController?.add(null);
+            }
+          } catch (e) {
+            print('Error accessing auth store: $e');
+            _userStreamController?.add(null);
+          }
+        }
+      });
+    }
+
+    return _userStreamController!.stream.distinct();
   }
 
   /// Get current authenticated user
